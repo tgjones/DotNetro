@@ -1,0 +1,18 @@
+﻿<Project>
+  <UsingTask TaskName="DotNetro.TranspileTask" AssemblyFile="DotNetro.Tasks.dll" />
+  <PropertyGroup>
+    <NESTargetPath>$(OutputPath)$(TargetName).nes</NESTargetPath>
+    <IncrementalCleanDependsOn>$(IncrementalCleanDependsOn);Transpile</IncrementalCleanDependsOn>
+  </PropertyGroup>
+  <Target Name="Transpile" AfterTargets="Build"
+      Inputs="$(TargetPath)" Outputs="$(NESTargetPath)">
+    <TranspileToNES
+        TargetPath="$(TargetPath)"
+        AssemblyFiles="@(NESAssembly)"
+        OutputPath="$(NESTargetPath)"
+        DiagnosticLogging="$(NESDiagnosticLogging)" />
+    <ItemGroup>
+      <FileWrites Include="$(NESTargetPath)" />
+    </ItemGroup>
+  </Target>
+</Project>
