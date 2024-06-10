@@ -137,6 +137,11 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
         Output.WriteLine("    JSR AddInt32");
     }
 
+    public override void WriteBr(string label)
+    {
+        Output.WriteLine($"    JMP {label}");
+    }
+
     public override void WriteCall(EcmaMethod methodToCall)
     {
         WritePopToMemory("args", methodToCall.MethodSignature.ParameterTypes.Sum(x => x.Size));

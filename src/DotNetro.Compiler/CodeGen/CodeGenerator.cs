@@ -9,15 +9,12 @@ internal abstract class CodeGenerator(StreamWriter output)
     protected StreamWriter Output { get; } = output;
 
     public abstract void WriteHeader();
-
     public abstract void WriteEntryPoint(string entryPointMethodName);
-
     public abstract void WriteFooter();
 
     public abstract void WriteStringConstant(string name, string value);
 
     public abstract void WriteMethodStart(string name);
-
     public abstract void WriteMethodEnd();
 
     public abstract void CompileSystemConsoleBeep();
@@ -29,6 +26,7 @@ internal abstract class CodeGenerator(StreamWriter output)
     public abstract void WriteComment(string text);
 
     public abstract void WriteAdd();
+    public abstract void WriteBr(string label);
     public abstract void WriteCall(EcmaMethod methodToCall);
     public abstract void WriteInitobj(TypeDescription type);
     public abstract void WriteLdarg(Parameter parameter);

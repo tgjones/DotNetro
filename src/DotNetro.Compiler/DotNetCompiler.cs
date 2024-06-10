@@ -142,9 +142,7 @@ public sealed class DotNetCompiler : IDisposable
                     break;
 
                 case ILOpCode.Br_s:
-                    var target = ilReader.ReadSByte() + ilReader.Offset;
-                    _output.WriteLine($"    ; br.s IL_{target:x4}");
-                    _output.WriteLine($"    JMP IL_{target:x4}");
+                    CompileBr(ilReader.ReadSByte() + ilReader.Offset);
                     break;
 
                 case ILOpCode.Call:
@@ -259,6 +257,14 @@ public sealed class DotNetCompiler : IDisposable
 
         _codeGenerator.WriteComment("add");
         _codeGenerator.WriteAdd();
+    }
+
+    private void CompileBr(int target)
+    {
+        var label = $"IL_{target:x4}";
+
+        _codeGenerator.WriteComment($"br.s {label}");
+        _codeGenerator.WriteBr(label);
     }
 
     private void CompileCall(EcmaMethod methodContext, Handle methodHandle)
