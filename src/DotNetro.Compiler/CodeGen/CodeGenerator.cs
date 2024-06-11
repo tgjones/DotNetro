@@ -25,9 +25,11 @@ internal abstract class CodeGenerator(StreamWriter output)
     public abstract void WriteLabel(string label);
     public abstract void WriteComment(string text);
 
-    public abstract void WriteAdd();
+    public abstract void WriteAddInt32();
     public abstract void WriteBr(string label);
+    public abstract void WriteBrtrue(TypeDescription stackObjectType, string label);
     public abstract void WriteCall(EcmaMethod methodToCall);
+    public abstract void WriteCltInt32();
     public abstract void WriteInitobj(TypeDescription type);
     public abstract void WriteLdarg(Parameter parameter);
     public abstract void WriteLdcI4(int value);
@@ -37,5 +39,5 @@ internal abstract class CodeGenerator(StreamWriter output)
     public abstract void WriteLdstr(string name);
     public abstract void WriteRet();
     public abstract void WriteStfld( EcmaField field);
-    public abstract void WriteStloc(LocalVariable local);
+    public abstract void WriteStloc(TypeDescription stackEntryType, LocalVariable local);
 }

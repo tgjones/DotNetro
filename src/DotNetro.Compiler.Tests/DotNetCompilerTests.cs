@@ -1,6 +1,8 @@
+using System.Diagnostics;
+
 namespace DotNetro.Compiler.Tests;
 
-public class MsilTo6502TranspilerTests
+public class DotNetCompilerTests
 {
     [Test]
     public void TestPrintHelloWorld()
@@ -24,17 +26,36 @@ public class MsilTo6502TranspilerTests
     [Test]
     public void TestCurrentThing()
     {
-        var outputPath = "Test.asm";
+        var outputPath = Path.GetFullPath("Test.asm");
         if (File.Exists(outputPath))
         {
             File.Delete(outputPath);
         }
 
-        DotNetCompiler.Compile(GetType().Assembly.Location, nameof(UseStruct), outputPath, null);
+        DotNetCompiler.Compile(GetType().Assembly.Location, nameof(ForLoop), outputPath, null);
 
         foreach (var line in File.ReadAllLines(outputPath))
         {
             Console.WriteLine(line);
+        }
+
+        using (var p = Process.Start(
+            "C:\\Users\\Tim\\Downloads\\beebasm-win32\\beebasm.exe",
+            $"-i \"{outputPath}\" -do \"{Path.ChangeExtension(outputPath, ".ssd")}\" -boot MyCode -v"))
+        {
+            p.WaitForExit();
+
+            if (p.ExitCode != 0)
+            {
+                throw new InvalidOperationException("Failed to compile.");
+            }
+        }
+
+        using (var p = Process.Start(
+            "C:\\Code\\Emulators\\BBC Micro\\b-em-a790022-w64\\b-em.exe",
+            Path.ChangeExtension(outputPath, ".ssd")))
+        {
+
         }
 
         // TODO: Assert something.
@@ -156,5 +177,17 @@ public class MsilTo6502TranspilerTests
     {
         public int A;
         public int B;
+    }
+
+    private static void ForLoop()
+    {
+        Console.WriteLine("Begin");
+
+        for (var i = 0; i < 5; i++)
+        {
+            Console.WriteLine(i);
+        }
+
+        Console.WriteLine("End");
     }
 }

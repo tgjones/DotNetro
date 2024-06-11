@@ -12,9 +12,9 @@ public sealed class DotNetCompiler : IDisposable
     {
         using var outputWriter = new StreamWriter(File.OpenWrite(outputPath));
 
-        using var transpiler = new DotNetCompiler(outputWriter, dotNetAssemblyPath);
+        using var compiler = new DotNetCompiler(outputWriter, dotNetAssemblyPath);
 
-        transpiler.Compile(entryPointMethodName);
+        compiler.Compile(entryPointMethodName);
     }
 
     private readonly CodeGenerator _codeGenerator;
@@ -145,8 +145,16 @@ public sealed class DotNetCompiler : IDisposable
                     CompileBr(ilReader.ReadSByte() + ilReader.Offset);
                     break;
 
+                case ILOpCode.Brtrue_s:
+                    CompileBrtrue(ilReader.ReadSByte() + ilReader.Offset);
+                    break;
+
                 case ILOpCode.Call:
                     CompileCall(methodContext, MetadataTokens.Handle(ilReader.ReadInt32()));
+                    break;
+
+                case ILOpCode.Clt:
+                    CompileClt();
                     break;
 
                 case ILOpCode.Initobj:
@@ -169,12 +177,28 @@ public sealed class DotNetCompiler : IDisposable
                     CompileLdarg(methodContext, "ldarg.3", 3);
                     break;
 
+                case ILOpCode.Ldc_i4_0:
+                    CompileLdcI4($"ldc.i4.0", 0);
+                    break;
+
                 case ILOpCode.Ldc_i4_1:
                     CompileLdcI4($"ldc.i4.1", 1);
                     break;
 
                 case ILOpCode.Ldc_i4_2:
                     CompileLdcI4($"ldc.i4.2", 2);
+                    break;
+
+                case ILOpCode.Ldc_i4_3:
+                    CompileLdcI4($"ldc.i4.3", 3);
+                    break;
+
+                case ILOpCode.Ldc_i4_4:
+                    CompileLdcI4($"ldc.i4.4", 4);
+                    break;
+
+                case ILOpCode.Ldc_i4_5:
+                    CompileLdcI4($"ldc.i4.5", 5);
                     break;
 
                 case ILOpCode.Ldc_i4_m1:
@@ -256,7 +280,7 @@ public sealed class DotNetCompiler : IDisposable
         PushStackEntry(leftType);
 
         _codeGenerator.WriteComment("add");
-        _codeGenerator.WriteAdd();
+        _codeGenerator.WriteAddInt32();
     }
 
     private void CompileBr(int target)
@@ -265,6 +289,16 @@ public sealed class DotNetCompiler : IDisposable
 
         _codeGenerator.WriteComment($"br.s {label}");
         _codeGenerator.WriteBr(label);
+    }
+
+    private void CompileBrtrue(int target)
+    {
+        var stackObjectType = PopStackEntry();
+
+        var label = $"IL_{target:x4}";
+
+        _codeGenerator.WriteComment($"brtrue.s {label}");
+        _codeGenerator.WriteBrtrue(stackObjectType, label);
     }
 
     private void CompileCall(EcmaMethod methodContext, Handle methodHandle)
@@ -288,6 +322,27 @@ public sealed class DotNetCompiler : IDisposable
 
         _codeGenerator.WriteComment($"call {methodToCall.UniqueName}");
         _codeGenerator.WriteCall(methodToCall);        
+    }
+
+    private void CompileClt()
+    {
+        var rightType = PopStackEntry();
+        var leftType = PopStackEntry();
+
+        if (leftType != rightType)
+        {
+            throw new NotSupportedException();
+        }
+
+        if (leftType is not PrimitiveType { PrimitiveTypeCode: PrimitiveTypeCode.Int32 })
+        {
+            throw new NotSupportedException();
+        }
+
+        PushStackEntry(_typeSystem.Int32);
+
+        _codeGenerator.WriteComment("clt");
+        _codeGenerator.WriteCltInt32();
     }
 
     private void CompileInitobj(EcmaMethod methodContext, EntityHandle typeHandle)
@@ -414,14 +469,10 @@ public sealed class DotNetCompiler : IDisposable
     private void CompileStloc(EcmaMethod methodContext, int index)
     {
         var local = methodContext.LocalVariables[index];
-
-        if (PopStackEntry() != local.Type)
-        {
-            throw new InvalidOperationException();
-        }
+        var stackEntryType = PopStackEntry();
 
         _codeGenerator.WriteComment($"stloc.{local.Index}");
-        _codeGenerator.WriteStloc(local);
+        _codeGenerator.WriteStloc(stackEntryType, local);
     }
 
     private void PushStackEntry(TypeDescription type) => _stack.Push(type);

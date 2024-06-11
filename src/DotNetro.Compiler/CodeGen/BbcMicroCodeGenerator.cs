@@ -3,6 +3,14 @@
 internal sealed class BbcMicroCodeGenerator(StreamWriter output)
     : M6502CodeGenerator(output)
 {
+    protected override void WriteSystemConstants()
+    {
+        Output.WriteLine("oswrch = &FFEE");
+        Output.WriteLine("osasci = &FFE3");
+        Output.WriteLine("osword = &FFF1");
+        Output.WriteLine();
+    }
+
     protected override void WriteStartupCode()
     {
         Output.WriteLine("    ; Enable MODE 7");

@@ -1,10 +1,10 @@
 ﻿<Project>
-  <UsingTask TaskName="DotNetro.TranspileTask" AssemblyFile="DotNetro.Tasks.dll" />
+  <UsingTask TaskName="DotNetro.CompileTask" AssemblyFile="DotNetro.Tasks.dll" />
   <PropertyGroup>
     <NESTargetPath>$(OutputPath)$(TargetName).nes</NESTargetPath>
-    <IncrementalCleanDependsOn>$(IncrementalCleanDependsOn);Transpile</IncrementalCleanDependsOn>
+    <IncrementalCleanDependsOn>$(IncrementalCleanDependsOn);DotNetCompile</IncrementalCleanDependsOn>
   </PropertyGroup>
-  <Target Name="Transpile" AfterTargets="Build"
+  <Target Name="DotNetCompile" AfterTargets="Build"
       Inputs="$(TargetPath)" Outputs="$(NESTargetPath)">
     <TranspileToNES
         TargetPath="$(TargetPath)"
