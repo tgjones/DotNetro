@@ -117,6 +117,9 @@ internal sealed class BbcMicroCodeGenerator(StreamWriter output)
 
         Output.WriteLine(".SystemConsoleWriteLineUInt32");
         Output.WriteLine("    LDY #36");
+        Output.WriteLine("    LDA #0");
+        Output.WriteLine("    STA pad");
+        Output.WriteLine("    STA outputsomething");
         Output.WriteLine(".PrDec32Lp1");
         Output.WriteLine("    LDX #&FF:SEC");
         Output.WriteLine(".PrDec32Lp2");
@@ -130,13 +133,20 @@ internal sealed class BbcMicroCodeGenerator(StreamWriter output)
         Output.WriteLine("    LDA args+2:ADC PrDec32Tens+2,Y:STA args+2");
         Output.WriteLine("    LDA args+3:ADC PrDec32Tens+3,Y:STA args+3");
         Output.WriteLine("    TXA:BNE PrDec32Digit");
-        Output.WriteLine("    JMP PrDec32Next");
+        Output.WriteLine("    LDA pad:BNE PrDec32Print:BEQ PrDec32Next");
         Output.WriteLine(".PrDec32Digit");
+        Output.WriteLine("    LDX #'0':STX pad ; No more zero padding");
         Output.WriteLine("    ORA #'0'");
         Output.WriteLine(".PrDec32Print");
+        Output.WriteLine("    STA outputsomething");
         Output.WriteLine("    JSR osasci");
         Output.WriteLine(".PrDec32Next");
         Output.WriteLine("    DEY:DEY:DEY:DEY:BPL PrDec32Lp1");
+        Output.WriteLine("    LDA outputsomething");
+        Output.WriteLine("    BNE finish");
+        Output.WriteLine("    LDA #'0'");
+        Output.WriteLine("    JSR osasci");
+        Output.WriteLine(".finish");
         Output.WriteLine("    LDA #13");
         Output.WriteLine("    JSR osasci");
         Output.WriteLine("    RTS");
@@ -151,5 +161,9 @@ internal sealed class BbcMicroCodeGenerator(StreamWriter output)
         Output.WriteLine("    EQUD 10000000");
         Output.WriteLine("    EQUD 100000000");
         Output.WriteLine("    EQUD 1000000000");
+        Output.WriteLine(".pad");
+        Output.WriteLine("    EQUB 0");
+        Output.WriteLine(".outputsomething");
+        Output.WriteLine("    EQUB 0");
     }
 }

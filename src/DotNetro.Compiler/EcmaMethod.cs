@@ -45,6 +45,7 @@ internal sealed class EcmaMethod : IEquatable<EcmaMethod>
             for (var i = 0; i < localTypes.Length; i++)
             {
                 localsBuilder.Add(new LocalVariable(i, localOffset, localTypes[i]));
+                localOffset += localTypes[i].Size;
             }
             LocalVariables = localsBuilder.ToImmutable();
         }
@@ -60,6 +61,7 @@ internal sealed class EcmaMethod : IEquatable<EcmaMethod>
         for (var i = 0; i < MethodSignature.ParameterTypes.Length; i++)
         {
             parametersBuilder.Add(new Parameter(i, parameterOffset, MethodSignature.ParameterTypes[i]));
+            parameterOffset += MethodSignature.ParameterTypes[i].Size;
         }
         Parameters = parametersBuilder.ToImmutable();
 

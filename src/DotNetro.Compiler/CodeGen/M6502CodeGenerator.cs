@@ -107,18 +107,18 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
     {
         Output.WriteLine(".CltInt32");
         Output.WriteLine("{");
-        Output.WriteLine("    LDA $FC,X");
-        Output.WriteLine("    CMP $F8,X");
-        Output.WriteLine("    LDA $FD,X");
-        Output.WriteLine("    SBC $F9,X");
-        Output.WriteLine("    LDA $FE,X");
-        Output.WriteLine("    SBC $FA,X");
-        Output.WriteLine("    LDA $FF,X");
-        Output.WriteLine("    SBC $FB,X");
+        Output.WriteLine("    LDA $F8,X");
+        Output.WriteLine("    CMP $FC,X");
+        Output.WriteLine("    LDA $F9,X");
+        Output.WriteLine("    SBC $FD,X");
+        Output.WriteLine("    LDA $FA,X");
+        Output.WriteLine("    SBC $FE,X");
+        Output.WriteLine("    LDA $FB,X");
+        Output.WriteLine("    SBC $FF,X");
         Output.WriteLine("    BVC mylabel");
         Output.WriteLine("    EOR #$80");
         Output.WriteLine(".mylabel");
-        Output.WriteLine("    BPL lessthan");
+        Output.WriteLine("    BMI lessthan");
         Output.WriteLine("    LDA #0");
         Output.WriteLine("    JMP finish");
         Output.WriteLine(".lessthan");
