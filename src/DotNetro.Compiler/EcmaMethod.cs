@@ -13,9 +13,13 @@ internal sealed class EcmaMethod : IEquatable<EcmaMethod>
 
     public MethodBodyBlock MethodBody { get; }
 
+    public ImmutableArray<Parameter> Parameters { get; }
+
+    public int ParametersSize { get; }
+
     public ImmutableArray<LocalVariable> LocalVariables { get; }
 
-    public ImmutableArray<Parameter> Parameters { get; }
+    public int LocalsSize { get; }
 
     public MethodSignature<TypeDescription> MethodSignature { get; }
 
@@ -44,10 +48,11 @@ internal sealed class EcmaMethod : IEquatable<EcmaMethod>
             var localsBuilder = ImmutableArray.CreateBuilder<LocalVariable>(localTypes.Length);
             for (var i = 0; i < localTypes.Length; i++)
             {
-                localsBuilder.Add(new LocalVariable(i, localOffset, localTypes[i]));
+                localsBuilder.Add(new LocalVariable(this, i, localOffset, localTypes[i]));
                 localOffset += localTypes[i].Size;
             }
             LocalVariables = localsBuilder.ToImmutable();
+            LocalsSize = localOffset;
         }
         else
         {
@@ -64,6 +69,7 @@ internal sealed class EcmaMethod : IEquatable<EcmaMethod>
             parameterOffset += MethodSignature.ParameterTypes[i].Size;
         }
         Parameters = parametersBuilder.ToImmutable();
+        ParametersSize = parameterOffset;
 
         UniqueName = $"{DeclaringType.FullName.Replace('.', '_')}_{MetadataReader.GetString(methodDefinition.Name)}";
 

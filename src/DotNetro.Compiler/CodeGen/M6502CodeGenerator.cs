@@ -7,6 +7,8 @@ namespace DotNetro.Compiler.CodeGen;
 internal abstract class M6502CodeGenerator(TextWriter output)
     : CodeGenerator(output)
 {
+    protected const string ArgsLabel = "args";
+
     public override int PointerSize { get; } = 2;
 
     private enum BuiltInMethod
@@ -24,11 +26,10 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
         WriteSystemConstants();
 
-        Output.WriteLine("scratch = $60");
-        Output.WriteLine("args = $70");
-        Output.WriteLine("locals = $90");
+        Output.WriteLine($"scratch = $60");
+        Output.WriteLine($"{ArgsLabel} = $70");
         Output.WriteLine();
-        Output.WriteLine("* = $2000");
+        Output.WriteLine($"* = $2000");
         Output.WriteLine();
     }
 
@@ -213,11 +214,25 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         EndScopeBlock();
     }
 
-    public override void WriteCall(EcmaMethod methodToCall)
+    public override void WriteCall(EcmaMethod caller, EcmaMethod callee)
     {
-        WritePopToMemory("args", methodToCall.MethodSignature.ParameterTypes.Sum(x => x.Size));
+        // Push current method's args+locals to hardware stack.
+        for (var i = 0; i < caller.ParametersSize + caller.LocalsSize; i++)
+        {
+            Output.WriteLine($"    LDA {ArgsLabel}+{i}");
+            Output.WriteLine($"    PHA");
+        }
 
-        Output.WriteLine($"    JSR {methodToCall.UniqueName}");
+        WritePopToMemory(ArgsLabel, callee.MethodSignature.ParameterTypes.Sum(x => x.Size));
+
+        Output.WriteLine($"    JSR {callee.UniqueName}");
+
+        // Pop current method's args+locals from hardware stack.
+        for (var i = caller.ParametersSize + caller.LocalsSize - 1; i >= 0; i--)
+        {
+            Output.WriteLine($"    PLA");
+            Output.WriteLine($"    STA {ArgsLabel}+{i}");
+        }
     }
 
     public override void WriteCltInt32()
@@ -241,7 +256,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     public override void WriteLdarg(Parameter parameter)
     {
-        WritePushFromMemory($"args+{parameter.Offset}", parameter.Type.Size);
+        WritePushFromMemory($"{ArgsLabel}+{parameter.Offset}", parameter.Type.Size);
     }
 
     public override void WriteLdcI4(int value)
@@ -282,15 +297,15 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     public override void WriteLdloc(LocalVariable local)
     {
-        WritePushFromMemory($"locals+{local.Offset}", local.Type.Size);
+        WritePushFromMemory(GetLocalVariableOffsetAddress(local), local.Type.Size);
     }
 
     public override void WriteLdloca(LocalVariable local)
     {
-        Output.WriteLine($"    LDA #<locals+{local.Offset}");
+        Output.WriteLine($"    LDA #<{GetLocalVariableOffsetAddress(local)}");
         Output.WriteLine($"    STA 0,X");
         Output.WriteLine($"    INX");
-        Output.WriteLine($"    LDA #>locals+{local.Offset}");
+        Output.WriteLine($"    LDA #>{GetLocalVariableOffsetAddress(local)}");
         Output.WriteLine($"    STA 0,X");
         Output.WriteLine($"    INX");
     }
@@ -345,7 +360,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
             Output.WriteLine($"    DEX");
         }
 
-        WritePopToMemory($"locals+{local.Offset}", local.Type.Size);
+        WritePopToMemory(GetLocalVariableOffsetAddress(local), local.Type.Size);
     }
 
     private void WritePushFromMemory(string baseAddress, int sizeInBytes)
@@ -377,4 +392,8 @@ internal abstract class M6502CodeGenerator(TextWriter output)
             Output.WriteLine($"    STA {baseAddress}+{i}");
         }
     }
+
+    // Locals are stored immediately above args.
+    private static string GetLocalVariableOffsetAddress(LocalVariable local) => 
+        $"{ArgsLabel}+{local.Parent.ParametersSize + local.Offset}";
 }

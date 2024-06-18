@@ -312,25 +312,25 @@ public sealed class DotNetCompiler : IDisposable
 
     private void CompileCall(EcmaMethod methodContext, Handle methodHandle)
     {
-        var methodToCall = methodContext.DeclaringType.Assembly.ResolveMethod(methodHandle);
+        var callee = methodContext.DeclaringType.Assembly.ResolveMethod(methodHandle);
 
-        for (var i = 0; i < methodToCall.MethodSignature.ParameterTypes.Length; i++)
+        for (var i = 0; i < callee.MethodSignature.ParameterTypes.Length; i++)
         {
-            if (PopStackEntry() != methodToCall.MethodSignature.ParameterTypes[i])
+            if (PopStackEntry() != callee.MethodSignature.ParameterTypes[i])
             {
                 throw new InvalidOperationException();
             }
         }
 
-        if (methodToCall.MethodSignature.ReturnType is not PrimitiveType { PrimitiveTypeCode: PrimitiveTypeCode.Void })
+        if (callee.MethodSignature.ReturnType is not PrimitiveType { PrimitiveTypeCode: PrimitiveTypeCode.Void })
         {
-            PushStackEntry(methodToCall.MethodSignature.ReturnType);
+            PushStackEntry(callee.MethodSignature.ReturnType);
         }
 
-        EnqueueMethod(methodToCall);
+        EnqueueMethod(callee);
 
-        _codeGenerator.WriteComment($"call {methodToCall.UniqueName}");
-        _codeGenerator.WriteCall(methodToCall);        
+        _codeGenerator.WriteComment($"call {callee.UniqueName}");
+        _codeGenerator.WriteCall(methodContext, callee);        
     }
 
     private void CompileClt()
