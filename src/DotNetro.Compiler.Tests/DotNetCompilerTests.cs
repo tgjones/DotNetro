@@ -137,6 +137,35 @@ public class DotNetCompilerTests
         Console.WriteLine("End");
     }
 
+    [CompilerTest]
+    private static void CallNestedMethods()
+    {
+        MethodA();
+        MethodA();
+    }
+
+    private static void MethodA()
+    {
+        var x = 1;
+        var y = 2;
+
+        MethodB(x + y);
+
+        Console.WriteLine(x + y);
+    }
+
+    private static void MethodB(int x)
+    {
+        MethodC(x + 42);
+
+        Console.WriteLine(x);
+    }
+
+    private static void MethodC(int x)
+    {
+        Console.WriteLine(x);
+    }
+
     [TestCaseSource(nameof(GetCompilerTests))]
     public void CompilerTests(CompilerTest test)
     {
