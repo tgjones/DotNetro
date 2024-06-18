@@ -4,7 +4,7 @@ using DotNetro.Compiler.TypeSystem;
 
 namespace DotNetro.Compiler.CodeGen;
 
-internal abstract class M6502CodeGenerator(StreamWriter output)
+internal abstract class M6502CodeGenerator(TextWriter output)
     : CodeGenerator(output)
 {
     public override int PointerSize { get; } = 2;
@@ -24,11 +24,11 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
 
         WriteSystemConstants();
 
-        Output.WriteLine("scratch = &60");
-        Output.WriteLine("args = &70");
-        Output.WriteLine("locals = &90");
+        Output.WriteLine("scratch = $60");
+        Output.WriteLine("args = $70");
+        Output.WriteLine("locals = $90");
         Output.WriteLine();
-        Output.WriteLine("ORG &2000");
+        Output.WriteLine("* = $2000");
         Output.WriteLine();
     }
 
@@ -36,7 +36,7 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
 
     public override void WriteEntryPoint(string entryPointMethodName)
     {
-        Output.WriteLine(".start");
+        WriteLabel("start");
 
         WriteStartupCode();
 
@@ -54,7 +54,8 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
 
     public override void WriteStringConstant(string name, string value)
     {
-        Output.WriteLine($".{name} EQUS \"{value}\", 13, 0");
+        WriteLabel(name);
+        Output.WriteLine($"    .cstring \"{value}\", 13");
     }
 
     public override void WriteFooter()
@@ -77,15 +78,11 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
 
             Output.WriteLine();
         }
-
-        Output.WriteLine(".end");
-        Output.WriteLine("");
-        Output.WriteLine("SAVE \"MyCode\", start, end");
     }
 
     private void CompileAddInt32()
     {
-        Output.WriteLine(".AddInt32");
+        WriteLabel("AddInt32");
         Output.WriteLine("    CLC");
         Output.WriteLine("    LDA $FC,X ; Subtract 4 from current stack pointer");
         Output.WriteLine("    ADC $F8,X ; Subtract 8 from current stack pointer");
@@ -105,8 +102,8 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
 
     private void CompileCltInt32()
     {
-        Output.WriteLine(".CltInt32");
-        Output.WriteLine("{");
+        WriteLabel("CltInt32");
+        BeginScopeBlock();
         Output.WriteLine("    LDA $F8,X");
         Output.WriteLine("    CMP $FC,X");
         Output.WriteLine("    LDA $F9,X");
@@ -117,13 +114,13 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
         Output.WriteLine("    SBC $FF,X");
         Output.WriteLine("    BVC mylabel");
         Output.WriteLine("    EOR #$80");
-        Output.WriteLine(".mylabel");
+        WriteLabel("mylabel");
         Output.WriteLine("    BMI lessthan");
         Output.WriteLine("    LDA #0");
         Output.WriteLine("    JMP finish");
-        Output.WriteLine(".lessthan");
+        WriteLabel("lessthan");
         Output.WriteLine("    LDA #1");
-        Output.WriteLine(".finish");
+        WriteLabel("finish");
         Output.WriteLine("    DEX:DEX:DEX:DEX");
         Output.WriteLine("    DEX:DEX:DEX:DEX");
         Output.WriteLine("    STA 0,X");
@@ -136,7 +133,7 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
         Output.WriteLine("    STA 0,X");
         Output.WriteLine("    INX");
         Output.WriteLine("    RTS");
-        Output.WriteLine("}");
+        EndScopeBlock();
     }
 
     protected void WritePushX()
@@ -153,19 +150,29 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
 
     public override void WriteMethodStart(string name)
     {
-        Output.WriteLine($".{name}");
-        Output.WriteLine("{");
+        WriteLabel(name);
+        BeginScopeBlock();
     }
 
     public override void WriteMethodEnd()
     {
-        Output.WriteLine("}");
+        EndScopeBlock();
         Output.WriteLine();
     }
 
     public override void WriteLabel(string label)
     {
-        Output.WriteLine($".{label}");
+        Output.WriteLine($"{label}:");
+    }
+
+    private void BeginScopeBlock()
+    {
+        Output.WriteLine($"    .block");
+    }
+
+    private void EndScopeBlock()
+    {
+        Output.WriteLine($"    .endblock");
     }
 
     public override void WriteComment(string text)
@@ -186,7 +193,7 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
 
     public override void WriteBrtrue(TypeDescription stackObjectType, string label)
     {
-        Output.WriteLine("{");
+        BeginScopeBlock();
 
         for (var i = 0; i < stackObjectType.Size; i++)
         {
@@ -198,12 +205,12 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
         Output.WriteLine($"    JMP after");
 
         // Would prefer to do direct BNE but it might be further than 128 bytes away.
-        Output.WriteLine($".dojump");
+        WriteLabel("dojump");
         Output.WriteLine($"    JMP {label}");
 
-        Output.WriteLine($".after");
+        WriteLabel("after");
 
-        Output.WriteLine("}");
+        EndScopeBlock();
     }
 
     public override void WriteCall(EcmaMethod methodToCall)
@@ -280,20 +287,20 @@ internal abstract class M6502CodeGenerator(StreamWriter output)
 
     public override void WriteLdloca(LocalVariable local)
     {
-        Output.WriteLine($"    LDA #LO(locals+{local.Offset})");
+        Output.WriteLine($"    LDA #<locals+{local.Offset}");
         Output.WriteLine($"    STA 0,X");
         Output.WriteLine($"    INX");
-        Output.WriteLine($"    LDA #HI(locals+{local.Offset})");
+        Output.WriteLine($"    LDA #>locals+{local.Offset}");
         Output.WriteLine($"    STA 0,X");
         Output.WriteLine($"    INX");
     }
 
     public override void WriteLdstr(string name)
     {
-        Output.WriteLine($"    LDA #LO({name})");
+        Output.WriteLine($"    LDA #<{name}");
         Output.WriteLine($"    STA 0,X");
         Output.WriteLine($"    INX");
-        Output.WriteLine($"    LDA #HI({name})");
+        Output.WriteLine($"    LDA #>{name}");
         Output.WriteLine($"    STA 0,X");
         Output.WriteLine($"    INX");
     }

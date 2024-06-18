@@ -1,13 +1,13 @@
 ﻿namespace DotNetro.Compiler.CodeGen;
 
-internal sealed class BbcMicroCodeGenerator(StreamWriter output)
+internal sealed class BbcMicroCodeGenerator(TextWriter output)
     : M6502CodeGenerator(output)
 {
     protected override void WriteSystemConstants()
     {
-        Output.WriteLine("oswrch = &FFEE");
-        Output.WriteLine("osasci = &FFE3");
-        Output.WriteLine("osword = &FFF1");
+        Output.WriteLine("oswrch = $FFEE");
+        Output.WriteLine("osasci = $FFE3");
+        Output.WriteLine("osword = $FFF1");
         Output.WriteLine();
     }
 
@@ -25,8 +25,8 @@ internal sealed class BbcMicroCodeGenerator(StreamWriter output)
     {
         WritePushX();
 
-        Output.WriteLine("    LDX #LO(sound)");
-        Output.WriteLine("    LDY #HI(sound)");
+        Output.WriteLine("    LDX #<sound");
+        Output.WriteLine("    LDY #>sound");
         Output.WriteLine("    LDA #07");
         Output.WriteLine("    JSR osword");
 
@@ -34,11 +34,11 @@ internal sealed class BbcMicroCodeGenerator(StreamWriter output)
 
         Output.WriteLine("    RTS");
         Output.WriteLine();
-        Output.WriteLine(".sound");
-        Output.WriteLine(".channel   EQUW 1");
-        Output.WriteLine(".amplitude EQUW -15");
-        Output.WriteLine(".pitch     EQUW 0");
-        Output.WriteLine(".duration  EQUW 4 ; duration in 1/20ths of a second");
+        WriteLabel("sound");
+        Output.WriteLine("channel:   .word 1");
+        Output.WriteLine("amplitude: .short -15");
+        Output.WriteLine("pitch:     .word 0");
+        Output.WriteLine("duration:  .word 4 ; duration in 1/20ths of a second");
     }
 
     public override void CompileSystemConsoleReadLine()
@@ -77,14 +77,14 @@ internal sealed class BbcMicroCodeGenerator(StreamWriter output)
     {
         Output.WriteLine("    LDY #0");
         Output.WriteLine("");
-        Output.WriteLine(".loop");
+        WriteLabel("loop");
         Output.WriteLine("    LDA(args),Y");
         Output.WriteLine("    BEQ finished");
         Output.WriteLine("    JSR osasci");
         Output.WriteLine("    INY");
         Output.WriteLine("    BNE loop");
         Output.WriteLine("");
-        Output.WriteLine(".finished");
+        WriteLabel("finished");
         Output.WriteLine("    RTS");
     }
 
@@ -92,8 +92,8 @@ internal sealed class BbcMicroCodeGenerator(StreamWriter output)
     {
         Output.WriteLine("    LDA args+3 ; Is it positive?");
         Output.WriteLine("    BPL positive");
-        Output.WriteLine(".negative ; 2s-complement it");
-        Output.WriteLine("    LDA #'-'");
+        WriteLabel("negative");
+        Output.WriteLine("    LDA #'-' ; 2s-complement it");
         Output.WriteLine("    JSR osasci");
         Output.WriteLine("    CLC");
         Output.WriteLine("    LDA args+0");
@@ -112,17 +112,17 @@ internal sealed class BbcMicroCodeGenerator(StreamWriter output)
         Output.WriteLine("    EOR #$FF");
         Output.WriteLine("    ADC #0");
         Output.WriteLine("    STA args+3");
-        Output.WriteLine(".positive");
+        WriteLabel("positive");
         Output.WriteLine("    JMP SystemConsoleWriteLineUInt32");
 
-        Output.WriteLine(".SystemConsoleWriteLineUInt32");
+        WriteLabel("SystemConsoleWriteLineUInt32");
         Output.WriteLine("    LDY #36");
         Output.WriteLine("    LDA #0");
         Output.WriteLine("    STA pad");
         Output.WriteLine("    STA outputsomething");
-        Output.WriteLine(".PrDec32Lp1");
-        Output.WriteLine("    LDX #&FF:SEC");
-        Output.WriteLine(".PrDec32Lp2");
+        WriteLabel("PrDec32Lp1");
+        Output.WriteLine("    LDX #$FF:SEC");
+        WriteLabel("PrDec32Lp2");
         Output.WriteLine("    LDA args+0:SBC PrDec32Tens+0,Y:STA args+0");
         Output.WriteLine("    LDA args+1:SBC PrDec32Tens+1,Y:STA args+1");
         Output.WriteLine("    LDA args+2:SBC PrDec32Tens+2,Y:STA args+2");
@@ -134,36 +134,36 @@ internal sealed class BbcMicroCodeGenerator(StreamWriter output)
         Output.WriteLine("    LDA args+3:ADC PrDec32Tens+3,Y:STA args+3");
         Output.WriteLine("    TXA:BNE PrDec32Digit");
         Output.WriteLine("    LDA pad:BNE PrDec32Print:BEQ PrDec32Next");
-        Output.WriteLine(".PrDec32Digit");
+        WriteLabel("PrDec32Digit");
         Output.WriteLine("    LDX #'0':STX pad ; No more zero padding");
         Output.WriteLine("    ORA #'0'");
-        Output.WriteLine(".PrDec32Print");
+        WriteLabel("PrDec32Print");
         Output.WriteLine("    STA outputsomething");
         Output.WriteLine("    JSR osasci");
-        Output.WriteLine(".PrDec32Next");
+        WriteLabel("PrDec32Next");
         Output.WriteLine("    DEY:DEY:DEY:DEY:BPL PrDec32Lp1");
         Output.WriteLine("    LDA outputsomething");
         Output.WriteLine("    BNE finish");
         Output.WriteLine("    LDA #'0'");
         Output.WriteLine("    JSR osasci");
-        Output.WriteLine(".finish");
+        WriteLabel("finish");
         Output.WriteLine("    LDA #13");
         Output.WriteLine("    JSR osasci");
         Output.WriteLine("    RTS");
-        Output.WriteLine(".PrDec32Tens");
-        Output.WriteLine("    EQUD 1");
-        Output.WriteLine("    EQUD 10");
-        Output.WriteLine("    EQUD 100");
-        Output.WriteLine("    EQUD 1000");
-        Output.WriteLine("    EQUD 10000");
-        Output.WriteLine("    EQUD 100000");
-        Output.WriteLine("    EQUD 1000000");
-        Output.WriteLine("    EQUD 10000000");
-        Output.WriteLine("    EQUD 100000000");
-        Output.WriteLine("    EQUD 1000000000");
-        Output.WriteLine(".pad");
-        Output.WriteLine("    EQUB 0");
-        Output.WriteLine(".outputsomething");
-        Output.WriteLine("    EQUB 0");
+        WriteLabel("PrDec32Tens");
+        Output.WriteLine("    .dint 1");
+        Output.WriteLine("    .dint 10");
+        Output.WriteLine("    .dint 100");
+        Output.WriteLine("    .dint 1000");
+        Output.WriteLine("    .dint 10000");
+        Output.WriteLine("    .dint 100000");
+        Output.WriteLine("    .dint 1000000");
+        Output.WriteLine("    .dint 10000000");
+        Output.WriteLine("    .dint 100000000");
+        Output.WriteLine("    .dint 1000000000");
+        WriteLabel("pad");
+        Output.WriteLine("    .byte 0");
+        WriteLabel("outputsomething");
+        Output.WriteLine("    .byte 0");
     }
 }

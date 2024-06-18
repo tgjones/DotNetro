@@ -10,15 +10,24 @@ public sealed class DotNetCompiler : IDisposable
 {
     public static void Compile(string dotNetAssemblyPath, string entryPointMethodName, string outputPath, ILogger? logger)
     {
-        using var outputWriter = new StreamWriter(File.OpenWrite(outputPath));
+        var assemblyCode = Compile(dotNetAssemblyPath, entryPointMethodName, logger);
+
+        File.WriteAllText(outputPath, assemblyCode);
+    }
+
+    public static string Compile(string dotNetAssemblyPath, string entryPointMethodName, ILogger? logger)
+    {
+        using var outputWriter = new StringWriter();
 
         using var compiler = new DotNetCompiler(outputWriter, dotNetAssemblyPath);
 
         compiler.Compile(entryPointMethodName);
+
+        return outputWriter.ToString();
     }
 
     private readonly CodeGenerator _codeGenerator;
-    private readonly StreamWriter _output;
+    private readonly TextWriter _output;
 
     private readonly TypeSystem.TypeSystem _typeSystem;
     private readonly AssemblyStore _assemblyStore;
@@ -31,7 +40,7 @@ public sealed class DotNetCompiler : IDisposable
 
     private readonly Stack<TypeDescription> _stack = new();
 
-    private DotNetCompiler(StreamWriter output, string rootAssemblyPath)
+    private DotNetCompiler(TextWriter output, string rootAssemblyPath)
     {
         _codeGenerator = new BbcMicroCodeGenerator(output);
 

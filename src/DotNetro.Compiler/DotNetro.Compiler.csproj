@@ -1,11 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>$(DotNetVersion)</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Reflection.Metadata" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Antlr4.Runtime.Standard">
+      <HintPath>..\..\lib\Sixty502\Antlr4.Runtime.Standard.dll</HintPath>
+    </Reference>
+    <Reference Include="Sixty502DotNet.Shared">
+      <HintPath>..\..\lib\Sixty502\Sixty502DotNet.Shared.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

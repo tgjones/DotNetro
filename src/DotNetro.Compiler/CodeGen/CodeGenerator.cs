@@ -2,11 +2,11 @@
 
 namespace DotNetro.Compiler.CodeGen;
 
-internal abstract class CodeGenerator(StreamWriter output)
+internal abstract class CodeGenerator(TextWriter output)
 {
     public abstract int PointerSize { get; }
 
-    protected StreamWriter Output { get; } = output;
+    protected TextWriter Output { get; } = output;
 
     public abstract void WriteHeader();
     public abstract void WriteEntryPoint(string entryPointMethodName);
