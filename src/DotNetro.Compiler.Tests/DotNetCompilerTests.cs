@@ -218,8 +218,8 @@ public class DotNetCompilerTests
     {
         // Compile method.
         var assemblyCode = DotNetCompiler.Compile(typeof(DotNetCompilerTests).Assembly.Location, test.Method.Name, null);
-        Console.WriteLine(assemblyCode);
-        var compiledProgram = CompilerDriver.Assemble(assemblyCode);
+        var compiledProgram = CompilerDriver.Assemble(assemblyCode, out var listing);
+        Console.WriteLine(listing);
 
         // Copy compiled program into memory.
         var memory = new byte[ushort.MaxValue + 1];
@@ -260,6 +260,11 @@ public class DotNetCompilerTests
             else
             {
                 memory[address] = pins.Data;
+            }
+
+            if (cpu.Pins.Sync)
+            {
+                Console.WriteLine($"{cpu.PC:X4}  A:{cpu.A:X2} X:{cpu.X:X2} Y:{cpu.Y:X2} P:{cpu.P.AsByte(false):X2} SP:{cpu.SP:X2}");
             }
 
             switch (cpu.PC)

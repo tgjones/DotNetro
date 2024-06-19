@@ -247,6 +247,18 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine("    JSR CltInt32");
     }
 
+    public override void WriteDup(TypeDescription type)
+    {
+        var offset = (sbyte)-type.Size;
+
+        for (var i = 0; i < type.Size; i++)
+        {
+            Output.WriteLine($"    LDA ${offset:X2},X ; Subtract type size from current stack pointer");
+            Output.WriteLine($"    STA 0,X");
+            Output.WriteLine($"    INX");
+        }
+    }
+
     public override void WriteInitobj(TypeDescription type)
     {
         // Address is on stack. Copy to scratch area.

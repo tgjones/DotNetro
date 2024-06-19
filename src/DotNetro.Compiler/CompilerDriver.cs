@@ -10,7 +10,7 @@ public static class CompilerDriver
     {
         var assemblyCode = DotNetCompiler.Compile(dotNetAssemblyPath, entryPointMethodName, logger);
 
-        var imageBytes = Assemble(assemblyCode);
+        var imageBytes = Assemble(assemblyCode, out _);
 
         File.WriteAllBytes(outputPath, imageBytes.ToArray());
     }
@@ -19,10 +19,10 @@ public static class CompilerDriver
     {
         var assemblyCode = DotNetCompiler.Compile(dotNetAssemblyPath, entryPointMethodName, logger);
 
-        return Assemble(assemblyCode);
+        return Assemble(assemblyCode, out _);
     }
 
-    public static ReadOnlyCollection<byte> Assemble(string assemblyCode)
+    public static ReadOnlyCollection<byte> Assemble(string assemblyCode, out string listing)
     {
         var options = new Options
         {
@@ -51,6 +51,8 @@ public static class CompilerDriver
         {
             throw error;
         }
+
+        listing = string.Join(System.Environment.NewLine, state.StatementListings);
 
         return state.Output.GetCompilation();
     }

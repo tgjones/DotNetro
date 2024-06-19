@@ -116,6 +116,7 @@ internal sealed class BbcMicroCodeGenerator(TextWriter output)
         Output.WriteLine("    JMP SystemConsoleWriteLineUInt32");
 
         WriteLabel("SystemConsoleWriteLineUInt32");
+        WritePushX();
         Output.WriteLine($"    LDY #36");
         Output.WriteLine($"    LDA #0");
         Output.WriteLine($"    STA pad");
@@ -149,6 +150,7 @@ internal sealed class BbcMicroCodeGenerator(TextWriter output)
         WriteLabel("finish");
         Output.WriteLine("    LDA #13");
         Output.WriteLine("    JSR osasci");
+        WritePopX();
         Output.WriteLine("    RTS");
         WriteLabel("PrDec32Tens");
         Output.WriteLine($"    .dint 1");

@@ -172,6 +172,10 @@ public sealed class DotNetCompiler : IDisposable
                     CompileClt();
                     break;
 
+                case ILOpCode.Dup:
+                    CompileDup();
+                    break;
+
                 case ILOpCode.Initobj:
                     CompileInitobj(methodContext, MetadataTokens.EntityHandle(ilReader.ReadInt32()));
                     break;
@@ -366,6 +370,17 @@ public sealed class DotNetCompiler : IDisposable
 
         _codeGenerator.WriteComment("clt");
         _codeGenerator.WriteCltInt32();
+    }
+
+    private void CompileDup()
+    {
+        var type = PopStackEntry();
+
+        PushStackEntry(type);
+        PushStackEntry(type);
+
+        _codeGenerator.WriteComment("dup");
+        _codeGenerator.WriteDup(type);
     }
 
     private void CompileInitobj(EcmaMethod methodContext, EntityHandle typeHandle)

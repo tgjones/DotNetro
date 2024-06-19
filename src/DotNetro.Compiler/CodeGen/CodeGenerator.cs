@@ -32,6 +32,7 @@ internal abstract class CodeGenerator(TextWriter output)
     public abstract void WriteBrtrue(TypeDescription stackObjectType, string label);
     public abstract void WriteCall(EcmaMethod caller, EcmaMethod callee);
     public abstract void WriteCltInt32();
+    public abstract void WriteDup(TypeDescription type);
     public abstract void WriteInitobj(TypeDescription type);
     public abstract void WriteLdarg(Parameter parameter);
     public abstract void WriteLdcI4(int value);
