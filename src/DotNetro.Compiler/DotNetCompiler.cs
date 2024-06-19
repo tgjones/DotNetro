@@ -156,6 +156,10 @@ public sealed class DotNetCompiler : IDisposable
                     CompileAdd();
                     break;
 
+                case ILOpCode.Blt_s:
+                    CompileBlt(methodContext, "blt.s", ilReader.ReadSByte() + ilReader.Offset);
+                    break;
+
                 case ILOpCode.Br_s:
                     CompileBr(ilReader.ReadSByte() + ilReader.Offset);
                     break;
@@ -308,6 +312,14 @@ public sealed class DotNetCompiler : IDisposable
 
         _codeGenerator.WriteComment("add");
         _codeGenerator.WriteAddInt32();
+    }
+
+    private void CompileBlt(EcmaMethod methodContext, string mnemonic, int target)
+    {
+        // TODO: Optimize this.
+
+        CompileClt();
+        CompileBrtrue(target);
     }
 
     private void CompileBr(int target)
