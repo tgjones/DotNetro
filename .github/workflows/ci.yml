@@ -19,5 +19,8 @@ jobs:
       with:
         dotnet-version: 8.0
   
-    - name: Build & Test
+    - name: Build & Test Debug
+      run: dotnet test src --configuration Debug
+
+    - name: Build & Test Release
       run: dotnet test src --configuration Release
