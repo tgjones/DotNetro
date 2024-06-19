@@ -5,7 +5,7 @@ using DotNetro.Compiler.TypeSystem;
 
 namespace DotNetro.Compiler;
 
-internal sealed class EcmaMethod : IEquatable<EcmaMethod>
+internal sealed class EcmaMethod
 {
     public EcmaType DeclaringType { get; }
 
@@ -77,11 +77,5 @@ internal sealed class EcmaMethod : IEquatable<EcmaMethod>
         {
             UniqueName += $"_{parameterType.EncodedName}";
         }
-    }
-
-    public bool Equals(EcmaMethod other)
-    {
-        return DeclaringType.Equals(other.DeclaringType)
-            && MethodDefinitionHandle.Equals(other.MethodDefinitionHandle);
     }
 }

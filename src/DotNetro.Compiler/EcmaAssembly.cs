@@ -5,7 +5,7 @@ using DotNetro.Compiler.TypeSystem;
 
 namespace DotNetro.Compiler;
 
-internal sealed class EcmaAssembly : IEquatable<EcmaAssembly>, IDisposable
+internal sealed class EcmaAssembly : IDisposable
 {
     private readonly string _assemblyPath;
     private readonly Dictionary<FieldDefinitionHandle, EcmaField> _fields = new();
@@ -32,8 +32,6 @@ internal sealed class EcmaAssembly : IEquatable<EcmaAssembly>, IDisposable
     {
         PEReader.Dispose();
     }
-
-    public bool Equals(EcmaAssembly other) => _assemblyPath == other._assemblyPath;
 
     public override int GetHashCode() => _assemblyPath.GetHashCode();
 
