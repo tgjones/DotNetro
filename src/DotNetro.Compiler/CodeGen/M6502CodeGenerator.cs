@@ -59,6 +59,12 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine($"    .cstring \"{value}\", 13");
     }
 
+    public override void WriteStaticField(EcmaField field)
+    {
+        WriteLabel(GetStaticFieldName(field));
+        Output.WriteLine($"    .fill {field.Type.Size},0");
+    }
+
     public override void WriteFooter()
     {
         foreach (var builtInMethod in _usedBuiltInMethods)
@@ -269,8 +275,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     public override void WriteLdfld(TypeDescription objectType, EcmaField field)
     {
-        // Value is at top of stack.
-        // Underneath that is either address of object, or actual value-type instance.
+        // Top of stack is either address of object, or actual value-type instance.
 
         WritePopToMemory("scratch", objectType.Size);
 
@@ -308,6 +313,11 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine($"    LDA #>{GetLocalVariableOffsetAddress(local)}");
         Output.WriteLine($"    STA 0,X");
         Output.WriteLine($"    INX");
+    }
+
+    public override void WriteLdsfld(EcmaField field)
+    {
+        WritePushFromMemory(GetStaticFieldName(field), field.Type.Size);
     }
 
     public override void WriteLdstr(string name)
@@ -363,6 +373,11 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         WritePopToMemory(GetLocalVariableOffsetAddress(local), local.Type.Size);
     }
 
+    public override void WriteStsfld(EcmaField field)
+    {
+        WritePopToMemory(GetStaticFieldName(field), field.Type.Size);
+    }
+
     private void WritePushFromMemory(string baseAddress, int sizeInBytes)
     {
         for (var i = 0; i < sizeInBytes; i++)
@@ -396,4 +411,6 @@ internal abstract class M6502CodeGenerator(TextWriter output)
     // Locals are stored immediately above args.
     private static string GetLocalVariableOffsetAddress(LocalVariable local) => 
         $"{ArgsLabel}+{local.Parent.ParametersSize + local.Offset}";
+
+    private static string GetStaticFieldName(EcmaField field) => $"{field.Owner.EncodedName}_{field.Name}";
 }

@@ -9,6 +9,8 @@ namespace DotNetro.Compiler;
 internal sealed class EcmaType : TypeDescription
 {
     private readonly Dictionary<FieldDefinitionHandle, EcmaField> _fields = [];
+    private bool _builtFields;
+    private int _size;
 
     public EcmaAssembly Assembly { get; }
 
@@ -20,7 +22,14 @@ internal sealed class EcmaType : TypeDescription
 
     public override string EncodedName { get; }
 
-    public override int Size { get; }
+    public override int Size
+    {
+        get
+        {
+            EnsureFields();
+            return _size;
+        }
+    }
 
     public EcmaType(EcmaAssembly assembly, TypeDefinitionHandle typeDefinitionHandle)
     {
@@ -31,10 +40,6 @@ internal sealed class EcmaType : TypeDescription
 
         FullName = TypeDefinition.GetFullName(assembly.MetadataReader);
         EncodedName = FullName.Replace('.', '_');
-
-        BuildFields();
-
-        Size = _fields.Sum(x => x.Value.Type.Size);
     }
 
     public EcmaMethod GetMethod(string name, MethodSignature<TypeDescription> signature)
@@ -94,28 +99,41 @@ internal sealed class EcmaType : TypeDescription
         return true;
     }
 
-    private void BuildFields()
+    private void EnsureFields()
     {
+        if (_builtFields)
+        {
+            return;
+        }
+
         var offset = 0;
 
         foreach (var fieldDefinitionHandle in TypeDefinition.GetFields())
         {
             var fieldDefinition = Assembly.MetadataReader.GetFieldDefinition(fieldDefinitionHandle);
 
-            if (fieldDefinition.Attributes.HasFlag(FieldAttributes.Static))
-            {
-                continue;
-            }
-
             var fieldType = fieldDefinition.DecodeSignature(
                 Assembly.AssemblyStore.SignatureTypeProvider,
                 GenericContext.Empty);
 
-            _fields.Add(fieldDefinitionHandle, new EcmaField(this, fieldDefinition, fieldType, offset));
+            var isStaticField = fieldDefinition.Attributes.HasFlag(FieldAttributes.Static);
 
-            offset += fieldType.Size;
+            _fields.Add(fieldDefinitionHandle, new EcmaField(this, fieldDefinition, fieldType, isStaticField ? 0 : offset));
+
+            if (!isStaticField)
+            {
+                offset += fieldType.Size;
+            }
         }
+
+        _size = offset;
+
+        _builtFields = true;
     }
 
-    public EcmaField GetField(FieldDefinitionHandle handle) => _fields[handle];
+    public EcmaField GetField(FieldDefinitionHandle handle)
+    {
+        EnsureFields();
+        return _fields[handle];
+    }
 }

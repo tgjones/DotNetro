@@ -87,8 +87,6 @@ internal sealed class EcmaAssembly : IEquatable<EcmaAssembly>, IDisposable
         }
 
         return result;
-
-        
     }
 
     public EcmaType GetType(in TypeDefinitionHandle handle)

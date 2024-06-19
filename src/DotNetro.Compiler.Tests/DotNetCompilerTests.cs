@@ -125,6 +125,21 @@ public class DotNetCompilerTests
     }
 
     [CompilerTest]
+    private static void UseStaticFields()
+    {
+        MyStructWithStaticFields.A = 1;
+        MyStructWithStaticFields.B = 2;
+
+        Console.WriteLine(MyStructWithStaticFields.A + MyStructWithStaticFields.B);
+    }
+
+    private struct MyStructWithStaticFields
+    {
+        public static int A;
+        public static int B;
+    }
+
+    [CompilerTest]
     private static void ForLoop()
     {
         Console.WriteLine("Begin");
@@ -177,7 +192,7 @@ public class DotNetCompilerTests
 
         // Compare results.
         Assert.That(actualOutput, Is.EqualTo(expectedOutput));
-        Console.WriteLine(actualOutput);
+        Console.WriteLine($"Output: {actualOutput}");
     }
 
     private static string ExecuteDotNet(CompilerTest test)
@@ -202,7 +217,9 @@ public class DotNetCompilerTests
     private static string ExecuteDotNetro(CompilerTest test)
     {
         // Compile method.
-        var compiledProgram = CompilerDriver.Compile(typeof(DotNetCompilerTests).Assembly.Location, test.Method.Name, null);
+        var assemblyCode = DotNetCompiler.Compile(typeof(DotNetCompilerTests).Assembly.Location, test.Method.Name, null);
+        Console.WriteLine(assemblyCode);
+        var compiledProgram = CompilerDriver.Assemble(assemblyCode);
 
         // Copy compiled program into memory.
         var memory = new byte[ushort.MaxValue + 1];

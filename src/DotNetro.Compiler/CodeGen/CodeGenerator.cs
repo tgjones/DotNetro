@@ -14,6 +14,8 @@ internal abstract class CodeGenerator(TextWriter output)
 
     public abstract void WriteStringConstant(string name, string value);
 
+    public abstract void WriteStaticField(EcmaField field);
+
     public abstract void WriteMethodStart(string name);
     public abstract void WriteMethodEnd();
 
@@ -36,8 +38,10 @@ internal abstract class CodeGenerator(TextWriter output)
     public abstract void WriteLdfld(TypeDescription objectType, EcmaField field);
     public abstract void WriteLdloc(LocalVariable local);
     public abstract void WriteLdloca(LocalVariable local);
+    public abstract void WriteLdsfld(EcmaField field);
     public abstract void WriteLdstr(string name);
     public abstract void WriteRet();
-    public abstract void WriteStfld( EcmaField field);
+    public abstract void WriteStfld(EcmaField field);
     public abstract void WriteStloc(TypeDescription stackEntryType, LocalVariable local);
+    public abstract void WriteStsfld(EcmaField field);
 }

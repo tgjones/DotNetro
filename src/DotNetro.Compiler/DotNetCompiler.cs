@@ -34,6 +34,7 @@ public sealed class DotNetCompiler : IDisposable
     private readonly EcmaAssembly _rootAssemblyContext;
 
     private readonly Dictionary<string, string> _stringTable = [];
+    private readonly HashSet<EcmaField> _staticFields = [];
 
     private readonly HashSet<EcmaMethod> _visitedMethods = [];
     private readonly Queue<EcmaMethod> _methodsToVisit = new();
@@ -90,6 +91,11 @@ public sealed class DotNetCompiler : IDisposable
         foreach (var kvp in _stringTable)
         {
             _codeGenerator.WriteStringConstant(kvp.Key, kvp.Value);
+        }
+
+        foreach (var field in _staticFields)
+        {
+            _codeGenerator.WriteStaticField(field);
         }
 
         _codeGenerator.WriteFooter();
@@ -239,6 +245,10 @@ public sealed class DotNetCompiler : IDisposable
                     CompileLdloca(methodContext, ilReader.ReadByte());
                     break;
 
+                case ILOpCode.Ldsfld:
+                    CompileLdsfld(methodContext, MetadataTokens.EntityHandle(ilReader.ReadInt32()));
+                    break;
+
                 case ILOpCode.Ldstr:
                     CompileLdstr(methodContext, ilReader.ReadInt32());
                     break;
@@ -261,6 +271,10 @@ public sealed class DotNetCompiler : IDisposable
 
                 case ILOpCode.Stloc_1:
                     CompileStloc(methodContext, 1);
+                    break;
+
+                case ILOpCode.Stsfld:
+                    CompileStsfld(methodContext, MetadataTokens.EntityHandle(ilReader.ReadInt32()));
                     break;
 
                 default:
@@ -417,6 +431,18 @@ public sealed class DotNetCompiler : IDisposable
         _codeGenerator.WriteLdloca(local);
     }
 
+    private void CompileLdsfld(EcmaMethod methodContext, EntityHandle fieldHandle)
+    {
+        var field = methodContext.DeclaringType.Assembly.GetField((FieldDefinitionHandle)fieldHandle);
+
+        EnsureStaticField(field);
+
+        PushStackEntry(field.Type);
+
+        _codeGenerator.WriteComment($"ldsfld {field.Owner.FullName}::{field.Name}");
+        _codeGenerator.WriteLdsfld(field);
+    }
+
     private void CompileLdstr(EcmaMethod methodContext, int token)
     {
         var stringValue = methodContext.MetadataReader.GetUserString(MetadataTokens.UserStringHandle(token));
@@ -482,6 +508,28 @@ public sealed class DotNetCompiler : IDisposable
 
         _codeGenerator.WriteComment($"stloc.{local.Index}");
         _codeGenerator.WriteStloc(stackEntryType, local);
+    }
+
+    private void CompileStsfld(EcmaMethod methodContext, EntityHandle fieldHandle)
+    {
+        var field = methodContext.DeclaringType.Assembly.GetField((FieldDefinitionHandle)fieldHandle);
+
+        EnsureStaticField(field);
+
+        var valueType = PopStackEntry();
+
+        if (valueType != field.Type)
+        {
+            throw new InvalidOperationException();
+        }
+
+        _codeGenerator.WriteComment($"stsfld {field.Owner.FullName}::{field.Name}");
+        _codeGenerator.WriteStsfld(field);
+    }
+
+    private void EnsureStaticField(EcmaField field)
+    {
+        _staticFields.Add(field);
     }
 
     private void PushStackEntry(TypeDescription type) => _stack.Push(type);

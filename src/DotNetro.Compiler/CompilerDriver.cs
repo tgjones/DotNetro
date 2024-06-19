@@ -10,35 +10,8 @@ public static class CompilerDriver
     {
         var assemblyCode = DotNetCompiler.Compile(dotNetAssemblyPath, entryPointMethodName, logger);
 
-        var options = new Options
-        {
-            ArchitectureOptions = new ArchitectureOptions
-            {
+        var imageBytes = Assemble(assemblyCode);
 
-            },
-            DiagnosticOptions = new DiagnosticOptions
-            {
-
-            },
-            GeneralOptions = new GeneralOptions
-            {
-
-            },
-            OutputOptions = new OutputOptions
-            {
-                Format = "bbcmicro",
-            },
-        };
-
-        Interpreter interpreter = new(options, new FileSystemBinaryReader(""));
-        AssemblyState state = interpreter.Exec(assemblyCode, new StringSourceFactory());
-
-        foreach (var error in state.Errors)
-        {
-            throw error;
-        }
-
-        var imageBytes = state.Output.GetCompilation(Path.GetFileName(outputPath));
         File.WriteAllBytes(outputPath, imageBytes.ToArray());
     }
 
@@ -46,6 +19,11 @@ public static class CompilerDriver
     {
         var assemblyCode = DotNetCompiler.Compile(dotNetAssemblyPath, entryPointMethodName, logger);
 
+        return Assemble(assemblyCode);
+    }
+
+    public static ReadOnlyCollection<byte> Assemble(string assemblyCode)
+    {
         var options = new Options
         {
             ArchitectureOptions = new ArchitectureOptions
@@ -54,11 +32,11 @@ public static class CompilerDriver
             },
             DiagnosticOptions = new DiagnosticOptions
             {
-                
+
             },
             GeneralOptions = new GeneralOptions
             {
-                
+
             },
             OutputOptions = new OutputOptions
             {
