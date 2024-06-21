@@ -9,11 +9,19 @@ internal sealed class AssemblyStore : IDisposable
     private readonly Dictionary<string, EcmaAssembly> _assemblies = [];
     private readonly Dictionary<string, EcmaAssembly> _assembliesByName = [];
 
+    public TypeSystem.TypeSystem TypeSystem { get; }
+
     public SignatureTypeProvider SignatureTypeProvider { get; }
+
+    public EcmaAssembly RuntimeAssembly { get; }
 
     public AssemblyStore(TypeSystem.TypeSystem typeSystem)
     {
+        TypeSystem = typeSystem;
+
         SignatureTypeProvider = new SignatureTypeProvider(typeSystem, this);
+
+        RuntimeAssembly = GetAssembly(new AssemblyName("DotNetro"));
     }
 
     public EcmaAssembly GetAssembly(string assemblyPath)

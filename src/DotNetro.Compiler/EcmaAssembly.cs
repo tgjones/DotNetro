@@ -47,7 +47,7 @@ internal sealed class EcmaAssembly : IDisposable
                 switch (memberReference.Parent.Kind)
                 {
                     case HandleKind.TypeReference:
-                        var declaringType = ResolveType((TypeReferenceHandle)memberReference.Parent);
+                        var declaringType = ResolveType((TypeReferenceHandle)memberReference.Parent, SignatureTypeKind.Unknown);
                         return declaringType.GetMethod(
                             MetadataReader.GetString(memberReference.Name),
                             memberReference.DecodeMethodSignature(AssemblyStore.SignatureTypeProvider, GenericContext.Empty));
@@ -87,24 +87,29 @@ internal sealed class EcmaAssembly : IDisposable
         return result;
     }
 
-    public EcmaType GetType(in TypeDefinitionHandle handle)
+    public EcmaType GetType(in TypeDefinitionHandle handle, SignatureTypeKind typeKind = SignatureTypeKind.Unknown)
     {
         if (!_types.TryGetValue(handle, out var result))
         {
-            _types.Add(handle, result = new EcmaType(this, handle));
+            _types.Add(handle, result = new EcmaType(this, handle, typeKind));
+        }
+
+        if (typeKind != SignatureTypeKind.Unknown)
+        {
+            result.Kind = typeKind;
         }
 
         return result;
     }
 
-    public EcmaType ResolveType(in EntityHandle handle) => handle.Kind switch
+    public EcmaType ResolveType(in EntityHandle handle, SignatureTypeKind typeKind = SignatureTypeKind.Unknown) => handle.Kind switch
     {
-        HandleKind.TypeDefinition => GetType((TypeDefinitionHandle)handle),
-        HandleKind.TypeReference => ResolveType((TypeReferenceHandle)handle),
+        HandleKind.TypeDefinition => GetType((TypeDefinitionHandle)handle, typeKind),
+        HandleKind.TypeReference => ResolveType((TypeReferenceHandle)handle, typeKind),
         _ => throw new NotImplementedException(),
     };
 
-    public EcmaType ResolveType(in TypeReferenceHandle typeReferenceHandle)
+    public EcmaType ResolveType(in TypeReferenceHandle typeReferenceHandle, SignatureTypeKind typeKind)
     {
         var typeReference = MetadataReader.GetTypeReference(typeReferenceHandle);
         switch (typeReference.ResolutionScope.Kind)
@@ -114,20 +119,21 @@ internal sealed class EcmaAssembly : IDisposable
                 var otherAssembly = AssemblyStore.GetAssembly(assemblyReference.GetAssemblyName());
                 return otherAssembly.GetType(
                     MetadataReader.GetString(typeReference.Namespace),
-                    MetadataReader.GetString(typeReference.Name));
+                    MetadataReader.GetString(typeReference.Name),
+                    typeKind);
 
             default:
                 throw new InvalidOperationException();
         }
     }
 
-    public EcmaType GetType(string @namespace, string name)
+    public EcmaType GetType(string @namespace, string name, SignatureTypeKind typeKind = SignatureTypeKind.Unknown)
     {
         var key = (@namespace, name);
 
         if (!_typesByName.TryGetValue(key, out var result))
         {
-            result = GetTypeImpl(@namespace, name);
+            result = GetTypeImpl(@namespace, name, typeKind);
 
             _typesByName.Add(key, result);
         }
@@ -135,7 +141,7 @@ internal sealed class EcmaAssembly : IDisposable
         return result;
     }
 
-    private EcmaType GetTypeImpl(string @namespace, string name)
+    private EcmaType GetTypeImpl(string @namespace, string name, SignatureTypeKind typeKind)
     {
         foreach (var typeDefinitionHandle in MetadataReader.TypeDefinitions)
         {

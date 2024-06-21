@@ -13,6 +13,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     private enum BuiltInMethod
     {
+        AddInt16,
         AddInt32,
         CltInt32,
     }
@@ -44,6 +45,9 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine("    ; Initialize stack");
         Output.WriteLine("    LDX #0");
         Output.WriteLine();
+        Output.WriteLine("    ; Call static constructors");
+        Output.WriteLine("    JSR CallStaticConstructors");
+        Output.WriteLine();
         Output.WriteLine("    ; Call main function");
         Output.WriteLine($"    JSR {entryPointMethodName}");
         Output.WriteLine();
@@ -65,12 +69,16 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine($"    .fill {field.Type.Size},0");
     }
 
-    public override void WriteFooter()
+    public override void WriteFooter(ReadOnlySpan<EcmaMethod> staticConstructors)
     {
         foreach (var builtInMethod in _usedBuiltInMethods)
         {
             switch (builtInMethod)
             {
+                case BuiltInMethod.AddInt16:
+                    CompileAddInt16();
+                    break;
+
                 case BuiltInMethod.AddInt32:
                     CompileAddInt32();
                     break;
@@ -85,6 +93,28 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
             Output.WriteLine();
         }
+
+        WriteLabel("CallStaticConstructors");
+        foreach (var staticConstructor in staticConstructors)
+        {
+            Output.WriteLine($"    JSR {staticConstructor.UniqueName}");
+        }
+        Output.WriteLine("    RTS");
+        Output.WriteLine();
+    }
+
+    private void CompileAddInt16()
+    {
+        WriteLabel("AddInt16");
+        Output.WriteLine("    CLC");
+        Output.WriteLine("    LDA $FE,X ; Subtract 2 from current stack pointer");
+        Output.WriteLine("    ADC $FC,X ; Subtract 4 from current stack pointer");
+        Output.WriteLine("    STA $FC,X");
+        Output.WriteLine("    LDA $FF,X ; Subtract 1 from current stack pointer");
+        Output.WriteLine("    ADC $FD,X ; Subtract 3 from current stack pointer");
+        Output.WriteLine("    STA $FD,X");
+        Output.WriteLine("    DEX:DEX");
+        Output.WriteLine("    RTS");
     }
 
     private void CompileAddInt32()
@@ -193,6 +223,12 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine("    JSR AddInt32");
     }
 
+    public override void WriteAddIntPtr()
+    {
+        _usedBuiltInMethods.Add(BuiltInMethod.AddInt16);
+        Output.WriteLine("    JSR AddInt16");
+    }
+
     public override void WriteBr(string label)
     {
         Output.WriteLine($"    JMP {label}");
@@ -222,29 +258,24 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     public override void WriteCall(EcmaMethod caller, EcmaMethod callee)
     {
-        // Push current method's args+locals to hardware stack.
-        for (var i = 0; i < caller.ParametersSize + caller.LocalsSize; i++)
-        {
-            Output.WriteLine($"    LDA {ArgsLabel}+{i}");
-            Output.WriteLine($"    PHA");
-        }
+        WritePushArgsAndLocals(caller);
 
-        WritePopToMemory(ArgsLabel, callee.MethodSignature.ParameterTypes.Sum(x => x.Size));
+        WritePopToMemory(ArgsLabel, callee.ParametersSize);
 
         Output.WriteLine($"    JSR {callee.UniqueName}");
 
-        // Pop current method's args+locals from hardware stack.
-        for (var i = caller.ParametersSize + caller.LocalsSize - 1; i >= 0; i--)
-        {
-            Output.WriteLine($"    PLA");
-            Output.WriteLine($"    STA {ArgsLabel}+{i}");
-        }
+        WritePopArgsAndLocals(caller);
     }
 
     public override void WriteCltInt32()
     {
         _usedBuiltInMethods.Add(BuiltInMethod.CltInt32);
         Output.WriteLine("    JSR CltInt32");
+    }
+
+    public override void WriteConviInt32()
+    {
+        Output.WriteLine("DEX:DEX");
     }
 
     public override void WriteDup(TypeDescription type)
@@ -293,6 +324,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
         switch (objectType)
         {
+            case ByReferenceType:
             case PointerType:
                 for (var i = 0; i < field.Type.Size; i++)
                 {
@@ -340,6 +372,41 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine($"    LDA #>{name}");
         Output.WriteLine($"    STA 0,X");
         Output.WriteLine($"    INX");
+    }
+
+    public override void WriteNewobj(EcmaMethod caller, EcmaMethod constructor, EcmaMethod allocMethod)
+    {
+        WritePushArgsAndLocals(caller);
+
+        // Call alloc method with size parameter.
+        {
+            Span<byte> bytes = stackalloc byte[PointerSize];
+            BinaryPrimitives.WriteUInt16LittleEndian(bytes, (ushort)constructor.DeclaringType.Size);
+            for (var i = 0; i < PointerSize; i++)
+            {
+                Output.WriteLine($"    LDA #${bytes[i]:X2}");
+                Output.WriteLine($"    STA {ArgsLabel}+{i}");
+            }
+        }
+        Output.WriteLine($"    JSR {allocMethod.UniqueName}");
+
+        // Current top of stack is address of memory allocated by alloc method.
+        // We want to leave it in the stack, beacuse this will be the result of newobj.
+        // We also want to copy it into args as the first argument to the constructor.
+        for (var i = PointerSize - 1; i >= 0; i--)
+        {
+            var offset = (sbyte)(i - PointerSize);
+            Output.WriteLine($"    LDA ${offset:X2},X");
+            Output.WriteLine($"    STA {ArgsLabel}+{i}");
+        }
+
+        // Push constructor args (not including "this") to stack.
+        WritePopToMemory($"{ArgsLabel}+{PointerSize}", constructor.ParametersSize - PointerSize);
+
+        // Call constructor.
+        Output.WriteLine($"    JSR {constructor.UniqueName}");
+
+        WritePopArgsAndLocals(caller);
     }
 
     public override void WriteRet()
@@ -420,7 +487,28 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         }
     }
 
-    // Locals are stored immediately above args.
+    private void WritePushArgsAndLocals(EcmaMethod currentMethod)
+    {
+        // Push current method's args+locals to hardware stack.
+        for (var i = 0; i < currentMethod.ParametersSize + currentMethod.LocalsSize; i++)
+        {
+            Output.WriteLine($"    LDA {ArgsLabel}+{i}");
+            Output.WriteLine($"    PHA");
+        }
+    }
+
+    private void WritePopArgsAndLocals(EcmaMethod currentMethod)
+    {
+        // Pop current method's args+locals from hardware stack.
+        for (var i = currentMethod.ParametersSize + currentMethod.LocalsSize - 1; i >= 0; i--)
+        {
+            Output.WriteLine($"    PLA");
+            Output.WriteLine($"    STA {ArgsLabel}+{i}");
+
+        }
+    }
+
+        // Locals are stored immediately above args.
     private static string GetLocalVariableOffsetAddress(LocalVariable local) => 
         $"{ArgsLabel}+{local.Parent.ParametersSize + local.Offset}";
 

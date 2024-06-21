@@ -11,10 +11,7 @@ internal sealed class SignatureTypeProvider(TypeSystem typeSystem, AssemblyStore
         throw new NotImplementedException();
     }
 
-    public TypeDescription GetByReferenceType(TypeDescription elementType)
-    {
-        throw new NotImplementedException();
-    }
+    public TypeDescription GetByReferenceType(TypeDescription elementType) => typeSystem.GetByReferenceType(elementType);
 
     public TypeDescription GetFunctionPointerType(MethodSignature<TypeDescription> signature)
     {
@@ -55,13 +52,13 @@ internal sealed class SignatureTypeProvider(TypeSystem typeSystem, AssemblyStore
     public TypeDescription GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
     {
         var assembly = assemblyStore.GetAssembly(reader.GetAssemblyDefinition().GetAssemblyName());
-        return assembly.GetType(handle);
+        return assembly.GetType(handle, (SignatureTypeKind)rawTypeKind);
     }
 
     public TypeDescription GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind)
     {
         var assembly = assemblyStore.GetAssembly(reader.GetAssemblyDefinition().GetAssemblyName());
-        return assembly.ResolveType(handle);
+        return assembly.ResolveType(handle, (SignatureTypeKind)rawTypeKind);
     }
 
     public TypeDescription GetTypeFromSpecification(MetadataReader reader, GenericContext genericContext, TypeSpecificationHandle handle, byte rawTypeKind)

@@ -8,13 +8,6 @@ namespace DotNetro.Compiler;
 
 public sealed class DotNetCompiler : IDisposable
 {
-    public static void Compile(string dotNetAssemblyPath, string entryPointMethodName, string outputPath, ILogger? logger)
-    {
-        var assemblyCode = Compile(dotNetAssemblyPath, entryPointMethodName, logger);
-
-        File.WriteAllText(outputPath, assemblyCode);
-    }
-
     public static string Compile(string dotNetAssemblyPath, string entryPointMethodName, ILogger? logger)
     {
         using var outputWriter = new StringWriter();
@@ -88,9 +81,16 @@ public sealed class DotNetCompiler : IDisposable
             CompileMethod(_methodsToVisit.Dequeue());
         }
 
-        foreach (var kvp in _stringTable)
+        var staticConstructors = _staticFields
+            .Select(x => x.Owner.GetStaticConstructor())
+            .Where(x => x != null)
+            .Select(x => x!)
+            .Distinct()
+            .ToArray();
+
+        foreach (var staticConstructor in staticConstructors)
         {
-            _codeGenerator.WriteStringConstant(kvp.Key, kvp.Value);
+            CompileMethod(staticConstructor);
         }
 
         foreach (var field in _staticFields)
@@ -98,7 +98,12 @@ public sealed class DotNetCompiler : IDisposable
             _codeGenerator.WriteStaticField(field);
         }
 
-        _codeGenerator.WriteFooter();
+        foreach (var kvp in _stringTable)
+        {
+            _codeGenerator.WriteStringConstant(kvp.Key, kvp.Value);
+        }
+
+        _codeGenerator.WriteFooter(staticConstructors);
     }
 
     private void EnqueueMethod(EcmaMethod methodContext)
@@ -146,7 +151,7 @@ public sealed class DotNetCompiler : IDisposable
 
         while (ilReader.RemainingBytes > 0)
         {
-            _codeGenerator.WriteLabel($"IL_{ilReader.Offset:x4}");
+            _codeGenerator.WriteLabel(GetLabel(ilReader.Offset));
 
             var opCode = ReadOpCode(ref ilReader);
 
@@ -174,6 +179,10 @@ public sealed class DotNetCompiler : IDisposable
 
                 case ILOpCode.Clt:
                     CompileClt();
+                    break;
+
+                case ILOpCode.Conv_i:
+                    CompileConvi();
                     break;
 
                 case ILOpCode.Dup:
@@ -229,9 +238,18 @@ public sealed class DotNetCompiler : IDisposable
                     break;
 
                 case ILOpCode.Ldc_i4_s:
+                {
                     var value = ilReader.ReadSByte();
                     CompileLdcI4($"ldc.i4.s {value}", value);
                     break;
+                }
+
+                case ILOpCode.Ldc_i4:
+                {
+                    var value = ilReader.ReadInt32();
+                    CompileLdcI4($"ldc.i4 {value}", value);
+                    break;
+                }
 
                 case ILOpCode.Ldfld:
                     CompileLdfld(methodContext, MetadataTokens.EntityHandle(ilReader.ReadInt32()));
@@ -259,6 +277,10 @@ public sealed class DotNetCompiler : IDisposable
 
                 case ILOpCode.Ldstr:
                     CompileLdstr(methodContext, ilReader.ReadInt32());
+                    break;
+
+                case ILOpCode.Newobj:
+                    CompileNewobj(methodContext, MetadataTokens.EntityHandle(ilReader.ReadInt32()));
                     break;
 
                 case ILOpCode.Nop:
@@ -303,15 +325,29 @@ public sealed class DotNetCompiler : IDisposable
             throw new NotSupportedException();
         }
 
-        if (leftType is not PrimitiveType { PrimitiveTypeCode: PrimitiveTypeCode.Int32 })
+        var primitiveTypeCode = leftType switch
         {
-            throw new NotSupportedException();
-        }
+            PrimitiveType primitiveType => primitiveType.PrimitiveTypeCode,
+            _ => throw new InvalidOperationException(),
+        };
 
         PushStackEntry(leftType);
 
         _codeGenerator.WriteComment("add");
-        _codeGenerator.WriteAddInt32();
+
+        switch (primitiveTypeCode)
+        {
+            case PrimitiveTypeCode.Int32:
+                _codeGenerator.WriteAddInt32();
+                break;
+
+            case PrimitiveTypeCode.IntPtr:
+                _codeGenerator.WriteAddIntPtr();
+                break;
+
+            default:
+                throw new NotSupportedException();
+        }
     }
 
     private void CompileBlt(EcmaMethod methodContext, string mnemonic, int target)
@@ -324,7 +360,7 @@ public sealed class DotNetCompiler : IDisposable
 
     private void CompileBr(int target)
     {
-        var label = $"IL_{target:x4}";
+        var label = GetLabel(target);
 
         _codeGenerator.WriteComment($"br.s {label}");
         _codeGenerator.WriteBr(label);
@@ -334,7 +370,7 @@ public sealed class DotNetCompiler : IDisposable
     {
         var stackObjectType = PopStackEntry();
 
-        var label = $"IL_{target:x4}";
+        var label = GetLabel(target);
 
         _codeGenerator.WriteComment($"brtrue.s {label}");
         _codeGenerator.WriteBrtrue(stackObjectType, label);
@@ -343,12 +379,18 @@ public sealed class DotNetCompiler : IDisposable
     private void CompileCall(EcmaMethod methodContext, Handle methodHandle)
     {
         var callee = methodContext.DeclaringType.Assembly.ResolveMethod(methodHandle);
+        CompileCall(methodContext, callee);
+    }
 
-        for (var i = 0; i < callee.MethodSignature.ParameterTypes.Length; i++)
+    private void CompileCall(EcmaMethod methodContext, EcmaMethod callee)
+    {
+        for (var i = callee.Parameters.Length - 1; i >= 0; i--)
         {
-            if (PopStackEntry() != callee.MethodSignature.ParameterTypes[i])
+            var actualParameterType = PopStackEntry();
+            if (actualParameterType != callee.Parameters[i].Type)
             {
-                throw new InvalidOperationException();
+                // TODO: Need to check for implicit conversions.
+                //throw new InvalidOperationException();
             }
         }
 
@@ -360,7 +402,7 @@ public sealed class DotNetCompiler : IDisposable
         EnqueueMethod(callee);
 
         _codeGenerator.WriteComment($"call {callee.UniqueName}");
-        _codeGenerator.WriteCall(methodContext, callee);        
+        _codeGenerator.WriteCall(methodContext, callee);
     }
 
     private void CompileClt()
@@ -384,6 +426,21 @@ public sealed class DotNetCompiler : IDisposable
         _codeGenerator.WriteCltInt32();
     }
 
+    private void CompileConvi()
+    {
+        var type = PopStackEntry();
+
+        if (type is not PrimitiveType { PrimitiveTypeCode: PrimitiveTypeCode.Int32 })
+        {
+            throw new NotSupportedException();
+        }
+
+        PushStackEntry(_typeSystem.IntPtr);
+
+        _codeGenerator.WriteComment("conv.i");
+        _codeGenerator.WriteConviInt32();
+    }
+
     private void CompileDup()
     {
         var type = PopStackEntry();
@@ -399,7 +456,7 @@ public sealed class DotNetCompiler : IDisposable
     {
         var type = methodContext.DeclaringType.Assembly.ResolveType(typeHandle);
 
-        if (PopStackEntry() is not PointerType)
+        if (PopStackEntry() is not ByReferenceType)
         {
             throw new InvalidOperationException();
         }
@@ -452,7 +509,7 @@ public sealed class DotNetCompiler : IDisposable
     {
         var local = methodContext.LocalVariables[index];
 
-        PushStackEntry(_typeSystem.GetPointerType(local.Type));
+        PushStackEntry(_typeSystem.GetByReferenceType(local.Type));
 
         _codeGenerator.WriteComment($"ldloca.s {local.Index}");
         _codeGenerator.WriteLdloca(local);
@@ -481,6 +538,31 @@ public sealed class DotNetCompiler : IDisposable
 
         _codeGenerator.WriteComment($"ldstr \"{stringValue}\"");
         _codeGenerator.WriteLdstr(stringKey);
+    }
+
+    private void CompileNewobj(EcmaMethod methodContext, EntityHandle methodHandle)
+    {
+        var constructor = methodContext.DeclaringType.Assembly.ResolveMethod(methodHandle);
+
+        EnqueueMethod(constructor);
+
+        for (var i = 0; i < constructor.MethodSignature.ParameterTypes.Length; i++)
+        {
+            if (PopStackEntry() != constructor.MethodSignature.ParameterTypes[i])
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
+        PushStackEntry(_typeSystem.GetByReferenceType(constructor.DeclaringType));
+
+        // Resolve ManagedHeap.Alloc method.
+        var managedHeapType = methodContext.DeclaringType.Assembly.AssemblyStore.RuntimeAssembly.GetType("DotNetro.Runtime", "ManagedHeap");
+        var allocMethod = managedHeapType.GetMethod("Alloc", new MethodSignature<TypeDescription>(new SignatureHeader(), _typeSystem.IntPtr, 1, 0, [_typeSystem.IntPtr]));
+        EnqueueMethod(allocMethod);
+
+        _codeGenerator.WriteComment($"newobj {constructor.UniqueName}");
+        _codeGenerator.WriteNewobj(methodContext, constructor, allocMethod);
     }
 
     private void CompileNop()
@@ -519,7 +601,7 @@ public sealed class DotNetCompiler : IDisposable
         }
 
         var objectReferenceType = PopStackEntry();
-        if (objectReferenceType is not PointerType)
+        if (objectReferenceType is not PointerType && objectReferenceType is not ByReferenceType)
         {
             throw new InvalidOperationException();
         }
@@ -571,4 +653,6 @@ public sealed class DotNetCompiler : IDisposable
             ? 0xFE00 + ilReader.ReadByte()
             : opCodeByte);
     }
+
+    private static string GetLabel(int target) => $"IL_{target:x4}";
 }

@@ -6,6 +6,7 @@ namespace DotNetro.Compiler.TypeSystem;
 
 internal sealed class TypeSystem(int pointerSize)
 {
+    private readonly ConcurrentDictionary<TypeDescription, TypeDescription> _byReferenceTypes = new();
     private readonly ConcurrentDictionary<TypeDescription, TypeDescription> _pointerTypes = new();
     private readonly ConcurrentDictionary<PrimitiveTypeCode, TypeDescription> _primitiveTypes = new();
     private readonly ConcurrentDictionary<TypeDescription, TypeDescription> _szArrayTypes = new();
@@ -14,7 +15,14 @@ internal sealed class TypeSystem(int pointerSize)
 
     public TypeDescription Int32 => GetPrimitiveType(PrimitiveTypeCode.Int32);
 
+    public TypeDescription IntPtr => GetPrimitiveType(PrimitiveTypeCode.IntPtr);
+
     public TypeDescription String => GetPrimitiveType(PrimitiveTypeCode.String);
+
+    public TypeDescription GetByReferenceType(TypeDescription elementType)
+    {
+        return _byReferenceTypes.GetOrAdd(elementType, x => new ByReferenceType(this, x));
+    }
 
     public TypeDescription GetPointerType(TypeDescription elementType)
     {

@@ -181,6 +181,24 @@ public class DotNetCompilerTests
         Console.WriteLine(x);
     }
 
+    [CompilerTest]
+    private static void UseClass()
+    {
+        var s = new MyClass
+        {
+            A = 1,
+            B = 2,
+        };
+
+        Console.WriteLine(s.A + s.B);
+    }
+
+    private class MyClass
+    {
+        public int A;
+        public int B;
+    }
+
     [TestCaseSource(nameof(GetCompilerTests))]
     public void CompilerTests(CompilerTest test)
     {
@@ -191,8 +209,9 @@ public class DotNetCompilerTests
         var actualOutput = ExecuteDotNetro(test);
 
         // Compare results.
+        Console.WriteLine($".NET     Output: {expectedOutput}");
+        Console.WriteLine($"DotNetro Output: {actualOutput}");
         Assert.That(actualOutput, Is.EqualTo(expectedOutput));
-        Console.WriteLine($"Output: {actualOutput}");
     }
 
     private static string ExecuteDotNet(CompilerTest test)
@@ -217,13 +236,14 @@ public class DotNetCompilerTests
     private static string ExecuteDotNetro(CompilerTest test)
     {
         // Compile method.
-        var assemblyCode = DotNetCompiler.Compile(typeof(DotNetCompilerTests).Assembly.Location, test.Method.Name, null);
-        var compiledProgram = CompilerDriver.Assemble(assemblyCode, out var listing);
-        Console.WriteLine(listing);
+        var compilationResult = CompilerDriver.Compile(typeof(DotNetCompilerTests).Assembly.Location, test.Method.Name);
+
+        File.WriteAllText($"CompilerTest{test.Method.Name}.asm", compilationResult.AssemblyCode);
+        File.WriteAllText($"CompilerTest{test.Method.Name}.lst", compilationResult.Listing);
 
         // Copy compiled program into memory.
         var memory = new byte[ushort.MaxValue + 1];
-        compiledProgram.CopyTo(memory, 0x2000);
+        compilationResult.CompiledProgram.CopyTo(memory, 0x2000);
 
         // Stub BBC Micro OS functions - OSWRCH and OSASCI.
         memory[0xFFEE] = 0x60; // oswrch, RTS
@@ -243,6 +263,8 @@ public class DotNetCompilerTests
         ref var pins = ref cpu.Pins;
 
         using var reader = new StringReader(string.Join("\r", test.ConsoleInputs));
+
+        using var debugWriter = new StreamWriter(File.OpenWrite($"CompilerTest{test.Method.Name}.out"));
 
         var output = "";
 
@@ -264,7 +286,7 @@ public class DotNetCompilerTests
 
             if (cpu.Pins.Sync)
             {
-                Console.WriteLine($"{cpu.PC:X4}  A:{cpu.A:X2} X:{cpu.X:X2} Y:{cpu.Y:X2} P:{cpu.P.AsByte(false):X2} SP:{cpu.SP:X2}");
+                debugWriter.WriteLine($"{cpu.PC:X4}  A:{cpu.A:X2} X:{cpu.X:X2} Y:{cpu.Y:X2} P:{cpu.P.AsByte(false):X2} SP:{cpu.SP:X2}");
             }
 
             switch (cpu.PC)

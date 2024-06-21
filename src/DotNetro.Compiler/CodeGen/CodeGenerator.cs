@@ -10,7 +10,7 @@ internal abstract class CodeGenerator(TextWriter output)
 
     public abstract void WriteHeader();
     public abstract void WriteEntryPoint(string entryPointMethodName);
-    public abstract void WriteFooter();
+    public abstract void WriteFooter(ReadOnlySpan<EcmaMethod> staticConstructors);
 
     public abstract void WriteStringConstant(string name, string value);
 
@@ -28,10 +28,12 @@ internal abstract class CodeGenerator(TextWriter output)
     public abstract void WriteComment(string text);
 
     public abstract void WriteAddInt32();
+    public abstract void WriteAddIntPtr();
     public abstract void WriteBr(string label);
     public abstract void WriteBrtrue(TypeDescription stackObjectType, string label);
     public abstract void WriteCall(EcmaMethod caller, EcmaMethod callee);
     public abstract void WriteCltInt32();
+    public abstract void WriteConviInt32();
     public abstract void WriteDup(TypeDescription type);
     public abstract void WriteInitobj(TypeDescription type);
     public abstract void WriteLdarg(Parameter parameter);
@@ -41,6 +43,7 @@ internal abstract class CodeGenerator(TextWriter output)
     public abstract void WriteLdloca(LocalVariable local);
     public abstract void WriteLdsfld(EcmaField field);
     public abstract void WriteLdstr(string name);
+    public abstract void WriteNewobj(EcmaMethod caller, EcmaMethod constructor, EcmaMethod allocMethod);
     public abstract void WriteRet();
     public abstract void WriteStfld(EcmaField field);
     public abstract void WriteStloc(TypeDescription stackEntryType, LocalVariable local);

@@ -6,38 +6,19 @@ namespace DotNetro.Compiler;
 
 public static class CompilerDriver
 {
-    public static void Compile(string dotNetAssemblyPath, string entryPointMethodName, string outputPath, ILogger? logger)
+    public static CompilationResult Compile(string dotNetAssemblyPath, string entryPointMethodName)
     {
-        var assemblyCode = DotNetCompiler.Compile(dotNetAssemblyPath, entryPointMethodName, logger);
+        var assemblyCode = DotNetCompiler.Compile(dotNetAssemblyPath, entryPointMethodName, null);
 
-        var imageBytes = Assemble(assemblyCode, out _);
+        var imageBytes = Assemble(assemblyCode, out var listing);
 
-        File.WriteAllBytes(outputPath, imageBytes.ToArray());
+        return new CompilationResult(assemblyCode, listing, imageBytes);
     }
 
-    public static ReadOnlyCollection<byte> Compile(string dotNetAssemblyPath, string entryPointMethodName, ILogger? logger)
-    {
-        var assemblyCode = DotNetCompiler.Compile(dotNetAssemblyPath, entryPointMethodName, logger);
-
-        return Assemble(assemblyCode, out _);
-    }
-
-    public static ReadOnlyCollection<byte> Assemble(string assemblyCode, out string listing)
+    private static ReadOnlyCollection<byte> Assemble(string assemblyCode, out string listing)
     {
         var options = new Options
         {
-            ArchitectureOptions = new ArchitectureOptions
-            {
-
-            },
-            DiagnosticOptions = new DiagnosticOptions
-            {
-
-            },
-            GeneralOptions = new GeneralOptions
-            {
-
-            },
             OutputOptions = new OutputOptions
             {
                 Format = "bbcmicro",
@@ -57,3 +38,5 @@ public static class CompilerDriver
         return state.Output.GetCompilation();
     }
 }
+
+public sealed record CompilationResult(string AssemblyCode, string Listing, ReadOnlyCollection<byte> CompiledProgram);

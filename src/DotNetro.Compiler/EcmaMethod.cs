@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Reflection;
 using System.Reflection.Metadata;
 
 using DotNetro.Compiler.TypeSystem;
@@ -44,12 +45,19 @@ internal sealed class EcmaMethod
         {
             var localSignature = MetadataReader.GetStandaloneSignature(MethodBody.LocalSignature);
             var localTypes = localSignature.DecodeLocalSignature(declaringType.Assembly.AssemblyStore.SignatureTypeProvider, GenericContext.Empty);
+            var actualLocalTypes = localTypes
+                .Select(x => x switch
+                {
+                    EcmaType ecmaType when ecmaType.Kind == SignatureTypeKind.Class => declaringType.Assembly.AssemblyStore.TypeSystem.GetByReferenceType(ecmaType),
+                    _ => x,
+                })
+                .ToImmutableArray();
             var localOffset = 0;
-            var localsBuilder = ImmutableArray.CreateBuilder<LocalVariable>(localTypes.Length);
-            for (var i = 0; i < localTypes.Length; i++)
+            var localsBuilder = ImmutableArray.CreateBuilder<LocalVariable>(actualLocalTypes.Length);
+            for (var i = 0; i < actualLocalTypes.Length; i++)
             {
-                localsBuilder.Add(new LocalVariable(this, i, localOffset, localTypes[i]));
-                localOffset += localTypes[i].Size;
+                localsBuilder.Add(new LocalVariable(this, i, localOffset, actualLocalTypes[i]));
+                localOffset += actualLocalTypes[i].Size;
             }
             LocalVariables = localsBuilder.ToImmutable();
             LocalsSize = localOffset;
@@ -63,15 +71,22 @@ internal sealed class EcmaMethod
 
         var parameterOffset = 0;
         var parametersBuilder = ImmutableArray.CreateBuilder<Parameter>(MethodSignature.ParameterTypes.Length);
+        var parameterIndex = 0;
+        if (!methodDefinition.Attributes.HasFlag(MethodAttributes.Static))
+        {
+            var thisParameterType = declaringType.Assembly.AssemblyStore.TypeSystem.GetByReferenceType(declaringType);
+            parametersBuilder.Add(new Parameter(parameterIndex++, parameterOffset, thisParameterType));
+            parameterOffset += thisParameterType.Size;
+        }
         for (var i = 0; i < MethodSignature.ParameterTypes.Length; i++)
         {
-            parametersBuilder.Add(new Parameter(i, parameterOffset, MethodSignature.ParameterTypes[i]));
+            parametersBuilder.Add(new Parameter(parameterIndex++, parameterOffset, MethodSignature.ParameterTypes[i]));
             parameterOffset += MethodSignature.ParameterTypes[i].Size;
         }
         Parameters = parametersBuilder.ToImmutable();
         ParametersSize = parameterOffset;
 
-        UniqueName = $"{DeclaringType.FullName.Replace('.', '_')}_{MetadataReader.GetString(methodDefinition.Name)}";
+        UniqueName = $"{DeclaringType.FullName.Replace('.', '_')}_{MetadataReader.GetString(methodDefinition.Name).Replace('.', '_')}";
 
         foreach (var parameterType in MethodSignature.ParameterTypes)
         {

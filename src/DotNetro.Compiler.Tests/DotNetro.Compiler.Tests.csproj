@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotNetro.Compiler\DotNetro.Compiler.csproj" />
+    <ProjectReference Include="..\DotNetro\DotNetro.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -31,15 +31,33 @@ internal sealed class EcmaType : TypeDescription
         }
     }
 
-    public EcmaType(EcmaAssembly assembly, TypeDefinitionHandle typeDefinitionHandle)
+    public SignatureTypeKind Kind { get; internal set; }
+
+    public EcmaType(EcmaAssembly assembly, TypeDefinitionHandle typeDefinitionHandle, SignatureTypeKind typeKind)
     {
         Assembly = assembly;
         TypeDefinitionHandle = typeDefinitionHandle;
+        Kind = typeKind;
 
         TypeDefinition = Assembly.MetadataReader.GetTypeDefinition(TypeDefinitionHandle);
 
         FullName = TypeDefinition.GetFullName(assembly.MetadataReader);
         EncodedName = FullName.Replace('.', '_');
+    }
+
+    public EcmaMethod? GetStaticConstructor()
+    {
+        foreach (var methodDefinitionHandle in TypeDefinition.GetMethods())
+        {
+            var methodDefinition = Assembly.MetadataReader.GetMethodDefinition(methodDefinitionHandle);
+
+            if (Assembly.MetadataReader.GetString(methodDefinition.Name) == ".cctor")
+            {
+                return Assembly.GetMethod(methodDefinitionHandle);
+            }
+        }
+
+        return null;
     }
 
     public EcmaMethod GetMethod(string name, MethodSignature<TypeDescription> signature)

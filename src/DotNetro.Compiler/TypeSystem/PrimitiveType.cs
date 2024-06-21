@@ -14,6 +14,7 @@ internal sealed class PrimitiveType(TypeSystem typeSystem, PrimitiveTypeCode pri
         PrimitiveTypeCode.Double => 8,
         PrimitiveTypeCode.Int32 => 4,
         PrimitiveTypeCode.Int64 => 8,
+        PrimitiveTypeCode.IntPtr => typeSystem.PointerSize,
         PrimitiveTypeCode.Object => typeSystem.PointerSize,
         PrimitiveTypeCode.Single => 4,
         PrimitiveTypeCode.String => typeSystem.PointerSize,
