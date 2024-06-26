@@ -11,6 +11,10 @@ internal sealed class EcmaType : TypeDescription
     private readonly Dictionary<FieldDefinitionHandle, EcmaField> _fields = [];
     private bool _builtFields;
     private int _size;
+    private bool _builtBaseType;
+    private EcmaType? _baseType;
+    private bool _builtIsValueType;
+    private bool _isValueType;
 
     public EcmaAssembly Assembly { get; }
 
@@ -22,7 +26,7 @@ internal sealed class EcmaType : TypeDescription
 
     public override string EncodedName { get; }
 
-    public override int Size
+    public override int InstanceSize
     {
         get
         {
@@ -31,18 +35,42 @@ internal sealed class EcmaType : TypeDescription
         }
     }
 
-    public SignatureTypeKind Kind { get; internal set; }
+    public override int Size => !IsValueType
+        ? Context.PointerSize
+        : InstanceSize;
 
-    public EcmaType(EcmaAssembly assembly, TypeDefinitionHandle typeDefinitionHandle, SignatureTypeKind typeKind)
+    public override bool IsPointerLike => !IsValueType;
+
+    public EcmaType? BaseType
+    {
+        get
+        {
+            EnsureBaseType();
+            return _baseType;
+        }
+    }
+
+    public bool IsValueType
+    {
+        get
+        {
+            EnsureIsValueType();
+            return _isValueType;
+        }
+    }
+
+    public EcmaType(EcmaAssembly assembly, TypeDefinitionHandle typeDefinitionHandle)
+        : base(assembly.Context)
     {
         Assembly = assembly;
         TypeDefinitionHandle = typeDefinitionHandle;
-        Kind = typeKind;
 
         TypeDefinition = Assembly.MetadataReader.GetTypeDefinition(TypeDefinitionHandle);
 
         FullName = TypeDefinition.GetFullName(assembly.MetadataReader);
         EncodedName = FullName.Replace('.', '_');
+
+        
     }
 
     public EcmaMethod? GetStaticConstructor()
@@ -68,7 +96,7 @@ internal sealed class EcmaType : TypeDescription
 
             if (Assembly.MetadataReader.GetString(methodDefinition.Name) == name)
             {
-                var methodSignature = methodDefinition.DecodeSignature(Assembly.AssemblyStore.SignatureTypeProvider, GenericContext.Empty);
+                var methodSignature = methodDefinition.DecodeSignature(Assembly.SignatureTypeProvider, GenericContext.Empty);
                 if (AreMethodSignaturesCompatible(signature, methodSignature))
                 {
                     return Assembly.GetMethod(methodDefinitionHandle);
@@ -131,7 +159,7 @@ internal sealed class EcmaType : TypeDescription
             var fieldDefinition = Assembly.MetadataReader.GetFieldDefinition(fieldDefinitionHandle);
 
             var fieldType = fieldDefinition.DecodeSignature(
-                Assembly.AssemblyStore.SignatureTypeProvider,
+                Assembly.SignatureTypeProvider,
                 GenericContext.Empty);
 
             var isStaticField = fieldDefinition.Attributes.HasFlag(FieldAttributes.Static);
@@ -153,5 +181,31 @@ internal sealed class EcmaType : TypeDescription
     {
         EnsureFields();
         return _fields[handle];
+    }
+
+    private void EnsureBaseType()
+    {
+        if (_builtBaseType)
+        {
+            return;
+        }
+
+        _baseType = !TypeDefinition.BaseType.IsNil
+            ? Assembly.ResolveType(TypeDefinition.BaseType)
+            : null;
+
+        _builtBaseType = true;
+    }
+
+    private void EnsureIsValueType()
+    {
+        if (_builtIsValueType)
+        {
+            return;
+        }
+
+        _isValueType = BaseType?.IsWellKnownType(WellKnownType.ValueType) ?? false;
+
+        _builtIsValueType = true;
     }
 }

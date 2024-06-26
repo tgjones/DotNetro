@@ -1,9 +1,10 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 
 namespace DotNetro.Compiler.TypeSystem;
 
-internal sealed class SignatureTypeProvider(TypeSystem typeSystem, AssemblyStore assemblyStore)
+internal sealed class SignatureTypeProvider(EcmaAssembly assembly)
     : ISignatureTypeProvider<TypeDescription, GenericContext>
 {
     public TypeDescription GetArrayType(TypeDescription elementType, ArrayShape shape)
@@ -11,7 +12,7 @@ internal sealed class SignatureTypeProvider(TypeSystem typeSystem, AssemblyStore
         throw new NotImplementedException();
     }
 
-    public TypeDescription GetByReferenceType(TypeDescription elementType) => typeSystem.GetByReferenceType(elementType);
+    public TypeDescription GetByReferenceType(TypeDescription elementType) => elementType.MakeByReferenceType();
 
     public TypeDescription GetFunctionPointerType(MethodSignature<TypeDescription> signature)
     {
@@ -43,26 +44,27 @@ internal sealed class SignatureTypeProvider(TypeSystem typeSystem, AssemblyStore
         throw new NotImplementedException();
     }
 
-    public TypeDescription GetPointerType(TypeDescription elementType) => typeSystem.GetPointerType(elementType);
+    public TypeDescription GetPointerType(TypeDescription elementType) => elementType.MakePointerType();
 
-    public TypeDescription GetPrimitiveType(PrimitiveTypeCode typeCode) => typeSystem.GetPrimitiveType(typeCode);
+    public TypeDescription GetPrimitiveType(PrimitiveTypeCode typeCode) => assembly.Context.GetPrimitiveType(typeCode);
 
-    public TypeDescription GetSZArrayType(TypeDescription elementType) => typeSystem.GetSZArrayType(elementType);
+    public TypeDescription GetSZArrayType(TypeDescription elementType) => elementType.MakeSZArrayType();
 
     public TypeDescription GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
     {
-        var assembly = assemblyStore.GetAssembly(reader.GetAssemblyDefinition().GetAssemblyName());
-        return assembly.GetType(handle, (SignatureTypeKind)rawTypeKind);
+        Debug.Assert(reader == assembly.MetadataReader);
+        return assembly.GetType(handle);
     }
 
     public TypeDescription GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind)
     {
-        var assembly = assemblyStore.GetAssembly(reader.GetAssemblyDefinition().GetAssemblyName());
-        return assembly.ResolveType(handle, (SignatureTypeKind)rawTypeKind);
+        Debug.Assert(reader == assembly.MetadataReader);
+        return assembly.ResolveType(handle);
     }
 
     public TypeDescription GetTypeFromSpecification(MetadataReader reader, GenericContext genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
     {
+        Debug.Assert(reader == assembly.MetadataReader);
         throw new NotImplementedException();
     }
 }

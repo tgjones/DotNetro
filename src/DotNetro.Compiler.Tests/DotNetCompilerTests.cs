@@ -199,6 +199,34 @@ public class DotNetCompilerTests
         public int B;
     }
 
+    [CompilerTest]
+    private static void UseNestedClass()
+    {
+        var s = new MyClassOuter
+        {
+            Inner = new MyClassInner
+            {
+                A = 1,
+                B = 2,
+            },
+            C = 3,
+        };
+
+        Console.WriteLine(s.Inner.A + s.Inner.B + s.C);
+    }
+
+    private class MyClassOuter
+    {
+        public MyClassInner? Inner;
+        public int C;
+    }
+
+    private class MyClassInner
+    {
+        public int A;
+        public int B;
+    }
+
     [TestCaseSource(nameof(GetCompilerTests))]
     public void CompilerTests(CompilerTest test)
     {

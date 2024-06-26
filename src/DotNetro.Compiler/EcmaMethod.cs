@@ -44,20 +44,14 @@ internal sealed class EcmaMethod
         if (!MethodBody.LocalSignature.IsNil)
         {
             var localSignature = MetadataReader.GetStandaloneSignature(MethodBody.LocalSignature);
-            var localTypes = localSignature.DecodeLocalSignature(declaringType.Assembly.AssemblyStore.SignatureTypeProvider, GenericContext.Empty);
-            var actualLocalTypes = localTypes
-                .Select(x => x switch
-                {
-                    EcmaType ecmaType when ecmaType.Kind == SignatureTypeKind.Class => declaringType.Assembly.AssemblyStore.TypeSystem.GetByReferenceType(ecmaType),
-                    _ => x,
-                })
-                .ToImmutableArray();
+            var localTypes = localSignature.DecodeLocalSignature(declaringType.Assembly.SignatureTypeProvider, GenericContext.Empty);
             var localOffset = 0;
-            var localsBuilder = ImmutableArray.CreateBuilder<LocalVariable>(actualLocalTypes.Length);
-            for (var i = 0; i < actualLocalTypes.Length; i++)
+            var localsBuilder = ImmutableArray.CreateBuilder<LocalVariable>(localTypes.Length);
+            for (var i = 0; i < localTypes.Length; i++)
             {
-                localsBuilder.Add(new LocalVariable(this, i, localOffset, actualLocalTypes[i]));
-                localOffset += actualLocalTypes[i].Size;
+                var local = new LocalVariable(this, i, localOffset, localTypes[i]);
+                localsBuilder.Add(local);
+                localOffset += local.Type.Size;
             }
             LocalVariables = localsBuilder.ToImmutable();
             LocalsSize = localOffset;
@@ -67,21 +61,22 @@ internal sealed class EcmaMethod
             LocalVariables = [];
         }
 
-        MethodSignature = methodDefinition.DecodeSignature(declaringType.Assembly.AssemblyStore.SignatureTypeProvider, GenericContext.Empty);
+        MethodSignature = methodDefinition.DecodeSignature(declaringType.Assembly.SignatureTypeProvider, GenericContext.Empty);
 
         var parameterOffset = 0;
         var parametersBuilder = ImmutableArray.CreateBuilder<Parameter>(MethodSignature.ParameterTypes.Length);
         var parameterIndex = 0;
         if (!methodDefinition.Attributes.HasFlag(MethodAttributes.Static))
         {
-            var thisParameterType = declaringType.Assembly.AssemblyStore.TypeSystem.GetByReferenceType(declaringType);
-            parametersBuilder.Add(new Parameter(parameterIndex++, parameterOffset, thisParameterType));
-            parameterOffset += thisParameterType.Size;
+            var parameter = new Parameter(parameterIndex++, parameterOffset, declaringType);
+            parametersBuilder.Add(parameter);
+            parameterOffset += parameter.Type.Size;
         }
         for (var i = 0; i < MethodSignature.ParameterTypes.Length; i++)
         {
-            parametersBuilder.Add(new Parameter(parameterIndex++, parameterOffset, MethodSignature.ParameterTypes[i]));
-            parameterOffset += MethodSignature.ParameterTypes[i].Size;
+            var parameter = new Parameter(parameterIndex++, parameterOffset, MethodSignature.ParameterTypes[i]);
+            parametersBuilder.Add(parameter);
+            parameterOffset += parameter.Type.Size;
         }
         Parameters = parametersBuilder.ToImmutable();
         ParametersSize = parameterOffset;

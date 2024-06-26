@@ -22,8 +22,7 @@ public sealed class DotNetCompiler : IDisposable
     private readonly CodeGenerator _codeGenerator;
     private readonly TextWriter _output;
 
-    private readonly TypeSystem.TypeSystem _typeSystem;
-    private readonly AssemblyStore _assemblyStore;
+    private readonly TypeSystemContext _typeSystemContext;
     private readonly EcmaAssembly _rootAssemblyContext;
 
     private readonly Dictionary<string, string> _stringTable = [];
@@ -38,17 +37,16 @@ public sealed class DotNetCompiler : IDisposable
     {
         _codeGenerator = new BbcMicroCodeGenerator(output);
 
-        _typeSystem = new TypeSystem.TypeSystem(_codeGenerator.PointerSize);
-        _assemblyStore = new AssemblyStore(_typeSystem);
+        _typeSystemContext = new TypeSystemContext(_codeGenerator.PointerSize);
 
-        _rootAssemblyContext = _assemblyStore.GetAssembly(rootAssemblyPath);
+        _rootAssemblyContext = _typeSystemContext.ResolveAssembly(rootAssemblyPath);
 
         _output = output;
     }
 
     public void Dispose()
     {
-        _assemblyStore.Dispose();
+        _typeSystemContext.Dispose();
     }
 
     private void Compile(string entryPointMethodName)
@@ -325,23 +323,17 @@ public sealed class DotNetCompiler : IDisposable
             throw new NotSupportedException();
         }
 
-        var primitiveTypeCode = leftType switch
-        {
-            PrimitiveType primitiveType => primitiveType.PrimitiveTypeCode,
-            _ => throw new InvalidOperationException(),
-        };
-
         PushStackEntry(leftType);
 
         _codeGenerator.WriteComment("add");
 
-        switch (primitiveTypeCode)
+        switch (leftType)
         {
-            case PrimitiveTypeCode.Int32:
+            case PrimitiveType { PrimitiveTypeCode: PrimitiveTypeCode.Int32 }:
                 _codeGenerator.WriteAddInt32();
                 break;
 
-            case PrimitiveTypeCode.IntPtr:
+            case PrimitiveType { PrimitiveTypeCode: PrimitiveTypeCode.IntPtr }:
                 _codeGenerator.WriteAddIntPtr();
                 break;
 
@@ -420,7 +412,7 @@ public sealed class DotNetCompiler : IDisposable
             throw new NotSupportedException();
         }
 
-        PushStackEntry(_typeSystem.Int32);
+        PushStackEntry(_typeSystemContext.Boolean);
 
         _codeGenerator.WriteComment("clt");
         _codeGenerator.WriteCltInt32();
@@ -435,7 +427,7 @@ public sealed class DotNetCompiler : IDisposable
             throw new NotSupportedException();
         }
 
-        PushStackEntry(_typeSystem.IntPtr);
+        PushStackEntry(_typeSystemContext.IntPtr);
 
         _codeGenerator.WriteComment("conv.i");
         _codeGenerator.WriteConviInt32();
@@ -477,7 +469,7 @@ public sealed class DotNetCompiler : IDisposable
 
     private void CompileLdcI4(string mnemonic, int value)
     {
-        PushStackEntry(_typeSystem.Int32);
+        PushStackEntry(_typeSystemContext.Int32);
 
         _codeGenerator.WriteComment(mnemonic);
         _codeGenerator.WriteLdcI4(value);
@@ -509,9 +501,9 @@ public sealed class DotNetCompiler : IDisposable
     {
         var local = methodContext.LocalVariables[index];
 
-        PushStackEntry(_typeSystem.GetByReferenceType(local.Type));
+        PushStackEntry(local.Type.MakeByReferenceType());
 
-        _codeGenerator.WriteComment($"ldloca.s {local.Index}");
+        _codeGenerator.WriteComment($"ldloca {local.Index}");
         _codeGenerator.WriteLdloca(local);
     }
 
@@ -531,7 +523,7 @@ public sealed class DotNetCompiler : IDisposable
     {
         var stringValue = methodContext.MetadataReader.GetUserString(MetadataTokens.UserStringHandle(token));
 
-        PushStackEntry(_typeSystem.String);
+        PushStackEntry(_typeSystemContext.String);
 
         var stringKey = $"string{token:X8}";
         _stringTable[stringKey] = stringValue;
@@ -546,19 +538,20 @@ public sealed class DotNetCompiler : IDisposable
 
         EnqueueMethod(constructor);
 
-        for (var i = 0; i < constructor.MethodSignature.ParameterTypes.Length; i++)
+        // Skip the first parameter, which is the `this` parameter.
+        for (var i = 1; i < constructor.Parameters.Length; i++)
         {
-            if (PopStackEntry() != constructor.MethodSignature.ParameterTypes[i])
+            if (PopStackEntry() != constructor.Parameters[i].Type)
             {
                 throw new InvalidOperationException();
             }
         }
 
-        PushStackEntry(_typeSystem.GetByReferenceType(constructor.DeclaringType));
+        PushStackEntry(constructor.DeclaringType);
 
         // Resolve ManagedHeap.Alloc method.
-        var managedHeapType = methodContext.DeclaringType.Assembly.AssemblyStore.RuntimeAssembly.GetType("DotNetro.Runtime", "ManagedHeap");
-        var allocMethod = managedHeapType.GetMethod("Alloc", new MethodSignature<TypeDescription>(new SignatureHeader(), _typeSystem.IntPtr, 1, 0, [_typeSystem.IntPtr]));
+        var managedHeapType = _typeSystemContext.RuntimeAssembly.GetType("DotNetro.Runtime", "ManagedHeap");
+        var allocMethod = managedHeapType.GetMethod("Alloc", new MethodSignature<TypeDescription>(new SignatureHeader(), _typeSystemContext.IntPtr, 1, 0, [_typeSystemContext.IntPtr]));
         EnqueueMethod(allocMethod);
 
         _codeGenerator.WriteComment($"newobj {constructor.UniqueName}");
@@ -592,7 +585,6 @@ public sealed class DotNetCompiler : IDisposable
     private void CompileStfld(EcmaMethod methodContext, EntityHandle fieldHandle)
     {
         var field = methodContext.DeclaringType.Assembly.GetField((FieldDefinitionHandle)fieldHandle);
-
         var valueType = PopStackEntry();
 
         if (valueType != field.Type)
@@ -601,7 +593,7 @@ public sealed class DotNetCompiler : IDisposable
         }
 
         var objectReferenceType = PopStackEntry();
-        if (objectReferenceType is not PointerType && objectReferenceType is not ByReferenceType)
+        if (!objectReferenceType.IsPointerLike)
         {
             throw new InvalidOperationException();
         }
@@ -615,8 +607,13 @@ public sealed class DotNetCompiler : IDisposable
         var local = methodContext.LocalVariables[index];
         var stackEntryType = PopStackEntry();
 
+        if (stackEntryType != local.Type)
+        {
+            throw new InvalidOperationException();
+        }
+
         _codeGenerator.WriteComment($"stloc.{local.Index}");
-        _codeGenerator.WriteStloc(stackEntryType, local);
+        _codeGenerator.WriteStloc(local);
     }
 
     private void CompileStsfld(EcmaMethod methodContext, EntityHandle fieldHandle)

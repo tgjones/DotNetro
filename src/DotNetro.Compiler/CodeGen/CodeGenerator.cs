@@ -46,6 +46,6 @@ internal abstract class CodeGenerator(TextWriter output)
     public abstract void WriteNewobj(EcmaMethod caller, EcmaMethod constructor, EcmaMethod allocMethod);
     public abstract void WriteRet();
     public abstract void WriteStfld(EcmaField field);
-    public abstract void WriteStloc(TypeDescription stackEntryType, LocalVariable local);
+    public abstract void WriteStloc(LocalVariable local);
     public abstract void WriteStsfld(EcmaField field);
 }

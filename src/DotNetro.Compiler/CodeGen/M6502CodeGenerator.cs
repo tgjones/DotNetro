@@ -1,4 +1,5 @@
 ﻿using System.Buffers.Binary;
+using System.Diagnostics;
 
 using DotNetro.Compiler.TypeSystem;
 
@@ -162,13 +163,6 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine("    DEX:DEX:DEX:DEX");
         Output.WriteLine("    STA 0,X");
         Output.WriteLine("    INX");
-        Output.WriteLine("    LDA #0");
-        Output.WriteLine("    STA 0,X");
-        Output.WriteLine("    INX");
-        Output.WriteLine("    STA 0,X");
-        Output.WriteLine("    INX");
-        Output.WriteLine("    STA 0,X");
-        Output.WriteLine("    INX");
         Output.WriteLine("    RTS");
         EndScopeBlock();
     }
@@ -296,7 +290,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         WritePopToMemory("scratch", PointerSize);
 
         Output.WriteLine($"    LDA #0");
-        for (var i = 0; i < type.Size; i++)
+        for (var i = 0; i < type.InstanceSize; i++)
         {
             Output.WriteLine($"    LDY #{i}"); // TODO: Use INY
             Output.WriteLine($"    STA (scratch),Y");
@@ -322,25 +316,20 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
         WritePopToMemory("scratch", objectType.Size);
 
-        switch (objectType)
+        if (objectType.IsPointerLike)
         {
-            case ByReferenceType:
-            case PointerType:
-                for (var i = 0; i < field.Type.Size; i++)
-                {
-                    Output.WriteLine($"    LDY #{field.Offset + i}");
-                    Output.WriteLine($"    LDA (scratch),Y");
-                    Output.WriteLine($"    STA 0,X");
-                    Output.WriteLine($"    INX");
-                }
-                break;
-
-            case EcmaType:
-                WritePushFromMemory($"scratch+{field.Offset}", field.Type.Size);
-                break;
-
-            default:
-                throw new InvalidOperationException();
+            for (var i = 0; i < field.Type.Size; i++)
+            {
+                Output.WriteLine($"    LDY #{field.Offset + i}");
+                Output.WriteLine($"    LDA (scratch),Y");
+                Output.WriteLine($"    STA 0,X");
+                Output.WriteLine($"    INX");
+            }
+        }
+        else
+        {
+            Debug.Assert(objectType is EcmaType { IsValueType: true });
+            WritePushFromMemory($"scratch+{field.Offset}", field.Type.Size);
         }
     }
 
@@ -381,7 +370,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         // Call alloc method with size parameter.
         {
             Span<byte> bytes = stackalloc byte[PointerSize];
-            BinaryPrimitives.WriteUInt16LittleEndian(bytes, (ushort)constructor.DeclaringType.Size);
+            BinaryPrimitives.WriteUInt16LittleEndian(bytes, (ushort)constructor.DeclaringType.InstanceSize);
             for (var i = 0; i < PointerSize; i++)
             {
                 Output.WriteLine($"    LDA #${bytes[i]:X2}");
@@ -441,14 +430,8 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         }
     }
 
-    public override void WriteStloc(TypeDescription stackEntryType, LocalVariable local)
+    public override void WriteStloc(LocalVariable local)
     {
-        // If the stack entry type is larger than the local variable type, we need to adjust the stack pointer.
-        for (var i = 0; i < stackEntryType.Size - local.Type.Size; i++)
-        {
-            Output.WriteLine($"    DEX");
-        }
-
         WritePopToMemory(GetLocalVariableOffsetAddress(local), local.Type.Size);
     }
 

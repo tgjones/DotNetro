@@ -1,9 +1,11 @@
 ﻿namespace DotNetro.Compiler.TypeSystem;
 
-internal sealed class ByReferenceType(TypeSystem typeSystem, TypeDescription elementType)
-    : ParameterizedType(elementType)
+internal sealed class ByReferenceType(TypeSystemContext context, TypeDescription elementType)
+    : ParameterizedType(context, elementType)
 {
-    public override int Size => typeSystem.PointerSize;
+    public override int InstanceSize => Context.PointerSize;
+
+    public override bool IsPointerLike { get; } = true;
 
     public override string EncodedName => throw new NotImplementedException();
 }
