@@ -380,13 +380,14 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine($"    JSR {allocMethod.UniqueName}");
 
         // Current top of stack is address of memory allocated by alloc method.
-        // We want to leave it in the stack, beacuse this will be the result of newobj.
+        // We save it to the hardware stack, because this will be the result of newobj.
         // We also want to copy it into args as the first argument to the constructor.
         for (var i = PointerSize - 1; i >= 0; i--)
         {
-            var offset = (sbyte)(i - PointerSize);
-            Output.WriteLine($"    LDA ${offset:X2},X");
+            Output.WriteLine($"    DEX");
+            Output.WriteLine($"    LDA 0,X");
             Output.WriteLine($"    STA {ArgsLabel}+{i}");
+            Output.WriteLine($"    PHA");
         }
 
         // Push constructor args (not including "this") to stack.
@@ -394,6 +395,14 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
         // Call constructor.
         Output.WriteLine($"    JSR {constructor.UniqueName}");
+
+        // Restore the address of the new object to the top of the stack.
+        for (var i = 0; i < PointerSize; i++)
+        {
+            Output.WriteLine($"    PLA");
+            Output.WriteLine($"    STA 0,X");
+            Output.WriteLine($"    INX");
+        }
 
         WritePopArgsAndLocals(caller);
     }

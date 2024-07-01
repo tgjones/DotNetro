@@ -227,6 +227,28 @@ public class DotNetCompilerTests
         public int B;
     }
 
+    [CompilerTest]
+    private static void UseNestedClassWithConstructors()
+    {
+        var s = new MyClassOuterWithConstructor(
+            new MyClassInnerWithConstructor(1, 2),
+            3);
+
+        Console.WriteLine(s.Inner.A + s.Inner.B + s.C);
+    }
+
+    private class MyClassOuterWithConstructor(MyClassInnerWithConstructor inner, int c)
+    {
+        public MyClassInnerWithConstructor Inner = inner;
+        public int C = c;
+    }
+
+    private sealed class MyClassInnerWithConstructor(int a, int b)
+    {
+        public int A = a;
+        public int B = b;
+    }
+
     [TestCaseSource(nameof(GetCompilerTests))]
     public void CompilerTests(CompilerTest test)
     {

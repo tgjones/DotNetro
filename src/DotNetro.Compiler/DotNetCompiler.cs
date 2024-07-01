@@ -539,7 +539,7 @@ public sealed class DotNetCompiler : IDisposable
         EnqueueMethod(constructor);
 
         // Skip the first parameter, which is the `this` parameter.
-        for (var i = 1; i < constructor.Parameters.Length; i++)
+        for (var i = constructor.Parameters.Length - 1; i >= 1; i--)
         {
             if (PopStackEntry() != constructor.Parameters[i].Type)
             {
