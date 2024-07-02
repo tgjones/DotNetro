@@ -249,6 +249,20 @@ public class DotNetCompilerTests
         public int B = b;
     }
 
+    [CompilerTest]
+    private static void UseStructWithConstructor()
+    {
+        var s = new MyStructWithConstructor(1, 2);
+
+        Console.WriteLine(s.A + s.B);
+    }
+
+    private struct MyStructWithConstructor(int a, int b)
+    {
+        public int A = a;
+        public int B = b;
+    }
+
     [TestCaseSource(nameof(GetCompilerTests))]
     public void CompilerTests(CompilerTest test)
     {

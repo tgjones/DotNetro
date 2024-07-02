@@ -68,7 +68,11 @@ internal sealed class EcmaMethod
         var parameterIndex = 0;
         if (!methodDefinition.Attributes.HasFlag(MethodAttributes.Static))
         {
-            var parameter = new Parameter(parameterIndex++, parameterOffset, declaringType);
+            TypeDescription parameterType = declaringType.IsValueType
+                ? declaringType.MakeByReferenceType()
+                : declaringType;
+
+            var parameter = new Parameter(parameterIndex++, parameterOffset, parameterType);
             parametersBuilder.Add(parameter);
             parameterOffset += parameter.Type.Size;
         }
