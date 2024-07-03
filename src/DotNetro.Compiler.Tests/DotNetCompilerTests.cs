@@ -263,6 +263,19 @@ public class DotNetCompilerTests
         public int B = b;
     }
 
+    [CompilerTest]
+    private static void CallInstanceMethodOnStruct()
+    {
+        var s = new MyStructWithInstanceMethod(42);
+
+        Console.WriteLine(s.MyMethod());
+    }
+
+    private struct MyStructWithInstanceMethod(int a)
+    {
+        public int MyMethod() => a;
+    }
+
     [TestCaseSource(nameof(GetCompilerTests))]
     public void CompilerTests(CompilerTest test)
     {
