@@ -8,6 +8,7 @@ namespace DotNetro.Compiler.CodeGen;
 internal abstract class M6502CodeGenerator(TextWriter output)
     : CodeGenerator(output)
 {
+    protected const string ScratchLabel = "scratch";
     protected const string ArgsLabel = "args";
 
     public override int PointerSize { get; } = 2;
@@ -28,7 +29,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
         WriteSystemConstants();
 
-        Output.WriteLine($"scratch = $60");
+        Output.WriteLine($"{ScratchLabel} = $60");
         Output.WriteLine($"{ArgsLabel} = $70");
         Output.WriteLine();
         Output.WriteLine($"* = $2000");
@@ -43,8 +44,11 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
         WriteStartupCode();
 
-        Output.WriteLine("    ; Initialize stack");
+        Output.WriteLine("    ; Initialize evaluation stack");
         Output.WriteLine("    LDX #0");
+        Output.WriteLine();
+        Output.WriteLine("    ; Initialize args+locals stack");
+        Output.WriteLine("    LDY #0");
         Output.WriteLine();
         Output.WriteLine("    ; Call static constructors");
         Output.WriteLine("    JSR CallStaticConstructors");
@@ -252,13 +256,13 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     public override void WriteCall(EcmaMethod caller, EcmaMethod callee)
     {
-        WritePushArgsAndLocals(caller);
+        WritePushFrame(caller);
 
-        WritePopToMemory(ArgsLabel, callee.ParametersSize);
+        WritePopToFrame(0, callee.ParametersSize);
 
         Output.WriteLine($"    JSR {callee.UniqueName}");
 
-        WritePopArgsAndLocals(caller);
+        WritePopFrame(caller);
     }
 
     public override void WriteCltInt32()
@@ -287,19 +291,23 @@ internal abstract class M6502CodeGenerator(TextWriter output)
     public override void WriteInitobj(TypeDescription type)
     {
         // Address is on stack. Copy to scratch area.
-        WritePopToMemory("scratch", PointerSize);
+        WritePopToMemory(ScratchLabel, PointerSize);
+
+        WritePushY();
 
         Output.WriteLine($"    LDA #0");
         for (var i = 0; i < type.InstanceSize; i++)
         {
             Output.WriteLine($"    LDY #{i}"); // TODO: Use INY
-            Output.WriteLine($"    STA (scratch),Y");
+            Output.WriteLine($"    STA ({ScratchLabel}),Y");
         }
+
+        WritePopY();
     }
 
     public override void WriteLdarg(Parameter parameter)
     {
-        WritePushFromMemory($"{ArgsLabel}+{parameter.Offset}", parameter.Type.Size);
+        WritePushFromFrame(parameter.Offset, parameter.Type.Size);
     }
 
     public override void WriteLdcI4(int value)
@@ -314,36 +322,43 @@ internal abstract class M6502CodeGenerator(TextWriter output)
     {
         // Top of stack is either address of object, or actual value-type instance.
 
-        WritePopToMemory("scratch", objectType.Size);
+        WritePopToMemory(ScratchLabel, objectType.Size);
 
         if (objectType.IsPointerLike)
         {
+            WritePushY();
             for (var i = 0; i < field.Type.Size; i++)
             {
                 Output.WriteLine($"    LDY #{field.Offset + i}");
-                Output.WriteLine($"    LDA (scratch),Y");
+                Output.WriteLine($"    LDA ({ScratchLabel}),Y");
                 Output.WriteLine($"    STA 0,X");
                 Output.WriteLine($"    INX");
             }
+            WritePopY();
         }
         else
         {
             Debug.Assert(objectType is EcmaType { IsValueType: true });
-            WritePushFromMemory($"scratch+{field.Offset}", field.Type.Size);
+            WritePushFromMemory($"{ScratchLabel}+{field.Offset}", field.Type.Size);
         }
     }
 
     public override void WriteLdloc(LocalVariable local)
     {
-        WritePushFromMemory(GetLocalVariableOffsetAddress(local), local.Type.Size);
+        WritePushFromFrame(local.Parent.ParametersSize + local.Offset, local.Type.Size);
     }
 
     public override void WriteLdloca(LocalVariable local)
     {
-        Output.WriteLine($"    LDA #<{GetLocalVariableOffsetAddress(local)}");
+        // Need the lo and hi bytes of address of local variable.
+        // Address is ArgsLabel + local.Parent.ParametersSize + local.Offset + Y.
+        // For now we assume local is stored in zero page.
+        Output.WriteLine($"    TYA");
+        Output.WriteLine($"    CLC");
+        Output.WriteLine($"    ADC #<{GetLocalVariableOffsetAddress(local)}");
         Output.WriteLine($"    STA 0,X");
         Output.WriteLine($"    INX");
-        Output.WriteLine($"    LDA #>{GetLocalVariableOffsetAddress(local)}");
+        Output.WriteLine($"    LDA #0");
         Output.WriteLine($"    STA 0,X");
         Output.WriteLine($"    INX");
     }
@@ -365,7 +380,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     public override void WriteNewobj(EcmaMethod caller, EcmaMethod constructor, EcmaMethod allocMethod)
     {
-        WritePushArgsAndLocals(caller);
+        WritePushFrame(caller);
 
         // Call alloc method with size parameter.
         {
@@ -374,7 +389,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
             for (var i = 0; i < PointerSize; i++)
             {
                 Output.WriteLine($"    LDA #${bytes[i]:X2}");
-                Output.WriteLine($"    STA {ArgsLabel}+{i}");
+                Output.WriteLine($"    STA {ArgsLabel}+{i},Y");
             }
         }
         Output.WriteLine($"    JSR {allocMethod.UniqueName}");
@@ -386,12 +401,12 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         {
             Output.WriteLine($"    DEX");
             Output.WriteLine($"    LDA 0,X");
-            Output.WriteLine($"    STA {ArgsLabel}+{i}");
+            Output.WriteLine($"    STA {ArgsLabel}+{i},Y");
             Output.WriteLine($"    PHA");
         }
 
         // Push constructor args (not including "this") to stack.
-        WritePopToMemory($"{ArgsLabel}+{PointerSize}", constructor.ParametersSize - PointerSize);
+        WritePopToFrame(PointerSize, constructor.ParametersSize - PointerSize);
 
         // Call constructor.
         Output.WriteLine($"    JSR {constructor.UniqueName}");
@@ -404,7 +419,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
             Output.WriteLine($"    INX");
         }
 
-        WritePopArgsAndLocals(caller);
+        WritePopFrame(caller);
     }
 
     public override void WriteRet()
@@ -421,17 +436,21 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         var addressHi = (byte)(0 - field.Type.Size - PointerSize + 1);
 
         Output.WriteLine($"    LDA ${addressLo:X2},X ; Subtract value size + pointer size from current stack pointer");
-        Output.WriteLine($"    STA scratch+0");
+        Output.WriteLine($"    STA {ScratchLabel}+0");
         Output.WriteLine($"    LDA ${addressHi:X2},X ; Subtract value size + pointer size from current stack pointer");
-        Output.WriteLine($"    STA scratch+1");
+        Output.WriteLine($"    STA {ScratchLabel}+1");
+
+        WritePushY();
 
         for (var i = field.Type.Size - 1; i >= 0; i--)
         {
             Output.WriteLine($"    DEX");
             Output.WriteLine($"    LDA 0,X");
             Output.WriteLine($"    LDY #{field.Offset + i}");
-            Output.WriteLine($"    STA (scratch),Y");
+            Output.WriteLine($"    STA ({ScratchLabel}),Y");
         }
+
+        WritePopY();
 
         for (var i = 0; i < PointerSize; i++)
         {
@@ -441,7 +460,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     public override void WriteStloc(LocalVariable local)
     {
-        WritePopToMemory(GetLocalVariableOffsetAddress(local), local.Type.Size);
+        WritePopToFrame(local.Parent.ParametersSize + local.Offset, local.Type.Size);
     }
 
     public override void WriteStsfld(EcmaField field)
@@ -459,6 +478,16 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         }
     }
 
+    private void WritePushFromFrame(int offset, int sizeInBytes)
+    {
+        for (var i = 0; i < sizeInBytes; i++)
+        {
+            Output.WriteLine($"    LDA {ArgsLabel}+{offset}+{i},Y");
+            Output.WriteLine($"    STA 0,X");
+            Output.WriteLine($"    INX");
+        }
+    }
+
     protected void WritePushConstant(ReadOnlySpan<byte> bytes)
     {
         foreach (byte value in bytes)
@@ -471,6 +500,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     private void WritePopToMemory(string baseAddress, int sizeInBytes)
     {
+        Output.WriteLine($"    ; Pop from stack to {baseAddress}");
         for (var i = sizeInBytes - 1; i >= 0; i--)
         {
             Output.WriteLine($"    DEX");
@@ -479,28 +509,68 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         }
     }
 
-    private void WritePushArgsAndLocals(EcmaMethod currentMethod)
+    private void WritePopToFrame(int offset, int sizeInBytes)
     {
-        // Push current method's args+locals to hardware stack.
-        for (var i = 0; i < currentMethod.ParametersSize + currentMethod.LocalsSize; i++)
+        Output.WriteLine("    ; Pop from stack to frame");
+        for (var i = sizeInBytes - 1; i >= 0; i--)
         {
-            Output.WriteLine($"    LDA {ArgsLabel}+{i}");
-            Output.WriteLine($"    PHA");
+            Output.WriteLine($"    DEX");
+            Output.WriteLine($"    LDA 0,X");
+            Output.WriteLine($"    STA {ArgsLabel}+{offset}+{i},Y");
         }
     }
 
-    private void WritePopArgsAndLocals(EcmaMethod currentMethod)
+    protected void WritePushY()
     {
-        // Pop current method's args+locals from hardware stack.
-        for (var i = currentMethod.ParametersSize + currentMethod.LocalsSize - 1; i >= 0; i--)
-        {
-            Output.WriteLine($"    PLA");
-            Output.WriteLine($"    STA {ArgsLabel}+{i}");
-
-        }
+        Output.WriteLine("    TYA ; Push Y register");
+        Output.WriteLine("    PHA");
     }
 
-        // Locals are stored immediately above args.
+    protected void WritePopY()
+    {
+        Output.WriteLine("    PLA ; Pop Y register");
+        Output.WriteLine("    TAY");
+    }
+
+    private void WritePushFrame(EcmaMethod currentMethod)
+    {
+        Output.WriteLine($"    TYA ; Push frame");
+        Output.WriteLine($"    CLC");
+        Output.WriteLine($"    ADC #{currentMethod.ParametersSize + currentMethod.LocalsSize}");
+        Output.WriteLine($"    TAY");
+    }
+
+    private void WritePopFrame(EcmaMethod currentMethod)
+    {
+        // Decrement Y for new frame.
+        Output.WriteLine($"    TYA ; Pop frame");
+        Output.WriteLine($"    SEC");
+        Output.WriteLine($"    SBC #{currentMethod.ParametersSize + currentMethod.LocalsSize}");
+        Output.WriteLine($"    TAY");
+    }
+
+    //private void WritePushArgsAndLocals(EcmaMethod currentMethod)
+    //{
+    //    // Push current method's args+locals to hardware stack.
+    //    for (var i = 0; i < currentMethod.ParametersSize + currentMethod.LocalsSize; i++)
+    //    {
+    //        Output.WriteLine($"    LDA {ArgsLabel}+{i}");
+    //        Output.WriteLine($"    PHA");
+    //    }
+    //}
+
+    //private void WritePopArgsAndLocals(EcmaMethod currentMethod)
+    //{
+    //    // Pop current method's args+locals from hardware stack.
+    //    for (var i = currentMethod.ParametersSize + currentMethod.LocalsSize - 1; i >= 0; i--)
+    //    {
+    //        Output.WriteLine($"    PLA");
+    //        Output.WriteLine($"    STA {ArgsLabel}+{i}");
+
+    //    }
+    //}
+
+    // Locals are stored immediately above args.
     private static string GetLocalVariableOffsetAddress(LocalVariable local) => 
         $"{ArgsLabel}+{local.Parent.ParametersSize + local.Offset}";
 
