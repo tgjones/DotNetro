@@ -21,7 +21,7 @@ internal sealed class SignatureTypeProvider(EcmaAssembly assembly)
 
     public TypeDescription GetGenericInstantiation(TypeDescription genericType, ImmutableArray<TypeDescription> typeArguments)
     {
-        throw new NotImplementedException();
+        return genericType.MakeInstantiatedType(new Instantiation([.. typeArguments]));
     }
 
     public TypeDescription GetGenericMethodParameter(Instantiation genericContext, int index)

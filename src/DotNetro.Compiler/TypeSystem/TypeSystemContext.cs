@@ -16,6 +16,7 @@ internal sealed class TypeSystemContext(int pointerSize) : IDisposable
     private readonly ConcurrentDictionary<WellKnownType, TypeDescription> _wellKnownTypes = new();
     private readonly ConcurrentDictionary<(Instantiation, int), GenericParameter> _genericMethodParameters = new();
     private readonly ConcurrentDictionary<(Instantiation, int), GenericParameter> _genericTypeParameters = new();
+    private readonly ConcurrentDictionary<(TypeDescription, Instantiation), InstantiatedType> _instantiatedTypes = new();
 
     public EcmaAssembly CoreAssembly => ResolveAssembly(new AssemblyName("mscorlib"));
 
@@ -34,6 +35,11 @@ internal sealed class TypeSystemContext(int pointerSize) : IDisposable
     public ByReferenceType GetByReferenceType(TypeDescription elementType)
     {
         return _byReferenceTypes.GetOrAdd(elementType, x => new ByReferenceType(this, x));
+    }
+
+    public InstantiatedType GetInstantiatedType(TypeDescription genericType, Instantiation instantiation)
+    {
+        return _instantiatedTypes.GetOrAdd((genericType, instantiation), x => new InstantiatedType(this, (EcmaType)genericType, instantiation));
     }
 
     public PointerType GetPointerType(TypeDescription elementType)

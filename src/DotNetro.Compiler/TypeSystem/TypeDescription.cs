@@ -23,6 +23,8 @@ internal abstract class TypeDescription(TypeSystemContext context)
 
     public ByReferenceType MakeByReferenceType() => Context.GetByReferenceType(this);
 
+    public InstantiatedType MakeInstantiatedType(Instantiation instantiation) => Context.GetInstantiatedType(this, instantiation);
+
     public PointerType MakePointerType() => Context.GetPointerType(this);
 
     public SZArrayType MakeSZArrayType() => Context.GetSZArrayType(this);
