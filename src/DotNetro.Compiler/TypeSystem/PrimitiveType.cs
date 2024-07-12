@@ -10,6 +10,7 @@ internal sealed class PrimitiveType(TypeSystemContext context, PrimitiveTypeCode
     public override int InstanceSize { get; } = primitiveTypeCode switch
     {
         PrimitiveTypeCode.Boolean => 1,
+        PrimitiveTypeCode.Byte => 1,
         PrimitiveTypeCode.Char => 1,
         PrimitiveTypeCode.Double => 8,
         PrimitiveTypeCode.Int32 => 4,
@@ -18,8 +19,10 @@ internal sealed class PrimitiveType(TypeSystemContext context, PrimitiveTypeCode
         PrimitiveTypeCode.Object => context.PointerSize,
         PrimitiveTypeCode.Single => 4,
         PrimitiveTypeCode.String => context.PointerSize,
+        PrimitiveTypeCode.UInt16 => 2,
         PrimitiveTypeCode.UInt32 => 4,
         PrimitiveTypeCode.UInt64 => 8,
+        PrimitiveTypeCode.UIntPtr => context.PointerSize,
         PrimitiveTypeCode.Void => 0,
         _ => throw new InvalidOperationException(),
     };
