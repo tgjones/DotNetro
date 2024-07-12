@@ -26,12 +26,12 @@ internal sealed class SignatureTypeProvider(EcmaAssembly assembly)
 
     public TypeDescription GetGenericMethodParameter(Instantiation genericContext, int index)
     {
-        throw new NotImplementedException();
+        return assembly.Context.GetGenericMethodParameter(genericContext, index);
     }
 
     public TypeDescription GetGenericTypeParameter(Instantiation genericContext, int index)
     {
-        throw new NotImplementedException();
+        return assembly.Context.GetGenericTypeParameter(genericContext, index);
     }
 
     public TypeDescription GetModifiedType(TypeDescription modifier, TypeDescription unmodifiedType, bool isRequired)

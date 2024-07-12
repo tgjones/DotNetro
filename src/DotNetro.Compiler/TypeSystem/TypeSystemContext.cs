@@ -2,8 +2,6 @@
 using System.Reflection;
 using System.Reflection.Metadata;
 
-using Sixty502DotNet.Shared;
-
 namespace DotNetro.Compiler.TypeSystem;
 
 internal sealed class TypeSystemContext(int pointerSize) : IDisposable
@@ -16,6 +14,8 @@ internal sealed class TypeSystemContext(int pointerSize) : IDisposable
     private readonly ConcurrentDictionary<PrimitiveTypeCode, TypeDescription> _primitiveTypes = new();
     private readonly ConcurrentDictionary<TypeDescription, SZArrayType> _szArrayTypes = new();
     private readonly ConcurrentDictionary<WellKnownType, TypeDescription> _wellKnownTypes = new();
+    private readonly ConcurrentDictionary<(Instantiation, int), GenericParameter> _genericMethodParameters = new();
+    private readonly ConcurrentDictionary<(Instantiation, int), GenericParameter> _genericTypeParameters = new();
 
     public EcmaAssembly CoreAssembly => ResolveAssembly(new AssemblyName("mscorlib"));
 
@@ -54,6 +54,16 @@ internal sealed class TypeSystemContext(int pointerSize) : IDisposable
     public TypeDescription GetWellKnownType(WellKnownType wellKnownType)
     {
         return _wellKnownTypes.GetOrAdd(wellKnownType, x => CoreAssembly.GetType("System", wellKnownType.ToString()));
+    }
+
+    public GenericParameter GetGenericMethodParameter(Instantiation context, int index)
+    {
+        return _genericMethodParameters.GetOrAdd((context, index), x => new GenericParameter(this, GenericParameterKind.Method, index));
+    }
+
+    public GenericParameter GetGenericTypeParameter(Instantiation context, int index)
+    {
+        return _genericTypeParameters.GetOrAdd((context, index), x => new GenericParameter(this, GenericParameterKind.Type, index));
     }
 
     public EcmaAssembly ResolveAssembly(string assemblyPath)
