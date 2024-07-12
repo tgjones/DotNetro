@@ -10,12 +10,12 @@ public static class CompilerDriver
     {
         var assemblyCode = DotNetCompiler.Compile(dotNetAssemblyPath, entryPointMethodName, null);
 
-        var imageBytes = Assemble(assemblyCode, out var listing);
+        var assemblerOutput = Assemble(assemblyCode);
 
-        return new CompilationResult(assemblyCode, listing, imageBytes);
+        return new CompilationResult(assemblyCode, assemblerOutput.Listing, assemblerOutput.CompiledProgram, assemblerOutput.CompiledImage);
     }
 
-    private static ReadOnlyCollection<byte> Assemble(string assemblyCode, out string listing)
+    private static AssemblerResult Assemble(string assemblyCode)
     {
         var options = new Options
         {
@@ -33,10 +33,19 @@ public static class CompilerDriver
             throw error;
         }
 
-        listing = string.Join(System.Environment.NewLine, state.StatementListings);
+        var listing = string.Join(System.Environment.NewLine, state.StatementListings);
 
-        return state.Output.GetCompilation();
+        var objectBytes = state.Output.GetCompilation();
+
+        var outputFormatInfo = new OutputFormatInfo("foo", state.Output.ProgramStart, objectBytes);
+
+        return new AssemblerResult(
+            listing,
+            objectBytes,
+            state.Output.OutputFormat!.GetFormat(outputFormatInfo));
     }
+
+    private sealed record AssemblerResult(string Listing, ReadOnlyCollection<byte> CompiledProgram, ReadOnlyCollection<byte> CompiledImage);
 }
 
-public sealed record CompilationResult(string AssemblyCode, string Listing, ReadOnlyCollection<byte> CompiledProgram);
+public sealed record CompilationResult(string AssemblyCode, string Listing, ReadOnlyCollection<byte> CompiledProgram, ReadOnlyCollection<byte> CompiledImage);
