@@ -5,9 +5,9 @@ internal sealed class BbcMicroCodeGenerator(TextWriter output)
 {
     protected override void WriteSystemConstants()
     {
-        Output.WriteLine("oswrch = $FFEE");
-        Output.WriteLine("osasci = $FFE3");
-        Output.WriteLine("osword = $FFF1");
+        Output.WriteLine("oswrch = $FFEE ; Address of function that writes a character to the output");
+        Output.WriteLine("osasci = $FFE3 ; Same as above, but expands \\r to \\r\\n");
+        Output.WriteLine("osword = $FFF1 ; Address of OS call dispatcher");
         Output.WriteLine();
     }
 
