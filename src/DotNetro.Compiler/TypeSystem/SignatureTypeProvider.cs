@@ -5,7 +5,7 @@ using System.Reflection.Metadata;
 namespace DotNetro.Compiler.TypeSystem;
 
 internal sealed class SignatureTypeProvider(EcmaAssembly assembly)
-    : ISignatureTypeProvider<TypeDescription, GenericContext>
+    : ISignatureTypeProvider<TypeDescription, Instantiation>
 {
     public TypeDescription GetArrayType(TypeDescription elementType, ArrayShape shape)
     {
@@ -24,12 +24,12 @@ internal sealed class SignatureTypeProvider(EcmaAssembly assembly)
         throw new NotImplementedException();
     }
 
-    public TypeDescription GetGenericMethodParameter(GenericContext genericContext, int index)
+    public TypeDescription GetGenericMethodParameter(Instantiation genericContext, int index)
     {
         throw new NotImplementedException();
     }
 
-    public TypeDescription GetGenericTypeParameter(GenericContext genericContext, int index)
+    public TypeDescription GetGenericTypeParameter(Instantiation genericContext, int index)
     {
         throw new NotImplementedException();
     }
@@ -62,7 +62,7 @@ internal sealed class SignatureTypeProvider(EcmaAssembly assembly)
         return assembly.ResolveType(handle);
     }
 
-    public TypeDescription GetTypeFromSpecification(MetadataReader reader, GenericContext genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
+    public TypeDescription GetTypeFromSpecification(MetadataReader reader, Instantiation genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
     {
         Debug.Assert(reader == assembly.MetadataReader);
         throw new NotImplementedException();
