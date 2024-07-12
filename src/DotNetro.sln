@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetro.Compiler", "DotNet
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetro.Compiler.Tests", "DotNetro.Compiler.Tests\DotNetro.Compiler.Tests.csproj", "{EA96ABAB-3831-47BD-BFA1-E821B7E65EE0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetro.Samples.HelloWorld", "DotNetro.Samples.HelloWorld\DotNetro.Samples.HelloWorld.csproj", "{7DA47685-B74A-4B18-9CC1-9636C4F72704}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetro.Compiler.Driver", "DotNetro.Compiler.Driver\DotNetro.Compiler.Driver.csproj", "{C0E682FA-5804-437B-8BD1-12191173C00B}"
 EndProject
 Global
@@ -35,6 +37,10 @@ Global
 		{EA96ABAB-3831-47BD-BFA1-E821B7E65EE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA96ABAB-3831-47BD-BFA1-E821B7E65EE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EA96ABAB-3831-47BD-BFA1-E821B7E65EE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DA47685-B74A-4B18-9CC1-9636C4F72704}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DA47685-B74A-4B18-9CC1-9636C4F72704}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DA47685-B74A-4B18-9CC1-9636C4F72704}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DA47685-B74A-4B18-9CC1-9636C4F72704}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C0E682FA-5804-437B-8BD1-12191173C00B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C0E682FA-5804-437B-8BD1-12191173C00B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C0E682FA-5804-437B-8BD1-12191173C00B}.Release|Any CPU.ActiveCfg = Release|Any CPU

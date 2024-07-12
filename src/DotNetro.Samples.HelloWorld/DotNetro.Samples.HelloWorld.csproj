@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(DotNetVersion)</TargetFramework>
+
+    <RunCommand>C:\Code\Emulators\BBC Micro\b-em-a790022-w64\b-em.exe</RunCommand>
+    <RunArguments>DotNetro.Samples.HelloWorld.ssd</RunArguments>
+    <RunWorkingDirectory>$(OutputPath)</RunWorkingDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetro.Compiler.Driver\DotNetro.Compiler.Driver.csproj" />
+  </ItemGroup>
+
+  <Target Name="CalculateDiskImageTargetPath">
+    <PropertyGroup>
+      <DiskImageTargetPath>$(OutputPath)$(TargetName).ssd</DiskImageTargetPath>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="Transpile" AfterTargets="Build" DependsOnTargets="CalculateDiskImageTargetPath"
+          Inputs="$(TargetPath)" Outputs="$(DiskImageTargetPath)">
+    <Message Importance="high" Text="Transpiling $(TargetPath) to $(DiskImageTargetPath)" />
+    <Exec Command="dnrc --assembly $(TargetPath) --output $(TargetName).ssd" WorkingDirectory="$(OutputPath)" />
+    
+    <ItemGroup>
+      <FileWrites Include="$(DiskImageTargetPath)" />
+    </ItemGroup>
+  </Target>
+
+</Project>
