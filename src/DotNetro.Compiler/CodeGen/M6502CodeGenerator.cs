@@ -66,12 +66,14 @@ internal abstract class M6502CodeGenerator(TextWriter output)
     {
         WriteLabel(name);
         Output.WriteLine($"    .cstring \"{value}\", 13");
+        Output.WriteLine();
     }
 
     public override void WriteStaticField(EcmaField field)
     {
         WriteLabel(GetStaticFieldName(field));
         Output.WriteLine($"    .fill {field.Type.Size},0");
+        Output.WriteLine();
     }
 
     public override void WriteFooter(ReadOnlySpan<EcmaMethod> staticConstructors)
@@ -500,7 +502,6 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     private void WritePopToMemory(string baseAddress, int sizeInBytes)
     {
-        Output.WriteLine($"    ; Pop from stack to {baseAddress}");
         for (var i = sizeInBytes - 1; i >= 0; i--)
         {
             Output.WriteLine($"    DEX");
@@ -511,7 +512,6 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     private void WritePopToFrame(int offset, int sizeInBytes)
     {
-        Output.WriteLine("    ; Pop from stack to frame");
         for (var i = sizeInBytes - 1; i >= 0; i--)
         {
             Output.WriteLine($"    DEX");
@@ -522,32 +522,48 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     protected void WritePushY()
     {
-        Output.WriteLine("    TYA ; Push Y register");
+        Output.WriteLine("    TYA");
         Output.WriteLine("    PHA");
     }
 
     protected void WritePopY()
     {
-        Output.WriteLine("    PLA ; Pop Y register");
+        Output.WriteLine("    PLA");
         Output.WriteLine("    TAY");
     }
 
     private void WritePushFrame(EcmaMethod currentMethod)
     {
+        var frameSize = CalculateFrameSize(currentMethod);
+
+        if (frameSize == 0)
+        {
+            return;
+        }
+
         Output.WriteLine($"    TYA ; Push frame");
         Output.WriteLine($"    CLC");
-        Output.WriteLine($"    ADC #{currentMethod.ParametersSize + currentMethod.LocalsSize}");
+        Output.WriteLine($"    ADC #{frameSize}");
         Output.WriteLine($"    TAY");
     }
 
     private void WritePopFrame(EcmaMethod currentMethod)
     {
+        var frameSize = CalculateFrameSize(currentMethod);
+
+        if (frameSize == 0)
+        {
+            return;
+        }
+
         // Decrement Y for new frame.
         Output.WriteLine($"    TYA ; Pop frame");
         Output.WriteLine($"    SEC");
-        Output.WriteLine($"    SBC #{currentMethod.ParametersSize + currentMethod.LocalsSize}");
+        Output.WriteLine($"    SBC #{frameSize}");
         Output.WriteLine($"    TAY");
     }
+
+    private static int CalculateFrameSize(EcmaMethod currentMethod) => currentMethod.ParametersSize + currentMethod.LocalsSize;
 
     //private void WritePushArgsAndLocals(EcmaMethod currentMethod)
     //{
