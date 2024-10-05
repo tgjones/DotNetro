@@ -6,50 +6,27 @@ using DotNetro.Compiler.TypeSystem;
 
 namespace DotNetro.Compiler;
 
-internal sealed class EcmaMethod
+internal sealed class EcmaMethodBody
 {
-    public EcmaType DeclaringType { get; }
-
-    public MethodDefinitionHandle MethodDefinitionHandle { get; }
-
-    public MethodBodyBlock MethodBody { get; }
-
-    public ImmutableArray<Parameter> Parameters { get; }
-
-    public int ParametersSize { get; }
+    public MethodBodyBlock? MethodBodyBlock { get; }
 
     public ImmutableArray<LocalVariable> LocalVariables { get; }
 
     public int LocalsSize { get; }
 
-    public MethodSignature<TypeDescription> MethodSignature { get; }
-
-    public MetadataReader MetadataReader { get; }
-
-    public string UniqueName { get; }
-
-    public EcmaMethod(
-        EcmaType declaringType,
-        MethodDefinitionHandle handle)
+    public EcmaMethodBody(EcmaType declaringType, EcmaMethod method)
     {
-        DeclaringType = declaringType;
-        MethodDefinitionHandle = handle;
+        MethodBodyBlock = declaringType.Assembly.PEReader.GetMethodBody(method.MethodDefinition.RelativeVirtualAddress);
 
-        MetadataReader = declaringType.Assembly.MetadataReader;
-
-        var methodDefinition = MetadataReader.GetMethodDefinition(handle);
-
-        MethodBody = declaringType.Assembly.PEReader.GetMethodBody(methodDefinition.RelativeVirtualAddress);
-
-        if (!MethodBody.LocalSignature.IsNil)
+        if (!MethodBodyBlock.LocalSignature.IsNil)
         {
-            var localSignature = MetadataReader.GetStandaloneSignature(MethodBody.LocalSignature);
-            var localTypes = localSignature.DecodeLocalSignature(declaringType.Assembly.SignatureTypeProvider, GenericContext.Empty);
+            var localSignature = method.MetadataReader.GetStandaloneSignature(MethodBodyBlock.LocalSignature);
+            var localTypes = localSignature.DecodeLocalSignature(declaringType.Assembly.SignatureTypeProvider, Instantiation.Empty);
             var localOffset = 0;
             var localsBuilder = ImmutableArray.CreateBuilder<LocalVariable>(localTypes.Length);
             for (var i = 0; i < localTypes.Length; i++)
             {
-                var local = new LocalVariable(this, i, localOffset, localTypes[i]);
+                var local = new LocalVariable(method, i, localOffset, localTypes[i]);
                 localsBuilder.Add(local);
                 localOffset += local.Type.Size;
             }
@@ -60,13 +37,51 @@ internal sealed class EcmaMethod
         {
             LocalVariables = [];
         }
+    }
+}
 
-        MethodSignature = methodDefinition.DecodeSignature(declaringType.Assembly.SignatureTypeProvider, GenericContext.Empty);
+internal sealed class EcmaMethod
+{
+    public EcmaType DeclaringType { get; }
+
+    public MethodDefinition MethodDefinition { get; }
+
+    public ImmutableArray<Parameter> Parameters { get; }
+
+    public int ParametersSize { get; }
+
+    public MethodSignature<TypeDescription> MethodSignature { get; }
+
+    public EcmaMethodBody? MethodBody { get; }
+
+    public MetadataReader MetadataReader { get; }
+
+    public string Name { get; }
+    public string UniqueName { get; }
+
+    public bool IsVirtual => MethodDefinition.Attributes.HasFlag(MethodAttributes.Virtual);
+
+    public int FrameSize { get; }
+
+    public EcmaMethod(EcmaType declaringType, in MethodDefinition methodDefinition)
+    {
+        DeclaringType = declaringType;
+
+        MetadataReader = declaringType.Assembly.MetadataReader;
+
+        MethodDefinition = methodDefinition;
+
+        if (MethodDefinition.RelativeVirtualAddress != 0)
+        {
+            MethodBody = new EcmaMethodBody(declaringType, this);
+        }
+
+        MethodSignature = MethodDefinition.DecodeSignature(declaringType.Assembly.SignatureTypeProvider, Instantiation.Empty);
 
         var parameterOffset = 0;
         var parametersBuilder = ImmutableArray.CreateBuilder<Parameter>(MethodSignature.ParameterTypes.Length);
         var parameterIndex = 0;
-        if (!methodDefinition.Attributes.HasFlag(MethodAttributes.Static))
+        if (!MethodDefinition.Attributes.HasFlag(MethodAttributes.Static))
         {
             TypeDescription parameterType = declaringType.IsValueType
                 ? declaringType.MakeByReferenceType()
@@ -85,11 +100,14 @@ internal sealed class EcmaMethod
         Parameters = parametersBuilder.ToImmutable();
         ParametersSize = parameterOffset;
 
-        UniqueName = $"{DeclaringType.FullName.Replace('.', '_')}_{MetadataReader.GetString(methodDefinition.Name).Replace('.', '_')}";
+        Name = MetadataReader.GetString(MethodDefinition.Name);
+        UniqueName = $"{DeclaringType.FullName.Replace('.', '_')}_{Name.Replace('.', '_')}";
 
         foreach (var parameterType in MethodSignature.ParameterTypes)
         {
             UniqueName += $"_{parameterType.EncodedName}";
         }
+
+        FrameSize = ParametersSize + MethodBody?.LocalsSize ?? 0;
     }
 }

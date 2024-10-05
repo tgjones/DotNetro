@@ -27,5 +27,7 @@ internal sealed class PrimitiveType(TypeSystemContext context, PrimitiveTypeCode
         _ => throw new InvalidOperationException(),
     };
 
+    public override bool IsPointerLike { get; } = primitiveTypeCode == PrimitiveTypeCode.IntPtr;
+
     public override string EncodedName => PrimitiveTypeCode.ToString();
 }

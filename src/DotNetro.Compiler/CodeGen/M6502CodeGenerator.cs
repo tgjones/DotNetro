@@ -1,7 +1,10 @@
 ﻿using System.Buffers.Binary;
 using System.Diagnostics;
+using System.Net;
 
 using DotNetro.Compiler.TypeSystem;
+
+using static System.Formats.Asn1.AsnWriter;
 
 namespace DotNetro.Compiler.CodeGen;
 
@@ -17,6 +20,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
     {
         AddInt16,
         AddInt32,
+        Callvirt,
         CltInt32,
     }
 
@@ -88,6 +92,10 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
                 case BuiltInMethod.AddInt32:
                     CompileAddInt32();
+                    break;
+
+                case BuiltInMethod.Callvirt:
+                    CompileCallvirt();
                     break;
 
                 case BuiltInMethod.CltInt32:
@@ -171,6 +179,44 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine("    INX");
         Output.WriteLine("    RTS");
         EndScopeBlock();
+    }
+
+    private void CompileCallvirt()
+    {
+        WriteLabel("Callvirt");
+        BeginScopeBlock();
+        Output.WriteLine($"    LDA scratch+1");
+        Output.WriteLine($"    PHA");
+        Output.WriteLine($"    LDA scratch+0");
+        Output.WriteLine($"    PHA");
+        Output.WriteLine($"    RTS ; Actually JMP to subroutine address on stack");
+        EndScopeBlock();
+    }
+
+    public override void WriteVtables(ReadOnlySpan<Vtable> vtables)
+    {
+        var uniqueSlotLabels = new SortedDictionary<string, byte>();
+
+        foreach (var vtable in vtables)
+        {
+            WriteLabel(vtable.Name);
+
+            foreach (var slot in vtable.Slots)
+            {
+                Output.WriteLine($"    .word {slot.Method.UniqueName}-1");
+
+                uniqueSlotLabels[slot.Label] = slot.Index;
+            }
+
+            Output.WriteLine();
+        }
+
+        foreach (var (slotLabel, slotIndex) in uniqueSlotLabels)
+        {
+            Output.WriteLine($"{slotLabel} = {slotIndex*2}");
+        }
+
+        Output.WriteLine();
     }
 
     protected void WritePushX()
@@ -263,6 +309,36 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         WritePopToFrame(0, callee.ParametersSize);
 
         Output.WriteLine($"    JSR {callee.UniqueName}");
+
+        WritePopFrame(caller);
+    }
+
+    public override void WriteCallvirt(EcmaMethod caller, EcmaMethod callee, string vtableSlotLabel)
+    {
+        _usedBuiltInMethods.Add(BuiltInMethod.Callvirt);
+
+        WritePushFrame(caller);
+
+        WritePopToFrame(0, callee.ParametersSize);
+
+        Output.WriteLine($"    SEC ; Subtract 2 from `this` argument");
+        Output.WriteLine($"    LDA {ArgsLabel}+0,Y");
+        Output.WriteLine($"    SBC #2");
+        Output.WriteLine($"    STA scratch+2");
+        Output.WriteLine($"    LDA {ArgsLabel}+1,Y");
+        Output.WriteLine($"    SBC #0");
+        Output.WriteLine($"    STA scratch+3");
+        Output.WriteLine($"    TYA");
+        Output.WriteLine($"    PHA");
+        Output.WriteLine($"    LDY #{vtableSlotLabel}+1 ; Read high address byte from vtable");
+        Output.WriteLine($"    LDA (scratch+2),Y");
+        Output.WriteLine($"    STA scratch+1");
+        Output.WriteLine($"    LDY #{vtableSlotLabel}+0 ; Read low address byte from vtable");
+        Output.WriteLine($"    LDA (scratch+2),Y");
+        Output.WriteLine($"    STA scratch+0");
+        Output.WriteLine($"    PLA");
+        Output.WriteLine($"    TAY");
+        Output.WriteLine($"    JSR Callvirt");
 
         WritePopFrame(caller);
     }
@@ -384,7 +460,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
     {
         WritePushFrame(caller);
 
-        // Call alloc method with size parameter.
+        // Call alloc method with size and vtablePtr parameters.
         {
             Span<byte> bytes = stackalloc byte[PointerSize];
             BinaryPrimitives.WriteUInt16LittleEndian(bytes, (ushort)constructor.DeclaringType.InstanceSize);
@@ -393,6 +469,12 @@ internal abstract class M6502CodeGenerator(TextWriter output)
                 Output.WriteLine($"    LDA #${bytes[i]:X2}");
                 Output.WriteLine($"    STA {ArgsLabel}+{i},Y");
             }
+
+            var vtableName = Vtable.GetName(constructor.DeclaringType);
+            Output.WriteLine($"    LDA #<{vtableName}");
+            Output.WriteLine($"    STA {ArgsLabel}+{PointerSize}+0,Y");
+            Output.WriteLine($"    LDA #>{vtableName}");
+            Output.WriteLine($"    STA {ArgsLabel}+{PointerSize}+1,Y");
         }
         Output.WriteLine($"    JSR {allocMethod.UniqueName}");
 
@@ -431,33 +513,12 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     public override void WriteStfld(EcmaField field)
     {
-        // Value is at top of stack.
-        // Underneath that is address of object.
+        WriteStoreIndirect(field.Type, field.Offset);
+    }
 
-        var addressLo = (byte)(0 - field.Type.Size - PointerSize);
-        var addressHi = (byte)(0 - field.Type.Size - PointerSize + 1);
-
-        Output.WriteLine($"    LDA ${addressLo:X2},X ; Subtract value size + pointer size from current stack pointer");
-        Output.WriteLine($"    STA {ScratchLabel}+0");
-        Output.WriteLine($"    LDA ${addressHi:X2},X ; Subtract value size + pointer size from current stack pointer");
-        Output.WriteLine($"    STA {ScratchLabel}+1");
-
-        WritePushY();
-
-        for (var i = field.Type.Size - 1; i >= 0; i--)
-        {
-            Output.WriteLine($"    DEX");
-            Output.WriteLine($"    LDA 0,X");
-            Output.WriteLine($"    LDY #{field.Offset + i}");
-            Output.WriteLine($"    STA ({ScratchLabel}),Y");
-        }
-
-        WritePopY();
-
-        for (var i = 0; i < PointerSize; i++)
-        {
-            Output.WriteLine($"    DEX");
-        }
+    public override void WriteStind(TypeDescription type)
+    {
+        WriteStoreIndirect(type, 0);
     }
 
     public override void WriteStloc(LocalVariable local)
@@ -468,6 +529,37 @@ internal abstract class M6502CodeGenerator(TextWriter output)
     public override void WriteStsfld(EcmaField field)
     {
         WritePopToMemory(GetStaticFieldName(field), field.Type.Size);
+    }
+
+    private void WriteStoreIndirect(TypeDescription type, int destinationOffset)
+    {
+        // Value is at top of stack.
+        // Underneath that is address of object.
+
+        var addressLo = (byte)(0 - type.Size - PointerSize);
+        var addressHi = (byte)(0 - type.Size - PointerSize + 1);
+
+        Output.WriteLine($"    LDA ${addressLo:X2},X ; Subtract value size + pointer size from current stack pointer");
+        Output.WriteLine($"    STA {ScratchLabel}+0");
+        Output.WriteLine($"    LDA ${addressHi:X2},X ; Subtract value size + pointer size from current stack pointer");
+        Output.WriteLine($"    STA {ScratchLabel}+1");
+
+        WritePushY();
+
+        for (var i = type.Size - 1; i >= 0; i--)
+        {
+            Output.WriteLine($"    DEX");
+            Output.WriteLine($"    LDA 0,X");
+            Output.WriteLine($"    LDY #{destinationOffset + i}");
+            Output.WriteLine($"    STA ({ScratchLabel}),Y");
+        }
+
+        WritePopY();
+
+        for (var i = 0; i < PointerSize; i++)
+        {
+            Output.WriteLine($"    DEX");
+        }
     }
 
     private void WritePushFromMemory(string baseAddress, int sizeInBytes)
@@ -534,7 +626,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     private void WritePushFrame(EcmaMethod currentMethod)
     {
-        var frameSize = CalculateFrameSize(currentMethod);
+        var frameSize = currentMethod.FrameSize;
 
         if (frameSize == 0)
         {
@@ -549,7 +641,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
 
     private void WritePopFrame(EcmaMethod currentMethod)
     {
-        var frameSize = CalculateFrameSize(currentMethod);
+        var frameSize = currentMethod.FrameSize;
 
         if (frameSize == 0)
         {
@@ -562,29 +654,6 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine($"    SBC #{frameSize}");
         Output.WriteLine($"    TAY");
     }
-
-    private static int CalculateFrameSize(EcmaMethod currentMethod) => currentMethod.ParametersSize + currentMethod.LocalsSize;
-
-    //private void WritePushArgsAndLocals(EcmaMethod currentMethod)
-    //{
-    //    // Push current method's args+locals to hardware stack.
-    //    for (var i = 0; i < currentMethod.ParametersSize + currentMethod.LocalsSize; i++)
-    //    {
-    //        Output.WriteLine($"    LDA {ArgsLabel}+{i}");
-    //        Output.WriteLine($"    PHA");
-    //    }
-    //}
-
-    //private void WritePopArgsAndLocals(EcmaMethod currentMethod)
-    //{
-    //    // Pop current method's args+locals from hardware stack.
-    //    for (var i = currentMethod.ParametersSize + currentMethod.LocalsSize - 1; i >= 0; i--)
-    //    {
-    //        Output.WriteLine($"    PLA");
-    //        Output.WriteLine($"    STA {ArgsLabel}+{i}");
-
-    //    }
-    //}
 
     // Locals are stored immediately above args.
     private static string GetLocalVariableOffsetAddress(LocalVariable local) => 

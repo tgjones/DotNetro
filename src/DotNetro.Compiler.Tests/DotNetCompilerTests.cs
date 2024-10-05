@@ -276,6 +276,44 @@ public class DotNetCompilerTests
         public int MyMethod() => a;
     }
 
+    [CompilerTest]
+    private static void CallInstanceMethodOnClass()
+    {
+        var c = new MyClassWithInstanceMethod();
+
+        Console.WriteLine(c.MyMethod());
+    }
+
+    private class MyClassWithInstanceMethod
+    {
+        public int MyMethod() => 42;
+    }
+
+    [CompilerTest]
+    private static void CallOverriddenMethodOnClass()
+    {
+        var c = new MyInheritedClassWithVirtualMethod();
+
+        Console.WriteLine(c.MyMethod());
+    }
+
+    private class MyClassWithVirtualMethod
+    {
+        public virtual int MyMethod() => 42;
+    }
+
+    private class MyInheritedClassWithVirtualMethod : MyClassWithVirtualMethod
+    {
+        public override int MyMethod() => 43;
+    }
+
+    [CompilerTest]
+    private static void StringConcat()
+    {
+        var who = "world";
+        Console.WriteLine($"Hello {who}");
+    }
+
     [TestCaseSource(nameof(GetCompilerTests))]
     public void CompilerTests(CompilerTest test)
     {

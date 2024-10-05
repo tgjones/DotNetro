@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Reflection.Metadata;
 
 using DotNetro.Compiler.TypeSystem;
@@ -69,8 +70,6 @@ internal sealed class EcmaType : TypeDescription
 
         FullName = TypeDefinition.GetFullName(assembly.MetadataReader);
         EncodedName = FullName.Replace('.', '_');
-
-        
     }
 
     public EcmaMethod? GetStaticConstructor()
@@ -88,7 +87,7 @@ internal sealed class EcmaType : TypeDescription
         return null;
     }
 
-    public EcmaMethod GetMethod(string name, MethodSignature<TypeDescription> signature)
+    public bool TryGetMethod(string name, in MethodSignature<TypeDescription> signature, [NotNullWhen(true)] out EcmaMethod? result)
     {
         foreach (var methodDefinitionHandle in TypeDefinition.GetMethods())
         {
@@ -96,53 +95,27 @@ internal sealed class EcmaType : TypeDescription
 
             if (Assembly.MetadataReader.GetString(methodDefinition.Name) == name)
             {
-                var methodSignature = methodDefinition.DecodeSignature(Assembly.SignatureTypeProvider, GenericContext.Empty);
-                if (AreMethodSignaturesCompatible(signature, methodSignature))
+                var methodSignature = methodDefinition.DecodeSignature(Assembly.SignatureTypeProvider, Instantiation.Empty);
+                if (MethodSignatureUtility.AreCompatible(signature, methodSignature))
                 {
-                    return Assembly.GetMethod(methodDefinitionHandle);
+                    result = Assembly.GetMethod(methodDefinitionHandle);
+                    return true;
                 }
             }
         }
 
-        throw new InvalidOperationException($"Could not find method {name}");
+        result = null;
+        return false;
     }
 
-    private static bool AreMethodSignaturesCompatible(in MethodSignature<TypeDescription> a, in MethodSignature<TypeDescription> b)
+    public EcmaMethod GetMethod(string name, MethodSignature<TypeDescription> signature)
     {
-        if (a.ReturnType != b.ReturnType)
+        if (!TryGetMethod(name, signature, out var result))
         {
-            return false;
+            throw new InvalidOperationException($"Could not find method {name}");
         }
 
-        if (!a.Header.Equals(b.Header))
-        {
-            return false;
-        }
-
-        if (a.GenericParameterCount != b.GenericParameterCount)
-        {
-            return false;
-        }
-
-        if (a.RequiredParameterCount != b.RequiredParameterCount)
-        {
-            return false;
-        }
-
-        if (a.ParameterTypes.Length != b.ParameterTypes.Length)
-        {
-            return false;
-        }
-
-        for (var i = 0; i < a.ParameterTypes.Length; i++)
-        {
-            if (a.ParameterTypes[i] != b.ParameterTypes[i])
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return result;
     }
 
     private void EnsureFields()
@@ -160,7 +133,7 @@ internal sealed class EcmaType : TypeDescription
 
             var fieldType = fieldDefinition.DecodeSignature(
                 Assembly.SignatureTypeProvider,
-                GenericContext.Empty);
+                Instantiation.Empty);
 
             var isStaticField = fieldDefinition.Attributes.HasFlag(FieldAttributes.Static);
 

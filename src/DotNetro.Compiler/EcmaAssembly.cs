@@ -54,7 +54,7 @@ internal sealed class EcmaAssembly : IDisposable
                         var declaringType = ResolveType((TypeReferenceHandle)memberReference.Parent);
                         return declaringType.GetMethod(
                             MetadataReader.GetString(memberReference.Name),
-                            memberReference.DecodeMethodSignature(SignatureTypeProvider, GenericContext.Empty));
+                            memberReference.DecodeMethodSignature(SignatureTypeProvider, Instantiation.Empty));
 
                     default:
                         throw new InvalidOperationException();
@@ -72,7 +72,7 @@ internal sealed class EcmaAssembly : IDisposable
             var methodDefinition = MetadataReader.GetMethodDefinition(handle);
             var declaringType = GetType(methodDefinition.GetDeclaringType());
 
-            _methods.Add(handle, result = new EcmaMethod(declaringType, handle));
+            _methods.Add(handle, result = new EcmaMethod(declaringType, methodDefinition));
         }
 
         return result;

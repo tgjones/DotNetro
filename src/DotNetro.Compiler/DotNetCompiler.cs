@@ -33,6 +33,8 @@ public sealed class DotNetCompiler : IDisposable
 
     private readonly Stack<TypeDescription> _stack = new();
 
+    private readonly VtableTracker _vtableTracker = new();
+
     private DotNetCompiler(TextWriter output, string rootAssemblyPath)
     {
         _codeGenerator = new BbcMicroCodeGenerator(output);
@@ -101,6 +103,8 @@ public sealed class DotNetCompiler : IDisposable
             _codeGenerator.WriteStringConstant(kvp.Key, kvp.Value);
         }
 
+        _codeGenerator.WriteVtables(_vtableTracker.BuildVtables());
+
         _codeGenerator.WriteFooter(staticConstructors);
     }
 
@@ -140,12 +144,22 @@ public sealed class DotNetCompiler : IDisposable
                 break;
         }
 
+        // Queue any new virtual methods.
+        // TODO: Don't do it like this.
+        foreach (var vtable in _vtableTracker.BuildVtables())
+        {
+            foreach (var slot in vtable.Slots)
+            {
+                EnqueueMethod(slot.Method);
+            }
+        }
+
         _codeGenerator.WriteMethodEnd();
     }
 
     private void CompileMethodBody(EcmaMethod methodContext)
     {
-        var ilReader = methodContext.MethodBody.GetILReader();
+        var ilReader = methodContext.MethodBody!.MethodBodyBlock.GetILReader();
 
         while (ilReader.RemainingBytes > 0)
         {
@@ -172,7 +186,11 @@ public sealed class DotNetCompiler : IDisposable
                     break;
 
                 case ILOpCode.Call:
-                    CompileCall(methodContext, MetadataTokens.Handle(ilReader.ReadInt32()));
+                    CompileCall(methodContext, MetadataTokens.Handle(ilReader.ReadInt32()), CallType.Normal);
+                    break;
+
+                case ILOpCode.Callvirt:
+                    CompileCall(methodContext, MetadataTokens.Handle(ilReader.ReadInt32()), CallType.Virtual);
                     break;
 
                 case ILOpCode.Clt:
@@ -289,8 +307,16 @@ public sealed class DotNetCompiler : IDisposable
                     CompileRet(methodContext);
                     break;
 
+                case ILOpCode.Sizeof:
+                    CompileSizeof(methodContext, MetadataTokens.EntityHandle(ilReader.ReadInt32()));
+                    break;
+
                 case ILOpCode.Stfld:
                     CompileStfld(methodContext, MetadataTokens.EntityHandle(ilReader.ReadInt32()));
+                    break;
+
+                case ILOpCode.Stind_i:
+                    CompileStind(_typeSystemContext.IntPtr);
                     break;
 
                 case ILOpCode.Stloc_0:
@@ -368,14 +394,16 @@ public sealed class DotNetCompiler : IDisposable
         _codeGenerator.WriteBrtrue(stackObjectType, label);
     }
 
-    private void CompileCall(EcmaMethod methodContext, Handle methodHandle)
+    private enum CallType
     {
-        var callee = methodContext.DeclaringType.Assembly.ResolveMethod(methodHandle);
-        CompileCall(methodContext, callee);
+        Normal,
+        Virtual,
     }
 
-    private void CompileCall(EcmaMethod methodContext, EcmaMethod callee)
+    private void CompileCall(EcmaMethod methodContext, Handle methodHandle, CallType callType)
     {
+        var callee = methodContext.DeclaringType.Assembly.ResolveMethod(methodHandle);
+
         for (var i = callee.Parameters.Length - 1; i >= 0; i--)
         {
             var actualParameterType = PopStackEntry();
@@ -393,8 +421,18 @@ public sealed class DotNetCompiler : IDisposable
 
         EnqueueMethod(callee);
 
-        _codeGenerator.WriteComment($"call {callee.UniqueName}");
-        _codeGenerator.WriteCall(methodContext, callee);
+        if (callType == CallType.Virtual && callee.IsVirtual)
+        {
+            var vtableSlotLabel = _vtableTracker.GetVtableSlotLabel(callee);
+
+            _codeGenerator.WriteComment($"callvirt {callee.UniqueName}");
+            _codeGenerator.WriteCallvirt(methodContext, callee, vtableSlotLabel);
+        }
+        else
+        {
+            _codeGenerator.WriteComment($"call {callee.UniqueName}");
+            _codeGenerator.WriteCall(methodContext, callee);
+        }
     }
 
     private void CompileClt()
@@ -489,7 +527,7 @@ public sealed class DotNetCompiler : IDisposable
 
     private void CompileLdloc(EcmaMethod methodContext, int index)
     {
-        var local = methodContext.LocalVariables[index];
+        var local = methodContext.MethodBody!.LocalVariables[index];
 
         PushStackEntry(local.Type);
 
@@ -499,7 +537,7 @@ public sealed class DotNetCompiler : IDisposable
 
     private void CompileLdloca(EcmaMethod methodContext, int index)
     {
-        var local = methodContext.LocalVariables[index];
+        var local = methodContext.MethodBody!.LocalVariables[index];
 
         PushStackEntry(local.Type.MakeByReferenceType());
 
@@ -549,9 +587,11 @@ public sealed class DotNetCompiler : IDisposable
 
         PushStackEntry(constructor.DeclaringType);
 
+        _vtableTracker.MarkTypeUsed(constructor.DeclaringType);
+
         // Resolve ManagedHeap.Alloc method.
         var managedHeapType = _typeSystemContext.RuntimeAssembly.GetType("DotNetro.Runtime", "ManagedHeap");
-        var allocMethod = managedHeapType.GetMethod("Alloc", new MethodSignature<TypeDescription>(new SignatureHeader(), _typeSystemContext.IntPtr, 1, 0, [_typeSystemContext.IntPtr]));
+        var allocMethod = managedHeapType.GetMethod("Alloc", new MethodSignature<TypeDescription>(new SignatureHeader(), _typeSystemContext.IntPtr, 2, 0, [_typeSystemContext.IntPtr, _typeSystemContext.IntPtr]));
         EnqueueMethod(allocMethod);
 
         _codeGenerator.WriteComment($"newobj {constructor.UniqueName}");
@@ -582,6 +622,16 @@ public sealed class DotNetCompiler : IDisposable
         _codeGenerator.WriteRet();
     }
 
+    private void CompileSizeof(EcmaMethod methodContext, EntityHandle typeHandle)
+    {
+        var type = methodContext.DeclaringType.Assembly.ResolveType(typeHandle);
+
+        PushStackEntry(_typeSystemContext.Int32);
+
+        _codeGenerator.WriteComment($"sizeof {type.FullName}");
+        _codeGenerator.WriteLdcI4(type.Size);
+    }
+
     private void CompileStfld(EcmaMethod methodContext, EntityHandle fieldHandle)
     {
         var field = methodContext.DeclaringType.Assembly.GetField((FieldDefinitionHandle)fieldHandle);
@@ -602,9 +652,28 @@ public sealed class DotNetCompiler : IDisposable
         _codeGenerator.WriteStfld(field);
     }
 
+    private void CompileStind(TypeDescription type)
+    {
+        var valueType = PopStackEntry();
+        var pointerType = PopStackEntry();
+
+        if (!pointerType.IsPointerLike)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (valueType != type)
+        {
+            throw new InvalidOperationException();
+        }
+
+        _codeGenerator.WriteComment("stind");
+        _codeGenerator.WriteStind(type);
+    }
+
     private void CompileStloc(EcmaMethod methodContext, int index)
     {
-        var local = methodContext.LocalVariables[index];
+        var local = methodContext.MethodBody!.LocalVariables[index];
         var stackEntryType = PopStackEntry();
 
         if (stackEntryType != local.Type)
