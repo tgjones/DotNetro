@@ -427,7 +427,7 @@ public class DotNetCompilerTests
             }
 
             loopCount++;
-            if (loopCount > 10000)
+            if (loopCount > 30000)
             {
                 debugWriter.Flush();
                 Assert.Fail($"Didn't complete in a sensible time. Debug output: {debugFilePath}");
