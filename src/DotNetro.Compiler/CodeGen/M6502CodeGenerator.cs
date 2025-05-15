@@ -185,9 +185,11 @@ internal abstract class M6502CodeGenerator(TextWriter output)
     {
         WriteLabel("Callvirt");
         BeginScopeBlock();
-        Output.WriteLine($"    LDA scratch+1");
+        Output.WriteLine($"    LDY #1");
+        Output.WriteLine($"    LDA (scratch+0),Y");
         Output.WriteLine($"    PHA");
-        Output.WriteLine($"    LDA scratch+0");
+        Output.WriteLine($"    LDY #0");
+        Output.WriteLine($"    LDA (scratch+0),Y");
         Output.WriteLine($"    PHA");
         Output.WriteLine($"    RTS ; Actually JMP to subroutine address on stack");
         EndScopeBlock();
