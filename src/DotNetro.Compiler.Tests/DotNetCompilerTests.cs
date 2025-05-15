@@ -379,11 +379,13 @@ public class DotNetCompilerTests
 
         using var reader = new StringReader(string.Join("\r", test.ConsoleInputs));
 
-        using var debugWriter = new StreamWriter(File.OpenWrite($"CompilerTest{test.Method.Name}.out"));
+        var debugFilePath = Path.GetFullPath($"CompilerTest{test.Method.Name}.out");
+        using var debugWriter = new StreamWriter(File.OpenWrite(debugFilePath));
 
         var output = "";
 
         var shouldContinue = true;
+        var loopCount = 0;
         while (shouldContinue)
         {
             cpu.Tick();
@@ -422,6 +424,13 @@ public class DotNetCompilerTests
                         Encoding.ASCII.GetBytes(input + '\r').CopyTo(memory.AsSpan(stringAddress));
                     }
                     break;
+            }
+
+            loopCount++;
+            if (loopCount > 10000)
+            {
+                debugWriter.Flush();
+                Assert.Fail($"Didn't complete in a sensible time. Debug output: {debugFilePath}");
             }
         }
 
