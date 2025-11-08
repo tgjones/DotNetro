@@ -380,12 +380,16 @@ public class DotNetCompilerTests
         var tmpOut = Console.Out;
         var tmpIn = Console.In;
 
+#pragma warning disable TUnit0055 // Do not overwrite the Console writer
         Console.SetOut(writer);
+#pragma warning restore TUnit0055 // Do not overwrite the Console writer
         Console.SetIn(reader);
         test.Method.Invoke(null, null);
 
         Console.SetIn(tmpIn);
+#pragma warning disable TUnit0055 // Do not overwrite the Console writer
         Console.SetOut(tmpOut);
+#pragma warning restore TUnit0055 // Do not overwrite the Console writer
 
         return writer.ToString();
     }
