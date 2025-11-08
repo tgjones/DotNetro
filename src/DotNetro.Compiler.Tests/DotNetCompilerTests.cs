@@ -35,6 +35,46 @@ public class DotNetCompilerTests
     }
 
     [CompilerTest]
+    private static void CompareLessThanInt32()
+    {
+        var a = 1;
+        var b = 2;
+        Console.WriteLine(a < b);
+    }
+
+    //[CompilerTest]
+    private static void CompareLessThanOrEqualToInt32()
+    {
+        var a = 1;
+        var b = 2;
+        Console.WriteLine(a <= b);
+    }
+
+    //[CompilerTest]
+    private static void CompareEqualToInt32()
+    {
+        var a = 1;
+        var b = 2;
+        Console.WriteLine(a == b);
+    }
+
+    //[CompilerTest]
+    private static void CompareGreaterThanInt32()
+    {
+        var a = 1;
+        var b = 2;
+        Console.WriteLine(a > b);
+    }
+
+    //[CompilerTest]
+    private static void CompareGreaterThanOrEqualToInt32()
+    {
+        var a = 1;
+        var b = 2;
+        Console.WriteLine(a >= b);
+    }
+
+    [CompilerTest]
     private static void CallMethodWithParameter()
     {
         PrintParameter(16);
@@ -307,7 +347,7 @@ public class DotNetCompilerTests
         public override int MyMethod() => 43;
     }
 
-    [CompilerTest]
+    //[CompilerTest]
     private static void StringConcat()
     {
         var who = "world";

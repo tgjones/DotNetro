@@ -32,6 +32,8 @@ internal sealed class TypeSystemContext(int pointerSize) : IDisposable
 
     public TypeDescription String => GetPrimitiveType(PrimitiveTypeCode.String);
 
+    public TypeDescription Void => GetPrimitiveType(PrimitiveTypeCode.Void);
+
     public ByReferenceType GetByReferenceType(TypeDescription elementType)
     {
         return _byReferenceTypes.GetOrAdd(elementType, x => new ByReferenceType(this, x));

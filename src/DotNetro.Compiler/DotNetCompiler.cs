@@ -159,7 +159,7 @@ public sealed class DotNetCompiler : IDisposable
 
     private void CompileMethodBody(EcmaMethod methodContext)
     {
-        var ilReader = methodContext.MethodBody!.MethodBodyBlock.GetILReader();
+        var ilReader = methodContext.MethodBody!.MethodBodyBlock!.GetILReader();
 
         while (ilReader.RemainingBytes > 0)
         {
@@ -173,12 +173,20 @@ public sealed class DotNetCompiler : IDisposable
                     CompileAdd();
                     break;
 
+                case ILOpCode.Bge_s:
+                    CompileBge(methodContext, "bge.s", ilReader.ReadSByte() + ilReader.Offset);
+                    break;
+
                 case ILOpCode.Blt_s:
                     CompileBlt(methodContext, "blt.s", ilReader.ReadSByte() + ilReader.Offset);
                     break;
 
                 case ILOpCode.Br_s:
                     CompileBr(ilReader.ReadSByte() + ilReader.Offset);
+                    break;
+
+                case ILOpCode.Brfalse_s:
+                    CompileBrfalse(ilReader.ReadSByte() + ilReader.Offset);
                     break;
 
                 case ILOpCode.Brtrue_s:
@@ -327,6 +335,10 @@ public sealed class DotNetCompiler : IDisposable
                     CompileStloc(methodContext, 1);
                     break;
 
+                case ILOpCode.Stloc_2:
+                    CompileStloc(methodContext, 2);
+                    break;
+
                 case ILOpCode.Stsfld:
                     CompileStsfld(methodContext, MetadataTokens.EntityHandle(ilReader.ReadInt32()));
                     break;
@@ -368,6 +380,14 @@ public sealed class DotNetCompiler : IDisposable
         }
     }
 
+    private void CompileBge(EcmaMethod methodContext, string mnemonic, int target)
+    {
+        // TODO: Optimize this.
+
+        CompileCge();
+        CompileBrtrue(target);
+    }
+
     private void CompileBlt(EcmaMethod methodContext, string mnemonic, int target)
     {
         // TODO: Optimize this.
@@ -382,6 +402,16 @@ public sealed class DotNetCompiler : IDisposable
 
         _codeGenerator.WriteComment($"br.s {label}");
         _codeGenerator.WriteBr(label);
+    }
+
+    private void CompileBrfalse(int target)
+    {
+        var stackObjectType = PopStackEntry();
+
+        var label = GetLabel(target);
+
+        _codeGenerator.WriteComment($"brfalse.s {label}");
+        _codeGenerator.WriteBrfalse(stackObjectType, label);
     }
 
     private void CompileBrtrue(int target)
@@ -403,6 +433,12 @@ public sealed class DotNetCompiler : IDisposable
     private void CompileCall(EcmaMethod methodContext, Handle methodHandle, CallType callType)
     {
         var callee = methodContext.DeclaringType.Assembly.ResolveMethod(methodHandle);
+
+        if (callee.UniqueName == "System_Console_WriteLine_Boolean")
+        {
+            var consoleHelperType = _typeSystemContext.RuntimeAssembly.GetType("DotNetro.Runtime", "ConsoleHelper");
+            callee = consoleHelperType.GetMethod("WriteLineBoolean", new MethodSignature<TypeDescription>(new SignatureHeader(), _typeSystemContext.Void, 1, 0, [_typeSystemContext.Boolean]));
+        }
 
         for (var i = callee.Parameters.Length - 1; i >= 0; i--)
         {
@@ -435,7 +471,17 @@ public sealed class DotNetCompiler : IDisposable
         }
     }
 
+    private void CompileCge()
+    {
+        CompileComparison("cge", c => c.WriteCgeInt32());
+    }
+
     private void CompileClt()
+    {
+        CompileComparison("clt", c => c.WriteCltInt32());
+    }
+
+    private void CompileComparison(string mnemonic, Action<CodeGenerator> callback)
     {
         var rightType = PopStackEntry();
         var leftType = PopStackEntry();
@@ -452,8 +498,8 @@ public sealed class DotNetCompiler : IDisposable
 
         PushStackEntry(_typeSystemContext.Boolean);
 
-        _codeGenerator.WriteComment("clt");
-        _codeGenerator.WriteCltInt32();
+        _codeGenerator.WriteComment(mnemonic);
+        callback(_codeGenerator);
     }
 
     private void CompileConvi()

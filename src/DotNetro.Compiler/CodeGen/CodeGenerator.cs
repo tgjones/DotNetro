@@ -32,9 +32,11 @@ internal abstract class CodeGenerator(TextWriter output)
     public abstract void WriteAddInt32();
     public abstract void WriteAddIntPtr();
     public abstract void WriteBr(string label);
+    public abstract void WriteBrfalse(TypeDescription stackObjectType, string label);
     public abstract void WriteBrtrue(TypeDescription stackObjectType, string label);
     public abstract void WriteCall(EcmaMethod caller, EcmaMethod callee);
     public abstract void WriteCallvirt(EcmaMethod caller, EcmaMethod callee, string vtableSlotLabel);
+    public abstract void WriteCgeInt32();
     public abstract void WriteCltInt32();
     public abstract void WriteConviInt32();
     public abstract void WriteDup(TypeDescription type);

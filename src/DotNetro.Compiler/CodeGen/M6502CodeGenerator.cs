@@ -21,6 +21,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         AddInt16,
         AddInt32,
         Callvirt,
+        CgeInt32,
         CltInt32,
     }
 
@@ -98,6 +99,10 @@ internal abstract class M6502CodeGenerator(TextWriter output)
                     CompileCallvirt();
                     break;
 
+                case BuiltInMethod.CgeInt32:
+                    CompileCgeInt32();
+                    break;
+
                 case BuiltInMethod.CltInt32:
                     CompileCltInt32();
                     break;
@@ -171,6 +176,37 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine("    LDA #0");
         Output.WriteLine("    JMP finish");
         WriteLabel("lessthan");
+        Output.WriteLine("    LDA #1");
+        WriteLabel("finish");
+        Output.WriteLine("    DEX:DEX:DEX:DEX");
+        Output.WriteLine("    DEX:DEX:DEX:DEX");
+        Output.WriteLine("    STA 0,X");
+        Output.WriteLine("    INX");
+        Output.WriteLine("    RTS");
+        EndScopeBlock();
+    }
+
+    private void CompileCgeInt32()
+    {
+        WriteLabel("CgeInt32");
+        BeginScopeBlock();
+        Output.WriteLine("    CLC");
+        Output.WriteLine("    LDA $F8,X");
+        Output.WriteLine("    SBC $FC,X");
+        Output.WriteLine("    BNE comparedone");
+        Output.WriteLine("    LDA $F9,X");
+        Output.WriteLine("    SBC $FD,X");
+        Output.WriteLine("    BNE comparedone");
+        Output.WriteLine("    LDA $FA,X");
+        Output.WriteLine("    SBC $FE,X");
+        Output.WriteLine("    BNE comparedone");
+        Output.WriteLine("    LDA $FB,X");
+        Output.WriteLine("    SBC $FF,X");
+        WriteLabel("comparedone");
+        Output.WriteLine("    BPL greaterorequal");
+        Output.WriteLine("    LDA #0");
+        Output.WriteLine("    JMP finish");
+        WriteLabel("greaterorequal");
         Output.WriteLine("    LDA #1");
         WriteLabel("finish");
         Output.WriteLine("    DEX:DEX:DEX:DEX");
@@ -282,7 +318,17 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine($"    JMP {label}");
     }
 
+    public override void WriteBrfalse(TypeDescription stackObjectType, string label)
+    {
+        WriteConditionalBranch(stackObjectType, label, "BEQ");
+    }
+
     public override void WriteBrtrue(TypeDescription stackObjectType, string label)
+    {
+        WriteConditionalBranch(stackObjectType, label, "BNE");
+    }
+
+    private void WriteConditionalBranch(TypeDescription stackObjectType, string label, string comparisonMnemonic)
     {
         BeginScopeBlock();
 
@@ -290,7 +336,7 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         {
             Output.WriteLine($"    DEX");
             Output.WriteLine($"    LDA 0,X");
-            Output.WriteLine($"    BNE dojump");
+            Output.WriteLine($"    {comparisonMnemonic} dojump");
         }
 
         Output.WriteLine($"    JMP after");
@@ -343,6 +389,12 @@ internal abstract class M6502CodeGenerator(TextWriter output)
         Output.WriteLine($"    JSR Callvirt");
 
         WritePopFrame(caller);
+    }
+
+    public override void WriteCgeInt32()
+    {
+        _usedBuiltInMethods.Add(BuiltInMethod.CgeInt32);
+        Output.WriteLine("    JSR CgeInt32");
     }
 
     public override void WriteCltInt32()
