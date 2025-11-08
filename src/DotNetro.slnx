@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Project Path="DotNetro.Compiler.Driver/DotNetro.Compiler.Driver.csproj" />
+  <Project Path="DotNetro.Compiler.Tests/DotNetro.Compiler.Tests.csproj" />
+  <Project Path="DotNetro.Compiler/DotNetro.Compiler.csproj" />
+  <Project Path="DotNetro.Samples.HelloWorld/DotNetro.Samples.HelloWorld.csproj" />
+  <Project Path="DotNetro/DotNetro.csproj" />
+</Solution>
