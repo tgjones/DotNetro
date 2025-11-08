@@ -6,6 +6,7 @@ using Aemula.Chips.Mos6502;
 
 namespace DotNetro.Compiler.Tests;
 
+[NotInParallel]
 public class DotNetCompilerTests
 {
     [CompilerTest]
@@ -354,8 +355,9 @@ public class DotNetCompilerTests
         Console.WriteLine($"Hello {who}");
     }
 
-    [TestCaseSource(nameof(GetCompilerTests))]
-    public void CompilerTests(CompilerTest test)
+    [Test]
+    [MethodDataSource(nameof(GetCompilerTests))]
+    public async Task CompilerTests(CompilerTest test)
     {
         // Run reference .NET version.
         string expectedOutput = ExecuteDotNet(test);
@@ -366,7 +368,7 @@ public class DotNetCompilerTests
         // Compare results.
         Console.WriteLine($".NET     Output: {expectedOutput}");
         Console.WriteLine($"DotNetro Output: {actualOutput}");
-        Assert.That(actualOutput, Is.EqualTo(expectedOutput));
+        await Assert.That(actualOutput).IsEqualTo(expectedOutput);
     }
 
     private static string ExecuteDotNet(CompilerTest test)
@@ -477,7 +479,7 @@ public class DotNetCompilerTests
         return output;
     }
 
-    private static IEnumerable<CompilerTest> GetCompilerTests()
+    public static IEnumerable<CompilerTest> GetCompilerTests()
     {
         foreach (var method in typeof(DotNetCompilerTests).GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
         {
