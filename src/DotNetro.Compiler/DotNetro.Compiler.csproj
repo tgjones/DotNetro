@@ -5,10 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Reflection.Metadata" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="Antlr4.Runtime.Standard">
       <HintPath>..\..\lib\Sixty502\Antlr4.Runtime.Standard.dll</HintPath>
     </Reference>
