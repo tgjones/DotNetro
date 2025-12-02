@@ -13,12 +13,18 @@
   <ItemGroup>
     <ProjectReference Include="..\DotNetro.Compiler\DotNetro.Compiler.csproj" />
     <ProjectReference Include="..\DotNetro\DotNetro.csproj" />
+    <ProjectReference Include="..\Irie.Testing\Irie.Testing.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="Aemula.Chips.Mos6502">
       <HintPath>..\..\lib\Aemula\Aemula.Chips.Mos6502.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Lit\**\*" />
+    <None Include="Lit\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

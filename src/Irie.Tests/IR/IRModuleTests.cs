@@ -2,7 +2,7 @@
 
 namespace DotNetro.Compiler.Tests.IR;
 
-public class IRFunctionTests
+public class IRModuleTests
 {
     [Test]
     public void CanBuildSimpleFunctionWithNoArgsAndNoReturn()
