@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-
 using DotNetro.Compiler;
 
 var assemblyOption = new Option<FileInfo?>(name: "--assembly", description: "Path to the assembly to compile.");

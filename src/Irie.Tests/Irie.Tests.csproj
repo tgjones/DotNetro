@@ -11,14 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DotNetro.Compiler\DotNetro.Compiler.csproj" />
-    <ProjectReference Include="..\DotNetro\DotNetro.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Aemula.Chips.Mos6502">
-      <HintPath>..\..\lib\Aemula\Aemula.Chips.Mos6502.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\Irie\Irie.csproj" />
   </ItemGroup>
 
 </Project>

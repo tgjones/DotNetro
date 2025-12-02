@@ -1,7 +1,6 @@
 using System.Buffers.Binary;
 using System.Reflection;
 using System.Text;
-
 using Aemula.Chips.Mos6502;
 
 namespace DotNetro.Compiler.Tests;

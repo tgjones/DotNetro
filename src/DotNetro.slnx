@@ -9,4 +9,6 @@
   <Project Path="DotNetro.Compiler/DotNetro.Compiler.csproj" />
   <Project Path="DotNetro.Samples.HelloWorld/DotNetro.Samples.HelloWorld.csproj" />
   <Project Path="DotNetro/DotNetro.csproj" />
+  <Project Path="Irie.Tests/Irie.Tests.csproj" Id="ac6701c7-b5f6-4024-911f-921547398161" />
+  <Project Path="Irie/Irie.csproj" Id="685b6fc2-c5db-48b8-80f6-620bd71a149d" />
 </Solution>
