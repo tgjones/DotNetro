@@ -4,6 +4,8 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
+  <Project Path="DotLit.Tests/DotLit.Tests.csproj" />
+  <Project Path="DotLit/DotLit.csproj" />
   <Project Path="DotNetro.Compiler.Driver/DotNetro.Compiler.Driver.csproj" />
   <Project Path="DotNetro.Compiler.Tests/DotNetro.Compiler.Tests.csproj" />
   <Project Path="DotNetro.Compiler/DotNetro.Compiler.csproj" />
