@@ -1,4 +1,4 @@
-﻿using Irie.Testing.Lit;
+﻿using DotLit;
 
 namespace DotNetro.Compiler.Tests;
 
@@ -6,14 +6,14 @@ public sealed class LitTests
 {
     [Test]
     [MethodDataSource(nameof(LitTestSource))]
-    public void ListTest(LitTest test)
+    public void LitTest(string filePath)
     {
-        LitTestExecutor.Execute(test.FilePath);
+        LitTestRunner.Run(filePath);
     }
 
-    public static IEnumerable<Func<LitTest>> LitTestSource()
+    public static IEnumerable<Func<string>> LitTestSource()
     {
-        var result = new List<Func<LitTest>>();
+        var result = new List<Func<string>>();
 
         var litTestFiles = Directory.EnumerateFiles(
             "Lit",
@@ -22,11 +22,9 @@ public sealed class LitTests
 
         foreach (var litTestFile in litTestFiles)
         {
-            result.Add(() => new LitTest(litTestFile));
+            result.Add(() => litTestFile);
         }
 
         return result;
     }
 }
-
-public record LitTest(string FilePath);

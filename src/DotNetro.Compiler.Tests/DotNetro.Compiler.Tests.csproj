@@ -11,9 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotLit\DotLit.csproj" />
     <ProjectReference Include="..\DotNetro.Compiler\DotNetro.Compiler.csproj" />
     <ProjectReference Include="..\DotNetro\DotNetro.csproj" />
-    <ProjectReference Include="..\Irie.Testing\Irie.Testing.csproj" />
   </ItemGroup>
 
   <ItemGroup>
