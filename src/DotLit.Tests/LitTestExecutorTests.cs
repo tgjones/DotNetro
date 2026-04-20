@@ -17,6 +17,6 @@ public class LitTestExecutorTests
 
         await Assert.That(testResult.Successful).IsTrue();
         await Assert.That(testResult.ErrorMessages).IsEmpty();
-        await Assert.That(testResult.RunOutput).IsEqualTo("");
+        await Assert.That(testResult.RunOutput).Contains("Hello, World!");
     }
 }

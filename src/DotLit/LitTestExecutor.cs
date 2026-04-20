@@ -44,13 +44,19 @@ internal static class LitTestExecutor
     {
         using var process = new Process();
 
-        process.StartInfo = new ProcessStartInfo("cmd.exe", $"/C {commandLine}")
+        var (shell, shellFlag) = OperatingSystem.IsWindows()
+            ? ("cmd.exe", "/C")
+            : ("/bin/sh", "-c");
+
+        process.StartInfo = new ProcessStartInfo(shell)
         {
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             CreateNoWindow = true
         };
+        process.StartInfo.ArgumentList.Add(shellFlag);
+        process.StartInfo.ArgumentList.Add(commandLine);
 
         var output = "";
 
