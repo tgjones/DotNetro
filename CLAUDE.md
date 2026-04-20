@@ -10,19 +10,19 @@ DotNetro is a .NET AOT compiler that transpiles .NET assemblies (IL bytecode) to
 
 ```bash
 # Build and run all tests
-dotnet test src
+dotnet test --solution src
 
 # Run tests for a specific project
-dotnet test src/DotNetro.Compiler.Tests
-dotnet test src/Irie.Tests
-dotnet test src/DotLit.Tests
+dotnet test --project src/DotNetro.Compiler.Tests
+dotnet test --project src/Irie.Tests
+dotnet test --project src/DotLit.Tests
 
 # Run a specific test class or method
-dotnet test src/DotNetro.Compiler.Tests --filter "DotNetCompilerTests"
-dotnet test src/DotNetro.Compiler.Tests --filter "FullyQualifiedName~HelloWorld"
+dotnet test --project src/DotNetro.Compiler.Tests --filter "DotNetCompilerTests"
+dotnet test --project src/DotNetro.Compiler.Tests --filter "FullyQualifiedName~HelloWorld"
 ```
 
-CI runs `dotnet test src` in both Debug and Release configurations.
+CI runs `dotnet test --solution src` in both Debug and Release configurations.
 
 ## Architecture
 

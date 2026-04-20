@@ -20,7 +20,7 @@ jobs:
         dotnet-version: 10.0
   
     - name: Build & Test Debug
-      run: dotnet test src --configuration Debug
+      run: dotnet test --solution src --configuration Debug
 
     - name: Build & Test Release
-      run: dotnet test src --configuration Release
+      run: dotnet test --solution src --configuration Release
