@@ -22,7 +22,7 @@
   <Target Name="Transpile" AfterTargets="Build" DependsOnTargets="CalculateDiskImageTargetPath"
           Inputs="$(TargetPath)" Outputs="$(DiskImageTargetPath)">
     <Message Importance="high" Text="Transpiling $(TargetPath) to $(DiskImageTargetPath)" />
-    <Exec Command="dnrc --assembly $(TargetPath) --output $(TargetName).ssd" WorkingDirectory="$(OutputPath)" />
+    <Exec Command="dotnet run --project &quot;$(MSBuildThisFileDirectory)..\DotNetro.Compiler.Driver\DotNetro.Compiler.Driver.csproj&quot; -- --assembly $(TargetPath) --output $(TargetName).ssd" WorkingDirectory="$(OutputPath)" />
     
     <ItemGroup>
       <FileWrites Include="$(DiskImageTargetPath)" />
