@@ -101,7 +101,7 @@ internal sealed class EcmaMethod
         ParametersSize = parameterOffset;
 
         Name = MetadataReader.GetString(MethodDefinition.Name);
-        UniqueName = $"{DeclaringType.FullName.Replace('.', '_')}_{Name.Replace('.', '_')}";
+        UniqueName = $"{MakeSafeName(DeclaringType.FullName)}_{MakeSafeName(Name)}";
 
         foreach (var parameterType in MethodSignature.ParameterTypes)
         {
@@ -109,5 +109,14 @@ internal sealed class EcmaMethod
         }
 
         FrameSize = ParametersSize + MethodBody?.LocalsSize ?? 0;
+    }
+
+    private static string MakeSafeName(string name)
+    {
+        return name
+            .Replace('.', '_')
+            .Replace('$', '_')
+            .Replace('<', '_')
+            .Replace('>', '_');
     }
 }

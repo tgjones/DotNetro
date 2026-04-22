@@ -53,25 +53,20 @@ public sealed class DotNetCompiler : IDisposable
 
     private void Compile(string entryPointMethodName)
     {
-        EcmaMethod? entryPointMethod = null;
-        foreach (var methodDefinitionHandle in _rootAssemblyContext.MetadataReader.MethodDefinitions)
+        var entryPointMethod = FindMethod(entryPointMethodName);
+
+        if (entryPointMethod == null)
         {
-            var methodDefinition = _rootAssemblyContext.MetadataReader.GetMethodDefinition(methodDefinitionHandle);
-
-            var methodDefinitionName = _rootAssemblyContext.MetadataReader.GetString(methodDefinition.Name);
-
-            if (methodDefinitionName == entryPointMethodName)
-            {
-                entryPointMethod = _rootAssemblyContext.GetMethod(methodDefinitionHandle);
-                EnqueueMethod(entryPointMethod);
-                break;
-            }
+            // TODO: Don't even pass entryPointMethodName parameter, we can just always look for Main and this.
+            entryPointMethod = FindMethod("<Main>$");
         }
 
         if (entryPointMethod == null)
         {
             throw new InvalidOperationException($"Could not find entry point method {entryPointMethodName}");
         }
+
+        EnqueueMethod(entryPointMethod);
 
         _codeGenerator.WriteHeader();
         _codeGenerator.WriteEntryPoint(entryPointMethod.UniqueName);
@@ -106,6 +101,22 @@ public sealed class DotNetCompiler : IDisposable
         _codeGenerator.WriteVtables(_vtableTracker.BuildVtables());
 
         _codeGenerator.WriteFooter(staticConstructors);
+    }
+
+    private EcmaMethod? FindMethod(string methodName)
+    {
+        foreach (var methodDefinitionHandle in _rootAssemblyContext.MetadataReader.MethodDefinitions)
+        {
+            var methodDefinition = _rootAssemblyContext.MetadataReader.GetMethodDefinition(methodDefinitionHandle);
+
+            var methodDefinitionName = _rootAssemblyContext.MetadataReader.GetString(methodDefinition.Name);
+
+            if (methodDefinitionName == methodName)
+            {
+                return _rootAssemblyContext.GetMethod(methodDefinitionHandle);
+            }
+        }
+        return null;
     }
 
     private void EnqueueMethod(EcmaMethod methodContext)

@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "DotNetro.Compiler.Driver",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/DotNetro.Compiler.Driver/bin/Debug/net10.0/dnrc",
+            "args": ["--assembly", "test.dll", "--emit", "assembly"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        }
+    ]
+}

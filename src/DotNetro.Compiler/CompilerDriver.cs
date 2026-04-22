@@ -30,7 +30,7 @@ public static class CompilerDriver
 
         foreach (var error in state.Errors)
         {
-            throw error;
+            throw new Exception($"Assembly error. Assembly code: {assemblyCode}. Error: {error}", error);
         }
 
         var listing = string.Join(System.Environment.NewLine, state.StatementListings);

@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../DotNetro.Compiler.Driver/DotNetro.Compiler.Driver.csproj" />
     <ProjectReference Include="..\DotLit\DotLit.csproj" />
     <ProjectReference Include="..\DotNetro.Compiler\DotNetro.Compiler.csproj" />
     <ProjectReference Include="..\DotNetro\DotNetro.csproj" />
