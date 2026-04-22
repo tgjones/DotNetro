@@ -4,8 +4,4 @@
     <TargetFramework>$(DotNetVersion)</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
-    <InternalsVisibleTo Include="DotLit.Tests" />
-  </ItemGroup>
-
 </Project>

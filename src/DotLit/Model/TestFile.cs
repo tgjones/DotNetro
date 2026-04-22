@@ -1,3 +1,3 @@
 ﻿namespace DotLit.Model;
 
-public sealed record TestFile(TestCommand[] Commands);
+internal sealed record TestFile(string FilePath, TestCommand[] Commands);

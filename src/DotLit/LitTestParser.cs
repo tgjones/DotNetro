@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 
 using DotLit.Model;
 
@@ -9,12 +10,17 @@ internal static partial class LitTestParser
     [GeneratedRegex("([A-Z]+):(.*)")]
     private static partial Regex CommandRegex();
 
-    public static TestFile ParseFile(string filePath) => Parse(File.ReadAllLines(filePath));
+    public static TestFile ParseFile(string filePath, LitTestConfiguration configuration) => Parse(File.ReadAllLines(filePath), filePath, configuration);
 
-    public static TestFile ParseString(string fileContents) => Parse(fileContents.Split(Environment.NewLine));
+    public static TestFile ParseString(string fileContents, string filePath, LitTestConfiguration configuration) => Parse(fileContents.Split(Environment.NewLine), filePath, configuration);
 
-    public static TestFile Parse(string[] fileLines)
+    public static TestFile Parse(string[] fileLines, string filePath, LitTestConfiguration configuration)
     {
+        var variables = new Dictionary<string, string>(configuration.Variables)
+        {
+            ["file"] = filePath
+        };
+
         var commands = new List<TestCommand>();
 
         foreach (var line in fileLines)
@@ -25,6 +31,8 @@ internal static partial class LitTestParser
             {
                 var commandType = match.Groups[1].Value;
                 var commandArgs = match.Groups[2].Value.Trim();
+
+                commandArgs = ReplaceVariables(commandArgs, variables);
 
                 switch (commandType)
                 {
@@ -43,6 +51,16 @@ internal static partial class LitTestParser
             }
         }
 
-        return new TestFile([.. commands]);
+        return new TestFile(filePath, [.. commands]);
     }
+
+    private static string ReplaceVariables(string commandArgs, Dictionary<string, string> variables)
+    {
+        foreach (var (key, value) in variables)
+        {
+            commandArgs = commandArgs.Replace($"@{key}", value);
+        }
+        return commandArgs;
+    }
+
 }

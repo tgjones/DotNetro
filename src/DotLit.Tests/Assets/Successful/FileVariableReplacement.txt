@@ -1,0 +1,3 @@
+// RUN: cat @file
+// CHECK Hello
+Hello

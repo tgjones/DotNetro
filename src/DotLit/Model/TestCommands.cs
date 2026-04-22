@@ -1,7 +1,7 @@
 ﻿namespace DotLit.Model;
 
-public abstract record TestCommand();
+internal abstract record TestCommand();
 
-public sealed record RunCommand(string CommandLine) : TestCommand();
+internal sealed record RunCommand(string CommandLine) : TestCommand();
 
-public sealed record CheckCommand(string Pattern) : TestCommand();
+internal sealed record CheckCommand(string Pattern) : TestCommand();

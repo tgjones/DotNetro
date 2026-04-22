@@ -77,6 +77,11 @@ internal static class LitTestExecutor
 
         process.WaitForExit();
 
+        if (process.ExitCode != 0)
+        {
+            throw new Exception($"Command `{commandLine}` failed with exit code {process.ExitCode}. Output: {output}");
+        }
+
         return output;
     }
 }
