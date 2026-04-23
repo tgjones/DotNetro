@@ -12,6 +12,8 @@ public sealed class IRModule
         return function;
     }
 
+    public static IRModule Parse(TextReader reader) => IRParser.Parse(reader);
+
     public void Write(TextWriter writer)
     {
         IRWriter.Write(this, writer);
