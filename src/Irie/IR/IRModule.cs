@@ -1,4 +1,6 @@
-﻿namespace Irie.IR;
+﻿using Irie.IR.Parsing;
+
+namespace Irie.IR;
 
 public sealed class IRModule
 {
