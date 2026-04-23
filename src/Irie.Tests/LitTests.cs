@@ -11,8 +11,8 @@ public sealed class LitTests
     {
         LitTestRunner.Run(filePath, new LitTestConfiguration(new Dictionary<string, string>
         {
-            ["irie-as"] = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../Irie.Tools.Assembler/bin/Debug/net10.0/irie-as")),
-            ["irie-dis"] = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../Irie.Tools.Disassembler/bin/Debug/net10.0/irie-dis")),
+            ["irie-as"] = Path.Combine(AppContext.BaseDirectory, "irie-as"),
+            ["irie-dis"] = Path.Combine(AppContext.BaseDirectory, "irie-dis"),
         }.ToImmutableDictionary()));
     }
 

@@ -13,7 +13,17 @@
   <ItemGroup>
     <ProjectReference Include="..\DotLit\DotLit.csproj" />
     <ProjectReference Include="..\Irie\Irie.csproj" />
+    <ProjectReference Include="..\Irie.Tools.Assembler\Irie.Tools.Assembler.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Irie.Tools.Disassembler\Irie.Tools.Disassembler.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
+
+  <Target Name="CopyIrieTools" AfterTargets="Build">
+    <ItemGroup>
+      <_IrieToolFiles Include="$(MSBuildThisFileDirectory)..\Irie.Tools.Assembler\bin\$(Configuration)\$(TargetFramework)\*" Exclude="**\*.pdb" />
+      <_IrieToolFiles Include="$(MSBuildThisFileDirectory)..\Irie.Tools.Disassembler\bin\$(Configuration)\$(TargetFramework)\*" Exclude="**\*.pdb" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_IrieToolFiles)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
 
   <ItemGroup>
     <None Include="Lit\**\*" CopyToOutputDirectory="PreserveNewest" />
