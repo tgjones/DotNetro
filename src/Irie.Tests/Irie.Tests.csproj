@@ -11,7 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotLit\DotLit.csproj" />
     <ProjectReference Include="..\Irie\Irie.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Lit\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

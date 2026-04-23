@@ -109,6 +109,11 @@ internal sealed class IRLexer
             {
                 _current = _reader.Read();
             }
+            else if (_current == ';')
+            {
+                while (_current != -1 && _current != '\n')
+                    _current = _reader.Read();
+            }
             else if (char.IsWhiteSpace((char)_current))
             {
                 Advance();
