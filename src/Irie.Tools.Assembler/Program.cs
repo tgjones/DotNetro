@@ -8,7 +8,7 @@ var rootCommand = new RootCommand("Irie assembler");
 rootCommand.Arguments.Add(inputArgument);
 rootCommand.Options.Add(outputOption);
 
-rootCommand.SetAction((Action<ParseResult>)(parseResult =>
+rootCommand.SetAction(parseResult =>
 {
     var input = parseResult.GetValue(inputArgument);
     var output = parseResult.GetValue(outputOption);
@@ -28,10 +28,10 @@ rootCommand.SetAction((Action<ParseResult>)(parseResult =>
         : output.OpenWrite();
 
     using (outputStream != Console.OpenStandardOutput() ? outputStream : null)
+    using (var binaryWriter = new BinaryWriter(outputStream, System.Text.Encoding.UTF8, leaveOpen: true))
     {
-        // TODO: serialize module to binary format (not yet defined)
-        throw new NotImplementedException("Binary output format is not yet implemented.");
+        module.Write(binaryWriter);
     }
-}));
+});
 
 return await rootCommand.Parse(args).InvokeAsync();

@@ -1,4 +1,5 @@
-﻿using Irie.IR.Parsing;
+﻿using Irie.IR.Binary;
+using Irie.IR.Parsing;
 
 namespace Irie.IR;
 
@@ -16,8 +17,9 @@ public sealed class IRModule
 
     public static IRModule Parse(TextReader reader) => IRParser.Parse(reader);
 
-    public void Write(TextWriter writer)
-    {
-        IRWriter.Write(this, writer);
-    }
+    public static IRModule Read(BinaryReader reader) => IRBinaryReader.Read(reader);
+
+    public void Write(TextWriter writer) => IRWriter.Write(this, writer);
+
+    public void Write(BinaryWriter writer) => IRBinaryWriter.Write(this, writer);
 }
