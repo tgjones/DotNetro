@@ -50,8 +50,13 @@ CI runs `dotnet test --solution src` in both Debug and Release configurations.
 - **DotNetro** — minimal runtime library that gets compiled into output; provides `ConsoleHelper` and `ManagedHeap`
 
 - **Irie** — IR scaffolding (`IRModule`, `IRFunction`, `IRBasicBlock`, `IRInstruction`); not yet wired into the main compiler
+  - `IR/Parsing/` — text IR parser; `;` starts a line comment
+  - `IR/Binary/` — binary serialization (`IRBinaryReader`, `IRBinaryWriter`, `IRBinaryFormat`); value references are sequential integer indices per function, same scheme as the text format
 
-- **DotLit / Irie.Testing.Lit** — LIT-style test infrastructure; parses `.cs` files with `RUN:` and `CHECK:` comment directives
+- **Irie.Tools.Assembler** — console app (`irie-as`); reads Irie text IR (stdin or file), writes binary
+- **Irie.Tools.Disassembler** — console app (`irie-dis`); reads binary (stdin or file), writes Irie text IR
+
+- **DotLit** — LIT-style test infrastructure; parses `RUN:` and `CHECK:` directives from any comment line; used by both `DotNetro.Compiler.Tests` (`.cs` files, `//` comments) and `Irie.Tests` (`.irie` files, `;` comments)
 
 ### Compilation Internals
 
