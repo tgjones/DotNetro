@@ -13,6 +13,7 @@ public sealed class LitTests
         {
             ["irie-as"] = Path.Combine(AppContext.BaseDirectory, "irie-as"),
             ["irie-dis"] = Path.Combine(AppContext.BaseDirectory, "irie-dis"),
+            ["irie-mc"] = Path.Combine(AppContext.BaseDirectory, "irie-mc"),
         }.ToImmutableDictionary()));
     }
 
@@ -20,15 +21,9 @@ public sealed class LitTests
     {
         var result = new List<Func<string>>();
 
-        var litTestFiles = Directory.EnumerateFiles(
-            "Lit",
-            "*.irie",
-            SearchOption.AllDirectories);
-
-        foreach (var litTestFile in litTestFiles)
-        {
+        foreach (var pattern in new[] { "*.irie", "*.s" })
+        foreach (var litTestFile in Directory.EnumerateFiles("Lit", pattern, SearchOption.AllDirectories))
             result.Add(() => litTestFile);
-        }
 
         return result;
     }
