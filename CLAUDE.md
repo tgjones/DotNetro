@@ -49,11 +49,18 @@ CI runs `dotnet test --solution src` in both Debug and Release configurations.
 
 - **DotNetro** — minimal runtime library that gets compiled into output; provides `ConsoleHelper` and `ManagedHeap`
 
-- **Irie** — IR and MachineCode scaffolding; not yet wired into the main compiler
+- **Irie** — IR, CodeGen, and MachineCode scaffolding; not yet wired into the main compiler
   - `IR/` — SSA IR (`IRModule`, `IRFunction`, `IRBasicBlock`, `IRInstruction`); `;` starts a line comment
   - `IR/Parsing/` — text IR parser
   - `IR/Binary/` — binary serialization (`IRBinaryReader`, `IRBinaryWriter`, `IRBinaryFormat`); value references are sequential integer indices per function
-  - `MachineCode/` — MC layer analogous to LLVM's MCInst; sits below IR, above raw bytes
+  - `CodeGen/` — LLVM CodeGen-style layer; sits between IR and MachineCode; starts in SSA with generic opcodes, lowered to target-legal non-SSA by passes
+    - `MachineModule/Function/BasicBlock/Instruction` — structural containers; block arguments used for SSA (no PHI instructions)
+    - `MachineFunction` maintains the virtual register table (`CreateVirtualRegister`, `GetVirtualRegisterType`); parser uses `internal RegisterVirtualRegister` to create registers with caller-supplied IDs
+    - `MachineOperand` — abstract record; variants: `VirtualRegisterOperand(int, bool IsDefinition)`, `PhysicalRegisterOperand(int, bool IsDefinition)`, `ImmediateOperand(long)`, `BlockOperand(MachineBasicBlock)`, `ExternalSymbolOperand(string)`; defs are first in the operand array (LLVM convention)
+    - `GenericOpcode` — target-independent opcodes named `GenericAdd`, `GenericLoad`, `GenericReturn`, etc.; negative int values to distinguish from target opcodes in [0x00, 0xFF]
+    - `Passes/MachineFunctionPass` — abstract pass base; `MachineFunctionPassManager` runs passes over a module or function; planned passes include IRTranslator, Legalizer, InstructionSelector, RegisterAllocator (none implemented yet)
+    - `MachineWriter` / `Parsing/MachineParser` — text serialization (`.mir` format); parser is two-pass within each function: first scans for block headers (`bbN(` pattern) to pre-register all blocks, then parses instructions, enabling forward block references in branches
+  - `MachineCode/` — MC layer analogous to LLVM's MCInst; sits below CodeGen, above raw bytes
     - `MachineCodeModule/Function` — structural containers (no basic blocks at this layer; the body is a flat stream)
     - `MachineCodeEntry` — abstract record; two variants: `MachineCodeLabel(string Name)` and `MachineCodeInstruction(int Opcode, MachineCodeOperand[] Operands)`; labels and instructions are peers in the stream
     - `MachineCodeOperand` — abstract record; variants: `Register(int)`, `Immediate(long)`, `LabelRef(string)` (local label within the function), `ExternalRef(string)` (external symbol)
@@ -61,16 +68,17 @@ CI runs `dotnet test --solution src` in both Debug and Release configurations.
   - `Target/MOS6502/` — 6502 target; `MOS6502Opcode` constants equal the 6502 byte values; `MOS6502InstructionInfo` descriptor table; `MOS6502AssemblyWriter` / `MOS6502AssemblyParser` for traditional `$FF` / `#$FF` assembly syntax
 
 - **Irie.Tools.Assembler** — console app (`irie-as`); reads Irie text IR (stdin or file), writes binary IR
+- **Irie.Tools.CodeGen** — console app (`irie-cg`); reads Machine IR text (stdin or file), parses and reprints it (round-trip tool for LIT tests)
 - **Irie.Tools.Disassembler** — console app (`irie-dis`); reads binary IR (stdin or file), writes Irie text IR
 - **Irie.Tools.MachineCode** — console app (`irie-mc`); `--assemble` parses MOS6502 assembly text → structured binary; `--disassemble` reads binary → assembly text
 
-- **DotLit** — LIT-style test infrastructure; parses `RUN:` and `CHECK:` directives from any comment line; used by both `DotNetro.Compiler.Tests` (`.cs` files, `//` comments) and `Irie.Tests` (`.irie` files for IR tests, `.s` files for MachineCode tests; both use `;` comments)
+- **DotLit** — LIT-style test infrastructure; parses `RUN:` and `CHECK:` directives from any comment line; used by both `DotNetro.Compiler.Tests` (`.cs` files, `//` comments) and `Irie.Tests` (`.irie` files for IR tests, `.mir` files for CodeGen/Machine IR tests, `.s` files for MachineCode tests; all use `;` comments)
 
 ### Irie Layer Roadmap
 
-Three layers are planned, analogous to LLVM:
+Three layers, analogous to LLVM:
 1. **IR** (`IR/`) — SSA IR; exists today
-2. **Machine** (`Machine/`) — LLVM `MachineInstr`-style layer; **not yet started**; the `Machine` prefix is reserved for this
+2. **CodeGen** (`CodeGen/`) — LLVM CodeGen/`MachineInstr`-style layer; exists today; SSA in, non-SSA out
 3. **MachineCode** (`MachineCode/`) — LLVM MC layer (flat instruction stream + labels); exists today
 
 ### Compilation Internals
