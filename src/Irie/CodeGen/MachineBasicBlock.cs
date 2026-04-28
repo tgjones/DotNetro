@@ -5,6 +5,10 @@ public sealed class MachineBasicBlock
     // Virtual register IDs of block parameters (the SSA block-argument form used throughout the pipeline).
     public List<int> Parameters { get; } = [];
 
+    // Physical register IDs that are live-in to this block from the calling convention.
+    // Only populated on entry blocks; serialised as a "liveins:" line in MIR text.
+    public List<int> LiveIns { get; } = [];
+
     public List<MachineInstruction> Instructions { get; } = [];
 
     public List<MachineBasicBlock> Predecessors { get; } = [];

@@ -1,5 +1,4 @@
 using Irie.CodeGen.Parsing;
-using Irie.IR;
 
 namespace Irie.CodeGen;
 
@@ -7,9 +6,12 @@ public sealed class MachineModule
 {
     public List<MachineFunction> Functions { get; } = [];
 
-    public MachineFunction CreateFunction(string name, IRType[] parameterTypes, IRType returnType, Action<MachineFunction> configure)
+    public Func<int, string?>? OpcodeNamer { get; set; }
+    public Func<int, string>? RegisterNamer { get; set; }
+
+    public MachineFunction CreateFunction(string name, Action<MachineFunction> configure)
     {
-        var function = new MachineFunction(name, parameterTypes, returnType);
+        var function = new MachineFunction(name);
         configure(function);
         Functions.Add(function);
         return function;

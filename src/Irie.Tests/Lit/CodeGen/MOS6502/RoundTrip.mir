@@ -2,10 +2,16 @@
 
 ; Simple function: two parameters, one block, binary op and return.
 
-; CHECK: func @add : \(i16, i16\) -> i16 \{
-func @add : (i16, i16) -> i16 {
-; CHECK:   bb0\(%0:i16, %1:i16\):
-  bb0(%0:i16, %1:i16):
+; CHECK: func @add \{
+func @add {
+; CHECK:   bb0\(\):
+  bb0():
+; CHECK:     liveins: \$0, \$1
+    liveins: $0, $1
+; CHECK:     %0:i16 = GenericCopy \$0
+    %0:i16 = GenericCopy $0
+; CHECK:     %1:i16 = GenericCopy \$1
+    %1:i16 = GenericCopy $1
 ; CHECK:     %2:i16 = GenericAdd %0, %1
     %2:i16 = GenericAdd %0, %1
 ; CHECK:     GenericReturn %2
@@ -15,10 +21,18 @@ func @add : (i16, i16) -> i16 {
 ; Function with branches — bb1 and bb2 are forward references from bb0,
 ; which exercises the two-pass block-registration in the parser.
 
-; CHECK: func @select : \(i16, i16, i16\) -> i16 \{
-func @select : (i16, i16, i16) -> i16 {
-; CHECK:   bb0\(%0:i16, %1:i16, %2:i16\):
-  bb0(%0:i16, %1:i16, %2:i16):
+; CHECK: func @select \{
+func @select {
+; CHECK:   bb0\(\):
+  bb0():
+; CHECK:     liveins: \$0, \$1, \$2
+    liveins: $0, $1, $2
+; CHECK:     %0:i16 = GenericCopy \$0
+    %0:i16 = GenericCopy $0
+; CHECK:     %1:i16 = GenericCopy \$1
+    %1:i16 = GenericCopy $1
+; CHECK:     %2:i16 = GenericCopy \$2
+    %2:i16 = GenericCopy $2
 ; CHECK:     GenericBranchConditional %0, bb1, bb2
     GenericBranchConditional %0, bb1, bb2
 ; CHECK:   bb1\(\):

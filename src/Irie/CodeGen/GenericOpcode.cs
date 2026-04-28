@@ -5,7 +5,6 @@ public static class GenericOpcode
     // Negative values distinguish generic opcodes from target opcodes (e.g. MOS6502 opcodes are in [0x00, 0xFF]).
 
     public const int GenericConstant            = -1;   // %0:iN = GenericConstant 42
-    public const int GenericImplicitDefinition  = -2;   // %0:iN = GenericImplicitDefinition
     public const int GenericCopy                = -3;   // %0:iN = GenericCopy %1
 
     public const int GenericAdd                 = -10;
@@ -20,6 +19,9 @@ public static class GenericOpcode
     public const int GenericZeroExtend          = -20;
     public const int GenericSignExtend          = -21;
     public const int GenericTruncate            = -22;
+    public const int GenericUnmerge             = -23;  // %0:iN, %1:iN, ... = GenericUnmerge %src:i(N*count)
+    public const int GenericMerge               = -24;  // %0:i(N*count) = GenericMerge %0:iN, %1:iN, ...
+    public const int GenericAddCarry            = -25;  // %result:iN, %carry_out:i1 = GenericAddCarry %a, %b, %carry_in:i1
 
     public const int GenericLoad                = -30;  // %0:iN = GenericLoad %ptr:i16
     public const int GenericStore               = -31;  // GenericStore %val, %ptr
@@ -32,7 +34,6 @@ public static class GenericOpcode
     private static readonly Dictionary<int, string> _names = new()
     {
         [GenericConstant]             = "GenericConstant",
-        [GenericImplicitDefinition]   = "GenericImplicitDefinition",
         [GenericCopy]                 = "GenericCopy",
         [GenericAdd]                  = "GenericAdd",
         [GenericSubtract]             = "GenericSubtract",
@@ -45,6 +46,9 @@ public static class GenericOpcode
         [GenericZeroExtend]           = "GenericZeroExtend",
         [GenericSignExtend]           = "GenericSignExtend",
         [GenericTruncate]             = "GenericTruncate",
+        [GenericUnmerge]              = "GenericUnmerge",
+        [GenericMerge]                = "GenericMerge",
+        [GenericAddCarry]             = "GenericAddCarry",
         [GenericLoad]                 = "GenericLoad",
         [GenericStore]                = "GenericStore",
         [GenericJump]                 = "GenericJump",

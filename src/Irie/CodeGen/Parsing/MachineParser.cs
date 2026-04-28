@@ -33,23 +33,6 @@ internal sealed class MachineParser
         Expect(MachineTokenKind.Func);
         Expect(MachineTokenKind.At);
         var name = Expect(MachineTokenKind.Identifier).Text!;
-        Expect(MachineTokenKind.Colon);
-        Expect(MachineTokenKind.LParen);
-
-        var paramTypes = new List<IRType>();
-        if (_current.Kind != MachineTokenKind.RParen)
-        {
-            paramTypes.Add(ParseTypeFromStream());
-            while (_current.Kind == MachineTokenKind.Comma)
-            {
-                Advance();
-                paramTypes.Add(ParseTypeFromStream());
-            }
-        }
-
-        Expect(MachineTokenKind.RParen);
-        Expect(MachineTokenKind.Arrow);
-        var returnType = ParseTypeFromStream();
         Expect(MachineTokenKind.LBrace);
 
         // Collect all tokens in the function body so we can do two passes
@@ -57,7 +40,7 @@ internal sealed class MachineParser
         var body = CollectBodyTokens();
         var tokens = new TokenReader(body);
 
-        var function = new MachineFunction(name, [.. paramTypes], returnType);
+        var function = new MachineFunction(name);
 
         // Pass 1: pre-create one MachineBasicBlock per block header found, in order.
         // A block header is a BlockLabel immediately followed by '(' — this distinguishes
@@ -111,6 +94,22 @@ internal sealed class MachineParser
         tokens.Expect(MachineTokenKind.RParen);
         tokens.Expect(MachineTokenKind.Colon);
 
+        if (tokens.Current.Kind == MachineTokenKind.Identifier
+            && tokens.Current.Text == "liveins"
+            && tokens.Peek.Kind == MachineTokenKind.Colon)
+        {
+            tokens.Advance(); // consume "liveins"
+            tokens.Advance(); // consume ":"
+            while (tokens.Current.Kind == MachineTokenKind.PhysRegRef)
+            {
+                block.LiveIns.Add((int)tokens.Advance().IntValue!.Value);
+                if (tokens.Current.Kind == MachineTokenKind.Comma)
+                    tokens.Advance();
+                else
+                    break;
+            }
+        }
+
         while (!tokens.IsAtEnd && tokens.Current.Kind != MachineTokenKind.BlockLabel)
             ParseInstruction(tokens, function, block, blockMap);
     }
@@ -136,26 +135,43 @@ internal sealed class MachineParser
     {
         var defOperands = new List<MachineOperand>();
 
-        // A definition looks like  %N:type =  or  $N =
-        // Disambiguate %N as def (followed by ':') vs %N as use operand.
-        if (tokens.Current.Kind == MachineTokenKind.ValueRef
-            && tokens.Peek.Kind == MachineTokenKind.Colon)
+        // Parse zero or more virtual-register definitions: %N:type, ...
+        // A def is identified by ValueRef immediately followed by Colon.
+        // Multiple defs are separated by commas: %a:type, %b:type = opcode
+        while (tokens.Current.Kind == MachineTokenKind.ValueRef
+               && tokens.Peek.Kind == MachineTokenKind.Colon)
         {
             var vregToken = tokens.Advance(); // consume %N
             tokens.Advance();                 // consume :
             var type = ParseType(tokens.Expect(MachineTokenKind.Identifier));
-            tokens.Expect(MachineTokenKind.Equals);
 
             var vreg = (int)vregToken.IntValue!.Value;
             function.RegisterVirtualRegister(vreg, type);
             defOperands.Add(new VirtualRegisterOperand(vreg, IsDefinition: true));
+
+            // Check if a comma is followed by another %N:type (more defs) or a use.
+            // We need three tokens of lookahead: comma, ValueRef, Colon.
+            if (tokens.Current.Kind == MachineTokenKind.Comma
+                && tokens.Peek.Kind == MachineTokenKind.ValueRef
+                && tokens.Peek2.Kind == MachineTokenKind.Colon)
+            {
+                tokens.Advance(); // consume comma; loop continues
+            }
+            else
+            {
+                break;
+            }
         }
-        else if (tokens.Current.Kind == MachineTokenKind.PhysRegRef)
+
+        // Physical register definition: $N =
+        if (defOperands.Count == 0 && tokens.Current.Kind == MachineTokenKind.PhysRegRef)
         {
             var physToken = tokens.Advance();
-            tokens.Expect(MachineTokenKind.Equals);
             defOperands.Add(new PhysicalRegisterOperand((int)physToken.IntValue!.Value, IsDefinition: true));
         }
+
+        if (defOperands.Count > 0)
+            tokens.Expect(MachineTokenKind.Equals);
 
         // Opcode
         var opcodeToken = tokens.Expect(MachineTokenKind.Identifier);
@@ -221,15 +237,10 @@ internal sealed class MachineParser
     // Helpers
     // -------------------------------------------------------------------------
 
-    private IRType ParseTypeFromStream()
-    {
-        var token = Expect(MachineTokenKind.Identifier);
-        return ParseType(token);
-    }
-
     private static IRType ParseType(MachineToken token) => token.Text switch
     {
         "void" => IRType.Void,
+        "i1"   => IRType.I1,
         "i8"   => IRType.I8,
         "i16"  => IRType.I16,
         "i32"  => IRType.I32,
@@ -278,6 +289,7 @@ internal sealed class MachineParser
 
         public MachineToken Current => At(_position);
         public MachineToken Peek    => At(_position + 1);
+        public MachineToken Peek2   => At(_position + 2);
         public bool IsAtEnd         => _position >= tokens.Count;
 
         private MachineToken At(int pos) =>

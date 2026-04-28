@@ -1,0 +1,45 @@
+; RUN: @iriec --target mos6502 @file
+
+; Checks that a 32-bit integer add is correctly lowered to a 4-byte
+; ADC chain following the CC_MOS calling convention.
+
+; CHECK: func @TestFunction \{
+; CHECK:   bb0\(\):
+; CHECK:     liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7
+; CHECK:     %0:i8 = GenericCopy \$A
+; CHECK:     %1:i8 = GenericCopy \$X
+; CHECK:     %2:i8 = GenericCopy \$RC2
+; CHECK:     %3:i8 = GenericCopy \$RC3
+; CHECK:     %5:i8 = GenericCopy \$RC4
+; CHECK:     %6:i8 = GenericCopy \$RC5
+; CHECK:     %7:i8 = GenericCopy \$RC6
+; CHECK:     %8:i8 = GenericCopy \$RC7
+; CHECK:     %15:i8 = GenericCopy %0
+; CHECK:     %16:i8 = GenericCopy %1
+; CHECK:     %17:i8 = GenericCopy %2
+; CHECK:     %18:i8 = GenericCopy %3
+; CHECK:     %19:i8 = GenericCopy %5
+; CHECK:     %20:i8 = GenericCopy %6
+; CHECK:     %21:i8 = GenericCopy %7
+; CHECK:     %22:i8 = GenericCopy %8
+; CHECK:     CLC_Implied
+; CHECK:     %31:i8 = ADC_ZeroPage %15, %19
+; CHECK:     %32:i8 = ADC_ZeroPage %16, %20
+; CHECK:     %33:i8 = ADC_ZeroPage %17, %21
+; CHECK:     %34:i8 = ADC_ZeroPage %18, %22
+; CHECK:     %11:i8 = GenericCopy %23
+; CHECK:     %12:i8 = GenericCopy %25
+; CHECK:     %13:i8 = GenericCopy %27
+; CHECK:     %14:i8 = GenericCopy %29
+; CHECK:     \$A = GenericCopy %11
+; CHECK:     \$X = GenericCopy %12
+; CHECK:     \$RC2 = GenericCopy %13
+; CHECK:     \$RC3 = GenericCopy %14
+; CHECK:     RTS_Implied
+; CHECK: \}
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+  %2 = integer_add %0, %1
+  return %2
+}

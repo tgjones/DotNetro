@@ -16,6 +16,7 @@
   <Project Path="Irie.Tools.Assembler/Irie.Tools.Assembler.csproj" />
   <Project Path="Irie.Tools.Disassembler/Irie.Tools.Disassembler.csproj" />
   <Project Path="Irie.Tools.CodeGen/Irie.Tools.CodeGen.csproj" />
+  <Project Path="Irie.Tools.Compiler/Irie.Tools.Compiler.csproj" />
   <Project Path="Irie.Tools.MachineCode/Irie.Tools.MachineCode.csproj" />
   <Project Path="Irie/Irie.csproj" Id="685b6fc2-c5db-48b8-80f6-620bd71a149d" />
 </Solution>

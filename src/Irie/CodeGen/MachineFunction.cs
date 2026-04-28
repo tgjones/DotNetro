@@ -2,13 +2,9 @@ using Irie.IR;
 
 namespace Irie.CodeGen;
 
-public sealed class MachineFunction(string name, IRType[] parameterTypes, IRType returnType)
+public sealed class MachineFunction(string name)
 {
     public string Name => name;
-
-    public IRType[] ParameterTypes => parameterTypes;
-
-    public IRType ReturnType => returnType;
 
     public List<MachineBasicBlock> Blocks { get; } = [];
 
@@ -19,14 +15,6 @@ public sealed class MachineFunction(string name, IRType[] parameterTypes, IRType
     {
         var virtualRegister = _nextVirtualRegister++;
         _virtualRegisterTypes[virtualRegister] = type;
-        return virtualRegister;
-    }
-
-    // Creates a virtual register and immediately registers it as a parameter of the given block.
-    public int CreateBlockParameter(MachineBasicBlock block, IRType type)
-    {
-        var virtualRegister = CreateVirtualRegister(type);
-        block.Parameters.Add(virtualRegister);
         return virtualRegister;
     }
 

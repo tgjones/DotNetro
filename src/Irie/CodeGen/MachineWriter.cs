@@ -1,33 +1,35 @@
 namespace Irie.CodeGen;
 
-internal static class MachineWriter
+internal sealed class MachineWriter(Func<int, string?>? opcodeNamer, Func<int, string>? registerNamer)
 {
-    public static void Write(MachineModule module, TextWriter writer)
+    public static void Write(MachineModule module, TextWriter writer) =>
+        new MachineWriter(module.OpcodeNamer, module.RegisterNamer).WriteAll(module, writer);
+
+    private void WriteAll(MachineModule module, TextWriter writer)
     {
         for (var i = 0; i < module.Functions.Count; i++)
         {
             if (i > 0)
                 writer.WriteLine();
-            Write(module.Functions[i], writer);
+            WriteFunction(module.Functions[i], writer);
         }
     }
 
-    private static void Write(MachineFunction function, TextWriter writer)
+    private void WriteFunction(MachineFunction function, TextWriter writer)
     {
-        var paramTypes = string.Join(", ", function.ParameterTypes.Select(t => t.DisplayName));
-        writer.WriteLine($"func @{function.Name} : ({paramTypes}) -> {function.ReturnType.DisplayName} {{");
+        writer.WriteLine($"func @{function.Name} {{");
 
         var blockIndex = new Dictionary<MachineBasicBlock, int>();
         for (var i = 0; i < function.Blocks.Count; i++)
             blockIndex[function.Blocks[i]] = i;
 
         for (var i = 0; i < function.Blocks.Count; i++)
-            Write(function.Blocks[i], i, function, blockIndex, writer);
+            WriteBlock(function.Blocks[i], i, function, blockIndex, writer);
 
         writer.WriteLine("}");
     }
 
-    private static void Write(
+    private void WriteBlock(
         MachineBasicBlock block,
         int index,
         MachineFunction function,
@@ -38,11 +40,14 @@ internal static class MachineWriter
             $"%{vreg}:{function.GetVirtualRegisterType(vreg).DisplayName}"));
         writer.WriteLine($"  bb{index}({paramStr}):");
 
+        if (block.LiveIns.Count > 0)
+            writer.WriteLine($"    liveins: {string.Join(", ", block.LiveIns.Select(r => $"${FormatPhysReg(r)}"))}");
+
         foreach (var instruction in block.Instructions)
-            Write(instruction, function, blockIndex, writer);
+            WriteInstruction(instruction, function, blockIndex, writer);
     }
 
-    private static void Write(
+    private void WriteInstruction(
         MachineInstruction instruction,
         MachineFunction function,
         Dictionary<MachineBasicBlock, int> blockIndex,
@@ -50,20 +55,28 @@ internal static class MachineWriter
     {
         writer.Write("    ");
 
-        var defs = instruction.Operands.Where(IsDefinition).ToList();
-        if (defs.Count > 0)
+        var defStrings = new List<string>();
+        var useStrings = new List<string>();
+        foreach (var op in instruction.Operands)
         {
-            writer.Write(string.Join(", ", defs.Select(d => FormatDefinition(d, function))));
+            if (IsDefinition(op))
+                defStrings.Add(FormatDefinition(op, function));
+            else
+                useStrings.Add(FormatOperand(op, function, blockIndex));
+        }
+
+        if (defStrings.Count > 0)
+        {
+            writer.Write(string.Join(", ", defStrings));
             writer.Write(" = ");
         }
 
         writer.Write(GetOpcodeName(instruction.Opcode));
 
-        var uses = instruction.Operands.Where(o => !IsDefinition(o)).ToList();
-        if (uses.Count > 0)
+        if (useStrings.Count > 0)
         {
             writer.Write(" ");
-            writer.Write(string.Join(", ", uses.Select(u => FormatOperand(u, function, blockIndex))));
+            writer.Write(string.Join(", ", useStrings));
         }
 
         writer.WriteLine();
@@ -76,26 +89,31 @@ internal static class MachineWriter
         _ => false,
     };
 
-    private static string FormatDefinition(MachineOperand operand, MachineFunction function) => operand switch
+    private string FormatDefinition(MachineOperand operand, MachineFunction function) => operand switch
     {
         VirtualRegisterOperand vreg => $"%{vreg.VirtualRegister}:{function.GetVirtualRegisterType(vreg.VirtualRegister).DisplayName}",
-        PhysicalRegisterOperand phys => $"${phys.Register}",
+        PhysicalRegisterOperand phys => $"${FormatPhysReg(phys.Register)}",
         _ => throw new InvalidOperationException($"Not a definition operand: {operand.GetType().Name}"),
     };
 
-    private static string FormatOperand(
+    private string FormatOperand(
         MachineOperand operand,
         MachineFunction function,
         Dictionary<MachineBasicBlock, int> blockIndex) => operand switch
     {
         VirtualRegisterOperand vreg => $"%{vreg.VirtualRegister}",
-        PhysicalRegisterOperand phys => $"${phys.Register}",
+        PhysicalRegisterOperand phys => $"${FormatPhysReg(phys.Register)}",
         ImmediateOperand imm => imm.Value.ToString(),
         BlockOperand block => $"bb{blockIndex[block.Block]}",
         ExternalSymbolOperand sym => $"@{sym.Name}",
         _ => throw new InvalidOperationException($"Unknown operand type: {operand.GetType().Name}"),
     };
 
-    private static string GetOpcodeName(int opcode) =>
-        GenericOpcode.GetName(opcode) ?? $"opcode({opcode})";
+    private string FormatPhysReg(int register) =>
+        registerNamer?.Invoke(register) ?? register.ToString();
+
+    private string GetOpcodeName(int opcode) =>
+        GenericOpcode.GetName(opcode)
+        ?? opcodeNamer?.Invoke(opcode)
+        ?? $"opcode({opcode})";
 }

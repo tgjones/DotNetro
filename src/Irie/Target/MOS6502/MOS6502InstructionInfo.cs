@@ -18,6 +18,14 @@ public sealed class MOS6502InstructionInfo(int opcode, string mnemonic, Addressi
         => _table.TryGetValue(opcode, out var info) ? info
         : throw new ArgumentException($"Unknown opcode: ${opcode:X2}", nameof(opcode));
 
+    // Returns a human-readable name suitable for MachineIR text output, e.g. "ADC_ZeroPage".
+    public static string? GetDisplayName(int opcode)
+    {
+        var info = TryGet(opcode);
+        if (info == null) return null;
+        return $"{info.Mnemonic}_{info.Mode}";
+    }
+
     private static Dictionary<int, MOS6502InstructionInfo> BuildTable()
     {
         var entries = new MOS6502InstructionInfo[]
