@@ -57,12 +57,21 @@ internal sealed class MachineWriter(Func<int, string?>? opcodeNamer, Func<int, s
 
         var defStrings = new List<string>();
         var useStrings = new List<string>();
+        var implicitStrings = new List<string>();
         foreach (var op in instruction.Operands)
         {
-            if (IsDefinition(op))
+            if (op is PhysicalRegisterOperand { IsImplicit: true } phys)
+            {
+                implicitStrings.Add($"{(phys.IsDefinition ? "implicit-def" : "implicit")} ${FormatPhysReg(phys.Register)}");
+            }
+            else if (IsDefinition(op))
+            {
                 defStrings.Add(FormatDefinition(op, function));
+            }
             else
+            {
                 useStrings.Add(FormatOperand(op, function, blockIndex));
+            }
         }
 
         if (defStrings.Count > 0)
@@ -73,10 +82,11 @@ internal sealed class MachineWriter(Func<int, string?>? opcodeNamer, Func<int, s
 
         writer.Write(GetOpcodeName(instruction.Opcode));
 
-        if (useStrings.Count > 0)
+        var allUseStrings = useStrings.Concat(implicitStrings).ToList();
+        if (allUseStrings.Count > 0)
         {
             writer.Write(" ");
-            writer.Write(string.Join(", ", useStrings));
+            writer.Write(string.Join(", ", allUseStrings));
         }
 
         writer.WriteLine();

@@ -6,7 +6,7 @@ public sealed class LegalizerPass(LegalizerInfo legalizerInfo) : MachineFunction
 {
     public override string Name => "Legalizer";
 
-    public override void RunOnFunction(MachineFunction function)
+    public override void Run(MachineFunction function)
     {
         var builder = new MachineIRBuilder(function);
 

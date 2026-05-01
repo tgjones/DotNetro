@@ -22,7 +22,6 @@ public sealed class MOS6502LegalizerInfo : LegalizerInfo
             GenericOpcode.GenericMerge            => LegalityAction.Legal,
             GenericOpcode.GenericUnmerge          => LegalityAction.Legal,
             GenericOpcode.GenericCopy             => LegalityAction.Legal,
-            GenericOpcode.GenericReturn           => LegalityAction.Legal,
 
             _ => LegalityAction.Unsupported,
         };

@@ -142,10 +142,23 @@ internal sealed class MachineLexer
     private string ReadWord()
     {
         var sb = new StringBuilder();
-        while (_current != -1 && (char.IsAsciiLetterOrDigit((char)_current) || _current == '_'))
+        while (_current != -1)
         {
-            sb.Append((char)_current);
-            Advance();
+            var ch = (char)_current;
+            if (char.IsAsciiLetterOrDigit(ch) || ch == '_')
+            {
+                sb.Append(ch);
+                Advance();
+            }
+            else if (ch == '-' && _reader.Peek() is var peek && peek != -1 && (char.IsAsciiLetter((char)peek) || peek == '_'))
+            {
+                sb.Append(ch);
+                Advance();
+            }
+            else
+            {
+                break;
+            }
         }
         return sb.ToString();
     }

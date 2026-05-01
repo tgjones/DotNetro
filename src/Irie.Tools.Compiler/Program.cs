@@ -1,5 +1,5 @@
 using System.CommandLine;
-using Irie.CodeGen;
+using Irie;
 using Irie.CodeGen.Passes;
 using Irie.IR;
 using Irie.Target.MOS6502;
@@ -12,14 +12,18 @@ var inputArgument = new Argument<string?>("input")
 
 var targetOption = new Option<string>("--target") { Description = "Target architecture (currently only 'mos6502')" };
 
+var stopAfter = new Option<string>("--stop-after") { Description = "Stop after the specified pass (for debugging)" };
+
 var rootCommand = new RootCommand("Irie lowering tool — translates IR to target Machine IR");
 rootCommand.Arguments.Add(inputArgument);
 rootCommand.Options.Add(targetOption);
+rootCommand.Options.Add(stopAfter);
 
 rootCommand.SetAction(parseResult =>
 {
     var input  = parseResult.GetValue(inputArgument);
     var target = parseResult.GetValue(targetOption) ?? "mos6502";
+    var stopAfterPass = parseResult.GetValue(stopAfter);
 
     if (target != "mos6502")
         throw new ArgumentException($"Unsupported target '{target}'. Only 'mos6502' is supported.");
@@ -33,27 +37,18 @@ rootCommand.SetAction(parseResult =>
     if (inputReader != Console.In)
         inputReader.Dispose();
 
-    var callLowering = new MOS6502CallLowering();
-    var translator   = new IRTranslatorPass(callLowering);
+    var context = new CompilationContext(irModule);
 
-    var passMgr = new MachineFunctionPassManager();
+    var passMgr = new PassManager(stopAfterPass);
+    passMgr.AddPass(new IRTranslatorPass(new MOS6502CallLowering()));
     passMgr.AddPass(new LegalizerPass(new MOS6502LegalizerInfo()));
     passMgr.AddPass(new InstructionSelectorPass(new MOS6502InstructionSelector()));
+    passMgr.Run(context);
 
-    var machineModule = new MachineModule
-    {
-        OpcodeNamer   = MOS6502InstructionInfo.GetDisplayName,
-        RegisterNamer = MOS6502Registers.NameOf,
-    };
+    context.MachineModule.OpcodeNamer   = MOS6502InstructionInfo.GetDisplayName;
+    context.MachineModule.RegisterNamer = MOS6502Registers.NameOf;
 
-    foreach (var irFunction in irModule.Functions)
-    {
-        var machineFunction = translator.Translate(irFunction);
-        passMgr.Run(machineFunction);
-        machineModule.Functions.Add(machineFunction);
-    }
-
-    machineModule.Write(Console.Out);
+    context.MachineModule.Write(Console.Out);
 });
 
 return await rootCommand.Parse(args).InvokeAsync();

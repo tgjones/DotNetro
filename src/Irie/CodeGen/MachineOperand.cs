@@ -4,7 +4,7 @@ public abstract record MachineOperand;
 
 public sealed record VirtualRegisterOperand(int VirtualRegister, bool IsDefinition) : MachineOperand;
 
-public sealed record PhysicalRegisterOperand(int Register, bool IsDefinition) : MachineOperand;
+public sealed record PhysicalRegisterOperand(int Register, bool IsDefinition, bool IsImplicit = false) : MachineOperand;
 
 public sealed record ImmediateOperand(long Value) : MachineOperand;
 

@@ -28,7 +28,6 @@ public static class GenericOpcode
 
     public const int GenericJump                = -40;  // GenericJump bb0
     public const int GenericBranchConditional   = -41;  // GenericBranchConditional %cond, bb_true, bb_false
-    public const int GenericReturn              = -42;  // GenericReturn [%val]
     public const int GenericCall                = -50;  // [%0:iN =] GenericCall @symbol, %arg0, ...
 
     private static readonly Dictionary<int, string> _names = new()
@@ -53,7 +52,6 @@ public static class GenericOpcode
         [GenericStore]                = "GenericStore",
         [GenericJump]                 = "GenericJump",
         [GenericBranchConditional]    = "GenericBranchConditional",
-        [GenericReturn]               = "GenericReturn",
         [GenericCall]                 = "GenericCall",
     };
 

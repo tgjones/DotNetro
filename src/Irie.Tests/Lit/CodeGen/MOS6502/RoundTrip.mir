@@ -1,6 +1,6 @@
 ; RUN: @irie-cg @file
 
-; Simple function: two parameters, one block, binary op and return.
+; Simple function: two parameters, one block, binary op, copy result back to a physreg.
 
 ; CHECK: func @add \{
 func @add {
@@ -14,8 +14,8 @@ func @add {
     %1:i16 = GenericCopy $1
 ; CHECK:     %2:i16 = GenericAdd %0, %1
     %2:i16 = GenericAdd %0, %1
-; CHECK:     GenericReturn %2
-    GenericReturn %2
+; CHECK:     \$0 = GenericCopy %2
+    $0 = GenericCopy %2
 }
 
 ; Function with branches — bb1 and bb2 are forward references from bb0,
@@ -37,10 +37,10 @@ func @select {
     GenericBranchConditional %0, bb1, bb2
 ; CHECK:   bb1\(\):
   bb1():
-; CHECK:     GenericReturn %1
-    GenericReturn %1
+; CHECK:     \$0 = GenericCopy %1
+    $0 = GenericCopy %1
 ; CHECK:   bb2\(\):
   bb2():
-; CHECK:     GenericReturn %2
-    GenericReturn %2
+; CHECK:     \$0 = GenericCopy %2
+    $0 = GenericCopy %2
 }

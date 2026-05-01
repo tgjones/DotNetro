@@ -74,6 +74,8 @@ public sealed class MOS6502CallLowering : CallLowering
     {
         builder.SetInsertionPointAtEnd(block);
 
+        var implicitUses = new List<MachineOperand>();
+
         if (returnValueVreg.HasValue && irReturnType is not VoidType)
         {
             var byteCount = ByteCount(irReturnType);
@@ -89,10 +91,13 @@ public sealed class MOS6502CallLowering : CallLowering
             }
 
             for (var i = 0; i < byteCount; i++)
+            {
                 builder.BuildCopyToPhysReg(ArgRegs[i], byteVregs[i]);
+                implicitUses.Add(new PhysicalRegisterOperand(ArgRegs[i], IsDefinition: false, IsImplicit: true));
+            }
         }
 
-        builder.BuildReturn();
+        builder.BuildTargetInstr(MOS6502Opcode.RTS, [.. implicitUses]);
     }
 
     private static int ByteCount(IRType type) => type.SizeInBits / 8;

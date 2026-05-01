@@ -31,14 +31,9 @@ public sealed class MOS6502InstructionSelector : InstructionSelector
             case GenericOpcode.GenericAddCarry:
                 return SelectAddCarry(instruction, builder);
 
-            case GenericOpcode.GenericReturn:
-                builder.SetInsertionPointBefore(instruction);
-                builder.BuildTargetInstr(MOS6502Opcode.RTS);
-                builder.Remove(instruction);
-                return true;
-
             default:
-                return false;
+                // Already-selected target instructions (non-negative opcodes) pass through.
+                return !GenericOpcode.IsGeneric(instruction.Opcode);
         }
     }
 

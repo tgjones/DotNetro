@@ -200,6 +200,9 @@ internal sealed class MachineParser
         MachineTokenKind.At         => true,
         // %N is a use only when NOT immediately followed by ':', which would mean a new def.
         MachineTokenKind.ValueRef when tokens.Peek.Kind != MachineTokenKind.Colon => true,
+        // 'implicit' / 'implicit-def' prefixing a physical register operand.
+        MachineTokenKind.Identifier when tokens.Current.Text is "implicit" or "implicit-def"
+                                      && tokens.Peek.Kind == MachineTokenKind.PhysRegRef => true,
         _ => false,
     };
 
@@ -226,6 +229,13 @@ internal sealed class MachineParser
                 tokens.Advance(); // consume '@'
                 var nameToken = tokens.Expect(MachineTokenKind.Identifier);
                 return new ExternalSymbolOperand(nameToken.Text!);
+            }
+
+            case MachineTokenKind.Identifier when tokens.Current.Text is "implicit" or "implicit-def":
+            {
+                var isDef = tokens.Advance().Text == "implicit-def";
+                var physToken = tokens.Expect(MachineTokenKind.PhysRegRef);
+                return new PhysicalRegisterOperand((int)physToken.IntValue!.Value, IsDefinition: isDef, IsImplicit: true);
             }
 
             default:

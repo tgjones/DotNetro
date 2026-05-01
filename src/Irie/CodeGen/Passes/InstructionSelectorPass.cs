@@ -4,7 +4,7 @@ public sealed class InstructionSelectorPass(InstructionSelector selector) : Mach
 {
     public override string Name => "InstructionSelector";
 
-    public override void RunOnFunction(MachineFunction function)
+    public override void Run(MachineFunction function)
     {
         selector.BeginFunction(function);
         var builder = new MachineIRBuilder(function);

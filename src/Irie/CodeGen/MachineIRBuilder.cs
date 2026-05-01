@@ -112,16 +112,10 @@ public sealed class MachineIRBuilder(MachineFunction function)
         return (result, carryOut);
     }
 
-    // GenericReturn with no operands (return value already in physical registers via copies).
-    public void BuildReturn()
-    {
-        Insert(GenericOpcode.GenericReturn);
-    }
-
     // Emit an arbitrary target-specific instruction with no defs.
-    public void BuildTargetInstr(int opcode)
+    public void BuildTargetInstr(int opcode, params MachineOperand[] operands)
     {
-        Insert(opcode);
+        Insert(opcode, operands);
     }
 
     // Emit an arbitrary target-specific instruction with one virtual-register def.

@@ -2,11 +2,20 @@ using Irie.IR;
 
 namespace Irie.CodeGen.Passes;
 
-// Translates an IRFunction into a MachineFunction populated with generic opcodes.
+// Translates an IRModule into a MachineModule populated with generic opcodes.
 // Calling convention is applied inline via the provided CallLowering.
-public sealed class IRTranslatorPass(CallLowering callLowering)
+public sealed class IRTranslatorPass(CallLowering callLowering) : Pass
 {
-    public MachineFunction Translate(IRFunction irFunction)
+    public override string Name => "IRTranslator";
+
+    public override void Run(CompilationContext context)
+    {
+        var module = context.MachineModule;
+        foreach (var irFunction in context.IRModule.Functions)
+            module.Functions.Add(TranslateFunction(irFunction));
+    }
+
+    private MachineFunction TranslateFunction(IRFunction irFunction)
     {
         var machineFunction = new MachineFunction(irFunction.Name);
         var valueMap = new Dictionary<IRValue, int>();
