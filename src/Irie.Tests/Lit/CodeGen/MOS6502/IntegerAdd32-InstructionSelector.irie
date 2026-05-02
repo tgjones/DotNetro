@@ -1,0 +1,39 @@
+; RUN: @iriec --target mos6502 @file
+
+; Checks that the MOS6502 instruction selector lowers the legalized
+; GenericAddCarry chain into a CLC + ADC_ZeroPage sequence. The carry-in
+; immediate 0 on the first AddCarry triggers a single CLC; subsequent
+; AddCarrys consume the C flag implicitly.
+;
+; The ADC defs are wired to downstream consumers via RAUW, so the return-value
+; copies reference the new ADC result vregs rather than the now-removed
+; GenericAddCarry result vregs.
+
+; CHECK: func @TestFunction \{
+; CHECK:   bb0\(\):
+; CHECK:     liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7
+; CHECK:     %0:i8 = GenericCopy \$A
+; CHECK:     %1:i8 = GenericCopy \$X
+; CHECK:     %2:i8 = GenericCopy \$RC2
+; CHECK:     %3:i8 = GenericCopy \$RC3
+; CHECK:     %5:i8 = GenericCopy \$RC4
+; CHECK:     %6:i8 = GenericCopy \$RC5
+; CHECK:     %7:i8 = GenericCopy \$RC6
+; CHECK:     %8:i8 = GenericCopy \$RC7
+; CHECK:     CLC_Implied
+; CHECK:     %31:i8 = ADC_ZeroPage %0, %5
+; CHECK:     %32:i8 = ADC_ZeroPage %1, %6
+; CHECK:     %33:i8 = ADC_ZeroPage %2, %7
+; CHECK:     %34:i8 = ADC_ZeroPage %3, %8
+; CHECK:     \$A = GenericCopy %31
+; CHECK:     \$X = GenericCopy %32
+; CHECK:     \$RC2 = GenericCopy %33
+; CHECK:     \$RC3 = GenericCopy %34
+; CHECK:     RTS_Implied implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
+; CHECK: \}
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+  %2 = integer_add %0, %1
+  return %2
+}

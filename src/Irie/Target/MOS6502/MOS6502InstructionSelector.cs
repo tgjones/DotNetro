@@ -100,9 +100,12 @@ public sealed class MOS6502InstructionSelector : InstructionSelector
             builder.BuildTargetInstr(MOS6502Opcode.CLC);
 
         // ADC with two virtual-register operands (addressing mode resolved post-RA).
-        builder.BuildTargetInstrWithDef(MOS6502Opcode.ADC_ZeroPage, IRType.I8,
+        var newResultVreg = builder.BuildTargetInstrWithDef(MOS6502Opcode.ADC_ZeroPage, IRType.I8,
             new VirtualRegisterOperand(aVreg, IsDefinition: false),
             new VirtualRegisterOperand(bVreg, IsDefinition: false));
+
+        // Wire downstream consumers of the original result vreg to the ADC's def.
+        builder.Function.ReplaceAllUsesOfRegister(resultVreg, newResultVreg);
 
         // The carry_out vreg (defs[1]) becomes dead; subsequent GenericAddCarrys that
         // reference it as carry_in (vreg form) are implicitly chained via the 6502 C flag.
