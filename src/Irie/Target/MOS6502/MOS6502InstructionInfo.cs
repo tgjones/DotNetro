@@ -1,6 +1,6 @@
 namespace Irie.Target.MOS6502;
 
-public sealed class MOS6502InstructionInfo(int opcode, string mnemonic, AddressingMode mode, int size)
+public sealed class MOS6502InstructionInfo(int opcode, string mnemonic, AddressingMode mode, int size, int[]? operandClasses = null)
 {
     public int Opcode { get; } = opcode;
     public string Mnemonic { get; } = mnemonic;
@@ -8,6 +8,15 @@ public sealed class MOS6502InstructionInfo(int opcode, string mnemonic, Addressi
 
     /// <summary>Total instruction size in bytes including the opcode byte.</summary>
     public int Size { get; } = size;
+
+    /// <summary>
+    /// Per-operand register class constraints (defs first, then uses), indexed
+    /// by position in <see cref="MachineInstruction.Operands"/>. Use
+    /// <see cref="MOS6502RegisterClass.None"/> (0) for positions that don't carry
+    /// a register-class constraint (e.g. immediates). Null for instructions whose
+    /// operands have no class constraints recorded yet.
+    /// </summary>
+    public int[]? OperandClasses { get; } = operandClasses;
 
     private static readonly Dictionary<int, MOS6502InstructionInfo> _table = BuildTable();
 
@@ -19,11 +28,14 @@ public sealed class MOS6502InstructionInfo(int opcode, string mnemonic, Addressi
         : throw new ArgumentException($"Unknown opcode: ${opcode:X2}", nameof(opcode));
 
     // Returns a human-readable name suitable for MachineIR text output, e.g. "ADC_ZeroPage".
+    // Pseudo-mode opcodes use just the mnemonic (e.g. "LDImm1").
     public static string? GetDisplayName(int opcode)
     {
         var info = TryGet(opcode);
         if (info == null) return null;
-        return $"{info.Mnemonic}_{info.Mode}";
+        return info.Mode == AddressingMode.Pseudo
+            ? info.Mnemonic
+            : $"{info.Mnemonic}_{info.Mode}";
     }
 
     private static Dictionary<int, MOS6502InstructionInfo> BuildTable()
@@ -69,7 +81,17 @@ public sealed class MOS6502InstructionInfo(int opcode, string mnemonic, Addressi
             new(MOS6502Opcode.STY_Absolute,  "STY", AddressingMode.Absolute,  3),
             // ADC
             new(MOS6502Opcode.ADC_Immediate, "ADC", AddressingMode.Immediate, 2),
-            new(MOS6502Opcode.ADC_ZeroPage,  "ADC", AddressingMode.ZeroPage,  2),
+            // ADCImag8 in llvm-mos: outs (Ac:result, Cc:carry_out, Vc:V_flag);
+            // ins (Ac:L, Imag8:R, Cc:carry_in). We don't currently model the V_flag def,
+            // so the operand layout is [Ac, Cc, Ac, Imag8, Cc].
+            new(MOS6502Opcode.ADC_ZeroPage,  "ADC", AddressingMode.ZeroPage,  2,
+                operandClasses: [
+                    MOS6502RegisterClass.Ac,    // def[0]: result
+                    MOS6502RegisterClass.Cc,    // def[1]: carry_out
+                    MOS6502RegisterClass.Ac,    // use[0]: L
+                    MOS6502RegisterClass.Imag8, // use[1]: R
+                    MOS6502RegisterClass.Cc,    // use[2]: carry_in
+                ]),
             new(MOS6502Opcode.ADC_ZeroPageX, "ADC", AddressingMode.ZeroPageX, 2),
             new(MOS6502Opcode.ADC_Absolute,  "ADC", AddressingMode.Absolute,  3),
             new(MOS6502Opcode.ADC_AbsoluteX, "ADC", AddressingMode.AbsoluteX, 3),
@@ -204,6 +226,16 @@ public sealed class MOS6502InstructionInfo(int opcode, string mnemonic, Addressi
             // Misc
             new(MOS6502Opcode.NOP, "NOP", AddressingMode.Implied, 1),
             new(MOS6502Opcode.BRK, "BRK", AddressingMode.Implied, 1),
+
+            // Pseudos. Size = 0 because these don't directly emit any bytes; a
+            // CodeGen → MachineCode lowering (TBD) expands each to the real opcodes.
+            // Operand layout: [Cc:def, immediate]. Position 1 has no class because
+            // it's an immediate, not a register.
+            new(MOS6502Opcode.LDImm1, "LDImm1", AddressingMode.Pseudo, 0,
+                operandClasses: [
+                    MOS6502RegisterClass.Cc,   // def[0]
+                    MOS6502RegisterClass.None, // immediate
+                ]),
         };
 
         var table = new Dictionary<int, MOS6502InstructionInfo>(entries.Length);

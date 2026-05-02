@@ -1,37 +1,44 @@
 ; RUN: @iriec --target mos6502 @file
 
 ; Checks that the MOS6502 instruction selector lowers the legalized
-; GenericAddCarry chain into a CLC + ADC_ZeroPage sequence.
+; GenericAddCarry chain into a uniform ADC_ZeroPage sequence with an
+; LDImm1-materialized carry-in for the chain head.
 ;
-; ADC_ZeroPage exposes both result (i8) and carry_out (i1) as SSA defs.
-; Subsequent members of the chain take the previous carry_out as an explicit
-; vreg use, so the carry chain is visible in the IR rather than relying on
-; adjacency of ADC instructions and the implicit C flag.
+; Each ADC_ZeroPage exposes both result (i8, class Ac) and carry_out
+; (i1, class Cc) as SSA defs, and takes the previous carry_out as an
+; explicit vreg use, so the carry chain is visible in the IR.
 ;
-; The first ADC still uses an inline CLC (carry-in immediate 0); see
-; notes/codegen-followups.md for why we haven't yet materialised the
-; initial carry-in as an SSA constant a la llvm-mos's `LDImm1 0`.
+; Vreg classes after InstructionSelect:
+;   - LHS bytes (operand a): class Ac (back-propagated from ADC's L use,
+;     even when sourced from a non-Ac phys reg — see llvm-mos's
+;     post-selection MIR for the same pattern).
+;   - RHS bytes (operand b): class Imag8.
+;   - Carry vregs: class Cc.
+;
+; Per LLVM's GlobalISel convention (see InstructionSelect.cpp:347 and
+; MachineRegisterInfo::clearVirtRegTypes) the type table is wiped at the
+; end of InstructionSelect, so vregs print with their class only.
 
 ; CHECK: func @TestFunction \{
 ; CHECK:   bb0\(\):
 ; CHECK:     liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7
-; CHECK:     %0:i8 = GenericCopy \$A
-; CHECK:     %1:i8 = GenericCopy \$X
-; CHECK:     %2:i8 = GenericCopy \$RC2
-; CHECK:     %3:i8 = GenericCopy \$RC3
-; CHECK:     %5:i8 = GenericCopy \$RC4
-; CHECK:     %6:i8 = GenericCopy \$RC5
-; CHECK:     %7:i8 = GenericCopy \$RC6
-; CHECK:     %8:i8 = GenericCopy \$RC7
-; CHECK:     CLC_Implied
-; CHECK:     %31:i8, %32:i1 = ADC_ZeroPage %0, %5
-; CHECK:     %33:i8, %34:i1 = ADC_ZeroPage %1, %6, %32
-; CHECK:     %35:i8, %36:i1 = ADC_ZeroPage %2, %7, %34
-; CHECK:     %37:i8, %38:i1 = ADC_ZeroPage %3, %8, %36
-; CHECK:     \$A = GenericCopy %31
-; CHECK:     \$X = GenericCopy %33
-; CHECK:     \$RC2 = GenericCopy %35
-; CHECK:     \$RC3 = GenericCopy %37
+; CHECK:     %0:Ac = GenericCopy \$A
+; CHECK:     %1:Ac = GenericCopy \$X
+; CHECK:     %2:Ac = GenericCopy \$RC2
+; CHECK:     %3:Ac = GenericCopy \$RC3
+; CHECK:     %5:Imag8 = GenericCopy \$RC4
+; CHECK:     %6:Imag8 = GenericCopy \$RC5
+; CHECK:     %7:Imag8 = GenericCopy \$RC6
+; CHECK:     %8:Imag8 = GenericCopy \$RC7
+; CHECK:     %32:Cc = LDImm1 0
+; CHECK:     %33:Ac, %34:Cc = ADC_ZeroPage %0, %5, %32
+; CHECK:     %35:Ac, %36:Cc = ADC_ZeroPage %1, %6, %34
+; CHECK:     %37:Ac, %38:Cc = ADC_ZeroPage %2, %7, %36
+; CHECK:     %39:Ac, %40:Cc = ADC_ZeroPage %3, %8, %38
+; CHECK:     \$A = GenericCopy %33
+; CHECK:     \$X = GenericCopy %35
+; CHECK:     \$RC2 = GenericCopy %37
+; CHECK:     \$RC3 = GenericCopy %39
 ; CHECK:     RTS_Implied implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
 ; CHECK: \}
 

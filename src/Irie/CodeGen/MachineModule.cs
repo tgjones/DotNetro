@@ -8,6 +8,7 @@ public sealed class MachineModule
 
     public Func<int, string?>? OpcodeNamer { get; set; }
     public Func<int, string>? RegisterNamer { get; set; }
+    public Func<int, string?>? RegisterClassNamer { get; set; }
 
     public MachineFunction CreateFunction(string name, Action<MachineFunction> configure)
     {

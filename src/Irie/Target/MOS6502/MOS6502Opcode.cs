@@ -202,4 +202,9 @@ public static class MOS6502Opcode
     // Misc
     public const int NOP = 0xEA;
     public const int BRK = 0x00;
+
+    // Pseudo opcodes (CodeGen-layer only; no real 6502 byte). Use values >= 0x100
+    // so they can't collide with real opcodes in [0x00, 0xFF]. A later pass lowers
+    // each pseudo to one or more real instructions when emitting MachineCode.
+    public const int LDImm1 = 0x100; // materialize an i1 constant; def class Cc → CLC/SEC.
 }

@@ -1,9 +1,12 @@
 namespace Irie.CodeGen;
 
-internal sealed class MachineWriter(Func<int, string?>? opcodeNamer, Func<int, string>? registerNamer)
+internal sealed class MachineWriter(
+    Func<int, string?>? opcodeNamer,
+    Func<int, string>? registerNamer,
+    Func<int, string?>? registerClassNamer)
 {
     public static void Write(MachineModule module, TextWriter writer) =>
-        new MachineWriter(module.OpcodeNamer, module.RegisterNamer).WriteAll(module, writer);
+        new MachineWriter(module.OpcodeNamer, module.RegisterNamer, module.RegisterClassNamer).WriteAll(module, writer);
 
     private void WriteAll(MachineModule module, TextWriter writer)
     {
@@ -37,7 +40,7 @@ internal sealed class MachineWriter(Func<int, string?>? opcodeNamer, Func<int, s
         TextWriter writer)
     {
         var paramStr = string.Join(", ", block.Parameters.Select(vreg =>
-            $"%{vreg}:{function.GetVirtualRegisterType(vreg).DisplayName}"));
+            $"%{vreg}:{FormatVirtualRegisterAnnotation(vreg, function)}"));
         writer.WriteLine($"  bb{index}({paramStr}):");
 
         if (block.LiveIns.Count > 0)
@@ -101,10 +104,23 @@ internal sealed class MachineWriter(Func<int, string?>? opcodeNamer, Func<int, s
 
     private string FormatDefinition(MachineOperand operand, MachineFunction function) => operand switch
     {
-        VirtualRegisterOperand vreg => $"%{vreg.VirtualRegister}:{function.GetVirtualRegisterType(vreg.VirtualRegister).DisplayName}",
+        VirtualRegisterOperand vreg => $"%{vreg.VirtualRegister}:{FormatVirtualRegisterAnnotation(vreg.VirtualRegister, function)}",
         PhysicalRegisterOperand phys => $"${FormatPhysReg(phys.Register)}",
         _ => throw new InvalidOperationException($"Not a definition operand: {operand.GetType().Name}"),
     };
+
+    // Mirrors LLVM's MIR convention: print the register class if assigned (post-isel),
+    // otherwise the generic type. After InstructionSelectorPass calls
+    // ClearVirtualRegisterTypes, vregs that received a class show only that class;
+    // vregs without a class (e.g. unselected GenericCopy defs) still show their type.
+    private string FormatVirtualRegisterAnnotation(int virtualRegister, MachineFunction function)
+    {
+        if (function.TryGetVirtualRegisterClass(virtualRegister, out var classId))
+            return registerClassNamer?.Invoke(classId) ?? $"class({classId})";
+        if (function.TryGetVirtualRegisterType(virtualRegister, out var type))
+            return type.DisplayName;
+        return "?";
+    }
 
     private string FormatOperand(
         MachineOperand operand,

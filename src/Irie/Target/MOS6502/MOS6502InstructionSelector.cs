@@ -22,6 +22,9 @@ public sealed class MOS6502InstructionSelector : InstructionSelector
             case GenericOpcode.GenericCopy:
                 return true;
 
+            case GenericOpcode.GenericConstant:
+                return SelectConstant(instruction, builder);
+
             case GenericOpcode.GenericMerge:
                 return SelectMerge(instruction, builder);
 
@@ -81,49 +84,56 @@ public sealed class MOS6502InstructionSelector : InstructionSelector
         // Operand layout (defs first):
         //   def[0]: result vreg (i8)
         //   def[1]: carry_out vreg (i1)
-        //   use[0]: a
-        //   use[1]: b
-        //   use[2]: carry_in — either ImmediateOperand(0) or VirtualRegisterOperand
+        //   use[0]: a            → ADC L (class Ac)
+        //   use[1]: b            → ADC R (class Imag8)
+        //   use[2]: carry_in     → ADC carry_in (class Cc)
         //
-        // ADC_ZeroPage exposes both result and carry_out as SSA defs, and (for non-
-        // initial members of a carry chain) takes the previous carry_out as an
-        // explicit use, so the carry chain is visible in the IR. The initial
-        // carry-in 0 case still uses an inline CLC; see notes/codegen-followups.md
-        // for why we don't yet materialise it as an SSA constant.
+        // Every AddCarry now has a uniform 3-use shape: the legalizer materializes
+        // the chain-head carry-in as `GenericConstant i1 0`, which the selector
+        // lowers to `LDImm1 0` (a target pseudo whose def is class Cc).
 
         var defs = instr.Operands.Where(IsVRegDef).Cast<VirtualRegisterOperand>().ToArray();
         var uses = instr.Operands.Where(o => !IsVRegDef(o)).ToArray();
 
         var resultVreg   = defs[0].VirtualRegister;
         var carryOutVreg = defs[1].VirtualRegister;
-        var aVreg = ((VirtualRegisterOperand)uses[0]).VirtualRegister;
-        var bVreg = ((VirtualRegisterOperand)uses[1]).VirtualRegister;
-        var carryIn = uses[2];
 
         builder.SetInsertionPointBefore(instr);
-
-        var adcUses = new List<MachineOperand>
-        {
-            new VirtualRegisterOperand(aVreg, IsDefinition: false),
-            new VirtualRegisterOperand(bVreg, IsDefinition: false),
-        };
-
-        if (carryIn is ImmediateOperand { Value: 0 })
-        {
-            builder.BuildTargetInstruction(MOS6502Opcode.CLC);
-        }
-        else
-        {
-            adcUses.Add(carryIn);
-        }
 
         var newDefs = builder.BuildTargetInstructionWithDefinitions(
             MOS6502Opcode.ADC_ZeroPage,
             [IRType.I8, IRType.I1],
-            [.. adcUses]);
+            uses,
+            MOS6502InstructionInfo.Get(MOS6502Opcode.ADC_ZeroPage).OperandClasses);
 
         builder.Function.ReplaceAllUsesOfRegister(resultVreg,   newDefs[0]);
         builder.Function.ReplaceAllUsesOfRegister(carryOutVreg, newDefs[1]);
+
+        builder.Remove(instr);
+        return true;
+    }
+
+    private bool SelectConstant(MachineInstruction instr, MachineIRBuilder builder)
+    {
+        // Operand layout: def[0]: vreg (typed), use[0]: ImmediateOperand.
+        // Currently only i1 is supported (carry-flag materialization for AddCarry).
+        var def = (VirtualRegisterOperand)instr.Operands[0];
+        var imm = (ImmediateOperand)instr.Operands[1];
+        var type = builder.Function.GetVirtualRegisterType(def.VirtualRegister);
+
+        if (type != IRType.I1)
+            throw new NotSupportedException(
+                $"MOS6502InstructionSelector: GenericConstant of type {type.DisplayName} is not yet supported.");
+
+        builder.SetInsertionPointBefore(instr);
+
+        var newDef = builder.BuildTargetInstructionWithDefinition(
+            MOS6502Opcode.LDImm1,
+            IRType.I1,
+            [imm],
+            MOS6502InstructionInfo.Get(MOS6502Opcode.LDImm1).OperandClasses);
+
+        builder.Function.ReplaceAllUsesOfRegister(def.VirtualRegister, newDef);
 
         builder.Remove(instr);
         return true;

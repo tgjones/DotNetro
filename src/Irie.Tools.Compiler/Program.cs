@@ -45,8 +45,9 @@ rootCommand.SetAction(parseResult =>
     passMgr.AddPass(new InstructionSelectorPass(new MOS6502InstructionSelector()));
     passMgr.Run(context);
 
-    context.MachineModule.OpcodeNamer   = MOS6502InstructionInfo.GetDisplayName;
-    context.MachineModule.RegisterNamer = MOS6502Registers.NameOf;
+    context.MachineModule.OpcodeNamer        = MOS6502InstructionInfo.GetDisplayName;
+    context.MachineModule.RegisterNamer      = MOS6502Registers.NameOf;
+    context.MachineModule.RegisterClassNamer = MOS6502RegisterClass.GetName;
 
     context.MachineModule.Write(Console.Out);
 });

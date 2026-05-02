@@ -61,6 +61,19 @@ public sealed class MachineIRBuilder(MachineFunction function)
             new VirtualRegisterOperand(sourceVreg, IsDefinition: false));
     }
 
+    // GenericConstant: materialize an immediate of the given type into a fresh vreg.
+    // Used by the legalizer to provide an explicit zero carry-in to the head of an
+    // AddCarry chain (mirrors llvm-mos's `Builder.buildConstant(S1, 0)` in
+    // MOSLegalizerInfo::legalizeAddSubO).
+    public int BuildConstant(IRType type, long value)
+    {
+        var vreg = function.CreateVirtualRegister(type);
+        Insert(GenericOpcode.GenericConstant,
+            new VirtualRegisterOperand(vreg, IsDefinition: true),
+            new ImmediateOperand(value));
+        return vreg;
+    }
+
     // GenericMerge: N narrow values → 1 new wide virtual register.
     public int BuildMerge(IRType resultType, int[] sourceVregs)
     {
@@ -95,20 +108,6 @@ public sealed class MachineIRBuilder(MachineFunction function)
         return defs;
     }
 
-    // GenericAddCarry with an immediate carry-in (used for the initial carry = 0).
-    public (int result, int carryOut) BuildAddCarryImmediate(IRType type, int a, int b, long carryImm)
-    {
-        var result   = function.CreateVirtualRegister(type);
-        var carryOut = function.CreateVirtualRegister(IRType.I1);
-        Insert(GenericOpcode.GenericAddCarry,
-            new VirtualRegisterOperand(result,   IsDefinition: true),
-            new VirtualRegisterOperand(carryOut, IsDefinition: true),
-            new VirtualRegisterOperand(a, IsDefinition: false),
-            new VirtualRegisterOperand(b, IsDefinition: false),
-            new ImmediateOperand(carryImm));
-        return (result, carryOut);
-    }
-
     // GenericAddCarry with a virtual-register carry-in.
     public (int result, int carryOut) BuildAddCarry(IRType type, int a, int b, int carryInVreg)
     {
@@ -124,24 +123,30 @@ public sealed class MachineIRBuilder(MachineFunction function)
     }
 
     // Emit an arbitrary target-specific instruction with no defs.
-    public void BuildTargetInstruction(int opcode, params MachineOperand[] operands)
+    // If operandClasses is non-null, applies per-operand register class constraints
+    // (mirrors LLVM's constrainSelectedInstRegOperands).
+    public void BuildTargetInstruction(int opcode, MachineOperand[] operands, int[]? operandClasses = null)
     {
-        Insert(opcode, operands);
+        var instr = Insert(opcode, operands);
+        ApplyOperandClasses(instr, operandClasses);
     }
 
     // Emit an arbitrary target-specific instruction with one virtual-register def.
-    public int BuildTargetInstructionWithDefinition(int opcode, IRType defType, params MachineOperand[] useOperands)
+    public int BuildTargetInstructionWithDefinition(
+        int opcode, IRType defType, MachineOperand[] useOperands, int[]? operandClasses = null)
     {
         var vreg = function.CreateVirtualRegister(defType);
         var operands = new MachineOperand[1 + useOperands.Length];
         operands[0] = new VirtualRegisterOperand(vreg, IsDefinition: true);
         useOperands.CopyTo(operands, 1);
-        Insert(opcode, operands);
+        var instr = Insert(opcode, operands);
+        ApplyOperandClasses(instr, operandClasses);
         return vreg;
     }
 
     // Emit an arbitrary target-specific instruction with multiple virtual-register defs.
-    public int[] BuildTargetInstructionWithDefinitions(int opcode, IRType[] defTypes, params MachineOperand[] useOperands)
+    public int[] BuildTargetInstructionWithDefinitions(
+        int opcode, IRType[] defTypes, MachineOperand[] useOperands, int[]? operandClasses = null)
     {
         var vregs = new int[defTypes.Length];
         var operands = new MachineOperand[defTypes.Length + useOperands.Length];
@@ -151,8 +156,27 @@ public sealed class MachineIRBuilder(MachineFunction function)
             operands[i] = new VirtualRegisterOperand(vregs[i], IsDefinition: true);
         }
         useOperands.CopyTo(operands, defTypes.Length);
-        Insert(opcode, operands);
+        var instr = Insert(opcode, operands);
+        ApplyOperandClasses(instr, operandClasses);
         return vregs;
+    }
+
+    // Mirrors LLVM's constrainSelectedInstRegOperands: for each operand position
+    // with a non-zero class entry, constrain the underlying vreg to that class.
+    // Positions referring to immediates / blocks / phys regs / external symbols
+    // are silently skipped (the class entry is expected to be None for those).
+    private void ApplyOperandClasses(MachineInstruction instr, int[]? operandClasses)
+    {
+        if (operandClasses == null) return;
+        var operands = instr.Operands;
+        var limit = Math.Min(operands.Length, operandClasses.Length);
+        for (var i = 0; i < limit; i++)
+        {
+            var classId = operandClasses[i];
+            if (classId == 0) continue;
+            if (operands[i] is VirtualRegisterOperand vreg)
+                function.SetVirtualRegisterClass(vreg.VirtualRegister, classId);
+        }
     }
 
     // Remove an instruction from its block and mark it as removed (Parent = null).
@@ -163,12 +187,13 @@ public sealed class MachineIRBuilder(MachineFunction function)
         _observer?.OnInstructionErased(instruction);
     }
 
-    private void Insert(int opcode, params MachineOperand[] operands)
+    private MachineInstruction Insert(int opcode, params MachineOperand[] operands)
     {
         var instruction = new MachineInstruction(opcode, operands);
         instruction.Parent = _block!;
         _block!.Instructions.Insert(_insertionIndex, instruction);
         _insertionIndex++;
         _observer?.OnInstructionCreated(instruction);
+        return instruction;
     }
 }

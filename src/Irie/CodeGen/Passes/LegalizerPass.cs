@@ -138,12 +138,14 @@ public sealed class LegalizerPass(LegalizerInfo legalizerInfo) : MachineFunction
         var lhsParts = builder.BuildUnmerge(narrowType, lhsVreg, count);
         var rhsParts = builder.BuildUnmerge(narrowType, rhsVreg, count);
 
-        var (r0, c0) = builder.BuildAddCarryImmediate(narrowType, lhsParts[0], rhsParts[0], 0);
+        // Mirrors llvm-mos's MOSLegalizerInfo::legalizeAddSubO: the chain head needs
+        // an explicit zero carry-in vreg so that every AddCarry has a uniform 3-use
+        // shape. The selector lowers `GenericConstant i1 0` to a target instruction
+        // (LDImm1) whose def lives in the carry register class.
+        var carryIn = builder.BuildConstant(IRType.I1, 0);
         var resultParts = new int[count];
-        resultParts[0] = r0;
-        var carryIn = c0;
 
-        for (var i = 1; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             var (r, c) = builder.BuildAddCarry(narrowType, lhsParts[i], rhsParts[i], carryIn);
             resultParts[i] = r;

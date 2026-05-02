@@ -10,6 +10,7 @@ public sealed class MachineFunction(string name)
 
     private int _nextVirtualRegister;
     private readonly Dictionary<int, IRType> _virtualRegisterTypes = [];
+    private readonly Dictionary<int, int> _virtualRegisterClasses = [];
 
     public int CreateVirtualRegister(IRType type)
     {
@@ -20,6 +21,28 @@ public sealed class MachineFunction(string name)
 
     public IRType GetVirtualRegisterType(int virtualRegister) =>
         _virtualRegisterTypes[virtualRegister];
+
+    public bool TryGetVirtualRegisterType(int virtualRegister, out IRType type) =>
+        _virtualRegisterTypes.TryGetValue(virtualRegister, out type!);
+
+    // Mirrors LLVM's MachineRegisterInfo::clearVirtRegTypes — called at the end of
+    // InstructionSelect once vregs have been constrained to register classes and types
+    // are no longer needed for printing or downstream passes.
+    public void ClearVirtualRegisterTypes() => _virtualRegisterTypes.Clear();
+
+    // Set or refine a vreg's register class. Throws on a conflicting reassignment.
+    // (LLVM's constrainRegClass intersects classes; we don't have subclass relationships
+    // yet, so an exact match — or unset — is required.)
+    public void SetVirtualRegisterClass(int virtualRegister, int classId)
+    {
+        if (_virtualRegisterClasses.TryGetValue(virtualRegister, out var existing) && existing != classId)
+            throw new InvalidOperationException(
+                $"Virtual register %{virtualRegister} already constrained to class {existing}; cannot reassign to {classId}.");
+        _virtualRegisterClasses[virtualRegister] = classId;
+    }
+
+    public bool TryGetVirtualRegisterClass(int virtualRegister, out int classId) =>
+        _virtualRegisterClasses.TryGetValue(virtualRegister, out classId);
 
     public MachineBasicBlock CreateBasicBlock(Action<MachineBasicBlock>? configure = null)
     {

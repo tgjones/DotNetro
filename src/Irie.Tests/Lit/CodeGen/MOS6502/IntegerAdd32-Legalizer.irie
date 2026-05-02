@@ -2,8 +2,10 @@
 
 ; Checks that legalization splits a 32-bit GenericAdd into a chain of four
 ; 8-bit GenericAddCarry operations (NarrowScalar action), threaded through
-; the C flag via i1 carry-in/carry-out vregs. The first add takes an
-; immediate carry-in of 0; subsequent adds take the previous carry-out.
+; the C flag via i1 carry-in/carry-out vregs. The chain head's carry-in is
+; an explicit GenericConstant i1 0 (mirrors llvm-mos's
+; MOSLegalizerInfo::legalizeAddSubO, which also materializes a buildConstant
+; for G_UADDO → G_UADDE), so every AddCarry has a uniform 3-use shape.
 ;
 ; The Merge/Unmerge artifacts inserted by NarrowScalar around the per-byte
 ; chain are folded away by the LegalizationArtifactCombiner, so the chain
@@ -20,14 +22,15 @@
 ; CHECK:     %6:i8 = GenericCopy \$RC5
 ; CHECK:     %7:i8 = GenericCopy \$RC6
 ; CHECK:     %8:i8 = GenericCopy \$RC7
-; CHECK:     %23:i8, %24:i1 = GenericAddCarry %0, %5, 0
-; CHECK:     %25:i8, %26:i1 = GenericAddCarry %1, %6, %24
-; CHECK:     %27:i8, %28:i1 = GenericAddCarry %2, %7, %26
-; CHECK:     %29:i8, %30:i1 = GenericAddCarry %3, %8, %28
-; CHECK:     \$A = GenericCopy %23
-; CHECK:     \$X = GenericCopy %25
-; CHECK:     \$RC2 = GenericCopy %27
-; CHECK:     \$RC3 = GenericCopy %29
+; CHECK:     %23:i1 = GenericConstant 0
+; CHECK:     %24:i8, %25:i1 = GenericAddCarry %0, %5, %23
+; CHECK:     %26:i8, %27:i1 = GenericAddCarry %1, %6, %25
+; CHECK:     %28:i8, %29:i1 = GenericAddCarry %2, %7, %27
+; CHECK:     %30:i8, %31:i1 = GenericAddCarry %3, %8, %29
+; CHECK:     \$A = GenericCopy %24
+; CHECK:     \$X = GenericCopy %26
+; CHECK:     \$RC2 = GenericCopy %28
+; CHECK:     \$RC3 = GenericCopy %30
 ; CHECK:     RTS_Implied implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
 ; CHECK: \}
 

@@ -22,6 +22,8 @@ public sealed class MOS6502LegalizerInfo : LegalizerInfo
             GenericOpcode.GenericMerge            => LegalityAction.Legal,
             GenericOpcode.GenericUnmerge          => LegalityAction.Legal,
             GenericOpcode.GenericCopy             => LegalityAction.Legal,
+            // i1 constants are materialized via LDImm1 by the selector.
+            GenericOpcode.GenericConstant when intType.SizeInBits == 1 => LegalityAction.Legal,
 
             _ => LegalityAction.Unsupported,
         };
