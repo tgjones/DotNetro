@@ -2,12 +2,23 @@ using Irie.IR;
 
 namespace Irie.CodeGen;
 
+// Notified about instruction insertions/erasures performed via MachineIRBuilder.
+// Used by the legalizer to keep its worklists in sync as combines mutate the IR.
+public interface IMachineFunctionObserver
+{
+    void OnInstructionCreated(MachineInstruction instruction);
+    void OnInstructionErased(MachineInstruction instruction);
+}
+
 public sealed class MachineIRBuilder(MachineFunction function)
 {
     private MachineBasicBlock? _block;
     private int _insertionIndex;
+    private IMachineFunctionObserver? _observer;
 
     public MachineFunction Function => function;
+
+    public void SetObserver(IMachineFunctionObserver? observer) => _observer = observer;
 
     public void SetInsertionPointAtEnd(MachineBasicBlock block)
     {
@@ -134,6 +145,7 @@ public sealed class MachineIRBuilder(MachineFunction function)
     {
         instruction.Parent?.Instructions.Remove(instruction);
         instruction.Parent = null;
+        _observer?.OnInstructionErased(instruction);
     }
 
     private void Insert(int opcode, params MachineOperand[] operands)
@@ -142,5 +154,6 @@ public sealed class MachineIRBuilder(MachineFunction function)
         instruction.Parent = _block!;
         _block!.Instructions.Insert(_insertionIndex, instruction);
         _insertionIndex++;
+        _observer?.OnInstructionCreated(instruction);
     }
 }

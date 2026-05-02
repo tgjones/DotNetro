@@ -1,0 +1,38 @@
+; RUN: @iriec --target mos6502 --stop-after legalizer @file
+
+; Checks that legalization splits a 32-bit GenericAdd into a chain of four
+; 8-bit GenericAddCarry operations (NarrowScalar action), threaded through
+; the C flag via i1 carry-in/carry-out vregs. The first add takes an
+; immediate carry-in of 0; subsequent adds take the previous carry-out.
+;
+; The Merge/Unmerge artifacts inserted by NarrowScalar around the per-byte
+; chain are folded away by the LegalizationArtifactCombiner, so the chain
+; feeds directly off the parameter copies and into the return-value copies.
+
+; CHECK: func @TestFunction \{
+; CHECK:   bb0\(\):
+; CHECK:     liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7
+; CHECK:     %0:i8 = GenericCopy \$A
+; CHECK:     %1:i8 = GenericCopy \$X
+; CHECK:     %2:i8 = GenericCopy \$RC2
+; CHECK:     %3:i8 = GenericCopy \$RC3
+; CHECK:     %5:i8 = GenericCopy \$RC4
+; CHECK:     %6:i8 = GenericCopy \$RC5
+; CHECK:     %7:i8 = GenericCopy \$RC6
+; CHECK:     %8:i8 = GenericCopy \$RC7
+; CHECK:     %23:i8, %24:i1 = GenericAddCarry %0, %5, 0
+; CHECK:     %25:i8, %26:i1 = GenericAddCarry %1, %6, %24
+; CHECK:     %27:i8, %28:i1 = GenericAddCarry %2, %7, %26
+; CHECK:     %29:i8, %30:i1 = GenericAddCarry %3, %8, %28
+; CHECK:     \$A = GenericCopy %23
+; CHECK:     \$X = GenericCopy %25
+; CHECK:     \$RC2 = GenericCopy %27
+; CHECK:     \$RC3 = GenericCopy %29
+; CHECK:     RTS_Implied implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
+; CHECK: \}
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+  %2 = integer_add %0, %1
+  return %2
+}

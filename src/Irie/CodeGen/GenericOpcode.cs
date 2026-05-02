@@ -65,4 +65,9 @@ public static class GenericOpcode
         _byName.TryGetValue(name, out opcode);
 
     public static bool IsGeneric(int opcode) => opcode < 0;
+
+    // Artifact opcodes: type-shape conversions that can be combined away when paired with their inverse.
+    // Keep in sync with the LegalizationArtifactCombiner's supported folds.
+    public static bool IsArtifact(int opcode) =>
+        opcode == GenericMerge || opcode == GenericUnmerge;
 }
