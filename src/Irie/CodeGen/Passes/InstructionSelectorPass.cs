@@ -23,9 +23,8 @@ public sealed class InstructionSelectorPass(InstructionSelector selector) : Mach
             }
         }
 
-        // Mirrors LLVM's GlobalISel InstructionSelect.cpp:350 — once selection has
-        // succeeded, vreg types are no longer needed; class assignments take over
-        // and the writer prints `%n:className` instead of `%n:type`.
+        // Once selection has succeeded, vreg types are no longer needed; class
+        // assignments take over and the writer prints `%n:className` instead of `%n:type`.
         function.ClearVirtualRegisterTypes();
     }
 }

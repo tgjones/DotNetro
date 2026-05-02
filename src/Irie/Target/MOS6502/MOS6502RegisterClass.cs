@@ -2,9 +2,9 @@ namespace Irie.Target.MOS6502;
 
 // MOS6502 register class IDs. 0 means "no class assigned"; all real classes are >= 1.
 //
-// Mirrors llvm-mos's register classes (MOSRegisterInfo.td). Class assignment for MOS
-// happens at InstructionSelect time (skipping RegBankSelect — see notes/codegen-followups.md
-// and llvm-mos's MOSRegisterBankInfo.cpp, which puts every vreg into a single AnyRegBank).
+// One class per architectural register (A, X, Y, C, V) plus an Imag8 class covering
+// the imaginary 8-bit zero-page register file. Class assignment happens at
+// InstructionSelect time; there is no separate register-bank-selection step.
 public static class MOS6502RegisterClass
 {
     public const int None  = 0;

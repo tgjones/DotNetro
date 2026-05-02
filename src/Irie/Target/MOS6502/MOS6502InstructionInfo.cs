@@ -81,8 +81,8 @@ public sealed class MOS6502InstructionInfo(int opcode, string mnemonic, Addressi
             new(MOS6502Opcode.STY_Absolute,  "STY", AddressingMode.Absolute,  3),
             // ADC
             new(MOS6502Opcode.ADC_Immediate, "ADC", AddressingMode.Immediate, 2),
-            // ADCImag8 in llvm-mos: outs (Ac:result, Cc:carry_out, Vc:V_flag);
-            // ins (Ac:L, Imag8:R, Cc:carry_in). We don't currently model the V_flag def,
+            // ADC against a zero-page (imaginary) byte: defs are (result, carry_out)
+            // and uses are (L, R, carry_in). We don't currently model the V flag def,
             // so the operand layout is [Ac, Cc, Ac, Imag8, Cc].
             new(MOS6502Opcode.ADC_ZeroPage,  "ADC", AddressingMode.ZeroPage,  2,
                 operandClasses: [

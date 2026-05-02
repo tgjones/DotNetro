@@ -53,21 +53,21 @@ CI runs `dotnet test --solution src` in both Debug and Release configurations.
   - `IR/` — SSA IR (`IRModule`, `IRFunction`, `IRBasicBlock`, `IRInstruction`); `;` starts a line comment
   - `IR/Parsing/` — text IR parser
   - `IR/Binary/` — binary serialization (`IRBinaryReader`, `IRBinaryWriter`, `IRBinaryFormat`); value references are sequential integer indices per function
-  - `CodeGen/` — LLVM CodeGen-style layer; sits between IR and MachineCode; starts in SSA with generic opcodes, lowered to target-legal non-SSA by passes
+  - `CodeGen/` — MIR-style codegen layer; sits between IR and MachineCode; starts in SSA with generic opcodes, lowered to target-legal non-SSA by passes
     - `MachineModule/Function/BasicBlock/Instruction` — structural containers; block arguments used for SSA (no PHI instructions); `MachineBasicBlock` carries a `LiveIns` list of physical register IDs (ABI live-ins, serialised as a `liveins:` line in MIR text); `MachineModule` carries `OpcodeNamer` and `RegisterNamer` delegates used by `MachineWriter` for target-specific name lookup
     - `MachineFunction` maintains the virtual register table (`CreateVirtualRegister`, `GetVirtualRegisterType`); parser uses `internal RegisterVirtualRegister` to create registers with caller-supplied IDs. Provides def/use helpers (`GetDefinition(vreg)`, `GetUseCount(vreg)` — both linear scans), SSA RAUW (`ReplaceAllUsesOfRegister`), and `IsTriviallyDead(MachineInstruction)` (side-effect-free opcode + every vreg def has zero uses + no phys-reg defs).
-    - `MachineOperand` — abstract record; variants: `VirtualRegisterOperand(int, bool IsDefinition)`, `PhysicalRegisterOperand(int, bool IsDefinition)`, `ImmediateOperand(long)`, `BlockOperand(MachineBasicBlock)`, `ExternalSymbolOperand(string)`; defs are first in the operand array (LLVM convention)
+    - `MachineOperand` — abstract record; variants: `VirtualRegisterOperand(int, bool IsDefinition)`, `PhysicalRegisterOperand(int, bool IsDefinition)`, `ImmediateOperand(long)`, `BlockOperand(MachineBasicBlock)`, `ExternalSymbolOperand(string)`; defs come first in the operand array
     - `GenericOpcode` — target-independent opcodes (negative int values to distinguish from target opcodes in [0x00, 0xFF]); key opcodes: `GenericAdd`, `GenericAddCarry` (2 defs: result + carry_out; 3 uses: a, b, carry_in), `GenericMerge` (narrow parts → wide), `GenericUnmerge` (wide → narrow parts), `GenericCopy`, `GenericReturn`
-    - `MachineFunction` has no return type or parameter type signature (following LLVM); type info is erased during IRTranslation via calling convention lowering; MIR text format is `func @name {`
+    - `MachineFunction` has no return type or parameter type signature; type info is erased during IRTranslation via calling convention lowering; MIR text format is `func @name {`
     - `Passes/MachineFunctionPass` — abstract pass base; `MachineFunctionPassManager` runs passes over a module or function
-      - `IRTranslatorPass` — translates an `IRFunction` to a `MachineFunction`; calls `CallLowering` internally to lower argument/return conventions (following LLVM GlobalISel)
-      - `LegalizerPass` — LLVM GlobalISel-style: two worklists (`instList` for non-artifacts, `artifactList` for `Merge`/`Unmerge`), bottom-up initial population (LIFO pop), and an alternating drain — legalize each non-artifact via `LegalizerInfo`, then run `LegalizationArtifactCombiner` over each artifact, repeating until empty. An `IMachineFunctionObserver` wired into `MachineIRBuilder` routes builder-driven insertions to the right worklist and removes erased entries; an `IsTriviallyDead` check at the top of each step gives DCE for free. e.g. MOS6502 legalizes `GenericAdd i32` → 4× `GenericAddCarry i8` chain with the surrounding `Merge`/`Unmerge` artifacts collapsed by the combiner.
-      - `LegalizationArtifactCombiner` — folds `Unmerge(Merge(...))` pairs that legalization creates around narrowed bodies (equal-arity, equal-element-type case). RAUWs each unmerge def to the corresponding merge source, then adds the unmerge to `deadInstrs`; when the unmerge was the merge's sole user, adds the merge proactively (LLVM `markInstAndDefDead` pattern — needed because the merge can be popped from the worklist *before* its unmerge consumer when legalization inserts it mid-pass).
+      - `IRTranslatorPass` — translates an `IRFunction` to a `MachineFunction`; calls `CallLowering` internally to lower argument/return conventions
+      - `LegalizerPass` — worklist-driven legalizer: two worklists (`instList` for non-artifacts, `artifactList` for `Merge`/`Unmerge`), bottom-up initial population (LIFO pop), and an alternating drain — legalize each non-artifact via `LegalizerInfo`, then run `LegalizationArtifactCombiner` over each artifact, repeating until empty. An `IMachineFunctionObserver` wired into `MachineIRBuilder` routes builder-driven insertions to the right worklist and removes erased entries; an `IsTriviallyDead` check at the top of each step gives DCE for free. e.g. MOS6502 legalizes `GenericAdd i32` → 4× `GenericAddCarry i8` chain with the surrounding `Merge`/`Unmerge` artifacts collapsed by the combiner.
+      - `LegalizationArtifactCombiner` — folds `Unmerge(Merge(...))` pairs that legalization creates around narrowed bodies (equal-arity, equal-element-type case). RAUWs each unmerge def to the corresponding merge source, then adds the unmerge to `deadInstrs`; when the unmerge was the merge's sole user, adds the merge proactively — needed because the merge can be popped from the worklist *before* its unmerge consumer when legalization inserts it mid-pass.
       - `InstructionSelectorPass` — selects target opcodes using `InstructionSelector`; e.g. MOS6502 maps `GenericAddCarry` → `CLC`+`ADC_ZeroPage` / `ADC_ZeroPage`. Selectors that introduce a fresh def vreg (e.g. via `BuildTargetInstrWithDef`) must RAUW the original generic-op result vreg to the new def so downstream consumers stay live (`MachineFunction.ReplaceAllUsesOfRegister`).
     - `CallLowering` — abstract base; target subclass implements `LowerFormalArguments` (IR args → `AddLiveIn` on entry block + `GenericCopy` from each phys reg into a vreg) and `LowerReturn` (return vreg → phys reg copies + GenericReturn)
     - `MachineIRBuilder` — insertion-point-based builder helper; tracks `(block, index)` and provides typed `Build*` methods. Supports an `IMachineFunctionObserver` hook (`OnInstructionCreated`/`OnInstructionErased`) so passes can be notified of builder-driven IR mutations — used by the legalizer to keep its worklists coherent.
     - `MachineWriter` / `Parsing/MachineParser` — text serialization (`.mir` format); parser is two-pass within each function: first scans for block headers (`bbN(` pattern) to pre-register all blocks, then parses instructions, enabling forward block references in branches; supports multi-def syntax `%a:i8, %b:i1 = Opcode ...`
-  - `MachineCode/` — MC layer analogous to LLVM's MCInst; sits below CodeGen, above raw bytes
+  - `MachineCode/` — low-level machine-code layer; sits below CodeGen, above raw bytes
     - `MachineCodeModule/Function` — structural containers (no basic blocks at this layer; the body is a flat stream)
     - `MachineCodeEntry` — abstract record; two variants: `MachineCodeLabel(string Name)` and `MachineCodeInstruction(int Opcode, MachineCodeOperand[] Operands)`; labels and instructions are peers in the stream
     - `MachineCodeOperand` — abstract record; variants: `Register(int)`, `Immediate(long)`, `LabelRef(string)` (local label within the function), `ExternalRef(string)` (external symbol)
@@ -86,10 +86,10 @@ CI runs `dotnet test --solution src` in both Debug and Release configurations.
 
 ### Irie Layer Roadmap
 
-Three layers, analogous to LLVM:
+Three layers:
 1. **IR** (`IR/`) — SSA IR; exists today
-2. **CodeGen** (`CodeGen/`) — LLVM CodeGen/`MachineInstr`-style layer; exists today; SSA in, non-SSA out
-3. **MachineCode** (`MachineCode/`) — LLVM MC layer (flat instruction stream + labels); exists today
+2. **CodeGen** (`CodeGen/`) — MIR-style layer (basic blocks of `MachineInstr`-like instructions); exists today; SSA in, non-SSA out
+3. **MachineCode** (`MachineCode/`) — low-level machine-code layer (flat instruction stream + labels); exists today
 
 ### Compilation Internals
 

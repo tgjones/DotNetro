@@ -4,10 +4,10 @@ namespace Irie.CodeGen.Passes;
 
 // Folds redundant artifact pairs (Merge/Unmerge) introduced by legalization.
 //
-// Mirrors LLVM's LegalizationArtifactCombiner. The legalizer drives this in
-// alternation with the per-instruction legalization step: legalizing a wide
-// op typically inserts Unmerge/Merge pairs around the narrowed body, which
-// this combiner then collapses by RAUW-ing through the original components.
+// The legalizer drives this in alternation with the per-instruction legalization
+// step: legalizing a wide op typically inserts Unmerge/Merge pairs around the
+// narrowed body, which this combiner then collapses by RAUW-ing through the
+// original components.
 public sealed class LegalizationArtifactCombiner(MachineFunction function)
 {
     // Returns true if the instruction was combined. Adds any instructions
@@ -23,8 +23,8 @@ public sealed class LegalizationArtifactCombiner(MachineFunction function)
 
     // Pattern:  Unmerge(Merge(p0..pN)) -> for each i: replace unmerge def_i with p_i
     //
-    // Equal-arity, equal-element-type case only. LLVM also handles the
-    // wider/narrower cases (NumMergeRegs != NumDefs); not needed yet.
+    // Equal-arity, equal-element-type case only. The wider/narrower cases
+    // (NumMergeRegs != NumDefs) are not handled yet.
     private bool TryCombineUnmerge(MachineInstruction unmerge, List<MachineInstruction> deadInstrs)
     {
         var defs = unmerge.Operands
@@ -65,11 +65,11 @@ public sealed class LegalizationArtifactCombiner(MachineFunction function)
         deadInstrs.Add(unmerge);
 
         // If the unmerge was the merge's only user, the merge becomes dead the
-        // moment the unmerge is erased. Add it proactively (LLVM markInstAndDefDead
-        // pattern) — relying on the bottom-up trivially-dead check is unreliable
-        // when the merge is added to the worklist *after* its consumer (e.g. when
-        // legalization inserts a fresh BuildMergeInto whose result feeds an existing
-        // unmerge that was popped earlier).
+        // moment the unmerge is erased. Add it proactively — relying on the
+        // bottom-up trivially-dead check is unreliable when the merge is added
+        // to the worklist *after* its consumer (e.g. when legalization inserts
+        // a fresh BuildMergeInto whose result feeds an existing unmerge that was
+        // popped earlier).
         var mergeDef = mergeInstr.Operands
             .OfType<VirtualRegisterOperand>()
             .First(o => o.IsDefinition);

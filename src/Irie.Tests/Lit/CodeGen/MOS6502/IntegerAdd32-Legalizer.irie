@@ -3,9 +3,8 @@
 ; Checks that legalization splits a 32-bit GenericAdd into a chain of four
 ; 8-bit GenericAddCarry operations (NarrowScalar action), threaded through
 ; the C flag via i1 carry-in/carry-out vregs. The chain head's carry-in is
-; an explicit GenericConstant i1 0 (mirrors llvm-mos's
-; MOSLegalizerInfo::legalizeAddSubO, which also materializes a buildConstant
-; for G_UADDO → G_UADDE), so every AddCarry has a uniform 3-use shape.
+; an explicit GenericConstant i1 0 so that every AddCarry has a uniform
+; 3-use shape.
 ;
 ; The Merge/Unmerge artifacts inserted by NarrowScalar around the per-byte
 ; chain are folded away by the LegalizationArtifactCombiner, so the chain

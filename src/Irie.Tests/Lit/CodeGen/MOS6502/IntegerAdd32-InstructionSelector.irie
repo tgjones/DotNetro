@@ -10,14 +10,12 @@
 ;
 ; Vreg classes after InstructionSelect:
 ;   - LHS bytes (operand a): class Ac (back-propagated from ADC's L use,
-;     even when sourced from a non-Ac phys reg — see llvm-mos's
-;     post-selection MIR for the same pattern).
+;     even when sourced from a non-Ac phys reg).
 ;   - RHS bytes (operand b): class Imag8.
 ;   - Carry vregs: class Cc.
 ;
-; Per LLVM's GlobalISel convention (see InstructionSelect.cpp:347 and
-; MachineRegisterInfo::clearVirtRegTypes) the type table is wiped at the
-; end of InstructionSelect, so vregs print with their class only.
+; The vreg type table is wiped at the end of InstructionSelect once classes
+; have taken over, so vregs print with their class only.
 
 ; CHECK: func @TestFunction \{
 ; CHECK:   bb0\(\):

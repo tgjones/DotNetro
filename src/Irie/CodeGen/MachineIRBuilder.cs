@@ -63,8 +63,7 @@ public sealed class MachineIRBuilder(MachineFunction function)
 
     // GenericConstant: materialize an immediate of the given type into a fresh vreg.
     // Used by the legalizer to provide an explicit zero carry-in to the head of an
-    // AddCarry chain (mirrors llvm-mos's `Builder.buildConstant(S1, 0)` in
-    // MOSLegalizerInfo::legalizeAddSubO).
+    // AddCarry chain so every link has a uniform 3-use shape.
     public int BuildConstant(IRType type, long value)
     {
         var vreg = function.CreateVirtualRegister(type);
@@ -124,7 +123,7 @@ public sealed class MachineIRBuilder(MachineFunction function)
 
     // Emit an arbitrary target-specific instruction with no defs.
     // If operandClasses is non-null, applies per-operand register class constraints
-    // (mirrors LLVM's constrainSelectedInstRegOperands).
+    // to the underlying virtual registers.
     public void BuildTargetInstruction(int opcode, MachineOperand[] operands, int[]? operandClasses = null)
     {
         var instr = Insert(opcode, operands);
@@ -161,10 +160,10 @@ public sealed class MachineIRBuilder(MachineFunction function)
         return vregs;
     }
 
-    // Mirrors LLVM's constrainSelectedInstRegOperands: for each operand position
-    // with a non-zero class entry, constrain the underlying vreg to that class.
-    // Positions referring to immediates / blocks / phys regs / external symbols
-    // are silently skipped (the class entry is expected to be None for those).
+    // For each operand position with a non-zero class entry, constrain the
+    // underlying vreg to that class. Positions referring to immediates / blocks /
+    // phys regs / external symbols are silently skipped (the class entry is
+    // expected to be None for those).
     private void ApplyOperandClasses(MachineInstruction instr, int[]? operandClasses)
     {
         if (operandClasses == null) return;

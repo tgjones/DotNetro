@@ -109,10 +109,10 @@ internal sealed class MachineWriter(
         _ => throw new InvalidOperationException($"Not a definition operand: {operand.GetType().Name}"),
     };
 
-    // Mirrors LLVM's MIR convention: print the register class if assigned (post-isel),
-    // otherwise the generic type. After InstructionSelectorPass calls
-    // ClearVirtualRegisterTypes, vregs that received a class show only that class;
-    // vregs without a class (e.g. unselected GenericCopy defs) still show their type.
+    // Print the register class if assigned (post-isel), otherwise the generic type.
+    // After InstructionSelectorPass calls ClearVirtualRegisterTypes, vregs that
+    // received a class show only that class; vregs without a class (e.g. unselected
+    // GenericCopy defs) still show their type.
     private string FormatVirtualRegisterAnnotation(int virtualRegister, MachineFunction function)
     {
         if (function.TryGetVirtualRegisterClass(virtualRegister, out var classId))

@@ -25,14 +25,13 @@ public sealed class MachineFunction(string name)
     public bool TryGetVirtualRegisterType(int virtualRegister, out IRType type) =>
         _virtualRegisterTypes.TryGetValue(virtualRegister, out type!);
 
-    // Mirrors LLVM's MachineRegisterInfo::clearVirtRegTypes — called at the end of
-    // InstructionSelect once vregs have been constrained to register classes and types
-    // are no longer needed for printing or downstream passes.
+    // Called at the end of InstructionSelect once vregs have been constrained to
+    // register classes and types are no longer needed for printing or downstream passes.
     public void ClearVirtualRegisterTypes() => _virtualRegisterTypes.Clear();
 
     // Set or refine a vreg's register class. Throws on a conflicting reassignment.
-    // (LLVM's constrainRegClass intersects classes; we don't have subclass relationships
-    // yet, so an exact match — or unset — is required.)
+    // (We don't have subclass relationships yet, so reassignment requires either an
+    // exact match or an unset entry — there's no class-intersection logic.)
     public void SetVirtualRegisterClass(int virtualRegister, int classId)
     {
         if (_virtualRegisterClasses.TryGetValue(virtualRegister, out var existing) && existing != classId)

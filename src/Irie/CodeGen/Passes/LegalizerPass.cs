@@ -2,7 +2,7 @@ using Irie.IR;
 
 namespace Irie.CodeGen.Passes;
 
-// Mirrors LLVM's GlobalISel Legalizer.cpp:
+// Worklist-driven legalizer:
 //
 //   * Two worklists: instList (non-artifacts) and artifactList (Merge/Unmerge/...).
 //   * Initial population is bottom-up: instructions added top-down, popped LIFO.
@@ -138,10 +138,9 @@ public sealed class LegalizerPass(LegalizerInfo legalizerInfo) : MachineFunction
         var lhsParts = builder.BuildUnmerge(narrowType, lhsVreg, count);
         var rhsParts = builder.BuildUnmerge(narrowType, rhsVreg, count);
 
-        // Mirrors llvm-mos's MOSLegalizerInfo::legalizeAddSubO: the chain head needs
-        // an explicit zero carry-in vreg so that every AddCarry has a uniform 3-use
-        // shape. The selector lowers `GenericConstant i1 0` to a target instruction
-        // (LDImm1) whose def lives in the carry register class.
+        // The chain head needs an explicit zero carry-in vreg so that every AddCarry
+        // has a uniform 3-use shape. The selector lowers `GenericConstant i1 0` to a
+        // target instruction (LDImm1) whose def lives in the carry register class.
         var carryIn = builder.BuildConstant(IRType.I1, 0);
         var resultParts = new int[count];
 
