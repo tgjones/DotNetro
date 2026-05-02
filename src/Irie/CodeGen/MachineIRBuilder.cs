@@ -36,7 +36,7 @@ public sealed class MachineIRBuilder(MachineFunction function)
     public void AddLiveIn(int physReg) => _block!.LiveIns.Add(physReg);
 
     // GenericCopy from a physical register into a new virtual register.
-    public int BuildCopyFromPhysReg(int physReg, IRType type)
+    public int BuildCopyFromPhysicalRegister(int physReg, IRType type)
     {
         var vreg = function.CreateVirtualRegister(type);
         Insert(GenericOpcode.GenericCopy,
@@ -46,7 +46,7 @@ public sealed class MachineIRBuilder(MachineFunction function)
     }
 
     // GenericCopy from a virtual register into a physical register.
-    public void BuildCopyToPhysReg(int physReg, int sourceVreg)
+    public void BuildCopyToPhysicalRegister(int physReg, int sourceVreg)
     {
         Insert(GenericOpcode.GenericCopy,
             new PhysicalRegisterOperand(physReg, IsDefinition: true),
@@ -54,7 +54,7 @@ public sealed class MachineIRBuilder(MachineFunction function)
     }
 
     // GenericCopy between two virtual registers.
-    public void BuildCopyVirtToVirt(int destVreg, int sourceVreg)
+    public void BuildCopyVirtualToVirtual(int destVreg, int sourceVreg)
     {
         Insert(GenericOpcode.GenericCopy,
             new VirtualRegisterOperand(destVreg, IsDefinition: true),
@@ -96,7 +96,7 @@ public sealed class MachineIRBuilder(MachineFunction function)
     }
 
     // GenericAddCarry with an immediate carry-in (used for the initial carry = 0).
-    public (int result, int carryOut) BuildAddCarryImm(IRType type, int a, int b, long carryImm)
+    public (int result, int carryOut) BuildAddCarryImmediate(IRType type, int a, int b, long carryImm)
     {
         var result   = function.CreateVirtualRegister(type);
         var carryOut = function.CreateVirtualRegister(IRType.I1);
@@ -124,13 +124,13 @@ public sealed class MachineIRBuilder(MachineFunction function)
     }
 
     // Emit an arbitrary target-specific instruction with no defs.
-    public void BuildTargetInstr(int opcode, params MachineOperand[] operands)
+    public void BuildTargetInstruction(int opcode, params MachineOperand[] operands)
     {
         Insert(opcode, operands);
     }
 
     // Emit an arbitrary target-specific instruction with one virtual-register def.
-    public int BuildTargetInstrWithDef(int opcode, IRType defType, params MachineOperand[] useOperands)
+    public int BuildTargetInstructionWithDefinition(int opcode, IRType defType, params MachineOperand[] useOperands)
     {
         var vreg = function.CreateVirtualRegister(defType);
         var operands = new MachineOperand[1 + useOperands.Length];
@@ -138,6 +138,21 @@ public sealed class MachineIRBuilder(MachineFunction function)
         useOperands.CopyTo(operands, 1);
         Insert(opcode, operands);
         return vreg;
+    }
+
+    // Emit an arbitrary target-specific instruction with multiple virtual-register defs.
+    public int[] BuildTargetInstructionWithDefinitions(int opcode, IRType[] defTypes, params MachineOperand[] useOperands)
+    {
+        var vregs = new int[defTypes.Length];
+        var operands = new MachineOperand[defTypes.Length + useOperands.Length];
+        for (var i = 0; i < defTypes.Length; i++)
+        {
+            vregs[i] = function.CreateVirtualRegister(defTypes[i]);
+            operands[i] = new VirtualRegisterOperand(vregs[i], IsDefinition: true);
+        }
+        useOperands.CopyTo(operands, defTypes.Length);
+        Insert(opcode, operands);
+        return vregs;
     }
 
     // Remove an instruction from its block and mark it as removed (Parent = null).

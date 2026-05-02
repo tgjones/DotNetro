@@ -138,7 +138,7 @@ public sealed class LegalizerPass(LegalizerInfo legalizerInfo) : MachineFunction
         var lhsParts = builder.BuildUnmerge(narrowType, lhsVreg, count);
         var rhsParts = builder.BuildUnmerge(narrowType, rhsVreg, count);
 
-        var (r0, c0) = builder.BuildAddCarryImm(narrowType, lhsParts[0], rhsParts[0], 0);
+        var (r0, c0) = builder.BuildAddCarryImmediate(narrowType, lhsParts[0], rhsParts[0], 0);
         var resultParts = new int[count];
         resultParts[0] = r0;
         var carryIn = c0;

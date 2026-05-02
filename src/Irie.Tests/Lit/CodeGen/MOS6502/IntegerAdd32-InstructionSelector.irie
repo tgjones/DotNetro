@@ -1,13 +1,16 @@
 ; RUN: @iriec --target mos6502 @file
 
 ; Checks that the MOS6502 instruction selector lowers the legalized
-; GenericAddCarry chain into a CLC + ADC_ZeroPage sequence. The carry-in
-; immediate 0 on the first AddCarry triggers a single CLC; subsequent
-; AddCarrys consume the C flag implicitly.
+; GenericAddCarry chain into a CLC + ADC_ZeroPage sequence.
 ;
-; The ADC defs are wired to downstream consumers via RAUW, so the return-value
-; copies reference the new ADC result vregs rather than the now-removed
-; GenericAddCarry result vregs.
+; ADC_ZeroPage exposes both result (i8) and carry_out (i1) as SSA defs.
+; Subsequent members of the chain take the previous carry_out as an explicit
+; vreg use, so the carry chain is visible in the IR rather than relying on
+; adjacency of ADC instructions and the implicit C flag.
+;
+; The first ADC still uses an inline CLC (carry-in immediate 0); see
+; notes/codegen-followups.md for why we haven't yet materialised the
+; initial carry-in as an SSA constant a la llvm-mos's `LDImm1 0`.
 
 ; CHECK: func @TestFunction \{
 ; CHECK:   bb0\(\):
@@ -21,14 +24,14 @@
 ; CHECK:     %7:i8 = GenericCopy \$RC6
 ; CHECK:     %8:i8 = GenericCopy \$RC7
 ; CHECK:     CLC_Implied
-; CHECK:     %31:i8 = ADC_ZeroPage %0, %5
-; CHECK:     %32:i8 = ADC_ZeroPage %1, %6
-; CHECK:     %33:i8 = ADC_ZeroPage %2, %7
-; CHECK:     %34:i8 = ADC_ZeroPage %3, %8
+; CHECK:     %31:i8, %32:i1 = ADC_ZeroPage %0, %5
+; CHECK:     %33:i8, %34:i1 = ADC_ZeroPage %1, %6, %32
+; CHECK:     %35:i8, %36:i1 = ADC_ZeroPage %2, %7, %34
+; CHECK:     %37:i8, %38:i1 = ADC_ZeroPage %3, %8, %36
 ; CHECK:     \$A = GenericCopy %31
-; CHECK:     \$X = GenericCopy %32
-; CHECK:     \$RC2 = GenericCopy %33
-; CHECK:     \$RC3 = GenericCopy %34
+; CHECK:     \$X = GenericCopy %33
+; CHECK:     \$RC2 = GenericCopy %35
+; CHECK:     \$RC3 = GenericCopy %37
 ; CHECK:     RTS_Implied implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
 ; CHECK: \}
 

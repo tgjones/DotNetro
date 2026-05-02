@@ -53,7 +53,7 @@ public sealed class MOS6502CallLowering : CallLowering
 
                 var physReg = ArgRegs[regIdx++];
                 builder.AddLiveIn(physReg);
-                byteVregs[i] = builder.BuildCopyFromPhysReg(physReg, IRType.I8);
+                byteVregs[i] = builder.BuildCopyFromPhysicalRegister(physReg, IRType.I8);
             }
 
             // Merge the bytes back into the IR-typed vreg so downstream translation
@@ -92,12 +92,12 @@ public sealed class MOS6502CallLowering : CallLowering
 
             for (var i = 0; i < byteCount; i++)
             {
-                builder.BuildCopyToPhysReg(ArgRegs[i], byteVregs[i]);
+                builder.BuildCopyToPhysicalRegister(ArgRegs[i], byteVregs[i]);
                 implicitUses.Add(new PhysicalRegisterOperand(ArgRegs[i], IsDefinition: false, IsImplicit: true));
             }
         }
 
-        builder.BuildTargetInstr(MOS6502Opcode.RTS, [.. implicitUses]);
+        builder.BuildTargetInstruction(MOS6502Opcode.RTS, [.. implicitUses]);
     }
 
     private static int ByteCount(IRType type) => type.SizeInBits / 8;

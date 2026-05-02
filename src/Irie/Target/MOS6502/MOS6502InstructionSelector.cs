@@ -67,7 +67,7 @@ public sealed class MOS6502InstructionSelector : InstructionSelector
         {
             builder.SetInsertionPointBefore(instr);
             for (var i = 0; i < defs.Length; i++)
-                builder.BuildCopyVirtToVirt(defs[i].VirtualRegister, components[i]);
+                builder.BuildCopyVirtualToVirtual(defs[i].VirtualRegister, components[i]);
         }
         // If the source has no merge map entry it remains as-is; a later pass
         // (e.g. dead-code elimination) would clean up the dangling reference.
@@ -79,36 +79,51 @@ public sealed class MOS6502InstructionSelector : InstructionSelector
     private bool SelectAddCarry(MachineInstruction instr, MachineIRBuilder builder)
     {
         // Operand layout (defs first):
-        //   def[0]: result vreg
-        //   def[1]: carry_out vreg  (becomes implicit C flag after selection)
+        //   def[0]: result vreg (i8)
+        //   def[1]: carry_out vreg (i1)
         //   use[0]: a
         //   use[1]: b
         //   use[2]: carry_in — either ImmediateOperand(0) or VirtualRegisterOperand
+        //
+        // ADC_ZeroPage exposes both result and carry_out as SSA defs, and (for non-
+        // initial members of a carry chain) takes the previous carry_out as an
+        // explicit use, so the carry chain is visible in the IR. The initial
+        // carry-in 0 case still uses an inline CLC; see notes/codegen-followups.md
+        // for why we don't yet materialise it as an SSA constant.
 
         var defs = instr.Operands.Where(IsVRegDef).Cast<VirtualRegisterOperand>().ToArray();
         var uses = instr.Operands.Where(o => !IsVRegDef(o)).ToArray();
 
-        var resultVreg = defs[0].VirtualRegister;
+        var resultVreg   = defs[0].VirtualRegister;
+        var carryOutVreg = defs[1].VirtualRegister;
         var aVreg = ((VirtualRegisterOperand)uses[0]).VirtualRegister;
         var bVreg = ((VirtualRegisterOperand)uses[1]).VirtualRegister;
         var carryIn = uses[2];
 
         builder.SetInsertionPointBefore(instr);
 
-        // Immediate 0 carry-in means this is the start of a carry chain: emit CLC.
-        if (carryIn is ImmediateOperand { Value: 0 })
-            builder.BuildTargetInstr(MOS6502Opcode.CLC);
-
-        // ADC with two virtual-register operands (addressing mode resolved post-RA).
-        var newResultVreg = builder.BuildTargetInstrWithDef(MOS6502Opcode.ADC_ZeroPage, IRType.I8,
+        var adcUses = new List<MachineOperand>
+        {
             new VirtualRegisterOperand(aVreg, IsDefinition: false),
-            new VirtualRegisterOperand(bVreg, IsDefinition: false));
+            new VirtualRegisterOperand(bVreg, IsDefinition: false),
+        };
 
-        // Wire downstream consumers of the original result vreg to the ADC's def.
-        builder.Function.ReplaceAllUsesOfRegister(resultVreg, newResultVreg);
+        if (carryIn is ImmediateOperand { Value: 0 })
+        {
+            builder.BuildTargetInstruction(MOS6502Opcode.CLC);
+        }
+        else
+        {
+            adcUses.Add(carryIn);
+        }
 
-        // The carry_out vreg (defs[1]) becomes dead; subsequent GenericAddCarrys that
-        // reference it as carry_in (vreg form) are implicitly chained via the 6502 C flag.
+        var newDefs = builder.BuildTargetInstructionWithDefinitions(
+            MOS6502Opcode.ADC_ZeroPage,
+            [IRType.I8, IRType.I1],
+            [.. adcUses]);
+
+        builder.Function.ReplaceAllUsesOfRegister(resultVreg,   newDefs[0]);
+        builder.Function.ReplaceAllUsesOfRegister(carryOutVreg, newDefs[1]);
 
         builder.Remove(instr);
         return true;
