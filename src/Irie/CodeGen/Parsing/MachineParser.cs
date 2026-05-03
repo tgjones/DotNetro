@@ -3,18 +3,25 @@ using Irie.IR.Parsing;
 
 namespace Irie.CodeGen.Parsing;
 
-internal sealed class MachineParser
+internal sealed class MachineParser(
+    Func<string, int?>? opcodeParser,
+    Func<string, int?>? registerParser,
+    Func<string, int?>? registerClassParser)
 {
-    private readonly MachineLexer _lexer;
-    private MachineToken _current;
+    private MachineLexer _lexer = null!;
+    private MachineToken _current = null!;
 
-    private MachineParser(TextReader reader)
+    public static MachineModule Parse(
+        TextReader reader,
+        Func<string, int?>? opcodeParser,
+        Func<string, int?>? registerParser,
+        Func<string, int?>? registerClassParser)
     {
-        _lexer = new MachineLexer(reader);
-        _current = _lexer.NextToken();
+        var parser = new MachineParser(opcodeParser, registerParser, registerClassParser);
+        parser._lexer = new MachineLexer(reader);
+        parser._current = parser._lexer.NextToken();
+        return parser.ParseModule();
     }
-
-    public static MachineModule Parse(TextReader reader) => new MachineParser(reader).ParseModule();
 
     // -------------------------------------------------------------------------
     // Module / function header  (streaming — no forward refs at this level)
@@ -71,7 +78,7 @@ internal sealed class MachineParser
     // Block / instruction  (token-reader based — supports forward block refs)
     // -------------------------------------------------------------------------
 
-    private static void ParseBlock(
+    private void ParseBlock(
         TokenReader tokens,
         MachineFunction function,
         Dictionary<long, MachineBasicBlock> blockMap)
@@ -102,7 +109,7 @@ internal sealed class MachineParser
             tokens.Advance(); // consume ":"
             while (tokens.Current.Kind == MachineTokenKind.PhysRegRef)
             {
-                block.LiveIns.Add((int)tokens.Advance().IntValue!.Value);
+                block.LiveIns.Add(ResolvePhysReg(tokens.Advance()));
                 if (tokens.Current.Kind == MachineTokenKind.Comma)
                     tokens.Advance();
                 else
@@ -114,20 +121,28 @@ internal sealed class MachineParser
             ParseInstruction(tokens, function, block, blockMap);
     }
 
-    private static void ParseBlockParameter(
+    private void ParseBlockParameter(
         TokenReader tokens,
         MachineFunction function,
         MachineBasicBlock block)
     {
         var vregToken = tokens.Expect(MachineTokenKind.ValueRef);
         tokens.Expect(MachineTokenKind.Colon);
-        var type = ParseType(tokens.Expect(MachineTokenKind.Identifier));
+        var annotationToken = tokens.Expect(MachineTokenKind.Identifier);
 
-        function.RegisterVirtualRegister((int)vregToken.IntValue!.Value, type);
-        block.Parameters.Add((int)vregToken.IntValue.Value);
+        var id = (int)vregToken.IntValue!.Value;
+
+        if (TryParseType(annotationToken, out var type))
+            function.RegisterVirtualRegister(id, type);
+        else if (TryParseClass(annotationToken, out var classId))
+            function.RegisterVirtualRegisterWithClass(id, classId);
+        else
+            throw Fail(annotationToken, $"Unknown type or register class '{annotationToken.Text}'");
+
+        block.Parameters.Add(id);
     }
 
-    private static void ParseInstruction(
+    private void ParseInstruction(
         TokenReader tokens,
         MachineFunction function,
         MachineBasicBlock block,
@@ -135,7 +150,7 @@ internal sealed class MachineParser
     {
         var defOperands = new List<MachineOperand>();
 
-        // Parse zero or more virtual-register definitions: %N:type, ...
+        // Parse zero or more virtual-register definitions: %N:type_or_class, ...
         // A def is identified by ValueRef immediately followed by Colon.
         // Multiple defs are separated by commas: %a:type, %b:type = opcode
         while (tokens.Current.Kind == MachineTokenKind.ValueRef
@@ -143,10 +158,17 @@ internal sealed class MachineParser
         {
             var vregToken = tokens.Advance(); // consume %N
             tokens.Advance();                 // consume :
-            var type = ParseType(tokens.Expect(MachineTokenKind.Identifier));
+            var annotationToken = tokens.Expect(MachineTokenKind.Identifier);
 
             var vreg = (int)vregToken.IntValue!.Value;
-            function.RegisterVirtualRegister(vreg, type);
+
+            if (TryParseType(annotationToken, out var type))
+                function.RegisterVirtualRegister(vreg, type);
+            else if (TryParseClass(annotationToken, out var classId))
+                function.RegisterVirtualRegisterWithClass(vreg, classId);
+            else
+                throw Fail(annotationToken, $"Unknown type or register class '{annotationToken.Text}'");
+
             defOperands.Add(new VirtualRegisterOperand(vreg, IsDefinition: true));
 
             // Check if a comma is followed by another %N:type (more defs) or a use.
@@ -167,16 +189,27 @@ internal sealed class MachineParser
         if (defOperands.Count == 0 && tokens.Current.Kind == MachineTokenKind.PhysRegRef)
         {
             var physToken = tokens.Advance();
-            defOperands.Add(new PhysicalRegisterOperand((int)physToken.IntValue!.Value, IsDefinition: true));
+            defOperands.Add(new PhysicalRegisterOperand(ResolvePhysReg(physToken), IsDefinition: true));
         }
 
         if (defOperands.Count > 0)
             tokens.Expect(MachineTokenKind.Equals);
 
-        // Opcode
+        // Opcode — try generic first, then target-specific via OpcodeParser
         var opcodeToken = tokens.Expect(MachineTokenKind.Identifier);
-        if (!GenericOpcode.TryParse(opcodeToken.Text!, out var opcode))
+        int opcode;
+        if (GenericOpcode.TryParse(opcodeToken.Text!, out opcode))
+        {
+            // generic opcode — ok
+        }
+        else if (opcodeParser != null && opcodeParser(opcodeToken.Text!) is { } targetOpcode)
+        {
+            opcode = targetOpcode;
+        }
+        else
+        {
             throw Fail(opcodeToken, $"Unknown opcode '{opcodeToken.Text}'");
+        }
 
         // Use operands (comma-separated; terminated by start of next def or block label)
         var useOperands = new List<MachineOperand>();
@@ -206,7 +239,7 @@ internal sealed class MachineParser
         _ => false,
     };
 
-    private static MachineOperand ParseUseOperand(
+    private MachineOperand ParseUseOperand(
         TokenReader tokens,
         Dictionary<long, MachineBasicBlock> blockMap)
     {
@@ -216,7 +249,7 @@ internal sealed class MachineParser
                 return new VirtualRegisterOperand((int)tokens.Advance().IntValue!.Value, IsDefinition: false);
 
             case MachineTokenKind.PhysRegRef:
-                return new PhysicalRegisterOperand((int)tokens.Advance().IntValue!.Value, IsDefinition: false);
+                return new PhysicalRegisterOperand(ResolvePhysReg(tokens.Advance()), IsDefinition: false);
 
             case MachineTokenKind.Integer:
                 return new ImmediateOperand(tokens.Advance().IntValue!.Value);
@@ -235,7 +268,7 @@ internal sealed class MachineParser
             {
                 var isDef = tokens.Advance().Text == "implicit-def";
                 var physToken = tokens.Expect(MachineTokenKind.PhysRegRef);
-                return new PhysicalRegisterOperand((int)physToken.IntValue!.Value, IsDefinition: isDef, IsImplicit: true);
+                return new PhysicalRegisterOperand(ResolvePhysReg(physToken), IsDefinition: isDef, IsImplicit: true);
             }
 
             default:
@@ -247,15 +280,43 @@ internal sealed class MachineParser
     // Helpers
     // -------------------------------------------------------------------------
 
-    private static IRType ParseType(MachineToken token) => token.Text switch
+    private int ResolvePhysReg(MachineToken token)
     {
-        "void" => IRType.Void,
-        "i1"   => IRType.I1,
-        "i8"   => IRType.I8,
-        "i16"  => IRType.I16,
-        "i32"  => IRType.I32,
-        _ => throw Fail(token, $"Unknown type '{token.Text}'"),
-    };
+        // Integer-based: $0, $1 etc.
+        if (token.IntValue.HasValue)
+            return (int)token.IntValue.Value;
+
+        // Name-based: $A, $X, $RC2 etc.
+        var name = token.Text!;
+        if (registerParser != null && registerParser(name) is { } id)
+            return id;
+
+        throw Fail(token, $"Unknown physical register '${name}' — no RegisterParser configured");
+    }
+
+    private bool TryParseClass(MachineToken token, out int classId)
+    {
+        classId = 0;
+        if (registerClassParser == null) return false;
+        var result = registerClassParser(token.Text!);
+        if (result == null) return false;
+        classId = result.Value;
+        return true;
+    }
+
+    private static bool TryParseType(MachineToken token, out IRType type)
+    {
+        type = token.Text switch
+        {
+            "void" => IRType.Void,
+            "i1"   => IRType.I1,
+            "i8"   => IRType.I8,
+            "i16"  => IRType.I16,
+            "i32"  => IRType.I32,
+            _ => null!,
+        };
+        return type != null;
+    }
 
     // Collects all tokens between the opening '{' (already consumed) and the
     // matching '}', consuming the '}' itself.  Function bodies have no nested

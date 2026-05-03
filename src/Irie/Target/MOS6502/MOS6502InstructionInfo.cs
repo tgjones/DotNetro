@@ -38,6 +38,20 @@ public sealed class MOS6502InstructionInfo(int opcode, string mnemonic, Addressi
             : $"{info.Mnemonic}_{info.Mode}";
     }
 
+    // Parses a display name back to an opcode. Inverse of GetDisplayName.
+    public static int? ParseDisplayName(string name)
+    {
+        foreach (var info in _table.Values)
+        {
+            var displayName = info.Mode == AddressingMode.Pseudo
+                ? info.Mnemonic
+                : $"{info.Mnemonic}_{info.Mode}";
+            if (displayName == name)
+                return info.Opcode;
+        }
+        return null;
+    }
+
     private static Dictionary<int, MOS6502InstructionInfo> BuildTable()
     {
         var entries = new MOS6502InstructionInfo[]

@@ -23,4 +23,16 @@ public static class MOS6502Registers
         _ when regNum >= 6 => $"RC{regNum - 6}",
         _ => throw new ArgumentOutOfRangeException(nameof(regNum), $"Unknown register: {regNum}"),
     };
+
+    public static int? TryParse(string name) => name switch
+    {
+        "A" => A,
+        "X" => X,
+        "Y" => Y,
+        "S" => S,
+        "P" => P,
+        "C" => C,
+        _ when name.Length > 2 && name.StartsWith("RC") && int.TryParse(name[2..], out var n) => RC(n),
+        _ => null,
+    };
 }

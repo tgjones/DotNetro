@@ -60,6 +60,17 @@ public sealed class MachineFunction(string name)
             _nextVirtualRegister = id + 1;
     }
 
+    // Used by the parser to register a class-tagged vreg (post-isel MIR) with no type info.
+    internal void RegisterVirtualRegisterWithClass(int id, int classId)
+    {
+        _virtualRegisterClasses[id] = classId;
+        if (id >= _nextVirtualRegister)
+            _nextVirtualRegister = id + 1;
+    }
+
+    // Called after RegisterAllocatorPass once all vregs have been replaced with physregs.
+    public void ClearVirtualRegisterClasses() => _virtualRegisterClasses.Clear();
+
     // Linear scan for the unique defining instruction of a virtual register.
     public MachineInstruction? GetDefinition(int virtualRegister)
     {
@@ -130,6 +141,33 @@ public sealed class MachineFunction(string name)
         }
 
         return hasVRegDef;
+    }
+
+    // Rebuild predecessor/successor lists from terminator block operands.
+    // Run at the start of any pass that needs CFG edges (e.g. LivenessAnalysisPass).
+    public void RebuildCfg()
+    {
+        foreach (var block in Blocks)
+        {
+            block.Predecessors.Clear();
+            block.Successors.Clear();
+        }
+
+        foreach (var block in Blocks)
+        {
+            foreach (var instr in block.Instructions)
+            {
+                foreach (var op in instr.Operands)
+                {
+                    if (op is not BlockOperand blockOp) continue;
+                    var succ = blockOp.Block;
+                    if (!block.Successors.Contains(succ))
+                        block.Successors.Add(succ);
+                    if (!succ.Predecessors.Contains(block))
+                        succ.Predecessors.Add(block);
+                }
+            }
+        }
     }
 
     private static bool IsSideEffectFree(int opcode) => opcode switch
