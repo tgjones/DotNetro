@@ -68,6 +68,15 @@ public sealed class MachineFunction(string name)
             _nextVirtualRegister = id + 1;
     }
 
+    // Allocates a fresh vreg constrained to the given register class.
+    // Used by passes that run post-isel where vregs carry classes rather than types.
+    public int CreateVirtualRegisterWithClass(int classId)
+    {
+        var id = _nextVirtualRegister++;
+        _virtualRegisterClasses[id] = classId;
+        return id;
+    }
+
     // Called after RegisterAllocatorPass once all vregs have been replaced with physregs.
     public void ClearVirtualRegisterClasses() => _virtualRegisterClasses.Clear();
 

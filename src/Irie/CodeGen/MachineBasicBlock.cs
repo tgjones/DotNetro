@@ -24,4 +24,12 @@ public sealed class MachineBasicBlock
         Instructions.Add(instruction);
         return instruction;
     }
+
+    public MachineInstruction InsertInstruction(int index, int opcode, params MachineOperand[] operands)
+    {
+        var instruction = new MachineInstruction(opcode, operands);
+        instruction.Parent = this;
+        Instructions.Insert(index, instruction);
+        return instruction;
+    }
 }
