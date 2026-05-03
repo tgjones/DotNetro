@@ -1,6 +1,13 @@
 namespace Irie.Target.MOS6502;
 
-public sealed class MOS6502InstructionInfo(int opcode, string mnemonic, AddressingMode mode, int size, int[]? operandClasses = null)
+public sealed class MOS6502InstructionInfo(
+    int opcode,
+    string mnemonic,
+    AddressingMode mode,
+    int size,
+    int[]? operandClasses = null,
+    int[]? implicitDefs = null,
+    int[]? implicitUses = null)
 {
     public int Opcode { get; } = opcode;
     public string Mnemonic { get; } = mnemonic;
@@ -17,6 +24,18 @@ public sealed class MOS6502InstructionInfo(int opcode, string mnemonic, Addressi
     /// operands have no class constraints recorded yet.
     /// </summary>
     public int[]? OperandClasses { get; } = operandClasses;
+
+    /// <summary>
+    /// Physical registers implicitly defined (clobbered) by this opcode, beyond
+    /// those already expressed as explicit def operands. Null means none.
+    /// </summary>
+    public int[]? ImplicitDefs { get; } = implicitDefs;
+
+    /// <summary>
+    /// Physical registers implicitly used (read) by this opcode, beyond those
+    /// already expressed as explicit use operands. Null means none.
+    /// </summary>
+    public int[]? ImplicitUses { get; } = implicitUses;
 
     private static readonly Dictionary<int, MOS6502InstructionInfo> _table = BuildTable();
 
