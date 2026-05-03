@@ -1,0 +1,26 @@
+; RUN: @iriec --target mos6502 @file
+
+; Checks the final, fully-lowered MIR after the complete pipeline:
+; IRTranslator → Legalizer → InstructionSelector → PhiElimination →
+; RegisterAllocator → CopyElimination.
+;
+; All 12 identity copies left by the allocator ($A = GenericCopy $A, etc.)
+; are removed, leaving only the 6 substantive instructions:
+;   LDImm1 (carry initialisation) + ADC_ZeroPage × 4 + RTS.
+
+; CHECK: func @TestFunction \{
+; CHECK:   bb0\(\):
+; CHECK:     liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7
+; CHECK:     \$C = LDImm1 0
+; CHECK:     \$A, \$C = ADC_ZeroPage \$A, \$RC4, \$C
+; CHECK:     \$X, \$C = ADC_ZeroPage \$X, \$RC5, \$C
+; CHECK:     \$RC2, \$C = ADC_ZeroPage \$RC2, \$RC6, \$C
+; CHECK:     \$RC3, \$C = ADC_ZeroPage \$RC3, \$RC7, \$C
+; CHECK:     RTS_Implied implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
+; CHECK: \}
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+  %2 = integer_add %0, %1
+  return %2
+}

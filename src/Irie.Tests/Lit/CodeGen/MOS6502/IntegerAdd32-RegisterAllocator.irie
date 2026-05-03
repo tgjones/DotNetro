@@ -1,0 +1,41 @@
+; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file
+
+; Checks the post-RA phys-only shape of the IntegerAdd32 function.
+;
+; Copy hints from surrounding GenericCopy instructions drive the allocation
+; (design decision 1: hints override class constraints), so each vreg maps to
+; the physreg it is copied from/to.  The tied-operand expiry rule (design
+; decision 2: endpoint ≤ currentStart) ensures ADC's L operand and result
+; def can share $A without a spurious spill.
+;
+; All 12 copies survive here as identity copies ($A = GenericCopy $A, etc.);
+; CopyEliminationPass removes them in the next stage.
+
+; CHECK: func @TestFunction \{
+; CHECK:   bb0\(\):
+; CHECK:     liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7
+; CHECK:     \$A = GenericCopy \$A
+; CHECK:     \$X = GenericCopy \$X
+; CHECK:     \$RC2 = GenericCopy \$RC2
+; CHECK:     \$RC3 = GenericCopy \$RC3
+; CHECK:     \$RC4 = GenericCopy \$RC4
+; CHECK:     \$RC5 = GenericCopy \$RC5
+; CHECK:     \$RC6 = GenericCopy \$RC6
+; CHECK:     \$RC7 = GenericCopy \$RC7
+; CHECK:     \$C = LDImm1 0
+; CHECK:     \$A, \$C = ADC_ZeroPage \$A, \$RC4, \$C
+; CHECK:     \$X, \$C = ADC_ZeroPage \$X, \$RC5, \$C
+; CHECK:     \$RC2, \$C = ADC_ZeroPage \$RC2, \$RC6, \$C
+; CHECK:     \$RC3, \$C = ADC_ZeroPage \$RC3, \$RC7, \$C
+; CHECK:     \$A = GenericCopy \$A
+; CHECK:     \$X = GenericCopy \$X
+; CHECK:     \$RC2 = GenericCopy \$RC2
+; CHECK:     \$RC3 = GenericCopy \$RC3
+; CHECK:     RTS_Implied implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
+; CHECK: \}
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+  %2 = integer_add %0, %1
+  return %2
+}

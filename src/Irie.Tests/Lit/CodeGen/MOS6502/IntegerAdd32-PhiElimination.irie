@@ -1,21 +1,8 @@
-; RUN: @iriec --target mos6502 --stop-after InstructionSelector @file
+; RUN: @iriec --target mos6502 --stop-after PhiElimination @file
 
-; Checks that the MOS6502 instruction selector lowers the legalized
-; GenericAddCarry chain into a uniform ADC_ZeroPage sequence with an
-; LDImm1-materialized carry-in for the chain head.
-;
-; Each ADC_ZeroPage exposes both result (i8, class Ac) and carry_out
-; (i1, class Cc) as SSA defs, and takes the previous carry_out as an
-; explicit vreg use, so the carry chain is visible in the IR.
-;
-; Vreg classes after InstructionSelect:
-;   - LHS bytes (operand a): class Ac (back-propagated from ADC's L use,
-;     even when sourced from a non-Ac phys reg).
-;   - RHS bytes (operand b): class Imag8.
-;   - Carry vregs: class Cc.
-;
-; The vreg type table is wiped at the end of InstructionSelect once classes
-; have taken over, so vregs print with their class only.
+; Checks that PhiEliminationPass is a no-op on a single-block function with
+; no block parameters.  The MIR shape is identical to the post-InstructionSelector
+; output; this test mainly verifies the pass does not corrupt the function.
 
 ; CHECK: func @TestFunction \{
 ; CHECK:   bb0\(\):
