@@ -1,0 +1,34 @@
+; RUN: @iriec --target mos6502 --stop-after TwoAddressInstruction @file
+
+; CHECK: func @TestFunction \{
+; CHECK:   bb0\(\):
+; CHECK:     liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7
+; CHECK:     %0:Ac = GenericCopy \$A
+; CHECK:     %1:Ac = GenericCopy \$X
+; CHECK:     %2:Ac = GenericCopy \$RC2
+; CHECK:     %3:Ac = GenericCopy \$RC3
+; CHECK:     %5:Imag8 = GenericCopy \$RC4
+; CHECK:     %6:Imag8 = GenericCopy \$RC5
+; CHECK:     %7:Imag8 = GenericCopy \$RC6
+; CHECK:     %8:Imag8 = GenericCopy \$RC7
+; CHECK:     %32:Cc = LDImm1 0
+; CHECK:     %33:Ac = GenericCopy %0:Ac
+; CHECK:     %33:Ac, %34:Cc = ADC_ZeroPage %33:Ac\(tied-def 0\), %5:Imag8, %32:Cc
+; CHECK:     %35:Ac = GenericCopy %1:Ac
+; CHECK:     %35:Ac, %36:Cc = ADC_ZeroPage %35:Ac\(tied-def 0\), %6:Imag8, %34:Cc
+; CHECK:     %37:Ac = GenericCopy %2:Ac
+; CHECK:     %37:Ac, %38:Cc = ADC_ZeroPage %37:Ac\(tied-def 0\), %7:Imag8, %36:Cc
+; CHECK:     %39:Ac = GenericCopy %3:Ac
+; CHECK:     %39:Ac, %40:Cc = ADC_ZeroPage %39:Ac\(tied-def 0\), %8:Imag8, %38:Cc
+; CHECK:     \$A = GenericCopy %33:Ac
+; CHECK:     \$X = GenericCopy %35:Ac
+; CHECK:     \$RC2 = GenericCopy %37:Ac
+; CHECK:     \$RC3 = GenericCopy %39:Ac
+; CHECK:     RTS_Implied implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
+; CHECK: \}
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+  %2 = integer_add %0, %1
+  return %2
+}

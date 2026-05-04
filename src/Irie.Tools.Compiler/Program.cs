@@ -44,6 +44,8 @@ rootCommand.SetAction(parseResult =>
     passMgr.AddPass(new LegalizerPass(new MOS6502LegalizerInfo()));
     passMgr.AddPass(new InstructionSelectorPass(new MOS6502InstructionSelector()));
     passMgr.AddPass(new PhiEliminationPass());
+    passMgr.AddPass(new TwoAddressInstructionPass(
+        opcode => MOS6502InstructionInfo.TryGet(opcode)?.TiedOperands));
     passMgr.AddPass(new RegisterAllocatorPass(new MOS6502RegisterInfo()));
     passMgr.AddPass(new CopyEliminationPass());
     passMgr.Run(context);

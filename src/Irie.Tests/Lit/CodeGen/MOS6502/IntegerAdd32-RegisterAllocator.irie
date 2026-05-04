@@ -8,8 +8,9 @@
 ; decision 2: endpoint ≤ currentStart) ensures ADC's L operand and result
 ; def can share $A without a spurious spill.
 ;
-; All 12 copies survive here as identity copies ($A = GenericCopy $A, etc.);
-; CopyEliminationPass removes them in the next stage.
+; TwoAddressInstructionPass inserts 4 extra GenericCopy instructions (one per
+; ADC), giving 16 total copies here as identity copies; CopyEliminationPass
+; removes them all in the next stage.
 
 ; CHECK: func @TestFunction \{
 ; CHECK:   bb0\(\):
@@ -23,9 +24,13 @@
 ; CHECK:     \$RC6 = GenericCopy \$RC6
 ; CHECK:     \$RC7 = GenericCopy \$RC7
 ; CHECK:     \$C = LDImm1 0
+; CHECK:     \$A = GenericCopy \$A
 ; CHECK:     \$A, \$C = ADC_ZeroPage \$A, \$RC4, \$C
+; CHECK:     \$X = GenericCopy \$X
 ; CHECK:     \$X, \$C = ADC_ZeroPage \$X, \$RC5, \$C
+; CHECK:     \$RC2 = GenericCopy \$RC2
 ; CHECK:     \$RC2, \$C = ADC_ZeroPage \$RC2, \$RC6, \$C
+; CHECK:     \$RC3 = GenericCopy \$RC3
 ; CHECK:     \$RC3, \$C = ADC_ZeroPage \$RC3, \$RC7, \$C
 ; CHECK:     \$A = GenericCopy \$A
 ; CHECK:     \$X = GenericCopy \$X
