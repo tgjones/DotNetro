@@ -6,6 +6,7 @@ public sealed class MOS6502InstructionInfo(
     AddressingMode mode,
     int size,
     int[]? operandClasses = null,
+    int[]? tiedOperands = null,
     int[]? implicitDefs = null,
     int[]? implicitUses = null)
 {
@@ -24,6 +25,22 @@ public sealed class MOS6502InstructionInfo(
     /// operands have no class constraints recorded yet.
     /// </summary>
     public int[]? OperandClasses { get; } = operandClasses;
+
+    /// <summary>
+    /// Tied-operand pairs: parallel to <see cref="OperandClasses"/>; each entry
+    /// is the index of the operand this operand is tied to (defs-first layout),
+    /// or -1 if not tied. Null means no tied operands.
+    /// </summary>
+    public int[]? TiedOperands { get; } = tiedOperands;
+
+    /// <summary>
+    /// Returns the operand index that operand at <paramref name="operandIdx"/> is
+    /// tied to, or -1 if not tied.
+    /// </summary>
+    public int GetTiedToIndex(int operandIdx) =>
+        TiedOperands != null && operandIdx < TiedOperands.Length
+            ? TiedOperands[operandIdx]
+            : -1;
 
     /// <summary>
     /// Physical registers implicitly defined (clobbered) by this opcode, beyond
@@ -124,7 +141,8 @@ public sealed class MOS6502InstructionInfo(
                     MOS6502RegisterClass.Ac,    // use[0]: L
                     MOS6502RegisterClass.Imag8, // use[1]: R
                     MOS6502RegisterClass.Cc,    // use[2]: carry_in
-                ]),
+                ],
+                tiedOperands: [-1, -1, 0, -1, -1]), // use[0] (pos 2) tied to def[0] (pos 0)
             new(MOS6502Opcode.ADC_ZeroPageX, "ADC", AddressingMode.ZeroPageX, 2),
             new(MOS6502Opcode.ADC_Absolute,  "ADC", AddressingMode.Absolute,  3),
             new(MOS6502Opcode.ADC_AbsoluteX, "ADC", AddressingMode.AbsoluteX, 3),

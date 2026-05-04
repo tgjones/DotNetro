@@ -107,3 +107,9 @@ Three layers:
 
 - **Aemula** — 6502 CPU emulator used during test execution
 - **Sixty502DotNet** — 6502 assembler (Antlr4-based) used to assemble the emitted code
+
+## Planning workflow
+
+Before modifying code in any area: read the relevant files first,
+then construct a self-contained implementation plan that documents
+what you found. Plans should not require further exploration to execute.

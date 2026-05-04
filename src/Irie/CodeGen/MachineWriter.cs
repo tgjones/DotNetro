@@ -3,10 +3,11 @@ namespace Irie.CodeGen;
 internal sealed class MachineWriter(
     Func<int, string?>? opcodeNamer,
     Func<int, string>? registerNamer,
-    Func<int, string?>? registerClassNamer)
+    Func<int, string?>? registerClassNamer,
+    Func<int, int[]?>? tiedOperandsProvider)
 {
     public static void Write(MachineModule module, TextWriter writer) =>
-        new MachineWriter(module.OpcodeNamer, module.RegisterNamer, module.RegisterClassNamer).WriteAll(module, writer);
+        new MachineWriter(module.OpcodeNamer, module.RegisterNamer, module.RegisterClassNamer, module.TiedOperandsProvider).WriteAll(module, writer);
 
     private void WriteAll(MachineModule module, TextWriter writer)
     {
@@ -58,11 +59,13 @@ internal sealed class MachineWriter(
     {
         writer.Write("    ");
 
+        var tiedOperands = tiedOperandsProvider?.Invoke(instruction.Opcode);
         var defStrings = new List<string>();
         var useStrings = new List<string>();
         var implicitStrings = new List<string>();
-        foreach (var op in instruction.Operands)
+        for (var i = 0; i < instruction.Operands.Length; i++)
         {
+            var op = instruction.Operands[i];
             if (op is PhysicalRegisterOperand { IsImplicit: true } phys)
             {
                 implicitStrings.Add($"{(phys.IsDefinition ? "implicit-def" : "implicit")} ${FormatPhysReg(phys.Register)}");
@@ -73,7 +76,8 @@ internal sealed class MachineWriter(
             }
             else
             {
-                useStrings.Add(FormatOperand(op, function, blockIndex));
+                var tiedTo = tiedOperands != null && i < tiedOperands.Length ? tiedOperands[i] : -1;
+                useStrings.Add(FormatUseOperand(op, function, blockIndex, tiedTo));
             }
         }
 
@@ -120,6 +124,25 @@ internal sealed class MachineWriter(
         if (function.TryGetVirtualRegisterType(virtualRegister, out var type))
             return type.DisplayName;
         return "?";
+    }
+
+    // Format a use operand. For vregs that have a register class assigned, prints
+    // "%N:ClassName", and additionally "(tied-def M)" if tied to a def operand.
+    private string FormatUseOperand(
+        MachineOperand operand,
+        MachineFunction function,
+        Dictionary<MachineBasicBlock, int> blockIndex,
+        int tiedToDefIndex)
+    {
+        if (operand is VirtualRegisterOperand vreg
+            && function.TryGetVirtualRegisterClass(vreg.VirtualRegister, out var classId))
+        {
+            var className = registerClassNamer?.Invoke(classId) ?? $"class({classId})";
+            return tiedToDefIndex >= 0
+                ? $"%{vreg.VirtualRegister}:{className}(tied-def {tiedToDefIndex})"
+                : $"%{vreg.VirtualRegister}:{className}";
+        }
+        return FormatOperand(operand, function, blockIndex);
     }
 
     private string FormatOperand(

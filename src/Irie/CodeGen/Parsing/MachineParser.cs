@@ -215,7 +215,7 @@ internal sealed class MachineParser(
         var useOperands = new List<MachineOperand>();
         while (IsUseOperandStart(tokens))
         {
-            useOperands.Add(ParseUseOperand(tokens, blockMap));
+            useOperands.Add(ParseUseOperand(tokens, function, blockMap));
             if (tokens.Current.Kind == MachineTokenKind.Comma)
                 tokens.Advance();
             else
@@ -231,8 +231,17 @@ internal sealed class MachineParser(
         MachineTokenKind.Integer    => true,
         MachineTokenKind.BlockLabel => true,
         MachineTokenKind.At         => true,
-        // %N is a use only when NOT immediately followed by ':', which would mean a new def.
+        // %N without ':' is unambiguously a use.
         MachineTokenKind.ValueRef when tokens.Peek.Kind != MachineTokenKind.Colon => true,
+        // %N:ClassName is a use operand (post-isel class annotation) when the token
+        // after the class name is NOT '=', which would indicate a new def start.
+        // Note: %N:Class, %M:Class = NextOpcode (multi-def next instruction) can
+        // only be disambiguated if the ',' is followed by '=' eventually; with
+        // bounded lookahead we check Peek3 ≠ Equals, which is safe for all output
+        // our passes produce (no zero-use instruction precedes a multi-def instruction).
+        MachineTokenKind.ValueRef when tokens.Peek.Kind == MachineTokenKind.Colon
+                                   && tokens.Peek2.Kind == MachineTokenKind.Identifier
+                                   && tokens.Peek3.Kind != MachineTokenKind.Equals => true,
         // 'implicit' / 'implicit-def' prefixing a physical register operand.
         MachineTokenKind.Identifier when tokens.Current.Text is "implicit" or "implicit-def"
                                       && tokens.Peek.Kind == MachineTokenKind.PhysRegRef => true,
@@ -241,12 +250,38 @@ internal sealed class MachineParser(
 
     private MachineOperand ParseUseOperand(
         TokenReader tokens,
+        MachineFunction function,
         Dictionary<long, MachineBasicBlock> blockMap)
     {
         switch (tokens.Current.Kind)
         {
             case MachineTokenKind.ValueRef:
-                return new VirtualRegisterOperand((int)tokens.Advance().IntValue!.Value, IsDefinition: false);
+            {
+                var vreg = (int)tokens.Advance().IntValue!.Value;
+
+                // Consume optional :ClassName(tied-def M) or bare :ClassName suffix.
+                if (tokens.Current.Kind == MachineTokenKind.Colon
+                    && tokens.Peek.Kind == MachineTokenKind.Identifier)
+                {
+                    tokens.Advance(); // consume ':'
+                    var classToken = tokens.Advance(); // consume class name
+
+                    if (TryParseClass(classToken, out var classId))
+                        function.RegisterVirtualRegisterWithClass(vreg, classId);
+
+                    // Consume optional (tied-def M) annotation; the value is
+                    // derivable from the instruction descriptor so we discard it.
+                    if (tokens.Current.Kind == MachineTokenKind.LParen)
+                    {
+                        tokens.Advance(); // consume '('
+                        tokens.Expect(MachineTokenKind.Identifier); // "tied-def"
+                        tokens.Expect(MachineTokenKind.Integer);    // def index
+                        tokens.Expect(MachineTokenKind.RParen);     // ')'
+                    }
+                }
+
+                return new VirtualRegisterOperand(vreg, IsDefinition: false);
+            }
 
             case MachineTokenKind.PhysRegRef:
                 return new PhysicalRegisterOperand(ResolvePhysReg(tokens.Advance()), IsDefinition: false);
@@ -361,6 +396,7 @@ internal sealed class MachineParser(
         public MachineToken Current => At(_position);
         public MachineToken Peek    => At(_position + 1);
         public MachineToken Peek2   => At(_position + 2);
+        public MachineToken Peek3   => At(_position + 3);
         public bool IsAtEnd         => _position >= tokens.Count;
 
         private MachineToken At(int pos) =>

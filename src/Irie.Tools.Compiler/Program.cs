@@ -48,9 +48,10 @@ rootCommand.SetAction(parseResult =>
     passMgr.AddPass(new CopyEliminationPass());
     passMgr.Run(context);
 
-    context.MachineModule.OpcodeNamer        = MOS6502InstructionInfo.GetDisplayName;
-    context.MachineModule.RegisterNamer      = MOS6502Registers.NameOf;
-    context.MachineModule.RegisterClassNamer = MOS6502RegisterClass.GetName;
+    context.MachineModule.OpcodeNamer          = MOS6502InstructionInfo.GetDisplayName;
+    context.MachineModule.RegisterNamer        = MOS6502Registers.NameOf;
+    context.MachineModule.RegisterClassNamer   = MOS6502RegisterClass.GetName;
+    context.MachineModule.TiedOperandsProvider = opcode => MOS6502InstructionInfo.TryGet(opcode)?.TiedOperands;
 
     context.MachineModule.Write(Console.Out);
 });

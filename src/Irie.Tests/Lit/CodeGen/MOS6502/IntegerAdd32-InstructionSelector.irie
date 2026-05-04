@@ -29,14 +29,14 @@
 ; CHECK:     %7:Imag8 = GenericCopy \$RC6
 ; CHECK:     %8:Imag8 = GenericCopy \$RC7
 ; CHECK:     %32:Cc = LDImm1 0
-; CHECK:     %33:Ac, %34:Cc = ADC_ZeroPage %0, %5, %32
-; CHECK:     %35:Ac, %36:Cc = ADC_ZeroPage %1, %6, %34
-; CHECK:     %37:Ac, %38:Cc = ADC_ZeroPage %2, %7, %36
-; CHECK:     %39:Ac, %40:Cc = ADC_ZeroPage %3, %8, %38
-; CHECK:     \$A = GenericCopy %33
-; CHECK:     \$X = GenericCopy %35
-; CHECK:     \$RC2 = GenericCopy %37
-; CHECK:     \$RC3 = GenericCopy %39
+; CHECK:     %33:Ac, %34:Cc = ADC_ZeroPage %0:Ac\(tied-def 0\), %5:Imag8, %32:Cc
+; CHECK:     %35:Ac, %36:Cc = ADC_ZeroPage %1:Ac\(tied-def 0\), %6:Imag8, %34:Cc
+; CHECK:     %37:Ac, %38:Cc = ADC_ZeroPage %2:Ac\(tied-def 0\), %7:Imag8, %36:Cc
+; CHECK:     %39:Ac, %40:Cc = ADC_ZeroPage %3:Ac\(tied-def 0\), %8:Imag8, %38:Cc
+; CHECK:     \$A = GenericCopy %33:Ac
+; CHECK:     \$X = GenericCopy %35:Ac
+; CHECK:     \$RC2 = GenericCopy %37:Ac
+; CHECK:     \$RC3 = GenericCopy %39:Ac
 ; CHECK:     RTS_Implied implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
 ; CHECK: \}
 

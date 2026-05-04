@@ -10,6 +10,7 @@ public sealed class MachineModule
     public Func<int, string?>? OpcodeNamer { get; set; }
     public Func<int, string>? RegisterNamer { get; set; }
     public Func<int, string?>? RegisterClassNamer { get; set; }
+    public Func<int, int[]?>? TiedOperandsProvider { get; set; }
 
     // Parsers: name → int (for input); used by MachineParser to resolve target-specific names
     public Func<string, int?>? OpcodeParser { get; set; }
