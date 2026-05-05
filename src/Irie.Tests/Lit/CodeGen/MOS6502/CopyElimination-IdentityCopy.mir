@@ -1,0 +1,13 @@
+; RUN: @iriec --target mos6502 --run-pass CopyElimination @file
+
+; $A = GenericCopy $A is an identity copy (def and use are the same physical
+; register) and should be removed, leaving an empty block.
+
+; CHECK: func @identity \{
+; CHECK:   bb0\(\):
+; CHECK: \}
+
+func @identity {
+  bb0():
+    $A = GenericCopy $A
+}

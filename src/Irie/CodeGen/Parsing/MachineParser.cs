@@ -180,11 +180,16 @@ internal sealed class MachineParser(Target target)
             }
         }
 
-        // Physical register definition: $N =
+        // Physical register definition(s): $A = ... or $A, $C = ...
         if (defOperands.Count == 0 && tokens.Current.Kind == MachineTokenKind.PhysRegRef)
         {
-            var physToken = tokens.Advance();
-            defOperands.Add(new PhysicalRegisterOperand(ResolvePhysReg(physToken), IsDefinition: true));
+            defOperands.Add(new PhysicalRegisterOperand(ResolvePhysReg(tokens.Advance()), IsDefinition: true));
+            while (tokens.Current.Kind == MachineTokenKind.Comma
+                   && tokens.Peek.Kind == MachineTokenKind.PhysRegRef)
+            {
+                tokens.Advance(); // consume comma
+                defOperands.Add(new PhysicalRegisterOperand(ResolvePhysReg(tokens.Advance()), IsDefinition: true));
+            }
         }
 
         if (defOperands.Count > 0)

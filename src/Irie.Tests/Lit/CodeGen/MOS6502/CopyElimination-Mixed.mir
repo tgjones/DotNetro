@@ -1,0 +1,18 @@
+; RUN: @iriec --target mos6502 --run-pass CopyElimination @file
+
+; Only the identity copy ($A = GenericCopy $A) is removed.
+; The non-identity copy ($A = GenericCopy $X) and the ADC instruction
+; (a non-copy with two physical-register defs) are both left untouched.
+
+; CHECK: func @mixed \{
+; CHECK:   bb0\(\):
+; CHECK:     \$A = GenericCopy \$X
+; CHECK:     \$A, \$C = ADC_ZeroPage \$A, \$RC4, \$C
+; CHECK: \}
+
+func @mixed {
+  bb0():
+    $A = GenericCopy $A
+    $A = GenericCopy $X
+    $A, $C = ADC_ZeroPage $A, $RC4, $C
+}

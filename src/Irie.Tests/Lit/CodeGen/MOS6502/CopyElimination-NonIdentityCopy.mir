@@ -1,0 +1,14 @@
+; RUN: @iriec --target mos6502 --run-pass CopyElimination @file
+
+; $A = GenericCopy $X has different def and use registers — not an identity
+; copy — so the instruction is left untouched.
+
+; CHECK: func @non_identity \{
+; CHECK:   bb0\(\):
+; CHECK:     \$A = GenericCopy \$X
+; CHECK: \}
+
+func @non_identity {
+  bb0():
+    $A = GenericCopy $X
+}
