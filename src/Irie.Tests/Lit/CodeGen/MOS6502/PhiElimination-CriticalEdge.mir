@@ -1,4 +1,4 @@
-; RUN: not @iriec --target mos6502 --start-at PhiElimination --stop-after PhiElimination @file
+; RUN: not @iriec --target mos6502 --run-pass PhiElimination @file
 
 ; bb1 has a parameter and two predecessors (bb0 via conditional branch, bb2 via
 ; unconditional jump) — a critical edge.  The pass cannot insert copies on a

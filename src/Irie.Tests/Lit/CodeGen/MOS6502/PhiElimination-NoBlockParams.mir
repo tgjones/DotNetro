@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --start-at PhiElimination --stop-after PhiElimination @file
+; RUN: @iriec --target mos6502 --run-pass PhiElimination @file
 
 ; A function with no block parameters — the pass is a no-op and the MIR
 ; is unchanged.

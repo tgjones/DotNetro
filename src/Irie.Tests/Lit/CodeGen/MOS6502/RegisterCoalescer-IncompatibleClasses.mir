@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --start-at RegisterCoalescer --stop-after RegisterCoalescer @file
+; RUN: @iriec --target mos6502 --run-pass RegisterCoalescer @file
 
 ; %1 has class Ac and %2 has class Cc — incompatible classes, so the copy
 ; cannot be eliminated (merging would violate the register class constraint).

@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --start-at PhiElimination --stop-after PhiElimination @file
+; RUN: @iriec --target mos6502 --run-pass PhiElimination @file
 
 ; bb0 loops to itself swapping its two parameters: new_p0 = p1, new_p1 = p0.
 ; The two assignments form a cycle (%0 := %1 and %1 := %0), so the pass must

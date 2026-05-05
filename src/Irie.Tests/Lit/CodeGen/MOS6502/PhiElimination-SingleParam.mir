@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --start-at PhiElimination --stop-after PhiElimination @file
+; RUN: @iriec --target mos6502 --run-pass PhiElimination @file
 
 ; bb1 has one parameter (%1:Ac).  The pass inserts a copy before the jump in
 ; bb0 and strips the argument from the jump operand list.

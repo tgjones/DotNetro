@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --start-at RegisterCoalescer --stop-after RegisterCoalescer @file
+; RUN: @iriec --target mos6502 --run-pass RegisterCoalescer @file
 
 ; %1 is used after the copy (the third instruction reads %1 directly),
 ; so the copy cannot be eliminated — %1's live range extends past the copy point.

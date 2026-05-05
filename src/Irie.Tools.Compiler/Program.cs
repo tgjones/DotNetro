@@ -17,6 +17,8 @@ var stopAfter = new Option<string>("--stop-after") { Description = "Stop after t
 
 var startAt = new Option<string>("--start-at") { Description = "Start at the specified pass, reading input as MIR (skips earlier passes)" };
 
+var runPass = new Option<string>("--run-pass") { Description = "Run only the specified pass (shorthand for --start-at X --stop-after X)" };
+
 var inputLanguageOption = new Option<string?>("--input-language") { Description = "Input language: 'ir' or 'mir'; auto-detected from file extension if omitted" };
 
 var rootCommand = new RootCommand("Irie lowering tool — translates IR to target Machine IR");
@@ -24,14 +26,16 @@ rootCommand.Arguments.Add(inputArgument);
 rootCommand.Options.Add(targetOption);
 rootCommand.Options.Add(stopAfter);
 rootCommand.Options.Add(startAt);
+rootCommand.Options.Add(runPass);
 rootCommand.Options.Add(inputLanguageOption);
 
 rootCommand.SetAction(parseResult =>
 {
     var input  = parseResult.GetValue(inputArgument);
     var target = parseResult.GetValue(targetOption) ?? "mos6502";
-    var stopAfterPass  = parseResult.GetValue(stopAfter);
-    var startAtPass    = parseResult.GetValue(startAt);
+    var runPassName    = parseResult.GetValue(runPass);
+    var stopAfterPass  = runPassName ?? parseResult.GetValue(stopAfter);
+    var startAtPass    = runPassName ?? parseResult.GetValue(startAt);
     var inputLanguage  = parseResult.GetValue(inputLanguageOption);
 
     if (target != "mos6502")

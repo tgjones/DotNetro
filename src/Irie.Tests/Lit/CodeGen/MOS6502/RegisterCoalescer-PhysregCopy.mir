@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --start-at RegisterCoalescer --stop-after RegisterCoalescer @file
+; RUN: @iriec --target mos6502 --run-pass RegisterCoalescer @file
 
 ; The source operand is a physical register ($A), not a virtual register.
 ; The coalescer only handles vreg-to-vreg copies; physreg copies are left
