@@ -5,7 +5,7 @@ namespace Irie.CodeGen.Parsing;
 
 internal sealed class MachineParser(Target target)
 {
-    private readonly TargetMIRInfo _mirInfo = target.CreateMIRInfo();
+    private readonly TargetRegisterInfo _registerInfo = target.CreateRegisterInfo();
     private readonly TargetInstructionInfo _instrInfo = target.CreateInstructionInfo();
     private MachineLexer _lexer = null!;
     private MachineToken _current = null!;
@@ -319,7 +319,7 @@ internal sealed class MachineParser(Target target)
 
         // Name-based: $A, $X, $RC2 etc.
         var name = token.Text!;
-        if (_mirInfo.ParseRegister(name) is { } id)
+        if (_registerInfo.ParseRegister(name) is { } id)
             return id;
 
         throw Fail(token, $"Unknown physical register '${name}'");
@@ -328,7 +328,7 @@ internal sealed class MachineParser(Target target)
     private bool TryParseClass(MachineToken token, out int classId)
     {
         classId = 0;
-        var result = _mirInfo.ParseRegisterClass(token.Text!);
+        var result = _registerInfo.ParseRegisterClass(token.Text!);
         if (result == null) return false;
         classId = result.Value;
         return true;
