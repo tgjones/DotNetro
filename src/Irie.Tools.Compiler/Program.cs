@@ -17,21 +17,30 @@ var stopAfter = new Option<string>("--stop-after") { Description = "Stop after t
 
 var startAt = new Option<string>("--start-at") { Description = "Start at the specified pass, reading input as MIR (skips earlier passes)" };
 
+var inputLanguageOption = new Option<string?>("--input-language") { Description = "Input language: 'ir' or 'mir'; auto-detected from file extension if omitted" };
+
 var rootCommand = new RootCommand("Irie lowering tool — translates IR to target Machine IR");
 rootCommand.Arguments.Add(inputArgument);
 rootCommand.Options.Add(targetOption);
 rootCommand.Options.Add(stopAfter);
 rootCommand.Options.Add(startAt);
+rootCommand.Options.Add(inputLanguageOption);
 
 rootCommand.SetAction(parseResult =>
 {
     var input  = parseResult.GetValue(inputArgument);
     var target = parseResult.GetValue(targetOption) ?? "mos6502";
-    var stopAfterPass = parseResult.GetValue(stopAfter);
-    var startAtPass   = parseResult.GetValue(startAt);
+    var stopAfterPass  = parseResult.GetValue(stopAfter);
+    var startAtPass    = parseResult.GetValue(startAt);
+    var inputLanguage  = parseResult.GetValue(inputLanguageOption);
 
     if (target != "mos6502")
         throw new ArgumentException($"Unsupported target '{target}'. Only 'mos6502' is supported.");
+
+    inputLanguage ??= (input != null && input != "-" && Path.GetExtension(input) == ".mir") ? "mir" : "ir";
+
+    if (inputLanguage != "ir" && inputLanguage != "mir")
+        throw new ArgumentException($"Unsupported input language '{inputLanguage}'. Use 'ir' or 'mir'.");
 
     var inputReader = (input == null || input == "-")
         ? Console.In
@@ -40,9 +49,8 @@ rootCommand.SetAction(parseResult =>
     var targetInfo = new MOS6502MIRInfo();
 
     CompilationContext context;
-    if (startAtPass != null)
+    if (inputLanguage == "mir")
     {
-        // MIR input: parse using MOS6502 target info and skip early passes.
         var machineModule = MachineModule.Parse(inputReader, targetInfo);
         context = new CompilationContext(machineModule);
     }
