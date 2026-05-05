@@ -3,21 +3,14 @@ using Irie.IR.Parsing;
 
 namespace Irie.CodeGen.Parsing;
 
-internal sealed class MachineParser(
-    Func<string, int?>? opcodeParser,
-    Func<string, int?>? registerParser,
-    Func<string, int?>? registerClassParser)
+internal sealed class MachineParser(TargetMIRInfo target)
 {
     private MachineLexer _lexer = null!;
     private MachineToken _current = null!;
 
-    public static MachineModule Parse(
-        TextReader reader,
-        Func<string, int?>? opcodeParser,
-        Func<string, int?>? registerParser,
-        Func<string, int?>? registerClassParser)
+    public static MachineModule Parse(TextReader reader, TargetMIRInfo target)
     {
-        var parser = new MachineParser(opcodeParser, registerParser, registerClassParser);
+        var parser = new MachineParser(target);
         parser._lexer = new MachineLexer(reader);
         parser._current = parser._lexer.NextToken();
         return parser.ParseModule();
@@ -29,7 +22,7 @@ internal sealed class MachineParser(
 
     private MachineModule ParseModule()
     {
-        var module = new MachineModule();
+        var module = new MachineModule(target);
         while (_current.Kind != MachineTokenKind.Eof)
             module.Functions.Add(ParseFunction());
         return module;
@@ -195,14 +188,14 @@ internal sealed class MachineParser(
         if (defOperands.Count > 0)
             tokens.Expect(MachineTokenKind.Equals);
 
-        // Opcode — try generic first, then target-specific via OpcodeParser
+        // Opcode — try generic first, then target-specific via target.ParseOpcode
         var opcodeToken = tokens.Expect(MachineTokenKind.Identifier);
         int opcode;
         if (GenericOpcode.TryParse(opcodeToken.Text!, out opcode))
         {
             // generic opcode — ok
         }
-        else if (opcodeParser != null && opcodeParser(opcodeToken.Text!) is { } targetOpcode)
+        else if (target.ParseOpcode(opcodeToken.Text!) is { } targetOpcode)
         {
             opcode = targetOpcode;
         }
@@ -324,17 +317,16 @@ internal sealed class MachineParser(
 
         // Name-based: $A, $X, $RC2 etc.
         var name = token.Text!;
-        if (registerParser != null && registerParser(name) is { } id)
+        if (target.ParseRegister(name) is { } id)
             return id;
 
-        throw Fail(token, $"Unknown physical register '${name}' — no RegisterParser configured");
+        throw Fail(token, $"Unknown physical register '${name}'");
     }
 
     private bool TryParseClass(MachineToken token, out int classId)
     {
         classId = 0;
-        if (registerClassParser == null) return false;
-        var result = registerClassParser(token.Text!);
+        var result = target.ParseRegisterClass(token.Text!);
         if (result == null) return false;
         classId = result.Value;
         return true;

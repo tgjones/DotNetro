@@ -1,13 +1,9 @@
 namespace Irie.CodeGen;
 
-internal sealed class MachineWriter(
-    Func<int, string?>? opcodeNamer,
-    Func<int, string>? registerNamer,
-    Func<int, string?>? registerClassNamer,
-    Func<int, int[]?>? tiedOperandsProvider)
+internal sealed class MachineWriter(TargetMIRInfo target)
 {
     public static void Write(MachineModule module, TextWriter writer) =>
-        new MachineWriter(module.OpcodeNamer, module.RegisterNamer, module.RegisterClassNamer, module.TiedOperandsProvider).WriteAll(module, writer);
+        new MachineWriter(module.Target).WriteAll(module, writer);
 
     private void WriteAll(MachineModule module, TextWriter writer)
     {
@@ -59,7 +55,7 @@ internal sealed class MachineWriter(
     {
         writer.Write("    ");
 
-        var tiedOperands = tiedOperandsProvider?.Invoke(instruction.Opcode);
+        var tiedOperands = target.GetTiedOperands(instruction.Opcode);
         var defStrings = new List<string>();
         var useStrings = new List<string>();
         var implicitStrings = new List<string>();
@@ -120,7 +116,7 @@ internal sealed class MachineWriter(
     private string FormatVirtualRegisterAnnotation(int virtualRegister, MachineFunction function)
     {
         if (function.TryGetVirtualRegisterClass(virtualRegister, out var classId))
-            return registerClassNamer?.Invoke(classId) ?? $"class({classId})";
+            return target.GetRegisterClassName(classId) ?? $"class({classId})";
         if (function.TryGetVirtualRegisterType(virtualRegister, out var type))
             return type.DisplayName;
         return "?";
@@ -137,7 +133,7 @@ internal sealed class MachineWriter(
         if (operand is VirtualRegisterOperand vreg
             && function.TryGetVirtualRegisterClass(vreg.VirtualRegister, out var classId))
         {
-            var className = registerClassNamer?.Invoke(classId) ?? $"class({classId})";
+            var className = target.GetRegisterClassName(classId) ?? $"class({classId})";
             return tiedToDefIndex >= 0
                 ? $"%{vreg.VirtualRegister}:{className}(tied-def {tiedToDefIndex})"
                 : $"%{vreg.VirtualRegister}:{className}";
@@ -158,11 +154,10 @@ internal sealed class MachineWriter(
         _ => throw new InvalidOperationException($"Unknown operand type: {operand.GetType().Name}"),
     };
 
-    private string FormatPhysReg(int register) =>
-        registerNamer?.Invoke(register) ?? register.ToString();
+    private string FormatPhysReg(int register) => target.GetRegisterName(register);
 
     private string GetOpcodeName(int opcode) =>
         GenericOpcode.GetName(opcode)
-        ?? opcodeNamer?.Invoke(opcode)
+        ?? target.GetOpcodeName(opcode)
         ?? $"opcode({opcode})";
 }

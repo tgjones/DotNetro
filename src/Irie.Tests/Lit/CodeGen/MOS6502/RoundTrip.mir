@@ -6,16 +6,16 @@
 func @add {
 ; CHECK:   bb0\(\):
   bb0():
-; CHECK:     liveins: \$0, \$1
-    liveins: $0, $1
-; CHECK:     %0:i16 = GenericCopy \$0
-    %0:i16 = GenericCopy $0
-; CHECK:     %1:i16 = GenericCopy \$1
-    %1:i16 = GenericCopy $1
+; CHECK:     liveins: \$A, \$X
+    liveins: $A, $X
+; CHECK:     %0:i16 = GenericCopy \$A
+    %0:i16 = GenericCopy $A
+; CHECK:     %1:i16 = GenericCopy \$X
+    %1:i16 = GenericCopy $X
 ; CHECK:     %2:i16 = GenericAdd %0, %1
     %2:i16 = GenericAdd %0, %1
-; CHECK:     \$0 = GenericCopy %2
-    $0 = GenericCopy %2
+; CHECK:     \$A = GenericCopy %2
+    $A = GenericCopy %2
 }
 
 ; Function with branches — bb1 and bb2 are forward references from bb0,
@@ -25,22 +25,22 @@ func @add {
 func @select {
 ; CHECK:   bb0\(\):
   bb0():
-; CHECK:     liveins: \$0, \$1, \$2
-    liveins: $0, $1, $2
-; CHECK:     %0:i16 = GenericCopy \$0
-    %0:i16 = GenericCopy $0
-; CHECK:     %1:i16 = GenericCopy \$1
-    %1:i16 = GenericCopy $1
-; CHECK:     %2:i16 = GenericCopy \$2
-    %2:i16 = GenericCopy $2
+; CHECK:     liveins: \$A, \$X, \$Y
+    liveins: $A, $X, $Y
+; CHECK:     %0:i16 = GenericCopy \$A
+    %0:i16 = GenericCopy $A
+; CHECK:     %1:i16 = GenericCopy \$X
+    %1:i16 = GenericCopy $X
+; CHECK:     %2:i16 = GenericCopy \$Y
+    %2:i16 = GenericCopy $Y
 ; CHECK:     GenericBranchConditional %0, bb1, bb2
     GenericBranchConditional %0, bb1, bb2
 ; CHECK:   bb1\(\):
   bb1():
-; CHECK:     \$0 = GenericCopy %1
-    $0 = GenericCopy %1
+; CHECK:     \$A = GenericCopy %1
+    $A = GenericCopy %1
 ; CHECK:   bb2\(\):
   bb2():
-; CHECK:     \$0 = GenericCopy %2
-    $0 = GenericCopy %2
+; CHECK:     \$A = GenericCopy %2
+    $A = GenericCopy %2
 }

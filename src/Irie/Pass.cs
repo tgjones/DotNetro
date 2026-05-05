@@ -30,19 +30,25 @@ public abstract class MachineFunctionPass : Pass
 public sealed class CompilationContext
 {
     private MachineModule? _machineModule;
+    private readonly TargetMIRInfo _target;
 
-    public CompilationContext(IRModule irModule) { IRModule = irModule; }
+    public CompilationContext(IRModule irModule, TargetMIRInfo target)
+    {
+        IRModule = irModule;
+        _target = target;
+    }
 
     // For mid-pipeline entry (pre-built MIR input, no IR needed).
     public CompilationContext(MachineModule machineModule)
     {
         IRModule = new IRModule();
         _machineModule = machineModule;
+        _target = machineModule.Target;
     }
 
     public IRModule IRModule { get; }
 
-    public MachineModule MachineModule => _machineModule ??= new MachineModule();
+    public MachineModule MachineModule => _machineModule ??= new MachineModule(_target);
 }
 
 public sealed class PassManager(string? stopAfterPass = null, string? startAtPass = null)

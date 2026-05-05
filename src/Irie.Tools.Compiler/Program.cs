@@ -37,27 +37,19 @@ rootCommand.SetAction(parseResult =>
         ? Console.In
         : new StreamReader(input);
 
+    var targetInfo = new MOS6502MIRInfo();
+
     CompilationContext context;
     if (startAtPass != null)
     {
-        // MIR input: parse using MOS6502 target parsers and skip early passes.
-        var machineModule = new MachineModule
-        {
-            OpcodeNamer          = MOS6502InstructionInfo.GetDisplayName,
-            RegisterNamer        = MOS6502Registers.NameOf,
-            RegisterClassNamer   = MOS6502RegisterClass.GetName,
-            TiedOperandsProvider = opcode => MOS6502InstructionInfo.TryGet(opcode)?.TiedOperands,
-            OpcodeParser         = MOS6502InstructionInfo.ParseDisplayName,
-            RegisterParser       = MOS6502Registers.TryParse,
-            RegisterClassParser  = name => MOS6502RegisterClass.TryParse(name, out var id) ? id : null,
-        };
-        machineModule.ParseInto(inputReader);
+        // MIR input: parse using MOS6502 target info and skip early passes.
+        var machineModule = MachineModule.Parse(inputReader, targetInfo);
         context = new CompilationContext(machineModule);
     }
     else
     {
         var irModule = IRModule.Parse(inputReader);
-        context = new CompilationContext(irModule);
+        context = new CompilationContext(irModule, targetInfo);
     }
 
     if (inputReader != Console.In)
@@ -74,11 +66,6 @@ rootCommand.SetAction(parseResult =>
     passMgr.AddPass(new RegisterAllocatorPass(new MOS6502RegisterInfo()));
     passMgr.AddPass(new CopyEliminationPass());
     passMgr.Run(context);
-
-    context.MachineModule.OpcodeNamer          = MOS6502InstructionInfo.GetDisplayName;
-    context.MachineModule.RegisterNamer        = MOS6502Registers.NameOf;
-    context.MachineModule.RegisterClassNamer   = MOS6502RegisterClass.GetName;
-    context.MachineModule.TiedOperandsProvider = opcode => MOS6502InstructionInfo.TryGet(opcode)?.TiedOperands;
 
     context.MachineModule.Write(Console.Out);
 });
