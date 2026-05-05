@@ -1,0 +1,18 @@
+; RUN: @iriec --target mos6502 --start-at RegisterCoalescer --stop-after RegisterCoalescer @file
+
+; %1 is used after the copy (the third instruction reads %1 directly),
+; so the copy cannot be eliminated — %1's live range extends past the copy point.
+
+; CHECK: func @src_used_after \{
+; CHECK:   bb0\(\):
+; CHECK:     %1:Ac = LDImm1 0
+; CHECK:     %2:Ac = GenericCopy %1:Ac
+; CHECK:     \$A = GenericCopy %1:Ac
+; CHECK: \}
+
+func @src_used_after {
+  bb0():
+    %1:Ac = LDImm1 0
+    %2:Ac = GenericCopy %1:Ac
+    $A = GenericCopy %1:Ac
+}

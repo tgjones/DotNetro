@@ -27,23 +27,41 @@ public abstract class MachineFunctionPass : Pass
     public abstract void Run(MachineFunction function);
 }
 
-public sealed class CompilationContext(IRModule irModule)
+public sealed class CompilationContext
 {
     private MachineModule? _machineModule;
 
-    public IRModule IRModule { get; } = irModule;
+    public CompilationContext(IRModule irModule) { IRModule = irModule; }
+
+    // For mid-pipeline entry (pre-built MIR input, no IR needed).
+    public CompilationContext(MachineModule machineModule)
+    {
+        IRModule = new IRModule();
+        _machineModule = machineModule;
+    }
+
+    public IRModule IRModule { get; }
 
     public MachineModule MachineModule => _machineModule ??= new MachineModule();
 }
 
-public sealed class PassManager(string? stopAfterPass = null)
+public sealed class PassManager(string? stopAfterPass = null, string? startAtPass = null)
 {
     private readonly List<Pass> _passes = [];
     private bool _stopped;
+    private bool _started = startAtPass == null;
 
     public void AddPass(Pass pass)
     {
         if (_stopped) return;
+
+        if (!_started)
+        {
+            if (string.Equals(pass.Name, startAtPass, StringComparison.InvariantCultureIgnoreCase))
+                _started = true;
+            else
+                return;
+        }
 
         _passes.Add(pass);
 

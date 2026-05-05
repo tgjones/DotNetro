@@ -1,0 +1,20 @@
+; RUN: @iriec --target mos6502 --start-at PhiElimination --stop-after PhiElimination @file
+
+; bb1 has two parameters (%2:Ac, %3:Ac).  The pass inserts two copies in
+; parameter order before the jump and strips both arguments.
+
+; CHECK: func @multi_param \{
+; CHECK:   bb0\(\):
+; CHECK:     %2:Ac = GenericCopy %0:Ac
+; CHECK:     %3:Ac = GenericCopy %1:Ac
+; CHECK:     GenericJump bb1
+; CHECK:   bb1\(\):
+; CHECK:     RTS_Implied
+; CHECK: \}
+
+func @multi_param {
+  bb0():
+    GenericJump bb1, %0:Ac, %1:Ac
+  bb1(%2:Ac, %3:Ac):
+    RTS_Implied
+}

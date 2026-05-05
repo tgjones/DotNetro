@@ -1,0 +1,21 @@
+; RUN: @iriec --target mos6502 --start-at PhiElimination --stop-after PhiElimination @file
+
+; bb1 has one parameter (%1:Ac).  The pass inserts a copy before the jump in
+; bb0 and strips the argument from the jump operand list.
+
+; CHECK: func @single_param \{
+; CHECK:   bb0\(\):
+; CHECK:     %0:Ac = LDImm1 0
+; CHECK:     %1:Ac = GenericCopy %0:Ac
+; CHECK:     GenericJump bb1
+; CHECK:   bb1\(\):
+; CHECK:     RTS_Implied implicit \$A
+; CHECK: \}
+
+func @single_param {
+  bb0():
+    %0:Ac = LDImm1 0
+    GenericJump bb1, %0:Ac
+  bb1(%1:Ac):
+    RTS_Implied implicit $A
+}

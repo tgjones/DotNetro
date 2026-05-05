@@ -1,0 +1,16 @@
+; RUN: @iriec --target mos6502 --start-at RegisterCoalescer --stop-after RegisterCoalescer @file
+
+; %1 has class Ac and %2 has class Cc — incompatible classes, so the copy
+; cannot be eliminated (merging would violate the register class constraint).
+
+; CHECK: func @incompatible \{
+; CHECK:   bb0\(\):
+; CHECK:     %1:Ac = LDImm1 0
+; CHECK:     %2:Cc = GenericCopy %1:Ac
+; CHECK: \}
+
+func @incompatible {
+  bb0():
+    %1:Ac = LDImm1 0
+    %2:Cc = GenericCopy %1:Ac
+}

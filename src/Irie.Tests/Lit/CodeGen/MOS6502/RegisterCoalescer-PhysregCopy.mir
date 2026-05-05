@@ -1,0 +1,17 @@
+; RUN: @iriec --target mos6502 --start-at RegisterCoalescer --stop-after RegisterCoalescer @file
+
+; The source operand is a physical register ($A), not a virtual register.
+; The coalescer only handles vreg-to-vreg copies; physreg copies are left
+; for the RA's copy-hints mechanism and CopyEliminationPass.
+
+; CHECK: func @physreg_copy \{
+; CHECK:   bb0\(\):
+; CHECK:     liveins: \$A
+; CHECK:     %1:Ac = GenericCopy \$A
+; CHECK: \}
+
+func @physreg_copy {
+  bb0():
+    liveins: $A
+    %1:Ac = GenericCopy $A
+}

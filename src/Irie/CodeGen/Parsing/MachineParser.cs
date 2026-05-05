@@ -229,7 +229,8 @@ internal sealed class MachineParser(
     {
         MachineTokenKind.PhysRegRef => true,
         MachineTokenKind.Integer    => true,
-        MachineTokenKind.BlockLabel => true,
+        // A BlockLabel followed by '(' is a block header (bbN(...):), not a use operand.
+        MachineTokenKind.BlockLabel when tokens.Peek.Kind != MachineTokenKind.LParen => true,
         MachineTokenKind.At         => true,
         // %N without ':' is unambiguously a use.
         MachineTokenKind.ValueRef when tokens.Peek.Kind != MachineTokenKind.Colon => true,

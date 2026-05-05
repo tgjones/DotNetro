@@ -37,7 +37,10 @@ internal static partial class LitTestParser
                 switch (commandType)
                 {
                     case "RUN":
-                        commands.Add(new RunCommand(commandArgs));
+                        var expectFailure = commandArgs.StartsWith("not ");
+                        commands.Add(new RunCommand(
+                            expectFailure ? commandArgs[4..] : commandArgs,
+                            ExpectFailure: expectFailure));
                         break;
 
                     case "CHECK":

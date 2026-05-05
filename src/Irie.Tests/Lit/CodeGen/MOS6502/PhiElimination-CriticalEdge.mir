@@ -1,0 +1,19 @@
+; RUN: not @iriec --target mos6502 --start-at PhiElimination --stop-after PhiElimination @file
+
+; bb1 has a parameter and two predecessors (bb0 via conditional branch, bb2 via
+; unconditional jump) — a critical edge.  The pass cannot insert copies on a
+; critical edge without first splitting it, so it throws NotImplementedException.
+
+; CHECK: critical edge with block parameters — split the critical edge before running this pass.
+
+func @crit_edge {
+  bb0():
+    liveins: $A, $X
+    %0:Ac = GenericCopy $A
+    %2:Ac = GenericCopy $X
+    GenericBranchConditional %0:Ac, bb1, %2:Ac, bb2
+  bb1(%3:Ac):
+    RTS_Implied
+  bb2():
+    GenericJump bb1, %2:Ac
+}

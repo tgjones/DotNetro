@@ -15,7 +15,7 @@ internal static class LitTestExecutor
 
         foreach (var command in testFile.Commands.OfType<RunCommand>())
         {
-            var commandOutput = ExecuteRunCommand(command.CommandLine);
+            var commandOutput = ExecuteRunCommand(command.CommandLine, command.ExpectFailure);
             combinedRunOutput += commandOutput;
         }
 
@@ -40,7 +40,7 @@ internal static class LitTestExecutor
         return new LitTestResult(successful, [.. errorMessages], combinedRunOutput);
     }
 
-    private static string ExecuteRunCommand(string commandLine)
+    private static string ExecuteRunCommand(string commandLine, bool expectFailure = false)
     {
         using var process = new Process();
 
@@ -77,9 +77,15 @@ internal static class LitTestExecutor
 
         process.WaitForExit();
 
-        if (process.ExitCode != 0)
+        if (expectFailure)
         {
-            throw new Exception($"Command `{commandLine}` failed with exit code {process.ExitCode}. Output: {output}");
+            if (process.ExitCode == 0)
+                throw new Exception($"Command `{commandLine}` was expected to fail but succeeded. Output: {output}");
+        }
+        else
+        {
+            if (process.ExitCode != 0)
+                throw new Exception($"Command `{commandLine}` failed with exit code {process.ExitCode}. Output: {output}");
         }
 
         return output;

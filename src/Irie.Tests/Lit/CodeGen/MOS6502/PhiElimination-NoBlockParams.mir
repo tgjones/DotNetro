@@ -1,0 +1,16 @@
+; RUN: @iriec --target mos6502 --start-at PhiElimination --stop-after PhiElimination @file
+
+; A function with no block parameters — the pass is a no-op and the MIR
+; is unchanged.
+
+; CHECK: func @noop \{
+; CHECK:   bb0\(\):
+; CHECK:     %0:Ac = GenericCopy \$A
+; CHECK:     RTS_Implied
+; CHECK: \}
+
+func @noop {
+  bb0():
+    %0:Ac = GenericCopy $A
+    RTS_Implied
+}

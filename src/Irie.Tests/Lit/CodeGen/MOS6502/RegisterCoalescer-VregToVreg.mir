@@ -1,0 +1,17 @@
+; RUN: @iriec --target mos6502 --start-at RegisterCoalescer --stop-after RegisterCoalescer @file
+
+; %1 is killed at the copy and both registers have the same class (Ac),
+; so the copy is eliminated: the def of %1 is rewritten to produce %2 directly.
+
+; CHECK: func @simple \{
+; CHECK:   bb0\(\):
+; CHECK:     %2:Ac = LDImm1 0
+; CHECK:     \$A = GenericCopy %2:Ac
+; CHECK: \}
+
+func @simple {
+  bb0():
+    %1:Ac = LDImm1 0
+    %2:Ac = GenericCopy %1:Ac
+    $A = GenericCopy %2:Ac
+}
