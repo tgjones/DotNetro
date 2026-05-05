@@ -5,6 +5,8 @@ using Irie.CodeGen.Passes;
 using Irie.IR;
 using Irie.Target.MOS6502;
 
+TargetRegistry.Register("mos6502", new MOS6502Target());
+
 var inputArgument = new Argument<string?>("input")
 {
     Description = "Path to the input IR file, or - for stdin",
@@ -31,15 +33,15 @@ rootCommand.Options.Add(inputLanguageOption);
 
 rootCommand.SetAction(parseResult =>
 {
-    var input  = parseResult.GetValue(inputArgument);
-    var target = parseResult.GetValue(targetOption) ?? "mos6502";
-    var runPassName    = parseResult.GetValue(runPass);
-    var stopAfterPass  = runPassName ?? parseResult.GetValue(stopAfter);
-    var startAtPass    = runPassName ?? parseResult.GetValue(startAt);
-    var inputLanguage  = parseResult.GetValue(inputLanguageOption);
+    var input         = parseResult.GetValue(inputArgument);
+    var targetName    = parseResult.GetValue(targetOption) ?? "mos6502";
+    var runPassName   = parseResult.GetValue(runPass);
+    var stopAfterPass = runPassName ?? parseResult.GetValue(stopAfter);
+    var startAtPass   = runPassName ?? parseResult.GetValue(startAt);
+    var inputLanguage = parseResult.GetValue(inputLanguageOption);
 
-    if (target != "mos6502")
-        throw new ArgumentException($"Unsupported target '{target}'. Only 'mos6502' is supported.");
+    var target  = TargetRegistry.Get(targetName);
+    var mirInfo = target.CreateMIRInfo();
 
     inputLanguage ??= (input != null && input != "-" && Path.GetExtension(input) == ".mir") ? "mir" : "ir";
 
@@ -50,32 +52,29 @@ rootCommand.SetAction(parseResult =>
         ? Console.In
         : new StreamReader(input);
 
-    var targetInfo = new MOS6502MIRInfo();
-
     CompilationContext context;
     if (inputLanguage == "mir")
     {
-        var machineModule = MachineModule.Parse(inputReader, targetInfo);
+        var machineModule = MachineModule.Parse(inputReader, mirInfo);
         context = new CompilationContext(machineModule);
     }
     else
     {
         var irModule = IRModule.Parse(inputReader);
-        context = new CompilationContext(irModule, targetInfo);
+        context = new CompilationContext(irModule, mirInfo);
     }
 
     if (inputReader != Console.In)
         inputReader.Dispose();
 
     var passMgr = new PassManager(stopAfterPass, startAtPass);
-    passMgr.AddPass(new IRTranslatorPass(new MOS6502CallLowering()));
-    passMgr.AddPass(new LegalizerPass(new MOS6502LegalizerInfo()));
-    passMgr.AddPass(new InstructionSelectorPass(new MOS6502InstructionSelector()));
+    passMgr.AddPass(new IRTranslatorPass(target.CreateCallLowering()));
+    passMgr.AddPass(new LegalizerPass(target.CreateLegalizerInfo()));
+    passMgr.AddPass(new InstructionSelectorPass(target.CreateInstructionSelector()));
     passMgr.AddPass(new PhiEliminationPass());
-    passMgr.AddPass(new TwoAddressInstructionPass(
-        opcode => MOS6502InstructionInfo.TryGet(opcode)?.TiedOperands));
+    passMgr.AddPass(new TwoAddressInstructionPass(opcode => mirInfo.GetTiedOperands(opcode)));
     passMgr.AddPass(new RegisterCoalescerPass());
-    passMgr.AddPass(new RegisterAllocatorPass(new MOS6502RegisterInfo()));
+    passMgr.AddPass(new RegisterAllocatorPass(target.CreateRegisterInfo()));
     passMgr.AddPass(new CopyEliminationPass());
     passMgr.Run(context);
 
