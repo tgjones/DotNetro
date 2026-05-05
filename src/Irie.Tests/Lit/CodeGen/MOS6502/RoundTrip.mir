@@ -1,4 +1,4 @@
-; RUN: @irie-cg @file
+; RUN: @iriec --run-pass=none @file
 
 ; Simple function: two parameters, one block, binary op, copy result back to a physreg.
 

@@ -12,7 +12,6 @@ public sealed class LitTests
         LitTestRunner.Run(filePath, new LitTestConfiguration(new Dictionary<string, string>
         {
             ["irie-as"]  = Path.Combine(AppContext.BaseDirectory, "irie-as"),
-            ["irie-cg"]  = Path.Combine(AppContext.BaseDirectory, "irie-cg"),
             ["irie-dis"] = Path.Combine(AppContext.BaseDirectory, "irie-dis"),
             ["iriec"]    = Path.Combine(AppContext.BaseDirectory, "iriec"),
             ["irie-mc"]  = Path.Combine(AppContext.BaseDirectory, "irie-mc"),

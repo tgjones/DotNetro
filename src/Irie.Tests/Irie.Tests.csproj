@@ -15,7 +15,6 @@
     <ProjectReference Include="..\Irie\Irie.csproj" />
     <ProjectReference Include="..\Irie.Tools.Assembler\Irie.Tools.Assembler.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Irie.Tools.Disassembler\Irie.Tools.Disassembler.csproj" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\Irie.Tools.CodeGen\Irie.Tools.CodeGen.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Irie.Tools.MachineCode\Irie.Tools.MachineCode.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Irie.Tools.Compiler\Irie.Tools.Compiler.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
@@ -23,7 +22,6 @@
   <Target Name="CopyIrieTools" AfterTargets="Build">
     <ItemGroup>
       <_IrieToolFiles Include="$(MSBuildThisFileDirectory)..\Irie.Tools.Assembler\bin\$(Configuration)\$(TargetFramework)\*" Exclude="**\*.pdb" />
-      <_IrieToolFiles Include="$(MSBuildThisFileDirectory)..\Irie.Tools.CodeGen\bin\$(Configuration)\$(TargetFramework)\*" Exclude="**\*.pdb" />
       <_IrieToolFiles Include="$(MSBuildThisFileDirectory)..\Irie.Tools.Disassembler\bin\$(Configuration)\$(TargetFramework)\*" Exclude="**\*.pdb" />
       <_IrieToolFiles Include="$(MSBuildThisFileDirectory)..\Irie.Tools.MachineCode\bin\$(Configuration)\$(TargetFramework)\*" Exclude="**\*.pdb" />
       <_IrieToolFiles Include="$(MSBuildThisFileDirectory)..\Irie.Tools.Compiler\bin\$(Configuration)\$(TargetFramework)\*" Exclude="**\*.pdb" />

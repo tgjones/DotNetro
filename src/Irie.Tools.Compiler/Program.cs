@@ -19,7 +19,7 @@ var stopAfter = new Option<string>("--stop-after") { Description = "Stop after t
 
 var startAt = new Option<string>("--start-at") { Description = "Start at the specified pass, reading input as MIR (skips earlier passes)" };
 
-var runPass = new Option<string>("--run-pass") { Description = "Run only the specified pass (shorthand for --start-at X --stop-after X)" };
+var runPass = new Option<string>("--run-pass") { Description = "Run only the specified pass (shorthand for --start-at X --stop-after X); use 'none' to parse and reprint with no passes" };
 
 var inputLanguageOption = new Option<string?>("--input-language") { Description = "Input language: 'ir' or 'mir'; auto-detected from file extension if omitted" };
 
