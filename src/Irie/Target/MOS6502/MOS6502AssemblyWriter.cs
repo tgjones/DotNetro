@@ -35,7 +35,7 @@ public static class MOS6502AssemblyWriter
 
     private static void WriteInstruction(MachineCodeInstruction instruction, TextWriter writer)
     {
-        var info = MOS6502InstructionInfo.Get(instruction.Opcode);
+        var info = MOS6502InstructionInfo.Instance.Get(instruction.Opcode);
         writer.Write(info.Mnemonic);
 
         var operandText = FormatOperands(instruction, info);
@@ -46,7 +46,7 @@ public static class MOS6502AssemblyWriter
         }
     }
 
-    private static string? FormatOperands(MachineCodeInstruction instruction, MOS6502InstructionInfo info)
+    private static string? FormatOperands(MachineCodeInstruction instruction, MOS6502InstructionDescription info)
     {
         if (info.Mode == AddressingMode.Implied || instruction.Operands.Length == 0)
             return null;

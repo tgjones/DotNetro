@@ -1,71 +1,21 @@
+using Irie.CodeGen;
+
 namespace Irie.Target.MOS6502;
 
-public sealed class MOS6502InstructionInfo(
-    int opcode,
-    string mnemonic,
-    AddressingMode mode,
-    int size,
-    int[]? operandClasses = null,
-    int[]? tiedOperands = null,
-    int[]? implicitDefs = null,
-    int[]? implicitUses = null)
+public sealed class MOS6502InstructionInfo : TargetInstructionInfo
 {
-    public int Opcode { get; } = opcode;
-    public string Mnemonic { get; } = mnemonic;
-    public AddressingMode Mode { get; } = mode;
+    public static readonly MOS6502InstructionInfo Instance = new();
 
-    /// <summary>Total instruction size in bytes including the opcode byte.</summary>
-    public int Size { get; } = size;
+    private static readonly Dictionary<int, MOS6502InstructionDescription> Table = BuildTable();
 
-    /// <summary>
-    /// Per-operand register class constraints (defs first, then uses), indexed
-    /// by position in <see cref="MachineInstruction.Operands"/>. Use
-    /// <see cref="MOS6502RegisterClass.None"/> (0) for positions that don't carry
-    /// a register-class constraint (e.g. immediates). Null for instructions whose
-    /// operands have no class constraints recorded yet.
-    /// </summary>
-    public int[]? OperandClasses { get; } = operandClasses;
+    public override MOS6502InstructionDescription? TryGet(int opcode)
+        => Table.TryGetValue(opcode, out var info) ? info : null;
 
-    /// <summary>
-    /// Tied-operand pairs: parallel to <see cref="OperandClasses"/>; each entry
-    /// is the index of the operand this operand is tied to (defs-first layout),
-    /// or -1 if not tied. Null means no tied operands.
-    /// </summary>
-    public int[]? TiedOperands { get; } = tiedOperands;
-
-    /// <summary>
-    /// Returns the operand index that operand at <paramref name="operandIdx"/> is
-    /// tied to, or -1 if not tied.
-    /// </summary>
-    public int GetTiedToIndex(int operandIdx) =>
-        TiedOperands != null && operandIdx < TiedOperands.Length
-            ? TiedOperands[operandIdx]
-            : -1;
-
-    /// <summary>
-    /// Physical registers implicitly defined (clobbered) by this opcode, beyond
-    /// those already expressed as explicit def operands. Null means none.
-    /// </summary>
-    public int[]? ImplicitDefs { get; } = implicitDefs;
-
-    /// <summary>
-    /// Physical registers implicitly used (read) by this opcode, beyond those
-    /// already expressed as explicit use operands. Null means none.
-    /// </summary>
-    public int[]? ImplicitUses { get; } = implicitUses;
-
-    private static readonly Dictionary<int, MOS6502InstructionInfo> _table = BuildTable();
-
-    public static MOS6502InstructionInfo? TryGet(int opcode)
-        => _table.TryGetValue(opcode, out var info) ? info : null;
-
-    public static MOS6502InstructionInfo Get(int opcode)
-        => _table.TryGetValue(opcode, out var info) ? info
+    public override MOS6502InstructionDescription Get(int opcode)
+        => Table.TryGetValue(opcode, out var info) ? info
         : throw new ArgumentException($"Unknown opcode: ${opcode:X2}", nameof(opcode));
 
-    // Returns a human-readable name suitable for MachineIR text output, e.g. "ADC_ZeroPage".
-    // Pseudo-mode opcodes use just the mnemonic (e.g. "LDImm1").
-    public static string? GetDisplayName(int opcode)
+    public override string? GetDisplayName(int opcode)
     {
         var info = TryGet(opcode);
         if (info == null) return null;
@@ -74,10 +24,9 @@ public sealed class MOS6502InstructionInfo(
             : $"{info.Mnemonic}_{info.Mode}";
     }
 
-    // Parses a display name back to an opcode. Inverse of GetDisplayName.
-    public static int? ParseDisplayName(string name)
+    public override int? ParseDisplayName(string name)
     {
-        foreach (var info in _table.Values)
+        foreach (var info in Table.Values)
         {
             var displayName = info.Mode == AddressingMode.Pseudo
                 ? info.Mnemonic
@@ -88,9 +37,9 @@ public sealed class MOS6502InstructionInfo(
         return null;
     }
 
-    private static Dictionary<int, MOS6502InstructionInfo> BuildTable()
+    private static Dictionary<int, MOS6502InstructionDescription> BuildTable()
     {
-        var entries = new MOS6502InstructionInfo[]
+        var entries = new MOS6502InstructionDescription[]
         {
             // LDA
             new(MOS6502Opcode.LDA_Immediate, "LDA", AddressingMode.Immediate, 2),
@@ -135,14 +84,14 @@ public sealed class MOS6502InstructionInfo(
             // and uses are (L, R, carry_in). We don't currently model the V flag def,
             // so the operand layout is [Ac, Cc, Ac, Imag8, Cc].
             new(MOS6502Opcode.ADC_ZeroPage,  "ADC", AddressingMode.ZeroPage,  2,
-                operandClasses: [
+                OperandClasses: [
                     MOS6502RegisterClass.Ac,    // def[0]: result
                     MOS6502RegisterClass.Cc,    // def[1]: carry_out
                     MOS6502RegisterClass.Ac,    // use[0]: L
                     MOS6502RegisterClass.Imag8, // use[1]: R
                     MOS6502RegisterClass.Cc,    // use[2]: carry_in
                 ],
-                tiedOperands: [-1, -1, 0, -1, -1]), // use[0] (pos 2) tied to def[0] (pos 0)
+                TiedOperands: [-1, -1, 0, -1, -1]), // use[0] (pos 2) tied to def[0] (pos 0)
             new(MOS6502Opcode.ADC_ZeroPageX, "ADC", AddressingMode.ZeroPageX, 2),
             new(MOS6502Opcode.ADC_Absolute,  "ADC", AddressingMode.Absolute,  3),
             new(MOS6502Opcode.ADC_AbsoluteX, "ADC", AddressingMode.AbsoluteX, 3),
@@ -283,15 +232,15 @@ public sealed class MOS6502InstructionInfo(
             // Operand layout: [Cc:def, immediate]. Position 1 has no class because
             // it's an immediate, not a register.
             new(MOS6502Opcode.LDImm1, "LDImm1", AddressingMode.Pseudo, 0,
-                operandClasses: [
+                OperandClasses: [
                     MOS6502RegisterClass.Cc,   // def[0]
                     MOS6502RegisterClass.None, // immediate
                 ]),
         };
 
-        var table = new Dictionary<int, MOS6502InstructionInfo>(entries.Length);
+        var result = new Dictionary<int, MOS6502InstructionDescription>(entries.Length);
         foreach (var entry in entries)
-            table.Add(entry.Opcode, entry);
-        return table;
+            result.Add(entry.Opcode, entry);
+        return result;
     }
 }

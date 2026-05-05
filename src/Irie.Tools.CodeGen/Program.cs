@@ -22,7 +22,7 @@ rootCommand.SetAction(parseResult =>
         ? Console.In
         : new StreamReader(input);
 
-    var module = MachineModule.Parse(inputReader, new MOS6502MIRInfo());
+    var module = MachineModule.Parse(inputReader, new MOS6502Target());
 
     if (inputReader != Console.In)
         inputReader.Dispose();

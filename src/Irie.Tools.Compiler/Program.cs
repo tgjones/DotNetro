@@ -40,8 +40,7 @@ rootCommand.SetAction(parseResult =>
     var startAtPass   = runPassName ?? parseResult.GetValue(startAt);
     var inputLanguage = parseResult.GetValue(inputLanguageOption);
 
-    var target  = TargetRegistry.Get(targetName);
-    var mirInfo = target.CreateMIRInfo();
+    var target = TargetRegistry.Get(targetName);
 
     inputLanguage ??= (input != null && input != "-" && Path.GetExtension(input) == ".mir") ? "mir" : "ir";
 
@@ -55,13 +54,13 @@ rootCommand.SetAction(parseResult =>
     CompilationContext context;
     if (inputLanguage == "mir")
     {
-        var machineModule = MachineModule.Parse(inputReader, mirInfo);
+        var machineModule = MachineModule.Parse(inputReader, target);
         context = new CompilationContext(machineModule);
     }
     else
     {
         var irModule = IRModule.Parse(inputReader);
-        context = new CompilationContext(irModule, mirInfo);
+        context = new CompilationContext(irModule, target);
     }
 
     if (inputReader != Console.In)
@@ -72,7 +71,7 @@ rootCommand.SetAction(parseResult =>
     passMgr.AddPass(new LegalizerPass(target.CreateLegalizerInfo()));
     passMgr.AddPass(new InstructionSelectorPass(target.CreateInstructionSelector()));
     passMgr.AddPass(new PhiEliminationPass());
-    passMgr.AddPass(new TwoAddressInstructionPass(opcode => mirInfo.GetTiedOperands(opcode)));
+    passMgr.AddPass(new TwoAddressInstructionPass(target.CreateInstructionInfo()));
     passMgr.AddPass(new RegisterCoalescerPass());
     passMgr.AddPass(new RegisterAllocatorPass(target.CreateRegisterInfo()));
     passMgr.AddPass(new CopyEliminationPass());

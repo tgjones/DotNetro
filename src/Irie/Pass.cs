@@ -30,9 +30,9 @@ public abstract class MachineFunctionPass : Pass
 public sealed class CompilationContext
 {
     private MachineModule? _machineModule;
-    private readonly TargetMIRInfo _target;
+    private readonly CodeGen.Target _target;
 
-    public CompilationContext(IRModule irModule, TargetMIRInfo target)
+    public CompilationContext(IRModule irModule, CodeGen.Target target)
     {
         IRModule = irModule;
         _target = target;

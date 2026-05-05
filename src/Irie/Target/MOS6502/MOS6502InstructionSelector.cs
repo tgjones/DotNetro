@@ -104,7 +104,7 @@ public sealed class MOS6502InstructionSelector : InstructionSelector
             MOS6502Opcode.ADC_ZeroPage,
             [IRType.I8, IRType.I1],
             uses,
-            MOS6502InstructionInfo.Get(MOS6502Opcode.ADC_ZeroPage).OperandClasses);
+            MOS6502InstructionInfo.Instance.Get(MOS6502Opcode.ADC_ZeroPage).OperandClasses);
 
         builder.Function.ReplaceAllUsesOfRegister(resultVreg,   newDefs[0]);
         builder.Function.ReplaceAllUsesOfRegister(carryOutVreg, newDefs[1]);
@@ -131,7 +131,7 @@ public sealed class MOS6502InstructionSelector : InstructionSelector
             MOS6502Opcode.LDImm1,
             IRType.I1,
             [imm],
-            MOS6502InstructionInfo.Get(MOS6502Opcode.LDImm1).OperandClasses);
+            MOS6502InstructionInfo.Instance.Get(MOS6502Opcode.LDImm1).OperandClasses);
 
         builder.Function.ReplaceAllUsesOfRegister(def.VirtualRegister, newDef);
 

@@ -11,7 +11,7 @@ namespace Irie.CodeGen.Passes;
 //
 // Run after PhiEliminationPass and before RegisterAllocatorPass.
 // Breaks strict SSA (one def per vreg) intentionally.
-public sealed class TwoAddressInstructionPass(Func<int, int[]?> tiedOperandsProvider)
+public sealed class TwoAddressInstructionPass(TargetInstructionInfo instructionInfo)
     : MachineFunctionPass
 {
     public override string Name => "TwoAddressInstruction";
@@ -28,7 +28,7 @@ public sealed class TwoAddressInstructionPass(Func<int, int[]?> tiedOperandsProv
         while (i < block.Instructions.Count)
         {
             var instr = block.Instructions[i];
-            var tiedOperands = tiedOperandsProvider(instr.Opcode);
+            var tiedOperands = instructionInfo.TryGet(instr.Opcode)?.TiedOperands;
             if (tiedOperands != null)
             {
                 var inserted = ProcessInstruction(block, i, instr, function, tiedOperands);

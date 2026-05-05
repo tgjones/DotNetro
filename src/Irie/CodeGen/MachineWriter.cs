@@ -1,7 +1,10 @@
 namespace Irie.CodeGen;
 
-internal sealed class MachineWriter(TargetMIRInfo target)
+internal sealed class MachineWriter(Target target)
 {
+    private readonly TargetMIRInfo _mirInfo = target.CreateMIRInfo();
+    private readonly TargetInstructionInfo _instrInfo = target.CreateInstructionInfo();
+
     public static void Write(MachineModule module, TextWriter writer) =>
         new MachineWriter(module.Target).WriteAll(module, writer);
 
@@ -55,7 +58,7 @@ internal sealed class MachineWriter(TargetMIRInfo target)
     {
         writer.Write("    ");
 
-        var tiedOperands = target.GetTiedOperands(instruction.Opcode);
+        var tiedOperands = _instrInfo.TryGet(instruction.Opcode)?.TiedOperands;
         var defStrings = new List<string>();
         var useStrings = new List<string>();
         var implicitStrings = new List<string>();
@@ -116,7 +119,7 @@ internal sealed class MachineWriter(TargetMIRInfo target)
     private string FormatVirtualRegisterAnnotation(int virtualRegister, MachineFunction function)
     {
         if (function.TryGetVirtualRegisterClass(virtualRegister, out var classId))
-            return target.GetRegisterClassName(classId) ?? $"class({classId})";
+            return _mirInfo.GetRegisterClassName(classId) ?? $"class({classId})";
         if (function.TryGetVirtualRegisterType(virtualRegister, out var type))
             return type.DisplayName;
         return "?";
@@ -133,7 +136,7 @@ internal sealed class MachineWriter(TargetMIRInfo target)
         if (operand is VirtualRegisterOperand vreg
             && function.TryGetVirtualRegisterClass(vreg.VirtualRegister, out var classId))
         {
-            var className = target.GetRegisterClassName(classId) ?? $"class({classId})";
+            var className = _mirInfo.GetRegisterClassName(classId) ?? $"class({classId})";
             return tiedToDefIndex >= 0
                 ? $"%{vreg.VirtualRegister}:{className}(tied-def {tiedToDefIndex})"
                 : $"%{vreg.VirtualRegister}:{className}";
@@ -154,10 +157,10 @@ internal sealed class MachineWriter(TargetMIRInfo target)
         _ => throw new InvalidOperationException($"Unknown operand type: {operand.GetType().Name}"),
     };
 
-    private string FormatPhysReg(int register) => target.GetRegisterName(register);
+    private string FormatPhysReg(int register) => _mirInfo.GetRegisterName(register);
 
     private string GetOpcodeName(int opcode) =>
         GenericOpcode.GetName(opcode)
-        ?? target.GetOpcodeName(opcode)
+        ?? _instrInfo.GetDisplayName(opcode)
         ?? $"opcode({opcode})";
 }

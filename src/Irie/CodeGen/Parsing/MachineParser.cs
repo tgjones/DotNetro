@@ -3,12 +3,14 @@ using Irie.IR.Parsing;
 
 namespace Irie.CodeGen.Parsing;
 
-internal sealed class MachineParser(TargetMIRInfo target)
+internal sealed class MachineParser(Target target)
 {
+    private readonly TargetMIRInfo _mirInfo = target.CreateMIRInfo();
+    private readonly TargetInstructionInfo _instrInfo = target.CreateInstructionInfo();
     private MachineLexer _lexer = null!;
     private MachineToken _current = null!;
 
-    public static MachineModule Parse(TextReader reader, TargetMIRInfo target)
+    public static MachineModule Parse(TextReader reader, Target target)
     {
         var parser = new MachineParser(target);
         parser._lexer = new MachineLexer(reader);
@@ -195,7 +197,7 @@ internal sealed class MachineParser(TargetMIRInfo target)
         {
             // generic opcode — ok
         }
-        else if (target.ParseOpcode(opcodeToken.Text!) is { } targetOpcode)
+        else if (_instrInfo.ParseDisplayName(opcodeToken.Text!) is { } targetOpcode)
         {
             opcode = targetOpcode;
         }
@@ -317,7 +319,7 @@ internal sealed class MachineParser(TargetMIRInfo target)
 
         // Name-based: $A, $X, $RC2 etc.
         var name = token.Text!;
-        if (target.ParseRegister(name) is { } id)
+        if (_mirInfo.ParseRegister(name) is { } id)
             return id;
 
         throw Fail(token, $"Unknown physical register '${name}'");
@@ -326,7 +328,7 @@ internal sealed class MachineParser(TargetMIRInfo target)
     private bool TryParseClass(MachineToken token, out int classId)
     {
         classId = 0;
-        var result = target.ParseRegisterClass(token.Text!);
+        var result = _mirInfo.ParseRegisterClass(token.Text!);
         if (result == null) return false;
         classId = result.Value;
         return true;

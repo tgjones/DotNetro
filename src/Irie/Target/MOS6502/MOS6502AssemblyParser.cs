@@ -226,7 +226,7 @@ public static class MOS6502AssemblyParser
         var table = new Dictionary<(string, AddressingMode), int>();
         for (var opcode = 0; opcode <= 0xFF; opcode++)
         {
-            var info = MOS6502InstructionInfo.TryGet(opcode);
+            var info = MOS6502InstructionInfo.Instance.TryGet(opcode);
             if (info == null) continue;
             table.TryAdd((info.Mnemonic, info.Mode), opcode);
         }

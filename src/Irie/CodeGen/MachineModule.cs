@@ -2,9 +2,9 @@ using Irie.CodeGen.Parsing;
 
 namespace Irie.CodeGen;
 
-public sealed class MachineModule(TargetMIRInfo target)
+public sealed class MachineModule(Target target)
 {
-    public TargetMIRInfo Target { get; } = target;
+    public Target Target { get; } = target;
 
     public List<MachineFunction> Functions { get; } = [];
 
@@ -16,7 +16,7 @@ public sealed class MachineModule(TargetMIRInfo target)
         return function;
     }
 
-    public static MachineModule Parse(TextReader reader, TargetMIRInfo target) =>
+    public static MachineModule Parse(TextReader reader, Target target) =>
         MachineParser.Parse(reader, target);
 
     public void Write(TextWriter writer) => MachineWriter.Write(this, writer);
