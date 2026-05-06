@@ -7,6 +7,8 @@ public abstract class Pass
 {
     public abstract string Name { get; }
     public abstract void Run(CompilationContext context);
+
+    internal PassManager? PassManager { get; set; }
 }
 
 public abstract class IRModulePass : Pass
@@ -25,6 +27,18 @@ public abstract class MachineFunctionPass : Pass
     }
 
     public abstract void Run(MachineFunction function);
+
+    protected TResult GetAnalysis<T, TResult>(MachineFunction function) where T : MachineFunctionAnalysis<TResult>, new()
+        => (PassManager ?? throw new InvalidOperationException($"{Name}: PassManager not set."))
+           .GetAnalysis<T, TResult>(function);
+}
+
+// Base class for analyses that compute information about a MachineFunction.
+// Analyses are not passes — they are never added to a PassManager pipeline.
+// To run an analysis, call PassManager.GetAnalysis<T>(function).
+public abstract class MachineFunctionAnalysis<TResult>
+{
+    public abstract TResult Compute(MachineFunction function);
 }
 
 public sealed class CompilationContext
@@ -69,6 +83,7 @@ public sealed class PassManager(string? stopAfterPass = null, string? startAtPas
                 return;
         }
 
+        pass.PassManager = this;
         _passes.Add(pass);
 
         if (string.Equals(pass.Name, stopAfterPass, StringComparison.InvariantCultureIgnoreCase))
@@ -79,5 +94,13 @@ public sealed class PassManager(string? stopAfterPass = null, string? startAtPas
     {
         foreach (var pass in _passes)
             pass.Run(context);
+    }
+
+    public TResult GetAnalysis<T, TResult>(MachineFunction function) where T : MachineFunctionAnalysis<TResult>, new()
+    {
+        // TODO: Cache analysis results to avoid redundant computation if the same analysis is requested multiple times for the same function.
+        // But then we'll need each pass to declare whether it invalidates / preserves the analysis.
+        var analysis = new T();
+        return analysis.Compute(function);
     }
 }

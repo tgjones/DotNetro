@@ -10,10 +10,11 @@ public sealed class LitTests
     [MethodDataSource(nameof(LitTestSource))]
     public void LitTest(string filePath)
     {
+        var buildConfig = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar).Split(Path.DirectorySeparatorChar)[^2];
         LitTestRunner.Run(filePath, new LitTestConfiguration(new Dictionary<string, string>
         {
-            ["cs_compiler"] = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../DotNetro.Compiler.Tests.CsCompiler/bin/Debug/net10.0/DotNetro.Compiler.Tests.CsCompiler")),
-            ["dnrc"] = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../DotNetro.Compiler.Driver/bin/Debug/net10.0/dnrc")),
+            ["cs_compiler"] = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, $"../../../../DotNetro.Compiler.Tests.CsCompiler/bin/{buildConfig}/net10.0/DotNetro.Compiler.Tests.CsCompiler")),
+            ["dnrc"] = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, $"../../../../DotNetro.Compiler.Driver/bin/{buildConfig}/net10.0/dnrc")),
         }.ToImmutableDictionary()));
     }
 

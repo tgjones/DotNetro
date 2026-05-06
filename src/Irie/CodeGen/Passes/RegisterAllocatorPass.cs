@@ -1,3 +1,5 @@
+using Irie.CodeGen.Analyses;
+
 namespace Irie.CodeGen.Passes;
 
 // Linear-scan register allocator (Poletto & Sarkar, 1999).
@@ -25,7 +27,7 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo tri) : MachineFunct
 
     public override void Run(MachineFunction function)
     {
-        var liveness = new LivenessAnalysisPass().Compute(function);
+        var liveness = GetAnalysis<LivenessAnalysis, Liveness>(function);
 
         // Sort live intervals by start slot.
         var intervals = liveness.RangeOf

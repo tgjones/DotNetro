@@ -6,7 +6,13 @@ namespace Irie.Tests.CodeGen;
 
 public sealed class RegisterAllocatorTests
 {
-    private static readonly RegisterAllocatorPass Pass = new(new MOS6502RegisterInfo());
+    private static readonly RegisterAllocatorPass Pass;
+
+    static RegisterAllocatorTests()
+    {
+        Pass = new RegisterAllocatorPass(new MOS6502RegisterInfo());
+        new PassManager().AddPass(Pass);
+    }
 
     // Helper: first physreg def in instruction.
     private static int DefPhysreg(MachineInstruction instr) =>

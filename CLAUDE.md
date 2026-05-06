@@ -17,9 +17,11 @@ dotnet test --project src/DotNetro.Compiler.Tests
 dotnet test --project src/Irie.Tests
 dotnet test --project src/DotLit.Tests
 
-# Run a specific test class or method
-dotnet test --project src/DotNetro.Compiler.Tests --filter "DotNetCompilerTests"
-dotnet test --project src/DotNetro.Compiler.Tests --filter "FullyQualifiedName~HelloWorld"
+# Run tests in a specific class (TUnit uses --treenode-filter, not --filter)
+dotnet test --project src/Irie.Tests --treenode-filter "/*/*/RegisterAllocatorTests/*"
+
+# Run tests matching a method name pattern
+dotnet test --project src/Irie.Tests --treenode-filter "*/*/*/LitTest*"
 ```
 
 CI runs `dotnet test --solution src` in both Debug and Release configurations.
@@ -77,10 +79,11 @@ CI runs `dotnet test --solution src` in both Debug and Release configurations.
     - `MOS6502CallLowering` — CC_MOS convention: i8 bytes assigned in order A, X, RC2, RC3, … (LSB-first for multi-byte values); `LegalizerInfo` legalizes `GenericAdd i32 → NarrowScalar`; `InstructionSelector` selects `GenericAddCarry` → `CLC`+`ADC_ZeroPage`, RAUWing the original result vreg to the new ADC def. Has fallback `_mergeMap` handling for any `Merge`/`Unmerge` artifacts that survive the legalizer (the artifact combiner folds the common case).
 
 - **Irie.Tools.Assembler** — console app (`irie-as`); reads Irie text IR (stdin or file), writes binary IR
-- **Irie.Tools.CodeGen** — console app (`irie-cg`); reads Machine IR text (stdin or file), parses and reprints it (round-trip tool for LIT tests)
 - **Irie.Tools.Disassembler** — console app (`irie-dis`); reads binary IR (stdin or file), writes Irie text IR
 - **Irie.Tools.Compiler** — console app (`iriec`); reads Irie text IR (stdin or file), runs IRTranslator → Legalizer → InstructionSelector, writes MachineIR text; `--target mos6502` (only supported target)
 - **Irie.Tools.MachineCode** — console app (`irie-mc`); `--assemble` parses MOS6502 assembly text → structured binary; `--disassemble` reads binary → assembly text
+
+- **DotNetro.Compiler.Tests.CsCompiler** — helper tool used by `DotNetro.Compiler.Tests` lit tests; compiles a `.cs` source file to a `.dll` via Roslyn, piped into `dnrc`
 
 - **DotLit** — LIT-style test infrastructure; parses `RUN:` and `CHECK:` directives from any comment line; used by both `DotNetro.Compiler.Tests` (`.cs` files, `//` comments) and `Irie.Tests` (`.irie` files for IR tests, `.mir` files for CodeGen/Machine IR tests, `.s` files for MachineCode tests; all use `;` comments)
 

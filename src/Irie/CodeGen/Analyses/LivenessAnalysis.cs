@@ -1,4 +1,4 @@
-namespace Irie.CodeGen.Passes;
+namespace Irie.CodeGen.Analyses;
 
 // Computes liveness information for a MachineFunction.
 //
@@ -15,14 +15,9 @@ namespace Irie.CodeGen.Passes;
 // Physical register interference (from MachineBasicBlock.LiveIns and
 // MOS6502InstructionInfo.ImplicitDefs) is left for the allocator to query
 // directly rather than being pre-computed here.
-public sealed class LivenessAnalysisPass : MachineFunctionPass
+public sealed class LivenessAnalysis : MachineFunctionAnalysis<Liveness>
 {
-    public override string Name => "LivenessAnalysis";
-
-    // Run as a transform pass (no-op; just computes and discards).
-    public override void Run(MachineFunction function) => Compute(function);
-
-    public Liveness Compute(MachineFunction function)
+    public override Liveness Compute(MachineFunction function)
     {
         function.RebuildCfg();
 
@@ -122,11 +117,11 @@ public sealed class LivenessAnalysisPass : MachineFunctionPass
                     Extend(vreg, lastSlot);
         }
 
-        var rangeOf = ranges.ToDictionary(
-            kv => kv.Key,
-            kv => new LiveRange(kv.Value.start, kv.Value.end));
-
-        return new Liveness(slotOf, rangeOf, liveIn, liveOut);
+        return new Liveness(
+             slotOf,
+             ranges.ToDictionary(kv => kv.Key, kv => new LiveRange(kv.Value.start, kv.Value.end)),
+             liveIn,
+             liveOut);
     }
 
     // DFS post-order reversed = reverse post-order.

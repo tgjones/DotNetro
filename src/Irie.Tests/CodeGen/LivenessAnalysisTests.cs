@@ -1,12 +1,12 @@
 using Irie.CodeGen;
-using Irie.CodeGen.Passes;
+using Irie.CodeGen.Analyses;
 using Irie.Target.MOS6502;
 
 namespace Irie.Tests.CodeGen;
 
 public sealed class LivenessAnalysisTests
 {
-    private static readonly LivenessAnalysisPass Pass = new();
+    private static readonly LivenessAnalysis Analysis = new();
 
     // -------------------------------------------------------------------------
     // Tests
@@ -33,7 +33,8 @@ public sealed class LivenessAnalysisTests
             new VirtualRegisterOperand(v1, IsDefinition: true),
             new VirtualRegisterOperand(v0, IsDefinition: false));
 
-        var liveness = Pass.Compute(fn);
+
+        var liveness = Analysis.Compute(fn);
 
         await Assert.That(liveness.LiveIn[bb0]).IsEmpty();
         await Assert.That(liveness.LiveOut[bb0]).IsEmpty();
@@ -77,7 +78,7 @@ public sealed class LivenessAnalysisTests
             new VirtualRegisterOperand(v1, IsDefinition: true),
             new VirtualRegisterOperand(v0, IsDefinition: false));
 
-        var liveness = Pass.Compute(fn);
+        var liveness = Analysis.Compute(fn);
 
         await Assert.That(liveness.LiveIn[bb0]).IsEmpty();
         await Assert.That(liveness.LiveOut[bb0]).IsEquivalentTo(new[] { v0 });
@@ -123,7 +124,7 @@ public sealed class LivenessAnalysisTests
         bb1.AddInstruction(GenericOpcode.GenericJump,
             new BlockOperand(bb1));  // self-loop
 
-        var liveness = Pass.Compute(fn);
+        var liveness = Analysis.Compute(fn);
 
         await Assert.That(liveness.LiveIn[bb0]).IsEmpty();
         await Assert.That(liveness.LiveOut[bb0]).IsEquivalentTo(new[] { v0 });
@@ -143,7 +144,7 @@ public sealed class LivenessAnalysisTests
     public async Task EmptyFunction_NoRanges()
     {
         var fn = new MachineFunction("empty");
-        var liveness = Pass.Compute(fn);
+        var liveness = Analysis.Compute(fn);
 
         await Assert.That(liveness.RangeOf.Count).IsEqualTo(0);
         await Assert.That(liveness.SlotOf.Count).IsEqualTo(0);
