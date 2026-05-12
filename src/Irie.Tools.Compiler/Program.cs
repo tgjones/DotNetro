@@ -73,7 +73,9 @@ rootCommand.SetAction(parseResult =>
     passMgr.AddPass(new PhiEliminationPass());
     passMgr.AddPass(new TwoAddressInstructionPass(target.CreateInstructionInfo()));
     passMgr.AddPass(new RegisterCoalescerPass());
-    passMgr.AddPass(new RegisterAllocatorPass(target.CreateRegisterInfo()));
+    var regAllocFlexibleI8Class = target is MOS6502Target ? MOS6502RegisterClass.Anyi8 : 0;
+    passMgr.AddPass(new RegisterAllocatorPass(target.CreateRegisterInfo(), target.CreateInstructionInfo(), regAllocFlexibleI8Class));
+    passMgr.AddPass(new VirtualRegisterRewriterPass(target.CreateRegisterInfo()));
     passMgr.AddPass(new CopyEliminationPass());
     passMgr.Run(context);
 

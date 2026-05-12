@@ -2,9 +2,10 @@ namespace Irie.Target.MOS6502;
 
 // MOS6502 register class IDs. 0 means "no class assigned"; all real classes are >= 1.
 //
-// One class per architectural register (A, X, Y, C, V) plus an Imag8 class covering
-// the imaginary 8-bit zero-page register file. Class assignment happens at
-// InstructionSelect time; there is no separate register-bank-selection step.
+// - Ac, Xc, Yc, Cc, Vc: single architectural registers
+// - Imag8: imaginary 8-bit zero-page registers (RC0..RCn)
+// - Anyi8: any 8-bit register (A, X, or Imag8). Used for values that can be stored
+//   in any 8-bit location but aren't constrained to a specific one.
 public static class MOS6502RegisterClass
 {
     public const int None  = 0;
@@ -14,6 +15,7 @@ public static class MOS6502RegisterClass
     public const int Cc    = 4; // C flag (single bit)
     public const int Vc    = 5; // V flag (single bit)
     public const int Imag8 = 6; // imaginary 8-bit zero-page registers (RC0..RCn)
+    public const int Anyi8 = 7; // any 8-bit register (A, X, or Imag8)
 
     public static string? GetName(int classId) => classId switch
     {
@@ -23,6 +25,7 @@ public static class MOS6502RegisterClass
         Cc    => "Cc",
         Vc    => "Vc",
         Imag8 => "Imag8",
+        Anyi8 => "Anyi8",
         _ => null,
     };
 
@@ -36,6 +39,7 @@ public static class MOS6502RegisterClass
             "Cc"    => Cc,
             "Vc"    => Vc,
             "Imag8" => Imag8,
+            "Anyi8" => Anyi8,
             _ => None,
         };
         return classId != None;

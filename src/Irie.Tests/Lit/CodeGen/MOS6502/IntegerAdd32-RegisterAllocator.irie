@@ -1,33 +1,45 @@
 ; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file
 
-; Checks the post-RA phys-only shape of the IntegerAdd32 function.
+; Checks the post-RA vreg-only shape of the IntegerAdd32 function.
 ;
-; RegisterCoalescerPass (runs before RA) merges the four TwoAddr vregs
-; (%0→%33, %1→%35, %2→%37, %3→%39) and eliminates the corresponding copies,
-; so the RA now sees 18 instructions instead of 22.  All eight argument copies
-; and four return copies become identity copies via copy hints; the four TwoAddr
-; identity copies are gone.
+; After RegisterAllocatorPass (before VirtualRegisterRewriter):
+; - Liveins are assigned to Anyi8 (flexible 8-bit) for maximum routing flexibility
+; - Constraint-fixup copies move them to specific classes when needed (e.g., Imag8 for RHS operands)
+; - Result-preservation copies use Anyi8 class so results can be routed differently
+; - All operands remain as virtual registers (no physregs yet)
 
 ; CHECK: func @TestFunction \{
 ; CHECK:   bb0\(\):
 ; CHECK:     liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7
-; CHECK:     \$A = GenericCopy \$A
-; CHECK:     \$X = GenericCopy \$X
-; CHECK:     \$RC2 = GenericCopy \$RC2
-; CHECK:     \$RC3 = GenericCopy \$RC3
-; CHECK:     \$RC4 = GenericCopy \$RC4
-; CHECK:     \$RC5 = GenericCopy \$RC5
-; CHECK:     \$RC6 = GenericCopy \$RC6
-; CHECK:     \$RC7 = GenericCopy \$RC7
-; CHECK:     \$C = LDImm1 0
-; CHECK:     \$A, \$C = ADC_ZeroPage \$A, \$RC4, \$C
-; CHECK:     \$X, \$C = ADC_ZeroPage \$X, \$RC5, \$C
-; CHECK:     \$RC2, \$C = ADC_ZeroPage \$RC2, \$RC6, \$C
-; CHECK:     \$RC3, \$C = ADC_ZeroPage \$RC3, \$RC7, \$C
-; CHECK:     \$A = GenericCopy \$A
-; CHECK:     \$X = GenericCopy \$X
-; CHECK:     \$RC2 = GenericCopy \$RC2
-; CHECK:     \$RC3 = GenericCopy \$RC3
+; CHECK:     %33:Anyi8 = GenericCopy \$A
+; CHECK:     %35:Anyi8 = GenericCopy \$X
+; CHECK:     %37:Anyi8 = GenericCopy \$RC2
+; CHECK:     %39:Anyi8 = GenericCopy \$RC3
+; CHECK:     %5:Anyi8 = GenericCopy \$RC4
+; CHECK:     %6:Anyi8 = GenericCopy \$RC5
+; CHECK:     %7:Anyi8 = GenericCopy \$RC6
+; CHECK:     %8:Anyi8 = GenericCopy \$RC7
+; CHECK:     %32:Cc = LDImm1 0
+; CHECK:     %41:Ac = GenericCopy %33:Anyi8
+; CHECK:     %42:Ac = GenericCopy %33:Anyi8
+; CHECK:     %43:Imag8 = GenericCopy %5:Anyi8
+; CHECK:     %41:Ac, %34:Cc = ADC_ZeroPage %42:Ac\(tied-def 0\), %43:Imag8, %32:Cc
+; CHECK:     %44:Ac = GenericCopy %35:Anyi8
+; CHECK:     %45:Ac = GenericCopy %35:Anyi8
+; CHECK:     %46:Imag8 = GenericCopy %6:Anyi8
+; CHECK:     %44:Ac, %36:Cc = ADC_ZeroPage %45:Ac\(tied-def 0\), %46:Imag8, %34:Cc
+; CHECK:     %47:Ac = GenericCopy %37:Anyi8
+; CHECK:     %48:Ac = GenericCopy %37:Anyi8
+; CHECK:     %49:Imag8 = GenericCopy %7:Anyi8
+; CHECK:     %47:Ac, %38:Cc = ADC_ZeroPage %48:Ac\(tied-def 0\), %49:Imag8, %36:Cc
+; CHECK:     %50:Ac = GenericCopy %39:Anyi8
+; CHECK:     %51:Ac = GenericCopy %39:Anyi8
+; CHECK:     %52:Imag8 = GenericCopy %8:Anyi8
+; CHECK:     %50:Ac, %40:Cc = ADC_ZeroPage %51:Ac\(tied-def 0\), %52:Imag8, %38:Cc
+; CHECK:     \$A = GenericCopy %33:Anyi8
+; CHECK:     \$X = GenericCopy %35:Anyi8
+; CHECK:     \$RC2 = GenericCopy %37:Anyi8
+; CHECK:     \$RC3 = GenericCopy %39:Anyi8
 ; CHECK:     RTS_Implied implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
 ; CHECK: \}
 

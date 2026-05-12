@@ -9,6 +9,8 @@ namespace Irie.CodeGen.Passes;
 // at the CodeGen→MachineCode lowering stage.
 //
 // Run after RegisterAllocatorPass (no virtual registers may remain).
+
+// TODO: Is this redundant now that we have RegisterCoalescer?
 public sealed class CopyEliminationPass : MachineFunctionPass
 {
     public override string Name => "CopyElimination";

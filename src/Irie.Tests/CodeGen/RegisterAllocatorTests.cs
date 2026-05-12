@@ -10,7 +10,7 @@ public sealed class RegisterAllocatorTests
 
     static RegisterAllocatorTests()
     {
-        Pass = new RegisterAllocatorPass(new MOS6502RegisterInfo());
+        Pass = new RegisterAllocatorPass(new MOS6502RegisterInfo(), MOS6502InstructionInfo.Instance, MOS6502RegisterClass.Anyi8);
         new PassManager().AddPass(Pass);
     }
 

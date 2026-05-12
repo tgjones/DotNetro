@@ -40,6 +40,12 @@ public sealed class MachineFunction(string name)
         _virtualRegisterClasses[virtualRegister] = classId;
     }
 
+    // Force-reassign a vreg's register class (used by register allocator for livein widening).
+    public void ForceSetVirtualRegisterClass(int virtualRegister, int classId)
+    {
+        _virtualRegisterClasses[virtualRegister] = classId;
+    }
+
     public bool TryGetVirtualRegisterClass(int virtualRegister, out int classId) =>
         _virtualRegisterClasses.TryGetValue(virtualRegister, out classId);
 
