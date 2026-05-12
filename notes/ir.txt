@@ -1,0 +1,75 @@
+; Input
+
+func @AddInt16 : (i16, i16) -> i16 {
+bb0(%0 : i16, %1 : i16):
+    %2 = arith.addi %0, %1
+    core.return %2
+}
+
+; ABI Lowering
+
+func @AddInt16 : (i8, i8, i8, i8) -> (i8, i8) {
+bb0(%0 : i8, %1 : i8, %2 : i8, %3 : i8):
+    %4 = pseudo.merge %0, %1
+    %5 = pseudo.merge %2, %3
+    %6 = arith.addi %4, %5
+    %7, %8 = pseudo.unmerge %6
+    core.return %7, %8
+}
+
+; Legalization
+
+func @AddInt16 : (i8, i8, i8, i8) -> (i8, i8) {
+bb0(%0 : i8, %1 : i8, %2 : i8, %3 : i8):
+    %6, %7 = arith.addi_with_carry %0, %2, 0 : i1
+    %8, %9 = arith.addi_with_carry %1, %3, %7
+    core.return %6, %8
+}
+
+; Instruction Selection
+
+func @AddInt16 : (i8, i8, i8, i8) -> (i8, i8) {
+bb0(%0 : i8, %1 : i8, %2 : i8, %3 : i8):
+    %4 = mos6502.clc
+    %6, %7 = mos6502.adc %0, %2, %4
+    %8, %9 = mos6502.adc %1, %3, %7
+    mos6502.rts %6, %8
+}
+
+; Register Allocation
+
+; Prior to this pass, several of the instructions have operand constraints:
+; mos6502.clc - sets the $c register
+; mos6502.adc - reads and writes the $a register and $c register
+
+; Prior to this pass the IR is in SSA form.
+; After this pass the IR is not in SSA form.
+
+func @AddInt16 : (i8, i8, i8, i8) -> (i8, i8) {
+bb0($a, $x, $zp2, $zp3):
+    $c = mos6502.clc
+    $a, $c = mos6502.adc $a, $zp2, $c
+    $y = pseudo.copy $a
+    $a = pseudo.copy $x
+    $a, $c = mos6502.adc $a, $zp3, $c
+    $x = pseudo.copy $a
+    $a = pseudo.copy $y
+    mos6502.rts $a, $x
+}
+
+; Addressing Mode Selection
+
+; Can't happen until we've allocated all the registers,
+; at which point we know if anything was spilled.
+
+func @AddInt16 : (i8, i8, i8, i8) -> (i8, i8) {
+bb0($a, $x, $zp2, $zp3):
+    $c = mos6502.clc
+    $a, $c = mos6502.adc.zp $a, $zp2, $c
+    $y = pseudo.copy $a
+    $a = pseudo.copy $x
+    $a, $c = mos6502.adc.zp $a, $zp3, $c
+    $x = pseudo.copy $a
+    $a = pseudo.copy $y
+    mos6502.rts $a, $x
+}
