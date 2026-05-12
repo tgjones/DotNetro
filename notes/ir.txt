@@ -130,3 +130,133 @@ bb0 [liveins: $a, $x, $zp2, $zp3]:
     $a = mos6502.tya $y
     mos6502.rts $a, $x
 }
+
+; ============================================================
+; @Foo : (i8, i8) -> i8
+;
+; if (x > y) return x + y else return x
+;
+; Uses i8 parameters to avoid 16-bit legalization noise.
+; Demonstrates cf.cond_br and block arguments through the pipeline.
+; Note: %x and %y are virtual registers (sigil %); $x and $y are physical.
+; ============================================================
+
+; Input
+
+func @Foo : (i8, i8) -> i8 {
+bb0(%x : i8, %y : i8):
+    %cond = arith.cmpi sgt, %x, %y
+    cf.cond_br %cond, bb1, bb2(%x)
+
+bb1:
+    %sum = arith.addi %x, %y
+    cf.br bb2(%sum)
+
+bb2(%result : i8):
+    core.return %result
+}
+
+; ABI Lowering: no change — i8 is already ABI-legal.
+
+; Call Lowering
+
+func @Foo : (i8, i8) -> i8 {
+bb0 [liveins: $a, $x]:
+    %x = pseudo.copy $a
+    %y = pseudo.copy $x
+    %cond = arith.cmpi sgt, %x, %y
+    cf.cond_br %cond, bb1, bb2(%x)
+
+bb1:
+    %sum = arith.addi %x, %y
+    cf.br bb2(%sum)
+
+bb2(%result : i8):
+    $a = pseudo.copy %result
+    core.return
+}
+
+; Legalization: no change — i8 arithmetic is already legal.
+
+; Instruction Selection
+;
+; arith.cmpi sgt + cf.cond_br fuse into mos6502.cmp + mos6502.bgt.
+; mos6502.cmp requires its first operand in $a (pre-coloured).
+; The second operand (%y) is left virtual; RA will assign it to a ZP-class register
+; since CMP and ADC have no register-to-register forms on the 6502.
+
+func @Foo : (i8, i8) -> i8 {
+bb0 [liveins: $a, $x]:
+    %x = pseudo.copy $a
+    %y = pseudo.copy $x
+    $a = pseudo.copy %x             ; cmp requires first operand in $a
+    $n, $v, $z = mos6502.cmp $a, %y
+    mos6502.bgt $n, $v, $z, bb1, bb2(%x)
+
+bb1:
+    $c = mos6502.clc
+    $a = pseudo.copy %x             ; adc requires first operand in $a
+    $a, $c = mos6502.adc $a, %y, $c
+    cf.br bb2($a)
+
+bb2(%result : i8):
+    $a = pseudo.copy %result
+    mos6502.rts $a
+}
+
+; Register Allocation
+;
+; %x→$a: entry copy + both isel copies eliminated
+; %y→$zp2: cannot use $x (CMP and ADC require a ZP-class second operand);
+;           entry copy survives as $zp2 = pseudo.copy $x
+; %result→$a: both edges already carry $a; copy in bb2 eliminated;
+;             block arguments vanish entirely (no edge copies needed)
+
+func @Foo : (i8, i8) -> i8 {
+bb0 [liveins: $a, $x]:
+    $zp2 = pseudo.copy $x
+    $n, $v, $z = mos6502.cmp $a, $zp2
+    mos6502.bgt $n, $v, $z, bb1, bb2
+
+bb1 [liveins: $a, $zp2]:
+    $c = mos6502.clc
+    $a, $c = mos6502.adc $a, $zp2, $c
+    cf.br bb2
+
+bb2 [liveins: $a]:
+    mos6502.rts $a
+}
+
+; Addressing Mode Selection
+
+func @Foo : (i8, i8) -> i8 {
+bb0 [liveins: $a, $x]:
+    $zp2 = pseudo.copy $x
+    $n, $v, $z = mos6502.cmp.zp $a, $zp2
+    mos6502.bgt $n, $v, $z, bb1, bb2
+
+bb1 [liveins: $a, $zp2]:
+    $c = mos6502.clc
+    $a, $c = mos6502.adc.zp $a, $zp2, $c
+    cf.br bb2
+
+bb2 [liveins: $a]:
+    mos6502.rts $a
+}
+
+; Pseudo Instruction Expansion
+
+func @Foo : (i8, i8) -> i8 {
+bb0 [liveins: $a, $x]:
+    $zp2 = mos6502.stx $x          ; STX: store X to zero-page addr of $zp2
+    $n, $v, $z = mos6502.cmp.zp $a, $zp2
+    mos6502.bgt $n, $v, $z, bb1, bb2
+
+bb1 [liveins: $a, $zp2]:
+    $c = mos6502.clc
+    $a, $c = mos6502.adc.zp $a, $zp2, $c
+    cf.br bb2
+
+bb2 [liveins: $a]:
+    mos6502.rts $a
+}
