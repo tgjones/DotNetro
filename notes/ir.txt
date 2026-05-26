@@ -8,22 +8,11 @@ bb0(%0 : i16, %1 : i16):
 
 ; ABI Lowering
 
-func @AddInt16 : (i8, i8, i8, i8) -> (i8, i8) {
-bb0(%0 : i8, %1 : i8, %2 : i8, %3 : i8):
-    %4 = pseudo.merge %0, %1
-    %5 = pseudo.merge %2, %3
-    %6 = arith.addi %4, %5
-    %7, %8 = pseudo.unmerge %6
-    core.return %7, %8
-}
-
-; Call Lowering
-
-; Replaces block parameters with explicit copies from ABI physical registers.
+; Replaces entry block parameters with explicit copies from ABI physical registers.
 ; The function signature is preserved for callers; bb0 has no parameters.
-; Return values are similarly made explicit before core.return.
+; Return values are similarly made explicit before pseudo.return.
 
-func @AddInt16 : (i8, i8, i8, i8) -> (i8, i8) {
+func @AddInt16 : (i16, i16) -> i16 {
 bb0 [liveins: $a, $x, $zp2, $zp3]:
     %0 = pseudo.copy $a
     %1 = pseudo.copy $x
@@ -35,12 +24,12 @@ bb0 [liveins: $a, $x, $zp2, $zp3]:
     %7, %8 = pseudo.unmerge %6
     $a = pseudo.copy %7
     $x = pseudo.copy %8
-    core.return
+    pseudo.return
 }
 
 ; Legalization
 
-func @AddInt16 : (i8, i8, i8, i8) -> (i8, i8) {
+func @AddInt16 : (i16, i16) -> i16 {
 bb0 [liveins: $a, $x, $zp2, $zp3]:
     %0 = pseudo.copy $a
     %1 = pseudo.copy $x
@@ -59,7 +48,7 @@ bb0 [liveins: $a, $x, $zp2, $zp3]:
 ; Physical registers appear wherever the target mandates a specific register;
 ; virtual registers remain where RA has freedom to assign.
 
-func @AddInt16 : (i8, i8, i8, i8) -> (i8, i8) {
+func @AddInt16 : (i16, i16) -> i16 {
 bb0 [liveins: $a, $x, $zp2, $zp3]:
     %0 = pseudo.copy $a
     %1 = pseudo.copy $x
@@ -88,7 +77,7 @@ bb0 [liveins: $a, $x, $zp2, $zp3]:
 ;   %8→$x: coalesces with $x = pseudo.copy %8; saves hi-byte directly into return reg
 ;          (%8→$a would be wrong: $a is overwritten by $a = pseudo.copy %6 before $x reads %8)
 
-func @AddInt16 : (i8, i8, i8, i8) -> (i8, i8) {
+func @AddInt16 : (i16, i16) -> i16 {
 bb0 [liveins: $a, $x, $zp2, $zp3]:
     $c = mos6502.clc
     $a, $c = mos6502.adc $a, $zp2, $c
@@ -105,7 +94,7 @@ bb0 [liveins: $a, $x, $zp2, $zp3]:
 ; Can't happen until we've allocated all the registers,
 ; at which point we know if anything was spilled.
 
-func @AddInt16 : (i8, i8, i8, i8) -> (i8, i8) {
+func @AddInt16 : (i16, i16) -> i16 {
 bb0 [liveins: $a, $x, $zp2, $zp3]:
     $c = mos6502.clc
     $a, $c = mos6502.adc.zp $a, $zp2, $c
@@ -119,7 +108,7 @@ bb0 [liveins: $a, $x, $zp2, $zp3]:
 
 ; Pseudo Instruction Expansion
 
-func @AddInt16 : (i8, i8, i8, i8) -> (i8, i8) {
+func @AddInt16 : (i16, i16) -> i16 {
 bb0 [liveins: $a, $x, $zp2, $zp3]:
     $c = mos6502.clc
     $a, $c = mos6502.adc.zp $a, $zp2, $c
@@ -156,9 +145,7 @@ bb2(%result : i8):
     core.return %result
 }
 
-; ABI Lowering: no change — i8 is already ABI-legal.
-
-; Call Lowering
+; ABI Lowering
 
 func @Foo : (i8, i8) -> i8 {
 bb0 [liveins: $a, $x]:
