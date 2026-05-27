@@ -14,6 +14,7 @@ public static class DialectRegistry
                 $"A dialect with prefix '{dialect.Prefix}' is already registered.");
 
         var id = new DialectId(_byId.Count);
+        dialect.Id = id;
         _byId.Add(dialect);
         _byPrefix[dialect.Prefix] = dialect;
         dialect.OnRegistered(id);

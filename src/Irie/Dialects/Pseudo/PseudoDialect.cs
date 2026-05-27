@@ -4,7 +4,7 @@ namespace Irie.Dialects.Pseudo;
 
 public sealed class PseudoDialect : Dialect
 {
-    public static DialectId Id { get; private set; }
+    public static new DialectId Id { get; private set; }
 
     public override string Prefix => "pseudo";
 

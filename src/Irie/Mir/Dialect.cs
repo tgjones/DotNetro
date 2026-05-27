@@ -5,6 +5,10 @@ namespace Irie.Mir;
 // DialectRegistry.Register at registration time) or by their prefix.
 public abstract class Dialect
 {
+    // Populated by DialectRegistry.Register. Stays at default(DialectId)
+    // until then; do not look up a dialect by Id before it's registered.
+    public DialectId Id { get; internal set; }
+
     // Lowercase short name printed before each opcode (e.g. "arith", "core").
     public abstract string Prefix { get; }
 

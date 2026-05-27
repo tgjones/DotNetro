@@ -1,4 +1,6 @@
 using Irie.IR;
+using Irie.Mir.Parsing;
+using Irie.Mir.Writing;
 
 namespace Irie.Mir;
 
@@ -13,4 +15,8 @@ public sealed class MirModule
         Functions.Add(function);
         return function;
     }
+
+    public static MirModule Parse(TextReader reader) => MirParser.Parse(reader);
+
+    public void Write(TextWriter writer) => MirWriter.Write(this, writer);
 }
