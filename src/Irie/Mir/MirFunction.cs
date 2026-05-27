@@ -35,6 +35,11 @@ public sealed class MirFunction(string name, IRType[] paramTypes, IRType returnT
     public bool TryGetVRegAnnotation(int vreg, out VRegAnnotation annotation) =>
         _annotations.TryGetValue(vreg, out annotation!);
 
+    // Live virtual-register IDs in dictionary insertion order — stable across
+    // round-trips because both the text parser and the binary reader register
+    // vregs in the order they appear.
+    public IReadOnlyCollection<int> VirtualRegisterIds => _annotations.Keys;
+
     // Replace a vreg's TypedVReg entry with a ClassedVReg. Called by
     // instruction selection when it commits a vreg to a register class.
     public void ReclassifyVirtualRegister(int vreg, int classId, string className)
