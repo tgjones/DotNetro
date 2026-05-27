@@ -2,7 +2,7 @@ namespace Irie.Target.MOS6502;
 
 // MOS6502 register class IDs. 0 means "no class assigned"; all real classes are >= 1.
 //
-// - Ac, Xc, Yc, Cc, Vc: single architectural registers
+// - Ac, Xc, Yc, Cc, Vc, Nc, Zc, Ic, Dc, Bc: single architectural registers
 // - Imag8: imaginary 8-bit zero-page registers (RC0..RCn)
 // - Anyi8: any 8-bit register (A, X, or Imag8). Used for values that can be stored
 //   in any 8-bit location but aren't constrained to a specific one.
@@ -16,6 +16,14 @@ public static class MOS6502RegisterClass
     public const int Vc    = 5; // V flag (single bit)
     public const int Imag8 = 6; // imaginary 8-bit zero-page registers (RC0..RCn)
     public const int Anyi8 = 7; // any 8-bit register (A, X, or Imag8)
+    // Status-flag classes for the new MIR dialect (one class per flag is the
+    // first-cut layout per unified-IR plan §6 / open question #2; can be unified
+    // later if RA freedom is never needed).
+    public const int Nc    = 8;  // N flag
+    public const int Zc    = 9;  // Z flag
+    public const int Ic    = 10; // I flag (interrupt disable)
+    public const int Dc    = 11; // D flag (decimal mode)
+    public const int Bc    = 12; // B flag (break)
 
     public static string? GetName(int classId) => classId switch
     {
@@ -26,6 +34,11 @@ public static class MOS6502RegisterClass
         Vc    => "Vc",
         Imag8 => "Imag8",
         Anyi8 => "Anyi8",
+        Nc    => "Nc",
+        Zc    => "Zc",
+        Ic    => "Ic",
+        Dc    => "Dc",
+        Bc    => "Bc",
         _ => null,
     };
 
@@ -40,6 +53,11 @@ public static class MOS6502RegisterClass
             "Vc"    => Vc,
             "Imag8" => Imag8,
             "Anyi8" => Anyi8,
+            "Nc"    => Nc,
+            "Zc"    => Zc,
+            "Ic"    => Ic,
+            "Dc"    => Dc,
+            "Bc"    => Bc,
             _ => None,
         };
         return classId != None;
@@ -53,7 +71,13 @@ public static class MOS6502RegisterClass
         MOS6502Registers.X => Xc,
         MOS6502Registers.Y => Yc,
         MOS6502Registers.C => Cc,
-        _ when physReg >= MOS6502Registers.RC(0) => Imag8,
+        MOS6502Registers.N => Nc,
+        MOS6502Registers.V => Vc,
+        MOS6502Registers.Z => Zc,
+        MOS6502Registers.I => Ic,
+        MOS6502Registers.D => Dc,
+        MOS6502Registers.B => Bc,
+        _ when physReg >= MOS6502Registers.RC(0) && physReg < MOS6502Registers.N => Imag8,
         _ => None,
     };
 }

@@ -1081,12 +1081,19 @@ one commit.
    Add `Mir/Binary/MirBinaryFormat.cs`, `MirBinaryReader.cs`,
    `MirBinaryWriter.cs`. Add unit tests that round-trip a sample.
 
-4. **MOS6502 dialect + target rewrite (compile-time only)**.
-   Add `MOS6502Dialect`, `MOS6502Op`, edited `MOS6502Registers` and
-   `MOS6502RegisterClass`. Rewrite `MOS6502InstructionInfo`,
-   `MOS6502RegisterInfo`. **Old `CodeGen/` still exists** but the new
-   target lives alongside under `Target/MOS6502/` paths. (Temporarily,
-   the new target is unwired.)
+4. **MOS6502 dialect + flag registers (additive, compile-time only)**.
+   Add `MOS6502Dialect` and `MOS6502Op` as new files. Extend
+   `MOS6502Registers` with status-flag IDs (`N, V, Z, I, D, B`) in a
+   high range (64+) so `RC(n) = 6 + n` stays unchanged — the planned
+   shift to `RC(n) = 12 + n` is deferred to step 17 when the old code
+   that depends on the current layout is being removed. Extend
+   `MOS6502RegisterClass` with matching flag classes (`Nc, Zc, Ic, Dc,
+   Bc`) without renaming the existing display names (`Ac, Imag8`, …) —
+   the lowercase rename is also deferred to step 17. **Do not** rewrite
+   `MOS6502InstructionInfo` / `MOS6502RegisterInfo` yet; old `CodeGen/`
+   still consumes them. The new dialect is not yet registered with
+   `DialectRegistry` (wiring is step 6+). Net effect: zero changes to
+   old behaviour or test output.
 
 5. **New pass plumbing**.
    Add `Passes/{Pass,PassManager,CompilationContext,MirFunctionPass,
@@ -1094,17 +1101,26 @@ one commit.
    These reference Mir types only. Old passes still exist for now.
 
 6. **`AbiLoweringPass` + new `MOS6502CallLowering`**.
-   Implement the pass and target hook. Add lit test
-   `IntegerAdd32-AbiLowering.irie`. **Don't delete old passes yet** —
-   keep both pipelines alive in `iriec` behind a `--engine=v2` flag
+   Implement the pass and target hook. Because the old `CodeGen/`
+   target descriptors still exist under their original names, introduce
+   the new target's descriptors as *parallel files* (e.g. a new
+   `MOS6502TargetV2` class with its own
+   `DialectInstructionInfo`-shaped instruction info and a new
+   `MirCallLowering`-style `MOS6502CallLowering` in a sub-namespace).
+   Register `MOS6502Dialect` from the new target's constructor. Add lit
+   test `IntegerAdd32-AbiLowering.irie`. **Don't delete old passes yet**
+   — keep both pipelines alive in `iriec` behind a `--engine=v2` flag
    while iterating.
 
 7. **`LegalizerPass` + `LegalizationArtifactCombiner` + `MOS6502LegalizerInfo`**.
-   Port to new types. Add lit test `IntegerAdd32-Legalizer.irie` in new
-   format.
+   Port to new types. The new `MOS6502LegalizerInfo` is a new file
+   alongside the old one (e.g. distinguished by namespace), not a
+   rewrite. Add lit test `IntegerAdd32-Legalizer.irie` in new format.
 
 8. **`InstructionSelectorPass` + `MOS6502InstructionSelector`**.
-   Port. Add lit test in new format.
+   Port. As with steps 6 and 7, the new `MOS6502InstructionSelector`
+   sits beside the old one rather than replacing it. Add lit test in
+   new format.
 
 9. **`PhiEliminationPass`** (separate, pre-RA).
    Port today's pass to MIR types. Lit test for the swap-cycle edge case.
@@ -1135,9 +1151,22 @@ one commit.
 16. **Cut over `irie-as` / `irie-dis`**.
     Switch to `MirModule.Parse` / `Read` / `Write`.
 
-17. **Delete old IR + CodeGen trees**.
+17. **Delete old IR + CodeGen trees, collapse parallel target**.
     `src/Irie/IR/`, `src/Irie/IR2/`, `src/Irie/CodeGen/` deleted. All
-    references resolved.
+    references resolved. With the old consumers gone, finalize the
+    target layout that was deferred from step 4:
+    - Shift `MOS6502Registers.RC(n)` from `6 + n` to `12 + n` and move
+      the flag IDs from their interim high-range home (64..69) into
+      `N=6, V=7, Z=8, I=9, D=10, B=11`.
+    - Lowercase `MOS6502RegisterClass` display names (`Ac → ac`,
+      `Imag8 → zp`, etc., per §6) and the physreg display names
+      returned by `MOS6502RegisterInfo.GetRegisterName` (`"A" → "a"`,
+      `"RC2" → "zp2"`).
+    - Rename the parallel new-target files introduced in steps 6–8
+      (`MOS6502TargetV2`, parallel `MOS6502CallLowering`/
+      `MOS6502LegalizerInfo`/`MOS6502InstructionSelector`) back to the
+      canonical names so the target ends up as a single set of files
+      under `src/Irie/Target/MOS6502/`.
 
 18. **Rewrite remaining lit tests + unit tests**.
     Sweep through `src/Irie.Tests/`; resolve any test that still
