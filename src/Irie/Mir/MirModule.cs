@@ -21,7 +21,8 @@ public sealed class MirModule
 
     public static MirModule Read(BinaryReader reader) => MirBinaryReader.Read(reader);
 
-    public void Write(TextWriter writer) => MirWriter.Write(this, writer);
+    public void Write(TextWriter writer, Func<int, string>? physRegNamer = null) =>
+        MirWriter.Write(this, writer, physRegNamer);
 
     public void Write(BinaryWriter writer) => MirBinaryWriter.Write(this, writer);
 }

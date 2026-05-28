@@ -1,0 +1,37 @@
+; RUN: @iriec --target mos6502 --engine v2 --stop-after AbiLowering @file
+
+; Checks the unified-MIR ABI-lowering pass: typed entry-block parameters
+; become CC_MOS live-ins + per-byte `pseudo.copy` from physregs, reassembled
+; into the original parameter vreg via `pseudo.merge`. The `core.return %v` is
+; split per-byte via `pseudo.unmerge`, copied into the return physregs, and
+; replaced with a `pseudo.return`. (Physical-register names are still
+; uppercase here — the `$a`/`$x`/`$zp2` rename is deferred to step 17 of
+; notes/unified-ir-plan.md.)
+
+; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
+; CHECK:   bb0\(\):
+; CHECK:     \[liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7\]
+; CHECK:     %3 : i8 = pseudo.copy \$A
+; CHECK:     %4 : i8 = pseudo.copy \$X
+; CHECK:     %5 : i8 = pseudo.copy \$RC2
+; CHECK:     %6 : i8 = pseudo.copy \$RC3
+; CHECK:     %0 : i32 = pseudo.merge %3, %4, %5, %6
+; CHECK:     %7 : i8 = pseudo.copy \$RC4
+; CHECK:     %8 : i8 = pseudo.copy \$RC5
+; CHECK:     %9 : i8 = pseudo.copy \$RC6
+; CHECK:     %10 : i8 = pseudo.copy \$RC7
+; CHECK:     %1 : i32 = pseudo.merge %7, %8, %9, %10
+; CHECK:     %2 : i32 = arith.addi %0, %1
+; CHECK:     %11 : i8, %12 : i8, %13 : i8, %14 : i8 = pseudo.unmerge %2
+; CHECK:     \$A = pseudo.copy %11
+; CHECK:     \$X = pseudo.copy %12
+; CHECK:     \$RC2 = pseudo.copy %13
+; CHECK:     \$RC3 = pseudo.copy %14
+; CHECK:     pseudo.return
+; CHECK: \}
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i32 = arith.addi %0, %1
+    core.return %2
+}

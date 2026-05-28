@@ -4,6 +4,9 @@ using Irie.CodeGen;
 using Irie.CodeGen.Passes;
 using Irie.IR;
 using Irie.Target.MOS6502;
+using V2Passes = Irie.Passes;
+using V2Mir    = Irie.Mir;
+using V2MOS6502 = Irie.Target.MOS6502.V2;
 
 TargetRegistry.Register("mos6502", new MOS6502Target());
 
@@ -23,6 +26,8 @@ var runPass = new Option<string>("--run-pass") { Description = "Run only the spe
 
 var inputLanguageOption = new Option<string?>("--input-language") { Description = "Input language: 'ir' or 'mir'; auto-detected from file extension if omitted" };
 
+var engineOption = new Option<string>("--engine") { Description = "Pipeline engine: 'v1' (legacy IR/CodeGen, default) or 'v2' (unified-MIR; reads MIR text, runs the new pass list)" };
+
 var rootCommand = new RootCommand("Irie lowering tool — translates IR to target Machine IR");
 rootCommand.Arguments.Add(inputArgument);
 rootCommand.Options.Add(targetOption);
@@ -30,6 +35,7 @@ rootCommand.Options.Add(stopAfter);
 rootCommand.Options.Add(startAt);
 rootCommand.Options.Add(runPass);
 rootCommand.Options.Add(inputLanguageOption);
+rootCommand.Options.Add(engineOption);
 
 rootCommand.SetAction(parseResult =>
 {
@@ -39,17 +45,45 @@ rootCommand.SetAction(parseResult =>
     var stopAfterPass = runPassName ?? parseResult.GetValue(stopAfter);
     var startAtPass   = runPassName ?? parseResult.GetValue(startAt);
     var inputLanguage = parseResult.GetValue(inputLanguageOption);
+    var engine        = parseResult.GetValue(engineOption) ?? "v1";
 
+    var inputReader = (input == null || input == "-")
+        ? Console.In
+        : new StreamReader(input);
+
+    if (engine == "v2")
+    {
+        RunV2(targetName, inputReader, stopAfterPass, startAtPass);
+    }
+    else if (engine == "v1")
+    {
+        RunV1(targetName, inputReader, input, inputLanguage, stopAfterPass, startAtPass);
+    }
+    else
+    {
+        throw new ArgumentException($"Unknown --engine '{engine}'. Use 'v1' or 'v2'.");
+    }
+
+    if (inputReader != Console.In)
+        inputReader.Dispose();
+});
+
+return await rootCommand.Parse(args).InvokeAsync();
+
+static void RunV1(
+    string targetName,
+    TextReader inputReader,
+    string? input,
+    string? inputLanguage,
+    string? stopAfterPass,
+    string? startAtPass)
+{
     var target = TargetRegistry.Get(targetName);
 
     inputLanguage ??= (input != null && input != "-" && Path.GetExtension(input) == ".mir") ? "mir" : "ir";
 
     if (inputLanguage != "ir" && inputLanguage != "mir")
         throw new ArgumentException($"Unsupported input language '{inputLanguage}'. Use 'ir' or 'mir'.");
-
-    var inputReader = (input == null || input == "-")
-        ? Console.In
-        : new StreamReader(input);
 
     CompilationContext context;
     if (inputLanguage == "mir")
@@ -62,9 +96,6 @@ rootCommand.SetAction(parseResult =>
         var irModule = IRModule.Parse(inputReader);
         context = new CompilationContext(irModule, target);
     }
-
-    if (inputReader != Console.In)
-        inputReader.Dispose();
 
     var passMgr = new PassManager(stopAfterPass, startAtPass);
     passMgr.AddPass(new IRTranslatorPass(target.CreateCallLowering()));
@@ -80,6 +111,26 @@ rootCommand.SetAction(parseResult =>
     passMgr.Run(context);
 
     context.MachineModule.Write(Console.Out);
-});
+}
 
-return await rootCommand.Parse(args).InvokeAsync();
+static void RunV2(
+    string targetName,
+    TextReader inputReader,
+    string? stopAfterPass,
+    string? startAtPass)
+{
+    Irie.Target.Target target = targetName switch
+    {
+        "mos6502" => new V2MOS6502.MOS6502TargetV2(),
+        _ => throw new ArgumentException($"Unknown --target '{targetName}' for --engine=v2."),
+    };
+
+    var module = V2Mir.MirModule.Parse(inputReader);
+    var context = new V2Passes.CompilationContext(module);
+
+    var passMgr = new V2Passes.PassManager(stopAfterPass, startAtPass);
+    passMgr.AddPass(new V2Passes.AbiLoweringPass(target.CallLowering));
+    passMgr.Run(context);
+
+    module.Write(Console.Out, target.GetRegisterName);
+}

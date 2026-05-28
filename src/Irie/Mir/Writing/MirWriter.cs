@@ -4,8 +4,16 @@ namespace Irie.Mir.Writing;
 
 internal sealed class MirWriter
 {
-    public static void Write(MirModule module, TextWriter writer) =>
-        new MirWriter().WriteAll(module, writer);
+    // Optional lookup from physical-register ID to a printable name. When null
+    // (the default), physregs print as raw numeric IDs (`$8`). When supplied
+    // (e.g. by iriec wiring in the target's RegisterInfo), they print under
+    // their target-specific names (`$RC2`).
+    private readonly Func<int, string>? _physRegNamer;
+
+    private MirWriter(Func<int, string>? physRegNamer) => _physRegNamer = physRegNamer;
+
+    public static void Write(MirModule module, TextWriter writer, Func<int, string>? physRegNamer = null) =>
+        new MirWriter(physRegNamer).WriteAll(module, writer);
 
     private void WriteAll(MirModule module, TextWriter writer)
     {
@@ -163,8 +171,5 @@ internal sealed class MirWriter
 
     private static string FormatType(IRType type) => type.DisplayName;
 
-    // No target attached → physreg names aren't available; emit raw numeric IDs.
-    // When a target is wired into the writer (later steps), this will look
-    // names up via the target's RegisterInfo.
-    private static string FormatPhysReg(int id) => id.ToString();
+    private string FormatPhysReg(int id) => _physRegNamer != null ? _physRegNamer(id) : id.ToString();
 }

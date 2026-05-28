@@ -7,7 +7,7 @@ namespace Irie.Target.MOS6502;
 //   Arguments/returns: A, X, RC2, RC3, RC4, RC5, RC6, RC7, RC8, ...
 //   RC0/RC1 are reserved (soft stack pointer).
 //   Each i32 is passed as 4 i8 bytes, LSB first.
-public sealed class MOS6502CallLowering : CallLowering
+public sealed class MOS6502CallLowering : Irie.CodeGen.CallLowering
 {
     // The CC_MOS register sequence for i8 values (RC0/RC1 reserved).
     private static readonly int[] ArgRegs =
