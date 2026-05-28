@@ -1,3 +1,4 @@
+using Irie.Dialects.Arith;
 using Irie.Dialects.Pseudo;
 using Irie.IR;
 
@@ -80,6 +81,34 @@ public sealed class MirBuilder(MirFunction function)
         for (var i = 0; i < sourceVregs.Length; i++)
             operands[1 + i] = new VirtualReg(sourceVregs[i], IsDefinition: false);
         Insert(PseudoDialect.OpRef(PseudoOp.Merge), operands);
+    }
+
+    // arith.constant: materialize an immediate of the given type into a fresh vreg.
+    // Used by the legalizer to supply an explicit zero carry-in to the head of an
+    // addi_with_carry chain so every link has a uniform 3-use shape.
+    public int BuildConstant(IRType type, long value)
+    {
+        var vreg = function.CreateVirtualRegister(type);
+        Insert(ArithDialect.OpRef(ArithOp.Constant), [
+            new VirtualReg(vreg, IsDefinition: true),
+            new Immediate(value),
+        ]);
+        return vreg;
+    }
+
+    // arith.addi_with_carry: 2 defs (result, carry-out), 3 uses (a, b, carry-in).
+    public (int result, int carryOut) BuildAddCarry(IRType type, int a, int b, int carryInVreg)
+    {
+        var result   = function.CreateVirtualRegister(type);
+        var carryOut = function.CreateVirtualRegister(IRType.I1);
+        Insert(ArithDialect.OpRef(ArithOp.AddICarry), [
+            new VirtualReg(result,      IsDefinition: true),
+            new VirtualReg(carryOut,    IsDefinition: true),
+            new VirtualReg(a,           IsDefinition: false),
+            new VirtualReg(b,           IsDefinition: false),
+            new VirtualReg(carryInVreg, IsDefinition: false),
+        ]);
+        return (result, carryOut);
     }
 
     // pseudo.unmerge a wide vreg into N freshly-allocated narrow vregs.

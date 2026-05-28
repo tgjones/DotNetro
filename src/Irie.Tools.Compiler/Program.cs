@@ -130,6 +130,7 @@ static void RunV2(
 
     var passMgr = new V2Passes.PassManager(stopAfterPass, startAtPass);
     passMgr.AddPass(new V2Passes.AbiLoweringPass(target.CallLowering));
+    passMgr.AddPass(new V2Passes.LegalizerPass(target.LegalizerInfo));
     passMgr.Run(context);
 
     module.Write(Console.Out, target.GetRegisterName);

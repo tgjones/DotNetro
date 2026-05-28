@@ -16,6 +16,7 @@ public sealed class ArithDialect : Dialect
         ArithOp.SubI      => "subi",
         ArithOp.CmpI      => "cmpi",
         ArithOp.AddICarry => "addi_with_carry",
+        ArithOp.Constant  => "constant",
         _ => throw new ArgumentOutOfRangeException(nameof(code), code, $"Unknown arith opcode {code}."),
     };
 
@@ -27,6 +28,7 @@ public sealed class ArithDialect : Dialect
             case "subi":             code = (ushort)ArithOp.SubI;      return true;
             case "cmpi":             code = (ushort)ArithOp.CmpI;      return true;
             case "addi_with_carry":  code = (ushort)ArithOp.AddICarry; return true;
+            case "constant":         code = (ushort)ArithOp.Constant;  return true;
         }
         code = 0;
         return false;

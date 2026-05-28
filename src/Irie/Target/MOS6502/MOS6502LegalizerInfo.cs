@@ -3,29 +3,29 @@ using Irie.IR;
 
 namespace Irie.Target.MOS6502;
 
-public sealed class MOS6502LegalizerInfo : LegalizerInfo
+public sealed class MOS6502LegalizerInfo : Irie.CodeGen.LegalizerInfo
 {
-    public override LegalityAction GetAction(int opcode, IRType type)
+    public override Irie.CodeGen.LegalityAction GetAction(int opcode, IRType type)
     {
         if (type is not IntegerType intType)
-            return LegalityAction.Unsupported;
+            return Irie.CodeGen.LegalityAction.Unsupported;
 
         return opcode switch
         {
             // i8 arithmetic is native.
-            GenericOpcode.GenericAdd when intType.SizeInBits == 8  => LegalityAction.Legal,
+            GenericOpcode.GenericAdd when intType.SizeInBits == 8  => Irie.CodeGen.LegalityAction.Legal,
             // i32 (and other multi-byte widths) must be split into i8 operations.
-            GenericOpcode.GenericAdd when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
+            GenericOpcode.GenericAdd when intType.SizeInBits > 8   => Irie.CodeGen.LegalityAction.NarrowScalar,
 
             // Helper opcodes used during legalization are always legal.
-            GenericOpcode.GenericAddCarry         => LegalityAction.Legal,
-            GenericOpcode.GenericMerge            => LegalityAction.Legal,
-            GenericOpcode.GenericUnmerge          => LegalityAction.Legal,
-            GenericOpcode.GenericCopy             => LegalityAction.Legal,
+            GenericOpcode.GenericAddCarry         => Irie.CodeGen.LegalityAction.Legal,
+            GenericOpcode.GenericMerge            => Irie.CodeGen.LegalityAction.Legal,
+            GenericOpcode.GenericUnmerge          => Irie.CodeGen.LegalityAction.Legal,
+            GenericOpcode.GenericCopy             => Irie.CodeGen.LegalityAction.Legal,
             // i1 constants are materialized via LDImm1 by the selector.
-            GenericOpcode.GenericConstant when intType.SizeInBits == 1 => LegalityAction.Legal,
+            GenericOpcode.GenericConstant when intType.SizeInBits == 1 => Irie.CodeGen.LegalityAction.Legal,
 
-            _ => LegalityAction.Unsupported,
+            _ => Irie.CodeGen.LegalityAction.Unsupported,
         };
     }
 
