@@ -133,6 +133,7 @@ static void RunV2(
     passMgr.AddPass(new V2Passes.LegalizerPass(target.LegalizerInfo));
     passMgr.AddPass(new V2Passes.InstructionSelectorPass(target.InstructionSelector));
     passMgr.AddPass(new V2Passes.PhiEliminationPass());
+    passMgr.AddPass(new V2Passes.TwoAddressInstructionPass());
     passMgr.Run(context);
 
     module.Write(Console.Out, target.GetRegisterName);
