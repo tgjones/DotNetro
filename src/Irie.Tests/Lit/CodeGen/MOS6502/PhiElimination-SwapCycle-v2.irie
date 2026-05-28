@@ -1,0 +1,36 @@
+; RUN: @iriec --target mos6502 --engine v2 --run-pass PhiElimination @file
+
+; bb1 self-loops, swapping its two parameters: new_p0 = p1, new_p1 = p0.
+; The parallel assignments form a cycle (%2 := %3 and %3 := %2), so the pass
+; must break it with a temporary vreg:
+;   %4 = copy %3    (save %3)
+;   %3 = copy %2    (assign old %2 into %3)
+;   %2 = copy %4    (assign saved %3 into %2)
+;
+; The fresh temporary takes the same annotation as the cycle source — here
+; TypedVReg(i8), so it prints as `%4 : i8`.
+;
+; bb0 → bb1 is a non-cycle edge, so its copies sequence straightforwardly.
+
+; CHECK: func @swap : \(\) -> void \{
+; CHECK:   bb0\(\):
+; CHECK:     %0 : i8 = arith.constant 1
+; CHECK:     %1 : i8 = arith.constant 2
+; CHECK:     %2 : i8 = pseudo.copy %0
+; CHECK:     %3 : i8 = pseudo.copy %1
+; CHECK:     cf.br bb1
+; CHECK:   bb1\(\):
+; CHECK:     %4 : i8 = pseudo.copy %3
+; CHECK:     %3 : i8 = pseudo.copy %2
+; CHECK:     %2 : i8 = pseudo.copy %4
+; CHECK:     cf.br bb1
+; CHECK: \}
+
+func @swap : () -> void {
+bb0():
+    %0 : i8 = arith.constant 1
+    %1 : i8 = arith.constant 2
+    cf.br bb1(%0, %1)
+bb1(%2 : i8, %3 : i8):
+    cf.br bb1(%3, %2)
+}
