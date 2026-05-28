@@ -275,7 +275,23 @@ public sealed class MOS6502Dialect : Dialect
     }
 
     public override DialectInstructionInfo GetInstructionInfo(ushort code) =>
-        DialectInstructionInfo.Empty;
+        (MOS6502Op)code switch
+        {
+            MOS6502Op.Adc => AdcInfo,
+            _ => DialectInstructionInfo.Empty,
+        };
+
+    // Pre-AMS `mos6502.adc`. 2 defs + 3 uses; use[0] is tied to def[0]. The
+    // operand-class block is the same shape the AMS-refined variants share.
+    private static readonly DialectInstructionInfo AdcInfo = new(
+        OperandClasses: [
+            MOS6502RegisterClass.Ac,    // def[0]: result
+            MOS6502RegisterClass.Cc,    // def[1]: carry_out
+            MOS6502RegisterClass.Ac,    // use[0]: L (tied to def[0])
+            MOS6502RegisterClass.Imag8, // use[1]: R
+            MOS6502RegisterClass.Cc,    // use[2]: carry_in
+        ],
+        TiedOperands: [-1, -1, 0, -1, -1]);
 
     // Target ops conservatively touch physregs/memory; treat them as having
     // side effects for DCE purposes until a finer-grained model is in place.

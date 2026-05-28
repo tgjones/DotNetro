@@ -8,7 +8,7 @@ namespace Irie.Target.MOS6502;
 // Merge/Unmerge are logical groupings with no real instruction; the selector
 // tracks which wide vregs are composed of which narrow vregs (_mergeMap) and
 // expands Unmerge into GenericCopy chains through that map.
-public sealed class MOS6502InstructionSelector : InstructionSelector
+public sealed class MOS6502InstructionSelector : Irie.CodeGen.InstructionSelector
 {
     // Maps a wide vreg to its component narrow vregs (populated by GenericMerge selection).
     private readonly Dictionary<int, int[]> _mergeMap = [];

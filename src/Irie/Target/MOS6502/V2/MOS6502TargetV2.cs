@@ -17,6 +17,7 @@ public sealed class MOS6502TargetV2 : Irie.Target.Target
     public override Dialect Dialect => DialectRegistry.ByPrefix("mos6502");
     public override Irie.Target.CallLowering CallLowering { get; } = new MOS6502CallLowering();
     public override Irie.Target.LegalizerInfo LegalizerInfo { get; } = new MOS6502LegalizerInfo();
+    public override Irie.Target.InstructionSelector InstructionSelector { get; } = new MOS6502InstructionSelector();
 
     public override string GetRegisterName(int physReg) => MOS6502Registers.NameOf(physReg);
 }

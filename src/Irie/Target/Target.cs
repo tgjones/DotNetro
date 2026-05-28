@@ -14,6 +14,7 @@ public abstract class Target
     public abstract Dialect Dialect { get; }
     public abstract CallLowering CallLowering { get; }
     public abstract LegalizerInfo LegalizerInfo { get; }
+    public abstract InstructionSelector InstructionSelector { get; }
 
     // Display name for a physical-register ID. Used by MirWriter to print
     // `$A` instead of `$0`, etc.
