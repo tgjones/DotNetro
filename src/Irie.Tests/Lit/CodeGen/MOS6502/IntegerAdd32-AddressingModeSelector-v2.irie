@@ -1,0 +1,38 @@
+; RUN: @iriec --target mos6502 --engine v2 --stop-after MOS6502AddressingModeSelector @file
+
+; Checks the unified-MIR pipeline output after the target-private
+; MOS6502AddressingModeSelector pass — the first post-RA target pass added
+; by MOS6502TargetV2.AddPostRegisterAllocationPasses. The pass refines each
+; pre-AMS `mos6502.adc` (addressing-mode-agnostic, emitted by isel) to its
+; concrete addressing-mode form based on its second use operand. For the
+; IntegerAdd32 chain every RHS is a zero-page register, so all four adcs
+; refine to `mos6502.adc.zp`. Everything else (clc, pseudo.copy, rts) is
+; untouched.
+
+; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
+; CHECK:   bb0\(\):
+; CHECK:     \[liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7\]
+; CHECK:     \$C = mos6502.clc
+; CHECK:     \$A, \$C = mos6502.adc.zp \$A, \$RC4, \$C
+; CHECK:     \$RC4 = pseudo.copy \$A
+; CHECK:     \$A = pseudo.copy \$X
+; CHECK:     \$A, \$C = mos6502.adc.zp \$A, \$RC5, \$C
+; CHECK:     \$RC5 = pseudo.copy \$A
+; CHECK:     \$A = pseudo.copy \$RC2
+; CHECK:     \$RC2 = pseudo.copy \$RC6
+; CHECK:     \$A, \$C = mos6502.adc.zp \$A, \$RC2, \$C
+; CHECK:     \$RC2 = pseudo.copy \$A
+; CHECK:     \$A = pseudo.copy \$RC3
+; CHECK:     \$RC3 = pseudo.copy \$RC7
+; CHECK:     \$A, \$C = mos6502.adc.zp \$A, \$RC3, \$C
+; CHECK:     \$RC3 = pseudo.copy \$A
+; CHECK:     \$A = pseudo.copy \$RC4
+; CHECK:     \$X = pseudo.copy \$RC5
+; CHECK:     mos6502.rts implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
+; CHECK: \}
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i32 = arith.addi %0, %1
+    core.return %2
+}

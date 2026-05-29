@@ -6,10 +6,6 @@ namespace Irie.Target;
 // Top-of-tree target abstraction for the unified MIR pipeline. Targets
 // register their dialect with DialectRegistry from their constructor and
 // expose the lowering hooks the generic passes need.
-//
-// Step 7 surfaces Dialect + CallLowering + LegalizerInfo + GetRegisterName.
-// Later steps (per notes/unified-ir-plan.md §6) will add PseudoExpander and
-// the AddPostRegisterAllocationPasses hook.
 public abstract class Target
 {
     public abstract Dialect Dialect { get; }
@@ -26,4 +22,9 @@ public abstract class Target
     // Display name for a physical-register ID. Used by MirWriter to print
     // `$A` instead of `$0`, etc.
     public abstract string GetRegisterName(int physReg);
+
+    // Called by iriec between CopyEliminationPass and PseudoExpansionPass.
+    // Targets append their own post-RA passes (e.g. addressing-mode selection
+    // for MOS6502) — there is no generic stage at this point in the pipeline.
+    public virtual void AddPostRegisterAllocationPasses(Irie.Passes.PassManager pm) { }
 }

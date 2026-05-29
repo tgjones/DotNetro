@@ -1,4 +1,5 @@
 using Irie.Mir;
+using Irie.Passes;
 
 namespace Irie.Target.MOS6502.V2;
 
@@ -21,4 +22,9 @@ public sealed class MOS6502TargetV2 : Irie.Target.Target
     public override Irie.CodeGen.TargetRegisterInfo RegisterInfo { get; } = new MOS6502RegisterInfo();
 
     public override string GetRegisterName(int physReg) => MOS6502Registers.NameOf(physReg);
+
+    public override void AddPostRegisterAllocationPasses(Irie.Passes.PassManager pm)
+    {
+        pm.AddPass(new MOS6502AddressingModeSelectorPass());
+    }
 }
