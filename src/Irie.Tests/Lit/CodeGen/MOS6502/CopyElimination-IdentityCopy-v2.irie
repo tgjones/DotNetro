@@ -1,0 +1,13 @@
+; RUN: @iriec --target mos6502 --engine v2 --run-pass CopyElimination @file
+
+; $A = pseudo.copy $A is an identity copy (def and use are the same physical
+; register) and should be removed, leaving an empty block.
+
+; CHECK: func @identity : \(\) -> void \{
+; CHECK:   bb0\(\):
+; CHECK: \}
+
+func @identity : () -> void {
+bb0():
+    $0 = pseudo.copy $0
+}

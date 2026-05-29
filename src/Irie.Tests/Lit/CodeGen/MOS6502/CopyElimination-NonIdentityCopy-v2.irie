@@ -1,0 +1,14 @@
+; RUN: @iriec --target mos6502 --engine v2 --run-pass CopyElimination @file
+
+; $A = pseudo.copy $X has different def and use registers — not an identity
+; copy — so the instruction is left untouched.
+
+; CHECK: func @non_identity : \(\) -> void \{
+; CHECK:   bb0\(\):
+; CHECK:     \$A = pseudo.copy \$X
+; CHECK: \}
+
+func @non_identity : () -> void {
+bb0():
+    $0 = pseudo.copy $1
+}

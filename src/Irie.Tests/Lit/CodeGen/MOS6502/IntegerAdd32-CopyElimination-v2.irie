@@ -1,0 +1,35 @@
+; RUN: @iriec --target mos6502 --engine v2 --stop-after CopyElimination @file
+
+; Checks the unified-MIR pipeline output after CopyElimination — the final
+; pass in the v2 pipeline today. All identity pseudo.copy instructions left
+; by the register allocator (e.g. $A = pseudo.copy $A) are removed, leaving
+; only substantive copies, the four chained adcs, the leading clc, and the
+; closing rts.
+
+; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
+; CHECK:   bb0\(\):
+; CHECK:     \[liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7\]
+; CHECK:     \$C = mos6502.clc
+; CHECK:     \$A, \$C = mos6502.adc \$A, \$RC4, \$C
+; CHECK:     \$RC4 = pseudo.copy \$A
+; CHECK:     \$A = pseudo.copy \$X
+; CHECK:     \$A, \$C = mos6502.adc \$A, \$RC5, \$C
+; CHECK:     \$RC5 = pseudo.copy \$A
+; CHECK:     \$A = pseudo.copy \$RC2
+; CHECK:     \$RC2 = pseudo.copy \$RC6
+; CHECK:     \$A, \$C = mos6502.adc \$A, \$RC2, \$C
+; CHECK:     \$RC2 = pseudo.copy \$A
+; CHECK:     \$A = pseudo.copy \$RC3
+; CHECK:     \$RC3 = pseudo.copy \$RC7
+; CHECK:     \$A, \$C = mos6502.adc \$A, \$RC3, \$C
+; CHECK:     \$RC3 = pseudo.copy \$A
+; CHECK:     \$A = pseudo.copy \$RC4
+; CHECK:     \$X = pseudo.copy \$RC5
+; CHECK:     mos6502.rts implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
+; CHECK: \}
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i32 = arith.addi %0, %1
+    core.return %2
+}
