@@ -137,6 +137,7 @@ static void RunV2(
     passMgr.AddPass(new V2Passes.RegisterAllocatorPass(target.RegisterInfo));
     passMgr.AddPass(new V2Passes.CopyEliminationPass());
     target.AddPostRegisterAllocationPasses(passMgr);
+    passMgr.AddPass(new V2Passes.PseudoExpansionPass(target.PseudoExpander));
     passMgr.Run(context);
 
     module.Write(Console.Out, target.GetRegisterName);

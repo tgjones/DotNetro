@@ -12,6 +12,7 @@ public abstract class Target
     public abstract CallLowering CallLowering { get; }
     public abstract LegalizerInfo LegalizerInfo { get; }
     public abstract InstructionSelector InstructionSelector { get; }
+    public abstract PseudoExpander PseudoExpander { get; }
 
     // Allocatable-register / class metadata for the unified-MIR register
     // allocator. The same TargetRegisterInfo type used by the legacy CodeGen
