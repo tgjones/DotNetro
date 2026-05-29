@@ -1,34 +1,49 @@
 ; RUN: @iriec --target mos6502 --stop-after TwoAddressInstruction @file
 
-; CHECK: func @TestFunction \{
+; Checks the unified-MIR two-address instruction pass. After instruction
+; selection, each `mos6502.adc` has a `(tied-def 0)` use that references a
+; different vreg than its def[0]. This pass inserts an explicit `pseudo.copy`
+; before each such adc to materialize the tied use as a fresh def of the
+; def[0] vreg, so the register allocator can pick a single physreg for both
+; ends.
+;
+; The inserted copies intentionally break strict-SSA — the same vreg
+; (e.g. %33) is now defined twice, once by the inserted `pseudo.copy` and
+; once by the `mos6502.adc` itself. That is exactly what tied-def semantics
+; demand.
+;
+; The pass also propagates the tied use's register class to the def vreg
+; (class Ac in this case, supplied by mos6502.adc's OperandClasses).
+
+; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
 ; CHECK:   bb0\(\):
-; CHECK:     liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7
-; CHECK:     %0:Ac = GenericCopy \$A
-; CHECK:     %1:Ac = GenericCopy \$X
-; CHECK:     %2:Ac = GenericCopy \$RC2
-; CHECK:     %3:Ac = GenericCopy \$RC3
-; CHECK:     %5:Imag8 = GenericCopy \$RC4
-; CHECK:     %6:Imag8 = GenericCopy \$RC5
-; CHECK:     %7:Imag8 = GenericCopy \$RC6
-; CHECK:     %8:Imag8 = GenericCopy \$RC7
-; CHECK:     %32:Cc = LDImm1 0
-; CHECK:     %33:Ac = GenericCopy %0:Ac
-; CHECK:     %33:Ac, %34:Cc = ADC_ZeroPage %33:Ac\(tied-def 0\), %5:Imag8, %32:Cc
-; CHECK:     %35:Ac = GenericCopy %1:Ac
-; CHECK:     %35:Ac, %36:Cc = ADC_ZeroPage %35:Ac\(tied-def 0\), %6:Imag8, %34:Cc
-; CHECK:     %37:Ac = GenericCopy %2:Ac
-; CHECK:     %37:Ac, %38:Cc = ADC_ZeroPage %37:Ac\(tied-def 0\), %7:Imag8, %36:Cc
-; CHECK:     %39:Ac = GenericCopy %3:Ac
-; CHECK:     %39:Ac, %40:Cc = ADC_ZeroPage %39:Ac\(tied-def 0\), %8:Imag8, %38:Cc
-; CHECK:     \$A = GenericCopy %33:Ac
-; CHECK:     \$X = GenericCopy %35:Ac
-; CHECK:     \$RC2 = GenericCopy %37:Ac
-; CHECK:     \$RC3 = GenericCopy %39:Ac
-; CHECK:     RTS_Implied implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
+; CHECK:     \[liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7\]
+; CHECK:     %3 : Ac = pseudo.copy \$A
+; CHECK:     %4 : Ac = pseudo.copy \$X
+; CHECK:     %5 : Ac = pseudo.copy \$RC2
+; CHECK:     %6 : Ac = pseudo.copy \$RC3
+; CHECK:     %7 : Imag8 = pseudo.copy \$RC4
+; CHECK:     %8 : Imag8 = pseudo.copy \$RC5
+; CHECK:     %9 : Imag8 = pseudo.copy \$RC6
+; CHECK:     %10 : Imag8 = pseudo.copy \$RC7
+; CHECK:     %32 : Cc = mos6502.clc
+; CHECK:     %33 : Ac = pseudo.copy %3
+; CHECK:     %33 : Ac, %34 : Cc = mos6502.adc %33\(tied-def 0\), %7, %32
+; CHECK:     %35 : Ac = pseudo.copy %4
+; CHECK:     %35 : Ac, %36 : Cc = mos6502.adc %35\(tied-def 0\), %8, %34
+; CHECK:     %37 : Ac = pseudo.copy %5
+; CHECK:     %37 : Ac, %38 : Cc = mos6502.adc %37\(tied-def 0\), %9, %36
+; CHECK:     %39 : Ac = pseudo.copy %6
+; CHECK:     %39 : Ac, %40 : Cc = mos6502.adc %39\(tied-def 0\), %10, %38
+; CHECK:     \$A = pseudo.copy %33
+; CHECK:     \$X = pseudo.copy %35
+; CHECK:     \$RC2 = pseudo.copy %37
+; CHECK:     \$RC3 = pseudo.copy %39
+; CHECK:     mos6502.rts implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
 ; CHECK: \}
 
 func @TestFunction : (i32, i32) -> i32 {
 bb0(%0 : i32, %1 : i32):
-  %2 = integer_add %0, %1
-  return %2
+    %2 : i32 = arith.addi %0, %1
+    core.return %2
 }

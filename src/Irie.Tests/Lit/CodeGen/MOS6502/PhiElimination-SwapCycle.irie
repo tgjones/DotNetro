@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --engine v2 --run-pass PhiElimination @file
+; RUN: @iriec --target mos6502 --run-pass PhiElimination @file
 
 ; bb1 self-loops, swapping its two parameters: new_p0 = p1, new_p1 = p0.
 ; The parallel assignments form a cycle (%2 := %3 and %3 := %2), so the pass

@@ -3,9 +3,9 @@ using Irie.Passes;
 
 namespace Irie.Target.MOS6502.V2;
 
-// Parallel MOS6502 target for the unified-MIR pipeline (`iriec --engine=v2`).
-// Lives alongside the existing Irie.Target.MOS6502.MOS6502Target until the
-// stepwise rollout finishes (see notes/unified-ir-plan.md §10 step 17).
+// MOS6502 target for the unified-MIR pipeline driven by `iriec`. Lives
+// alongside the legacy Irie.Target.MOS6502.MOS6502Target until the stepwise
+// rollout finishes (see notes/unified-ir-plan.md §10 step 17).
 public sealed class MOS6502TargetV2 : Irie.Target.Target
 {
     public MOS6502TargetV2()

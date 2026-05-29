@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --engine v2 --stop-after MOS6502AddressingModeSelector @file
+; RUN: @iriec --target mos6502 --stop-after MOS6502AddressingModeSelector @file
 
 ; Checks the unified-MIR pipeline output after the target-private
 ; MOS6502AddressingModeSelector pass — the first post-RA target pass added

@@ -1,47 +1,59 @@
 ; RUN: @iriec --target mos6502 --stop-after InstructionSelector @file
 
-; Checks that the MOS6502 instruction selector lowers the legalized
-; GenericAddCarry chain into a uniform ADC_ZeroPage sequence with an
-; LDImm1-materialized carry-in for the chain head.
+; Checks the unified-MIR instruction selector. The post-legalizer MIR is:
+;   - `arith.constant 0 : i1` (the chain-head carry-in materialized by the
+;     legalizer)
+;   - four `arith.addi_with_carry %a, %b, %carry_in` ops in a chain
 ;
-; Each ADC_ZeroPage exposes both result (i8, class Ac) and carry_out
-; (i1, class Cc) as SSA defs, and takes the previous carry_out as an
-; explicit vreg use, so the carry chain is visible in the IR.
+; The selector lowers them to:
+;   - `mos6502.clc`            (def: class Cc vreg — replaces the i1 constant)
+;   - `mos6502.adc` (pre-AMS)  with class Ac / Cc defs and class Ac / Imag8 /
+;     Cc uses. use[0] is tied to def[0]; the dialect's GetInstructionInfo
+;     supplies the tied-def metadata so the writer prints `(tied-def 0)`.
 ;
-; Vreg classes after InstructionSelect:
-;   - LHS bytes (operand a): class Ac (back-propagated from ADC's L use,
+; Each `mos6502.adc` exposes both result (i8, class Ac) and carry_out
+; (i1, class Cc) as SSA defs, taking the previous carry_out as an explicit
+; vreg use so the carry chain is visible in the IR.
+;
+; Vreg classes after isel:
+;   - LHS bytes (operand a): class Ac (back-propagated from adc's L use,
 ;     even when sourced from a non-Ac phys reg).
 ;   - RHS bytes (operand b): class Imag8.
-;   - Carry vregs: class Cc.
+;   - Carry vregs:           class Cc.
 ;
-; The vreg type table is wiped at the end of InstructionSelect once classes
-; have taken over, so vregs print with their class only.
+; The `pseudo.return` is lowered to `mos6502.rts` with implicit-uses of every
+; physreg defined by a preceding `pseudo.copy` in the same block (i.e. the
+; return physregs ABI lowering populated).
+;
+; Physreg names are still uppercase here — the lowercase rename is deferred to
+; step 17 of notes/unified-ir-plan.md. The v2 engine lit tests use the `-v2`
+; suffix until the old engine is retired.
 
-; CHECK: func @TestFunction \{
+; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
 ; CHECK:   bb0\(\):
-; CHECK:     liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7
-; CHECK:     %0:Ac = GenericCopy \$A
-; CHECK:     %1:Ac = GenericCopy \$X
-; CHECK:     %2:Ac = GenericCopy \$RC2
-; CHECK:     %3:Ac = GenericCopy \$RC3
-; CHECK:     %5:Imag8 = GenericCopy \$RC4
-; CHECK:     %6:Imag8 = GenericCopy \$RC5
-; CHECK:     %7:Imag8 = GenericCopy \$RC6
-; CHECK:     %8:Imag8 = GenericCopy \$RC7
-; CHECK:     %32:Cc = LDImm1 0
-; CHECK:     %33:Ac, %34:Cc = ADC_ZeroPage %0:Ac\(tied-def 0\), %5:Imag8, %32:Cc
-; CHECK:     %35:Ac, %36:Cc = ADC_ZeroPage %1:Ac\(tied-def 0\), %6:Imag8, %34:Cc
-; CHECK:     %37:Ac, %38:Cc = ADC_ZeroPage %2:Ac\(tied-def 0\), %7:Imag8, %36:Cc
-; CHECK:     %39:Ac, %40:Cc = ADC_ZeroPage %3:Ac\(tied-def 0\), %8:Imag8, %38:Cc
-; CHECK:     \$A = GenericCopy %33:Ac
-; CHECK:     \$X = GenericCopy %35:Ac
-; CHECK:     \$RC2 = GenericCopy %37:Ac
-; CHECK:     \$RC3 = GenericCopy %39:Ac
-; CHECK:     RTS_Implied implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
+; CHECK:     \[liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7\]
+; CHECK:     %3 : Ac = pseudo.copy \$A
+; CHECK:     %4 : Ac = pseudo.copy \$X
+; CHECK:     %5 : Ac = pseudo.copy \$RC2
+; CHECK:     %6 : Ac = pseudo.copy \$RC3
+; CHECK:     %7 : Imag8 = pseudo.copy \$RC4
+; CHECK:     %8 : Imag8 = pseudo.copy \$RC5
+; CHECK:     %9 : Imag8 = pseudo.copy \$RC6
+; CHECK:     %10 : Imag8 = pseudo.copy \$RC7
+; CHECK:     %32 : Cc = mos6502.clc
+; CHECK:     %33 : Ac, %34 : Cc = mos6502.adc %3\(tied-def 0\), %7, %32
+; CHECK:     %35 : Ac, %36 : Cc = mos6502.adc %4\(tied-def 0\), %8, %34
+; CHECK:     %37 : Ac, %38 : Cc = mos6502.adc %5\(tied-def 0\), %9, %36
+; CHECK:     %39 : Ac, %40 : Cc = mos6502.adc %6\(tied-def 0\), %10, %38
+; CHECK:     \$A = pseudo.copy %33
+; CHECK:     \$X = pseudo.copy %35
+; CHECK:     \$RC2 = pseudo.copy %37
+; CHECK:     \$RC3 = pseudo.copy %39
+; CHECK:     mos6502.rts implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
 ; CHECK: \}
 
 func @TestFunction : (i32, i32) -> i32 {
 bb0(%0 : i32, %1 : i32):
-  %2 = integer_add %0, %1
-  return %2
+    %2 : i32 = arith.addi %0, %1
+    core.return %2
 }

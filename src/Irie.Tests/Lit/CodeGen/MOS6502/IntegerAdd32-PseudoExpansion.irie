@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --engine v2 --stop-after PseudoExpansion @file
+; RUN: @iriec --target mos6502 --stop-after PseudoExpansion @file
 
 ; Checks the unified-MIR pipeline output after the final pass —
 ; PseudoExpansion. By this point every `pseudo.copy` left by the register

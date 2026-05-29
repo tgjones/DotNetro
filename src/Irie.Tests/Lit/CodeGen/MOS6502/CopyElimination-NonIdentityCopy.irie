@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --engine v2 --run-pass CopyElimination @file
+; RUN: @iriec --target mos6502 --run-pass CopyElimination @file
 
 ; $A = pseudo.copy $X has different def and use registers — not an identity
 ; copy — so the instruction is left untouched.

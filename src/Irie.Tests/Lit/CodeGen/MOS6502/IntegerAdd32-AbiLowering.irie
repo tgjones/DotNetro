@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --engine v2 --stop-after AbiLowering @file
+; RUN: @iriec --target mos6502 --stop-after AbiLowering @file
 
 ; Checks the unified-MIR ABI-lowering pass: typed entry-block parameters
 ; become CC_MOS live-ins + per-byte `pseudo.copy` from physregs, reassembled

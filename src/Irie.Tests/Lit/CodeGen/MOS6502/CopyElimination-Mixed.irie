@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --engine v2 --run-pass CopyElimination @file
+; RUN: @iriec --target mos6502 --run-pass CopyElimination @file
 
 ; Only the identity copy ($A = pseudo.copy $A) is removed.
 ; The non-identity copy ($A = pseudo.copy $X) and the mos6502.adc instruction

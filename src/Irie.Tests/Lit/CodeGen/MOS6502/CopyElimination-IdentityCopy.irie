@@ -1,4 +1,4 @@
-; RUN: @iriec --target mos6502 --engine v2 --run-pass CopyElimination @file
+; RUN: @iriec --target mos6502 --run-pass CopyElimination @file
 
 ; $A = pseudo.copy $A is an identity copy (def and use are the same physical
 ; register) and should be removed, leaving an empty block.
