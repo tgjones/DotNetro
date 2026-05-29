@@ -1,5 +1,5 @@
 using System.CommandLine;
-using Irie.IR;
+using Irie.Mir;
 
 var inputArgument = new Argument<string?>("input") { Description = "Path to the input file, or - for stdin", Arity = ArgumentArity.ZeroOrOne };
 var outputOption = new Option<FileInfo?>("-o") { Description = "Path to the output file, or - for stdout" };
@@ -17,11 +17,11 @@ rootCommand.SetAction(parseResult =>
         ? Console.OpenStandardInput()
         : File.OpenRead(input);
 
-    IRModule module;
+    MirModule module;
     using (inputStream != Console.OpenStandardInput() ? inputStream : null)
     using (var binaryReader = new BinaryReader(inputStream, System.Text.Encoding.UTF8, leaveOpen: true))
     {
-        module = IRModule.Read(binaryReader);
+        module = MirModule.Read(binaryReader);
     }
 
     var outputWriter = (output == null || output.FullName == "-")
