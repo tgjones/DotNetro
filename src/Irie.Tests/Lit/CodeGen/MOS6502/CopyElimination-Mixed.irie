@@ -1,18 +1,18 @@
 ; RUN: @iriec --target mos6502 --run-pass CopyElimination @file
 
-; Only the identity copy ($A = pseudo.copy $A) is removed.
-; The non-identity copy ($A = pseudo.copy $X) and the mos6502.adc instruction
+; Only the identity copy ($a = pseudo.copy $a) is removed.
+; The non-identity copy ($a = pseudo.copy $x) and the mos6502.adc instruction
 ; (a non-copy with two physical-register defs) are both left untouched.
 
 ; CHECK: func @mixed : \(\) -> void \{
 ; CHECK:   bb0\(\):
-; CHECK:     \$A = pseudo.copy \$X
-; CHECK:     \$A, \$C = mos6502.adc \$A, \$RC4, \$C
+; CHECK:     \$a = pseudo.copy \$x
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp4, \$c
 ; CHECK: \}
 
 func @mixed : () -> void {
 bb0():
     $0 = pseudo.copy $0
     $0 = pseudo.copy $1
-    $0, $5 = mos6502.adc $0, $10, $5
+    $0, $5 = mos6502.adc $0, $16, $5
 }

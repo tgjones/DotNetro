@@ -16,24 +16,24 @@
 
 ; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
 ; CHECK:   bb0\(\):
-; CHECK:     \[liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7\]
-; CHECK:     %3 : i8 = pseudo.copy \$A
-; CHECK:     %4 : i8 = pseudo.copy \$X
-; CHECK:     %5 : i8 = pseudo.copy \$RC2
-; CHECK:     %6 : i8 = pseudo.copy \$RC3
-; CHECK:     %7 : i8 = pseudo.copy \$RC4
-; CHECK:     %8 : i8 = pseudo.copy \$RC5
-; CHECK:     %9 : i8 = pseudo.copy \$RC6
-; CHECK:     %10 : i8 = pseudo.copy \$RC7
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
+; CHECK:     %3 : i8 = pseudo.copy \$a
+; CHECK:     %4 : i8 = pseudo.copy \$x
+; CHECK:     %5 : i8 = pseudo.copy \$zp2
+; CHECK:     %6 : i8 = pseudo.copy \$zp3
+; CHECK:     %7 : i8 = pseudo.copy \$zp4
+; CHECK:     %8 : i8 = pseudo.copy \$zp5
+; CHECK:     %9 : i8 = pseudo.copy \$zp6
+; CHECK:     %10 : i8 = pseudo.copy \$zp7
 ; CHECK:     %23 : i1 = arith.constant 0
 ; CHECK:     %24 : i8, %25 : i1 = arith.addi_with_carry %3, %7, %23
 ; CHECK:     %26 : i8, %27 : i1 = arith.addi_with_carry %4, %8, %25
 ; CHECK:     %28 : i8, %29 : i1 = arith.addi_with_carry %5, %9, %27
 ; CHECK:     %30 : i8, %31 : i1 = arith.addi_with_carry %6, %10, %29
-; CHECK:     \$A = pseudo.copy %24
-; CHECK:     \$X = pseudo.copy %26
-; CHECK:     \$RC2 = pseudo.copy %28
-; CHECK:     \$RC3 = pseudo.copy %30
+; CHECK:     \$a = pseudo.copy %24
+; CHECK:     \$x = pseudo.copy %26
+; CHECK:     \$zp2 = pseudo.copy %28
+; CHECK:     \$zp3 = pseudo.copy %30
 ; CHECK:     pseudo.return
 ; CHECK: \}
 

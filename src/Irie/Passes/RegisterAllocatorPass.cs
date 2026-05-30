@@ -1,7 +1,7 @@
-using Irie.CodeGen;
 using Irie.Dialects.Pseudo;
 using Irie.Mir;
 using Irie.Passes.Analyses;
+using Irie.Target;
 
 namespace Irie.Passes;
 

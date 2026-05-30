@@ -1,6 +1,6 @@
 using Irie.Mir;
 
-namespace Irie.Target.MOS6502.V2;
+namespace Irie.Target.MOS6502;
 
 // Lowers `pseudo.copy` to MOS6502 moves. Called by PseudoExpansionPass for
 // every surviving `pseudo.copy` after RA, copy elimination, and addressing-mode
@@ -116,5 +116,5 @@ public sealed class MOS6502PseudoExpander : Irie.Target.PseudoExpander
     }
 
     private static bool IsZeroPage(int physReg) =>
-        physReg >= MOS6502Registers.RC(0) && physReg < MOS6502Registers.N;
+        physReg >= MOS6502Registers.RC(0);
 }

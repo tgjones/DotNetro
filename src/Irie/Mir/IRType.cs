@@ -1,4 +1,4 @@
-﻿namespace Irie.IR;
+namespace Irie.Mir;
 
 public abstract record IRType(int SizeInBits)
 {

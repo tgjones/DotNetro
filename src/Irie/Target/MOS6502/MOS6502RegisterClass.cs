@@ -27,18 +27,18 @@ public static class MOS6502RegisterClass
 
     public static string? GetName(int classId) => classId switch
     {
-        Ac    => "Ac",
-        Xc    => "Xc",
-        Yc    => "Yc",
-        Cc    => "Cc",
-        Vc    => "Vc",
-        Imag8 => "Imag8",
-        Anyi8 => "Anyi8",
-        Nc    => "Nc",
-        Zc    => "Zc",
-        Ic    => "Ic",
-        Dc    => "Dc",
-        Bc    => "Bc",
+        Ac    => "ac",
+        Xc    => "xc",
+        Yc    => "yc",
+        Cc    => "cc",
+        Vc    => "vc",
+        Imag8 => "zp",
+        Anyi8 => "any8",
+        Nc    => "nc",
+        Zc    => "zc",
+        Ic    => "ic",
+        Dc    => "dc",
+        Bc    => "bc",
         _ => null,
     };
 
@@ -46,18 +46,18 @@ public static class MOS6502RegisterClass
     {
         classId = name switch
         {
-            "Ac"    => Ac,
-            "Xc"    => Xc,
-            "Yc"    => Yc,
-            "Cc"    => Cc,
-            "Vc"    => Vc,
-            "Imag8" => Imag8,
-            "Anyi8" => Anyi8,
-            "Nc"    => Nc,
-            "Zc"    => Zc,
-            "Ic"    => Ic,
-            "Dc"    => Dc,
-            "Bc"    => Bc,
+            "ac"    => Ac,
+            "xc"    => Xc,
+            "yc"    => Yc,
+            "cc"    => Cc,
+            "vc"    => Vc,
+            "zp"    => Imag8,
+            "any8"  => Anyi8,
+            "nc"    => Nc,
+            "zc"    => Zc,
+            "ic"    => Ic,
+            "dc"    => Dc,
+            "bc"    => Bc,
             _ => None,
         };
         return classId != None;
@@ -77,7 +77,7 @@ public static class MOS6502RegisterClass
         MOS6502Registers.I => Ic,
         MOS6502Registers.D => Dc,
         MOS6502Registers.B => Bc,
-        _ when physReg >= MOS6502Registers.RC(0) && physReg < MOS6502Registers.N => Imag8,
+        _ when physReg >= MOS6502Registers.RC(0) => Imag8,
         _ => None,
     };
 }

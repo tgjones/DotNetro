@@ -1,4 +1,3 @@
-using Irie.IR;
 using Irie.Mir.Binary;
 using Irie.Mir.Parsing;
 using Irie.Mir.Writing;

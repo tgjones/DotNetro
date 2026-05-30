@@ -1,4 +1,4 @@
-namespace Irie.CodeGen;
+namespace Irie.Target;
 
 public abstract class TargetRegisterInfo
 {

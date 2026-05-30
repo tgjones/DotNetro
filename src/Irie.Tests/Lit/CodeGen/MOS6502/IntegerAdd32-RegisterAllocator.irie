@@ -3,48 +3,48 @@
 ; Checks the unified-MIR register allocator's output on the IntegerAdd32
 ; chain. After this pass:
 ;  - Every operand is a physical register; no vregs remain.
-;  - Live-in `Ac`-class vregs (the four byte-level a-arguments) were widened
-;    to the flexible `Anyi8` class and got placed in the abundant RC* slots
-;    so the single $A can be reused by each chained ADC in turn.
+;  - Live-in `ac`-class vregs (the four byte-level a-arguments) were widened
+;    to the flexible `any8` class and got placed in the abundant RC* slots
+;    so the single $a can be reused by each chained ADC in turn.
 ;  - Result-preservation copies after each `mos6502.adc` redirect later uses
-;    of the tied-def vreg to a fresh `Anyi8` vreg, keeping $A free for the
+;    of the tied-def vreg to a fresh `any8` vreg, keeping $a free for the
 ;    next link in the chain.
-;  - Identity copies (e.g. `$RC2 = pseudo.copy $RC2`) survive here and are
+;  - Identity copies (e.g. `$zp2 = pseudo.copy $zp2`) survive here and are
 ;    cleaned up by CopyEliminationPass.
 
 ; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
 ; CHECK:   bb0\(\):
-; CHECK:     \[liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7\]
-; CHECK:     \$A = pseudo.copy \$A
-; CHECK:     \$X = pseudo.copy \$X
-; CHECK:     \$RC2 = pseudo.copy \$RC2
-; CHECK:     \$RC3 = pseudo.copy \$RC3
-; CHECK:     \$RC4 = pseudo.copy \$RC4
-; CHECK:     \$RC5 = pseudo.copy \$RC5
-; CHECK:     \$RC6 = pseudo.copy \$RC6
-; CHECK:     \$RC7 = pseudo.copy \$RC7
-; CHECK:     \$C = mos6502.clc
-; CHECK:     \$A = pseudo.copy \$A
-; CHECK:     \$RC4 = pseudo.copy \$RC4
-; CHECK:     \$A, \$C = mos6502.adc \$A, \$RC4, \$C
-; CHECK:     \$RC4 = pseudo.copy \$A
-; CHECK:     \$A = pseudo.copy \$X
-; CHECK:     \$RC5 = pseudo.copy \$RC5
-; CHECK:     \$A, \$C = mos6502.adc \$A, \$RC5, \$C
-; CHECK:     \$RC5 = pseudo.copy \$A
-; CHECK:     \$A = pseudo.copy \$RC2
-; CHECK:     \$RC2 = pseudo.copy \$RC6
-; CHECK:     \$A, \$C = mos6502.adc \$A, \$RC2, \$C
-; CHECK:     \$RC2 = pseudo.copy \$A
-; CHECK:     \$A = pseudo.copy \$RC3
-; CHECK:     \$RC3 = pseudo.copy \$RC7
-; CHECK:     \$A, \$C = mos6502.adc \$A, \$RC3, \$C
-; CHECK:     \$RC3 = pseudo.copy \$A
-; CHECK:     \$A = pseudo.copy \$RC4
-; CHECK:     \$X = pseudo.copy \$RC5
-; CHECK:     \$RC2 = pseudo.copy \$RC2
-; CHECK:     \$RC3 = pseudo.copy \$RC3
-; CHECK:     mos6502.rts implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$zp2 = pseudo.copy \$zp2
+; CHECK:     \$zp3 = pseudo.copy \$zp3
+; CHECK:     \$zp4 = pseudo.copy \$zp4
+; CHECK:     \$zp5 = pseudo.copy \$zp5
+; CHECK:     \$zp6 = pseudo.copy \$zp6
+; CHECK:     \$zp7 = pseudo.copy \$zp7
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp4 = pseudo.copy \$zp4
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp4, \$c
+; CHECK:     \$zp4 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$x
+; CHECK:     \$zp5 = pseudo.copy \$zp5
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp5, \$c
+; CHECK:     \$zp5 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp2
+; CHECK:     \$zp2 = pseudo.copy \$zp6
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp2, \$c
+; CHECK:     \$zp2 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp3
+; CHECK:     \$zp3 = pseudo.copy \$zp7
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp3, \$c
+; CHECK:     \$zp3 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp4
+; CHECK:     \$x = pseudo.copy \$zp5
+; CHECK:     \$zp2 = pseudo.copy \$zp2
+; CHECK:     \$zp3 = pseudo.copy \$zp3
+; CHECK:     mos6502.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
 ; CHECK: \}
 
 func @TestFunction : (i32, i32) -> i32 {

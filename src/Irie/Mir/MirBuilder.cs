@@ -1,6 +1,5 @@
 using Irie.Dialects.Arith;
 using Irie.Dialects.Pseudo;
-using Irie.IR;
 
 namespace Irie.Mir;
 

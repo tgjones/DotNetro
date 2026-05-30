@@ -4,41 +4,41 @@
 ; PseudoExpansion. By this point every `pseudo.copy` left by the register
 ; allocator (and untouched by CopyElimination + the target's AMS pass) has
 ; been lowered to a concrete MOS6502 move:
-;   $reg = pseudo.copy $A    →  mos6502.sta.zp (when reg is a zero-page slot)
-;   $A   = pseudo.copy $X    →  mos6502.txa
-;   $A   = pseudo.copy $zpN  →  mos6502.lda.zp
-;   $X   = pseudo.copy $zpN  →  mos6502.ldx.zp
-;   $zpN = pseudo.copy $zpM  →  mos6502.lda.zp + mos6502.sta.zp (goes via $A)
+;   $reg = pseudo.copy $a    →  mos6502.sta.zp (when reg is a zero-page slot)
+;   $a   = pseudo.copy $x    →  mos6502.txa
+;   $a   = pseudo.copy $zpN  →  mos6502.lda.zp
+;   $x   = pseudo.copy $zpN  →  mos6502.ldx.zp
+;   $zpN = pseudo.copy $zpM  →  mos6502.lda.zp + mos6502.sta.zp (goes via $a)
 ;
 ; Only target opcodes and the closing rts remain — no `pseudo.*` or `core.*`.
-; Note: the lda+sta expansion for the two zp→zp copies (e.g. $RC2 from $RC6)
-; clobbers $A even though $A is live in the surrounding window. This is a
+; Note: the lda+sta expansion for the two zp→zp copies (e.g. $zp2 from $zp6)
+; clobbers $a even though $a is live in the surrounding window. This is a
 ; known v2 register-allocator quality bug — the allocator currently emits
-; zp→zp copies in live-$A windows — to be addressed separately. The expander
+; zp→zp copies in live-$a windows — to be addressed separately. The expander
 ; faithfully implements what unified-IR plan §5.6 calls for.
 
 ; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
 ; CHECK:   bb0\(\):
-; CHECK:     \[liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7\]
-; CHECK:     \$C = mos6502.clc
-; CHECK:     \$A, \$C = mos6502.adc.zp \$A, \$RC4, \$C
-; CHECK:     \$RC4 = mos6502.sta.zp \$A
-; CHECK:     \$A = mos6502.txa \$X
-; CHECK:     \$A, \$C = mos6502.adc.zp \$A, \$RC5, \$C
-; CHECK:     \$RC5 = mos6502.sta.zp \$A
-; CHECK:     \$A = mos6502.lda.zp \$RC2
-; CHECK:     \$A = mos6502.lda.zp \$RC6
-; CHECK:     \$RC2 = mos6502.sta.zp \$A
-; CHECK:     \$A, \$C = mos6502.adc.zp \$A, \$RC2, \$C
-; CHECK:     \$RC2 = mos6502.sta.zp \$A
-; CHECK:     \$A = mos6502.lda.zp \$RC3
-; CHECK:     \$A = mos6502.lda.zp \$RC7
-; CHECK:     \$RC3 = mos6502.sta.zp \$A
-; CHECK:     \$A, \$C = mos6502.adc.zp \$A, \$RC3, \$C
-; CHECK:     \$RC3 = mos6502.sta.zp \$A
-; CHECK:     \$A = mos6502.lda.zp \$RC4
-; CHECK:     \$X = mos6502.ldx.zp \$RC5
-; CHECK:     mos6502.rts implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a, \$c = mos6502.adc.zp \$a, \$zp4, \$c
+; CHECK:     \$zp4 = mos6502.sta.zp \$a
+; CHECK:     \$a = mos6502.txa \$x
+; CHECK:     \$a, \$c = mos6502.adc.zp \$a, \$zp5, \$c
+; CHECK:     \$zp5 = mos6502.sta.zp \$a
+; CHECK:     \$a = mos6502.lda.zp \$zp2
+; CHECK:     \$a = mos6502.lda.zp \$zp6
+; CHECK:     \$zp2 = mos6502.sta.zp \$a
+; CHECK:     \$a, \$c = mos6502.adc.zp \$a, \$zp2, \$c
+; CHECK:     \$zp2 = mos6502.sta.zp \$a
+; CHECK:     \$a = mos6502.lda.zp \$zp3
+; CHECK:     \$a = mos6502.lda.zp \$zp7
+; CHECK:     \$zp3 = mos6502.sta.zp \$a
+; CHECK:     \$a, \$c = mos6502.adc.zp \$a, \$zp3, \$c
+; CHECK:     \$zp3 = mos6502.sta.zp \$a
+; CHECK:     \$a = mos6502.lda.zp \$zp4
+; CHECK:     \$x = mos6502.ldx.zp \$zp5
+; CHECK:     mos6502.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
 ; CHECK: \}
 
 func @TestFunction : (i32, i32) -> i32 {

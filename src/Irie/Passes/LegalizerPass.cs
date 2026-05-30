@@ -1,5 +1,4 @@
 using Irie.Dialects.Arith;
-using Irie.IR;
 using Irie.Mir;
 using Irie.Target;
 

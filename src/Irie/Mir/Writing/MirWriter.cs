@@ -1,4 +1,3 @@
-using Irie.IR;
 
 namespace Irie.Mir.Writing;
 

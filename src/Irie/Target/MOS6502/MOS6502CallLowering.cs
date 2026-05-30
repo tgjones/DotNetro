@@ -1,15 +1,13 @@
-using Irie.CodeGen;
-using Irie.IR;
+using Irie.Mir;
 
 namespace Irie.Target.MOS6502;
 
-// Implements the CC_MOS calling convention for 8-bit values:
-//   Arguments/returns: A, X, RC2, RC3, RC4, RC5, RC6, RC7, RC8, ...
-//   RC0/RC1 are reserved (soft stack pointer).
-//   Each i32 is passed as 4 i8 bytes, LSB first.
-public sealed class MOS6502CallLowering : Irie.CodeGen.CallLowering
+// CC_MOS for the unified-MIR pipeline. Bytes are passed in A, X, RC2, RC3, …
+// (RC0/RC1 reserved as the soft stack pointer); each multi-byte value occupies
+// consecutive registers LSB-first. Mirrors the old Irie.Target.MOS6502.MOS6502CallLowering
+// while emitting the new pseudo dialect ops on the MIR types.
+public sealed class MOS6502CallLowering : Irie.Target.CallLowering
 {
-    // The CC_MOS register sequence for i8 values (RC0/RC1 reserved).
     private static readonly int[] ArgRegs =
     [
         MOS6502Registers.A,
@@ -31,74 +29,66 @@ public sealed class MOS6502CallLowering : Irie.CodeGen.CallLowering
     ];
 
     public override void LowerFormalArguments(
-        IRFunction irFunction,
-        MachineFunction machineFunction,
-        MachineBasicBlock entryBlock,
-        MachineIRBuilder builder,
-        Dictionary<IRValue, int> valueMap)
+        MirFunction function,
+        MirBlock entryBlock,
+        int[] originalParameters,
+        MirBuilder builder)
     {
-        builder.SetInsertionPointAtEnd(entryBlock);
-
         var regIdx = 0;
-        foreach (var arg in irFunction.Blocks[0].Arguments)
+        foreach (var paramVreg in originalParameters)
         {
-            var byteCount = ByteCount(arg.Type);
-            var byteVregs = new int[byteCount];
+            var annotation = function.GetVRegAnnotation(paramVreg);
+            if (annotation is not TypedVReg typed)
+                throw new InvalidOperationException(
+                    $"AbiLowering: entry-block parameter %{paramVreg} has non-typed annotation {annotation}");
 
+            var byteCount = ByteCount(typed.Type);
+            EnsureRegBudget(regIdx + byteCount);
+
+            if (byteCount == 1)
+            {
+                var physReg = ArgRegs[regIdx++];
+                builder.AddLiveIn(physReg);
+                builder.BuildCopyFromPhysicalRegisterInto(paramVreg, physReg);
+                continue;
+            }
+
+            var byteVregs = new int[byteCount];
             for (var i = 0; i < byteCount; i++)
             {
-                if (regIdx >= ArgRegs.Length)
-                    throw new NotSupportedException(
-                        "MOS6502CallLowering: argument exhausted available registers (stack args not yet supported).");
-
                 var physReg = ArgRegs[regIdx++];
                 builder.AddLiveIn(physReg);
                 byteVregs[i] = builder.BuildCopyFromPhysicalRegister(physReg, IRType.I8);
             }
-
-            // Merge the bytes back into the IR-typed vreg so downstream translation
-            // sees the argument at its original type.
-            var argVreg = byteCount == 1
-                ? byteVregs[0]
-                : builder.BuildMerge(arg.Type, byteVregs);
-
-            valueMap[arg] = argVreg;
+            builder.BuildMergeInto(paramVreg, byteVregs);
         }
     }
 
     public override void LowerReturn(
-        IRType irReturnType,
+        IRType returnType,
         int? returnValueVreg,
-        MachineBasicBlock block,
-        MachineIRBuilder builder)
+        MirBuilder builder)
     {
-        builder.SetInsertionPointAtEnd(block);
+        if (returnType is VoidType || !returnValueVreg.HasValue)
+            return;
 
-        var implicitUses = new List<MachineOperand>();
+        var byteCount = ByteCount(returnType);
+        EnsureRegBudget(byteCount);
 
-        if (returnValueVreg.HasValue && irReturnType is not VoidType)
-        {
-            var byteCount = ByteCount(irReturnType);
-            int[] byteVregs;
+        var byteVregs = byteCount == 1
+            ? [returnValueVreg.Value]
+            : builder.BuildUnmerge(IRType.I8, returnValueVreg.Value, byteCount);
 
-            if (byteCount == 1)
-            {
-                byteVregs = [returnValueVreg.Value];
-            }
-            else
-            {
-                byteVregs = builder.BuildUnmerge(IRType.I8, returnValueVreg.Value, byteCount);
-            }
-
-            for (var i = 0; i < byteCount; i++)
-            {
-                builder.BuildCopyToPhysicalRegister(ArgRegs[i], byteVregs[i]);
-                implicitUses.Add(new PhysicalRegisterOperand(ArgRegs[i], IsDefinition: false, IsImplicit: true));
-            }
-        }
-
-        builder.BuildTargetInstruction(MOS6502Opcode.RTS, [.. implicitUses]);
+        for (var i = 0; i < byteCount; i++)
+            builder.BuildCopyToPhysicalRegister(ArgRegs[i], byteVregs[i]);
     }
 
     private static int ByteCount(IRType type) => type.SizeInBits / 8;
+
+    private static void EnsureRegBudget(int needed)
+    {
+        if (needed > ArgRegs.Length)
+            throw new NotSupportedException(
+                "MOS6502CallLowering: argument list exceeds available CC_MOS registers (stack args not yet supported).");
+    }
 }

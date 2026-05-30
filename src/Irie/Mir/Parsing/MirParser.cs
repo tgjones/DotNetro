@@ -1,5 +1,4 @@
 using System.Text;
-using Irie.IR;
 
 namespace Irie.Mir.Parsing;
 

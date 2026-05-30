@@ -1,144 +1,175 @@
-using Irie.CodeGen;
-using Irie.IR;
+using Irie.Dialects.Arith;
+using Irie.Dialects.Pseudo;
+using Irie.Mir;
 
 namespace Irie.Target.MOS6502;
 
-// Selects generic MachineIR instructions to MOS6502 target instructions.
+// MOS6502 instruction selector for the unified-MIR pipeline. Mirrors the old
+// Irie.Target.MOS6502.MOS6502InstructionSelector while talking in OpcodeRef +
+// MirOperand. Selection rules:
 //
-// Merge/Unmerge are logical groupings with no real instruction; the selector
-// tracks which wide vregs are composed of which narrow vregs (_mergeMap) and
-// expands Unmerge into GenericCopy chains through that map.
-public sealed class MOS6502InstructionSelector : Irie.CodeGen.InstructionSelector
+//   - arith.constant 0 : i1   →  mos6502.clc  (def: class Cc vreg)
+//   - arith.constant 1 : i1   →  mos6502.sec  (def: class Cc vreg)
+//   - arith.addi_with_carry   →  mos6502.adc  (pre-AMS form; classes / tied
+//                                              metadata from MOS6502Dialect)
+//   - pseudo.return           →  mos6502.rts  with implicit-uses of every
+//                                              physreg defined by a preceding
+//                                              pseudo.copy in the same block
+//                                              (i.e. the return physregs the
+//                                              call lowering populated)
+//   - pseudo.copy / merge / unmerge   pass through (RA and later passes
+//                                                   handle them)
+//   - already-selected mos6502.* ops  pass through
+//
+// Classes are applied by:
+//   - creating new defs via CreateVirtualRegisterInClass, and
+//   - reclassifying existing typed vreg uses via ReclassifyVirtualRegister.
+public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
 {
-    // Maps a wide vreg to its component narrow vregs (populated by GenericMerge selection).
-    private readonly Dictionary<int, int[]> _mergeMap = [];
-
-    public override void BeginFunction(MachineFunction function) => _mergeMap.Clear();
-
-    public override bool Select(MachineInstruction instruction, MachineIRBuilder builder)
+    public override bool Select(MirInstruction instruction, MirBuilder builder)
     {
-        switch (instruction.Opcode)
+        var opcode = instruction.Opcode;
+
+        if (opcode.Dialect == ArithDialect.Id)
         {
-            case GenericOpcode.GenericCopy:
-                return true;
-
-            case GenericOpcode.GenericConstant:
-                return SelectConstant(instruction, builder);
-
-            case GenericOpcode.GenericMerge:
-                return SelectMerge(instruction, builder);
-
-            case GenericOpcode.GenericUnmerge:
-                return SelectUnmerge(instruction, builder);
-
-            case GenericOpcode.GenericAddCarry:
-                return SelectAddCarry(instruction, builder);
-
-            default:
-                // Already-selected target instructions (non-negative opcodes) pass through.
-                return !GenericOpcode.IsGeneric(instruction.Opcode);
+            return (ArithOp)opcode.Code switch
+            {
+                ArithOp.Constant  => SelectConstant(instruction, builder),
+                ArithOp.AddICarry => SelectAddCarry(instruction, builder),
+                _ => false,
+            };
         }
-    }
 
-    private bool SelectMerge(MachineInstruction instr, MachineIRBuilder builder)
-    {
-        var def = instr.Operands
-            .OfType<VirtualRegisterOperand>()
-            .First(o => o.IsDefinition);
-        var components = instr.Operands
-            .OfType<VirtualRegisterOperand>()
-            .Where(o => !o.IsDefinition)
-            .Select(o => o.VirtualRegister)
-            .ToArray();
-        _mergeMap[def.VirtualRegister] = components;
-        builder.Remove(instr);
-        return true;
-    }
-
-    private bool SelectUnmerge(MachineInstruction instr, MachineIRBuilder builder)
-    {
-        var defs = instr.Operands
-            .OfType<VirtualRegisterOperand>()
-            .Where(o => o.IsDefinition)
-            .ToArray();
-        var source = instr.Operands
-            .OfType<VirtualRegisterOperand>()
-            .First(o => !o.IsDefinition)
-            .VirtualRegister;
-
-        if (_mergeMap.TryGetValue(source, out var components))
+        if (opcode.Dialect == PseudoDialect.Id)
         {
-            builder.SetInsertionPointBefore(instr);
-            for (var i = 0; i < defs.Length; i++)
-                builder.BuildCopyVirtualToVirtual(defs[i].VirtualRegister, components[i]);
+            return (PseudoOp)opcode.Code switch
+            {
+                PseudoOp.Copy    => true,
+                PseudoOp.Merge   => true,
+                PseudoOp.Unmerge => true,
+                PseudoOp.Return  => SelectReturn(instruction, builder),
+                _ => false,
+            };
         }
-        // If the source has no merge map entry it remains as-is; a later pass
-        // (e.g. dead-code elimination) would clean up the dangling reference.
 
-        builder.Remove(instr);
-        return true;
+        // Already-selected target ops pass through.
+        if (opcode.Dialect == MOS6502Dialect.Id) return true;
+
+        return false;
     }
 
-    private bool SelectAddCarry(MachineInstruction instr, MachineIRBuilder builder)
+    // arith.constant 0 : i1 → mos6502.clc with a fresh class-Cc vreg def.
+    // arith.constant 1 : i1 → mos6502.sec, ditto.
+    // The original constant vreg is RAUW'd to the new clc/sec def so the
+    // downstream addi_with_carry chain head sees a properly-classed carry-in.
+    private static bool SelectConstant(MirInstruction instr, MirBuilder builder)
     {
-        // Operand layout (defs first):
-        //   def[0]: result vreg (i8)
-        //   def[1]: carry_out vreg (i1)
-        //   use[0]: a            → ADC L (class Ac)
-        //   use[1]: b            → ADC R (class Imag8)
-        //   use[2]: carry_in     → ADC carry_in (class Cc)
-        //
-        // Every AddCarry now has a uniform 3-use shape: the legalizer materializes
-        // the chain-head carry-in as `GenericConstant i1 0`, which the selector
-        // lowers to `LDImm1 0` (a target pseudo whose def is class Cc).
+        var function = builder.Function;
+        var defOp = (VirtualReg)instr.Operands[0];
+        var immOp = (Immediate)instr.Operands[1];
 
-        var defs = instr.Operands.Where(IsVRegDef).Cast<VirtualRegisterOperand>().ToArray();
-        var uses = instr.Operands.Where(o => !IsVRegDef(o)).ToArray();
-
-        var resultVreg   = defs[0].VirtualRegister;
-        var carryOutVreg = defs[1].VirtualRegister;
-
-        builder.SetInsertionPointBefore(instr);
-
-        var newDefs = builder.BuildTargetInstructionWithDefinitions(
-            MOS6502Opcode.ADC_ZeroPage,
-            [IRType.I8, IRType.I1],
-            uses,
-            MOS6502InstructionInfo.Instance.Get(MOS6502Opcode.ADC_ZeroPage).OperandClasses);
-
-        builder.Function.ReplaceAllUsesOfRegister(resultVreg,   newDefs[0]);
-        builder.Function.ReplaceAllUsesOfRegister(carryOutVreg, newDefs[1]);
-
-        builder.Remove(instr);
-        return true;
-    }
-
-    private bool SelectConstant(MachineInstruction instr, MachineIRBuilder builder)
-    {
-        // Operand layout: def[0]: vreg (typed), use[0]: ImmediateOperand.
-        // Currently only i1 is supported (carry-flag materialization for AddCarry).
-        var def = (VirtualRegisterOperand)instr.Operands[0];
-        var imm = (ImmediateOperand)instr.Operands[1];
-        var type = builder.Function.GetVirtualRegisterType(def.VirtualRegister);
-
-        if (type != IRType.I1)
+        var annotation = function.GetVRegAnnotation(defOp.Id);
+        if (annotation is not TypedVReg typed || typed.Type != IRType.I1)
             throw new NotSupportedException(
-                $"MOS6502InstructionSelector: GenericConstant of type {type.DisplayName} is not yet supported.");
+                $"MOS6502InstructionSelector: arith.constant of {annotation} is not yet supported.");
+
+        var targetOp = immOp.Value switch
+        {
+            0 => MOS6502Op.Clc,
+            1 => MOS6502Op.Sec,
+            _ => throw new NotSupportedException(
+                $"MOS6502InstructionSelector: arith.constant {immOp.Value} : i1 is not yet supported."),
+        };
+
+        var newDef = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Cc,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Cc)!);
 
         builder.SetInsertionPointBefore(instr);
+        builder.BuildInstruction(
+            MOS6502Dialect.OpRef(targetOp),
+            new VirtualReg(newDef, IsDefinition: true));
 
-        var newDef = builder.BuildTargetInstructionWithDefinition(
-            MOS6502Opcode.LDImm1,
-            IRType.I1,
-            [imm],
-            MOS6502InstructionInfo.Instance.Get(MOS6502Opcode.LDImm1).OperandClasses);
+        function.ReplaceAllUsesOfRegister(defOp.Id, newDef);
+        builder.Remove(instr);
+        return true;
+    }
 
-        builder.Function.ReplaceAllUsesOfRegister(def.VirtualRegister, newDef);
+    // arith.addi_with_carry → mos6502.adc (pre-AMS). New defs are created in
+    // class Ac/Cc; existing typed-vreg uses are reclassified to Ac (a),
+    // Imag8 (b), Cc (carry-in).
+    private static bool SelectAddCarry(MirInstruction instr, MirBuilder builder)
+    {
+        var function = builder.Function;
+
+        // Operand layout: def[0]=result, def[1]=carry_out, use[0]=a, use[1]=b, use[2]=carry_in
+        var resultVreg   = ((VirtualReg)instr.Operands[0]).Id;
+        var carryOutVreg = ((VirtualReg)instr.Operands[1]).Id;
+        var aVreg        = ((VirtualReg)instr.Operands[2]).Id;
+        var bVreg        = ((VirtualReg)instr.Operands[3]).Id;
+        var carryInVreg  = ((VirtualReg)instr.Operands[4]).Id;
+
+        ReclassifyTo(function, aVreg,       MOS6502RegisterClass.Ac);
+        ReclassifyTo(function, bVreg,       MOS6502RegisterClass.Imag8);
+        ReclassifyTo(function, carryInVreg, MOS6502RegisterClass.Cc);
+
+        var newResult = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Ac,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+        var newCarry  = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Cc,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Cc)!);
+
+        builder.SetInsertionPointBefore(instr);
+        builder.BuildInstruction(
+            MOS6502Dialect.OpRef(MOS6502Op.Adc),
+            new VirtualReg(newResult,   IsDefinition: true),
+            new VirtualReg(newCarry,    IsDefinition: true),
+            new VirtualReg(aVreg,       IsDefinition: false),
+            new VirtualReg(bVreg,       IsDefinition: false),
+            new VirtualReg(carryInVreg, IsDefinition: false));
+
+        function.ReplaceAllUsesOfRegister(resultVreg,   newResult);
+        function.ReplaceAllUsesOfRegister(carryOutVreg, newCarry);
+        builder.Remove(instr);
+        return true;
+    }
+
+    // pseudo.return → mos6502.rts. The return physregs are surfaced as
+    // implicit uses on the rts, gathered by scanning the preceding
+    // `$reg = pseudo.copy %v` instructions in the same block (the ABI
+    // lowering emitted those for each return byte just before the
+    // pseudo.return).
+    private static bool SelectReturn(MirInstruction instr, MirBuilder builder)
+    {
+        var block = instr.Parent!;
+        var implicitUses = new List<MirOperand>();
+
+        foreach (var prev in block.Instructions)
+        {
+            if (ReferenceEquals(prev, instr)) break;
+            if (prev.Opcode.Dialect != PseudoDialect.Id) continue;
+            if ((PseudoOp)prev.Opcode.Code != PseudoOp.Copy) continue;
+            if (prev.Operands.Length == 0) continue;
+
+            if (prev.Operands[0] is PhysicalReg phys && phys.IsDefinition)
+                implicitUses.Add(new PhysicalReg(phys.Id, IsDefinition: false, IsImplicit: true));
+        }
+
+        builder.SetInsertionPointBefore(instr);
+        builder.BuildInstruction(
+            MOS6502Dialect.OpRef(MOS6502Op.Rts),
+            implicitUses.ToArray());
 
         builder.Remove(instr);
         return true;
     }
 
-    private static bool IsVRegDef(MachineOperand o) =>
-        o is VirtualRegisterOperand v && v.IsDefinition;
+    private static void ReclassifyTo(MirFunction function, int vreg, int classId)
+    {
+        var name = MOS6502RegisterClass.GetName(classId)!;
+        var annotation = function.GetVRegAnnotation(vreg);
+        if (annotation is ClassedVReg existing && existing.ClassId == classId) return;
+        function.ReclassifyVirtualRegister(vreg, classId, name);
+    }
 }

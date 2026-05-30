@@ -1,36 +1,52 @@
-using Irie.CodeGen;
-using Irie.IR;
+using Irie.Dialects.Arith;
+using Irie.Dialects.Pseudo;
+using Irie.Mir;
 
 namespace Irie.Target.MOS6502;
 
-public sealed class MOS6502LegalizerInfo : Irie.CodeGen.LegalizerInfo
+// MOS6502 legalizer for the unified-MIR pipeline. Mirrors the old
+// Irie.Target.MOS6502.MOS6502LegalizerInfo while talking in OpcodeRef and the
+// new dialect opcodes (arith.addi, arith.addi_with_carry, arith.constant,
+// pseudo.merge, pseudo.unmerge, pseudo.copy).
+public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
 {
-    public override Irie.CodeGen.LegalityAction GetAction(int opcode, IRType type)
+    public override LegalityAction GetAction(OpcodeRef opcode, IRType type)
     {
         if (type is not IntegerType intType)
-            return Irie.CodeGen.LegalityAction.Unsupported;
+            return LegalityAction.Unsupported;
 
-        return opcode switch
+        if (opcode.Dialect == ArithDialect.Id)
         {
-            // i8 arithmetic is native.
-            GenericOpcode.GenericAdd when intType.SizeInBits == 8  => Irie.CodeGen.LegalityAction.Legal,
-            // i32 (and other multi-byte widths) must be split into i8 operations.
-            GenericOpcode.GenericAdd when intType.SizeInBits > 8   => Irie.CodeGen.LegalityAction.NarrowScalar,
+            return ((ArithOp)opcode.Code) switch
+            {
+                ArithOp.AddI      when intType.SizeInBits == 8  => LegalityAction.Legal,
+                ArithOp.AddI      when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
+                ArithOp.AddICarry => LegalityAction.Legal,
+                ArithOp.Constant  when intType.SizeInBits == 1  => LegalityAction.Legal,
+                _ => LegalityAction.Unsupported,
+            };
+        }
 
-            // Helper opcodes used during legalization are always legal.
-            GenericOpcode.GenericAddCarry         => Irie.CodeGen.LegalityAction.Legal,
-            GenericOpcode.GenericMerge            => Irie.CodeGen.LegalityAction.Legal,
-            GenericOpcode.GenericUnmerge          => Irie.CodeGen.LegalityAction.Legal,
-            GenericOpcode.GenericCopy             => Irie.CodeGen.LegalityAction.Legal,
-            // i1 constants are materialized via LDImm1 by the selector.
-            GenericOpcode.GenericConstant when intType.SizeInBits == 1 => Irie.CodeGen.LegalityAction.Legal,
+        if (opcode.Dialect == PseudoDialect.Id)
+        {
+            return ((PseudoOp)opcode.Code) switch
+            {
+                PseudoOp.Copy    => LegalityAction.Legal,
+                PseudoOp.Merge   => LegalityAction.Legal,
+                PseudoOp.Unmerge => LegalityAction.Legal,
+                _ => LegalityAction.Unsupported,
+            };
+        }
 
-            _ => Irie.CodeGen.LegalityAction.Unsupported,
-        };
+        return LegalityAction.Unsupported;
     }
 
-    public override IRType GetNarrowType(int opcode, IRType fromType) =>
-        opcode == GenericOpcode.GenericAdd ? IRType.I8
-        : throw new NotSupportedException(
+    public override IRType GetNarrowType(OpcodeRef opcode, IRType fromType)
+    {
+        if (opcode.Dialect == ArithDialect.Id && (ArithOp)opcode.Code == ArithOp.AddI)
+            return IRType.I8;
+
+        throw new NotSupportedException(
             $"MOS6502LegalizerInfo: no narrow type defined for opcode {opcode}");
+    }
 }

@@ -1,7 +1,7 @@
 using Irie.Mir;
 using Irie.Passes;
 
-namespace Irie.Target.MOS6502.V2;
+namespace Irie.Target.MOS6502;
 
 // Target-private pass that refines each pre-AMS `mos6502.*` opcode to a
 // concrete addressing-mode form (e.g. `mos6502.adc` → `mos6502.adc.zp` /
@@ -66,5 +66,5 @@ public sealed class MOS6502AddressingModeSelectorPass : MirFunctionPass
     }
 
     private static bool IsZeroPage(int physReg) =>
-        physReg >= MOS6502Registers.RC(0) && physReg < MOS6502Registers.N;
+        physReg >= MOS6502Registers.RC(0);
 }

@@ -1,4 +1,3 @@
-using Irie.IR;
 using static Irie.Mir.Binary.MirBinaryFormat;
 
 namespace Irie.Mir.Binary;

@@ -6,20 +6,20 @@
 ;   - four `arith.addi_with_carry %a, %b, %carry_in` ops in a chain
 ;
 ; The selector lowers them to:
-;   - `mos6502.clc`            (def: class Cc vreg — replaces the i1 constant)
-;   - `mos6502.adc` (pre-AMS)  with class Ac / Cc defs and class Ac / Imag8 /
-;     Cc uses. use[0] is tied to def[0]; the dialect's GetInstructionInfo
+;   - `mos6502.clc`            (def: class cc vreg — replaces the i1 constant)
+;   - `mos6502.adc` (pre-AMS)  with class ac / cc defs and class ac / zp /
+;     cc uses. use[0] is tied to def[0]; the dialect's GetInstructionInfo
 ;     supplies the tied-def metadata so the writer prints `(tied-def 0)`.
 ;
-; Each `mos6502.adc` exposes both result (i8, class Ac) and carry_out
-; (i1, class Cc) as SSA defs, taking the previous carry_out as an explicit
+; Each `mos6502.adc` exposes both result (i8, class ac) and carry_out
+; (i1, class cc) as SSA defs, taking the previous carry_out as an explicit
 ; vreg use so the carry chain is visible in the IR.
 ;
 ; Vreg classes after isel:
-;   - LHS bytes (operand a): class Ac (back-propagated from adc's L use,
-;     even when sourced from a non-Ac phys reg).
-;   - RHS bytes (operand b): class Imag8.
-;   - Carry vregs:           class Cc.
+;   - LHS bytes (operand a): class ac (back-propagated from adc's L use,
+;     even when sourced from a non-ac phys reg).
+;   - RHS bytes (operand b): class zp.
+;   - Carry vregs:           class cc.
 ;
 ; The `pseudo.return` is lowered to `mos6502.rts` with implicit-uses of every
 ; physreg defined by a preceding `pseudo.copy` in the same block (i.e. the
@@ -31,25 +31,25 @@
 
 ; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
 ; CHECK:   bb0\(\):
-; CHECK:     \[liveins: \$A, \$X, \$RC2, \$RC3, \$RC4, \$RC5, \$RC6, \$RC7\]
-; CHECK:     %3 : Ac = pseudo.copy \$A
-; CHECK:     %4 : Ac = pseudo.copy \$X
-; CHECK:     %5 : Ac = pseudo.copy \$RC2
-; CHECK:     %6 : Ac = pseudo.copy \$RC3
-; CHECK:     %7 : Imag8 = pseudo.copy \$RC4
-; CHECK:     %8 : Imag8 = pseudo.copy \$RC5
-; CHECK:     %9 : Imag8 = pseudo.copy \$RC6
-; CHECK:     %10 : Imag8 = pseudo.copy \$RC7
-; CHECK:     %32 : Cc = mos6502.clc
-; CHECK:     %33 : Ac, %34 : Cc = mos6502.adc %3\(tied-def 0\), %7, %32
-; CHECK:     %35 : Ac, %36 : Cc = mos6502.adc %4\(tied-def 0\), %8, %34
-; CHECK:     %37 : Ac, %38 : Cc = mos6502.adc %5\(tied-def 0\), %9, %36
-; CHECK:     %39 : Ac, %40 : Cc = mos6502.adc %6\(tied-def 0\), %10, %38
-; CHECK:     \$A = pseudo.copy %33
-; CHECK:     \$X = pseudo.copy %35
-; CHECK:     \$RC2 = pseudo.copy %37
-; CHECK:     \$RC3 = pseudo.copy %39
-; CHECK:     mos6502.rts implicit \$A, implicit \$X, implicit \$RC2, implicit \$RC3
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
+; CHECK:     %3 : ac = pseudo.copy \$a
+; CHECK:     %4 : ac = pseudo.copy \$x
+; CHECK:     %5 : ac = pseudo.copy \$zp2
+; CHECK:     %6 : ac = pseudo.copy \$zp3
+; CHECK:     %7 : zp = pseudo.copy \$zp4
+; CHECK:     %8 : zp = pseudo.copy \$zp5
+; CHECK:     %9 : zp = pseudo.copy \$zp6
+; CHECK:     %10 : zp = pseudo.copy \$zp7
+; CHECK:     %32 : cc = mos6502.clc
+; CHECK:     %33 : ac, %34 : cc = mos6502.adc %3\(tied-def 0\), %7, %32
+; CHECK:     %35 : ac, %36 : cc = mos6502.adc %4\(tied-def 0\), %8, %34
+; CHECK:     %37 : ac, %38 : cc = mos6502.adc %5\(tied-def 0\), %9, %36
+; CHECK:     %39 : ac, %40 : cc = mos6502.adc %6\(tied-def 0\), %10, %38
+; CHECK:     \$a = pseudo.copy %33
+; CHECK:     \$x = pseudo.copy %35
+; CHECK:     \$zp2 = pseudo.copy %37
+; CHECK:     \$zp3 = pseudo.copy %39
+; CHECK:     mos6502.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
 ; CHECK: \}
 
 func @TestFunction : (i32, i32) -> i32 {

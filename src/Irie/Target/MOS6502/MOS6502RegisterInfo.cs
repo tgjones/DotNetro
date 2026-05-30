@@ -1,5 +1,3 @@
-using Irie.CodeGen;
-
 namespace Irie.Target.MOS6502;
 
 public sealed class MOS6502RegisterInfo : TargetRegisterInfo

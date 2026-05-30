@@ -2,7 +2,7 @@ using System.CommandLine;
 using Irie.Mir;
 using Irie.Passes;
 using Irie.Target;
-using Irie.Target.MOS6502.V2;
+using Irie.Target.MOS6502;
 
 var inputArgument = new Argument<string?>("input")
 {
@@ -39,7 +39,7 @@ rootCommand.SetAction(parseResult =>
 
     Target target = targetName switch
     {
-        "mos6502" => new MOS6502TargetV2(),
+        "mos6502" => new MOS6502Target(),
         _ => throw new ArgumentException($"Unknown --target '{targetName}'."),
     };
 

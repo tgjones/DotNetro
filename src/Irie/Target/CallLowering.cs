@@ -1,4 +1,3 @@
-using Irie.IR;
 using Irie.Mir;
 
 namespace Irie.Target;
