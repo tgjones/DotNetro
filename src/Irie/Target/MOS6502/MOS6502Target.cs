@@ -19,6 +19,13 @@ public sealed class MOS6502Target : Irie.Target.Target
     public override Irie.Target.InstructionSelector InstructionSelector { get; } = new MOS6502InstructionSelector();
     public override Irie.Target.PseudoExpander PseudoExpander { get; } = new MOS6502PseudoExpander();
     public override TargetRegisterInfo RegisterInfo { get; } = new MOS6502RegisterInfo();
+    public override Irie.Target.MachineCodeEmitter MachineCodeEmitter { get; } = new NotImplementedMachineCodeEmitter();
+
+    private sealed class NotImplementedMachineCodeEmitter : Irie.Target.MachineCodeEmitter
+    {
+        public override Irie.MachineCode.MachineCodeModule Emit(Irie.Mir.MirModule module)
+            => throw new NotImplementedException("MOS6502 MachineCodeEmitter not yet implemented.");
+    }
 
     public override string GetRegisterName(int physReg) => MOS6502Registers.NameOf(physReg);
 

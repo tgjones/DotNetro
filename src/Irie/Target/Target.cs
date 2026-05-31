@@ -13,6 +13,10 @@ public abstract class Target
     public abstract InstructionSelector InstructionSelector { get; }
     public abstract PseudoExpander PseudoExpander { get; }
 
+    // Emits a MachineCodeModule from a post-PseudoExpansion MirModule. Called
+    // by the driver after passMgr.Run(); not part of the pass pipeline.
+    public abstract MachineCodeEmitter MachineCodeEmitter { get; }
+
     // Allocatable-register / class metadata for the unified-MIR register
     // allocator. The same TargetRegisterInfo type used by the legacy CodeGen
     // pipeline (per unified-IR plan §9: "TargetRegisterInfo.cs → kept under
