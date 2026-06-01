@@ -280,6 +280,9 @@ public sealed class MOS6502Dialect : Dialect
             MOS6502Op.Adc    => AdcInfo,
             MOS6502Op.AdcZp  => AdcInfo,
             MOS6502Op.AdcImm => AdcInfo,
+            MOS6502Op.Sbc    => SbcInfo,
+            MOS6502Op.SbcZp  => SbcInfo,
+            MOS6502Op.SbcImm => SbcInfo,
             _ => DialectInstructionInfo.Empty,
         };
 
@@ -293,6 +296,19 @@ public sealed class MOS6502Dialect : Dialect
             MOS6502RegisterClass.Ac,    // use[0]: L (tied to def[0])
             MOS6502RegisterClass.Imag8, // use[1]: R
             MOS6502RegisterClass.Cc,    // use[2]: carry_in
+        ],
+        TiedOperands: [-1, -1, 0, -1, -1]);
+
+    // Pre-AMS `mos6502.sbc` and its AMS-refined variants (`sbc.zp`, `sbc.imm`).
+    // Same shape as Adc: 2 defs + 3 uses; use[0] tied to def[0]. The carry-in
+    // here is the 6502 borrow-inverted carry flag (1 = no borrow).
+    private static readonly DialectInstructionInfo SbcInfo = new(
+        OperandClasses: [
+            MOS6502RegisterClass.Ac,    // def[0]: result
+            MOS6502RegisterClass.Cc,    // def[1]: borrow_out (carry-flag polarity)
+            MOS6502RegisterClass.Ac,    // use[0]: L (tied to def[0])
+            MOS6502RegisterClass.Imag8, // use[1]: R
+            MOS6502RegisterClass.Cc,    // use[2]: borrow_in (carry-flag polarity)
         ],
         TiedOperands: [-1, -1, 0, -1, -1]);
 

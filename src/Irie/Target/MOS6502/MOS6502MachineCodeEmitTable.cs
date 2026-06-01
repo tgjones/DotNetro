@@ -46,10 +46,17 @@ public static class MOS6502MachineCodeEmitTable
         // $c = mos6502.clc — def[0] is the implicit-effect carry flag.
         [MOS6502Op.Clc]   = new EmitRule(MOS6502Opcode.CLC,          EmitOperandKind.Implied,         null),
 
+        // $c = mos6502.sec — def[0] is the implicit-effect carry flag.
+        // Used as the chain-head no-borrow for sbc chains.
+        [MOS6502Op.Sec]   = new EmitRule(MOS6502Opcode.SEC,          EmitOperandKind.Implied,         null),
+
         // $a, $c = mos6502.adc.zp $a, $zpN, $c
         // Operands: def[0]=$a, def[1]=$c, use[0]=$a (tied), use[1]=zp, use[2]=$c.
         // Index 3 = use[1], the zero-page address.
         [MOS6502Op.AdcZp] = new EmitRule(MOS6502Opcode.ADC_ZeroPage, EmitOperandKind.ZeroPageAddress, 3),
+
+        // $a, $c = mos6502.sbc.zp $a, $zpN, $c — same shape as AdcZp.
+        [MOS6502Op.SbcZp] = new EmitRule(MOS6502Opcode.SBC_ZeroPage, EmitOperandKind.ZeroPageAddress, 3),
 
         // $zpN = mos6502.sta.zp $a
         // Operands: def[0]=zp (the address), use[0]=$a.

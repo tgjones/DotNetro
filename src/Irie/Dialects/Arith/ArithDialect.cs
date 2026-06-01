@@ -12,11 +12,12 @@ public sealed class ArithDialect : Dialect
 
     public override string GetOpName(ushort code) => ((ArithOp)code) switch
     {
-        ArithOp.AddI      => "addi",
-        ArithOp.SubI      => "subi",
-        ArithOp.CmpI      => "cmpi",
-        ArithOp.AddICarry => "addi_with_carry",
-        ArithOp.Constant  => "constant",
+        ArithOp.AddI       => "addi",
+        ArithOp.SubI       => "subi",
+        ArithOp.CmpI       => "cmpi",
+        ArithOp.AddICarry  => "addi_with_carry",
+        ArithOp.SubIBorrow => "subi_with_borrow",
+        ArithOp.Constant   => "constant",
         _ => throw new ArgumentOutOfRangeException(nameof(code), code, $"Unknown arith opcode {code}."),
     };
 
@@ -24,11 +25,12 @@ public sealed class ArithDialect : Dialect
     {
         switch (name)
         {
-            case "addi":             code = (ushort)ArithOp.AddI;      return true;
-            case "subi":             code = (ushort)ArithOp.SubI;      return true;
-            case "cmpi":             code = (ushort)ArithOp.CmpI;      return true;
-            case "addi_with_carry":  code = (ushort)ArithOp.AddICarry; return true;
-            case "constant":         code = (ushort)ArithOp.Constant;  return true;
+            case "addi":              code = (ushort)ArithOp.AddI;       return true;
+            case "subi":              code = (ushort)ArithOp.SubI;       return true;
+            case "cmpi":              code = (ushort)ArithOp.CmpI;       return true;
+            case "addi_with_carry":   code = (ushort)ArithOp.AddICarry;  return true;
+            case "subi_with_borrow":  code = (ushort)ArithOp.SubIBorrow; return true;
+            case "constant":          code = (ushort)ArithOp.Constant;   return true;
         }
         code = 0;
         return false;

@@ -46,21 +46,22 @@ public sealed class MOS6502AddressingModeSelectorPass : MirFunctionPass
     // refinement rule yet.
     private static MOS6502Op? TryRefine(MOS6502Op op, MirOperand[] operands) => op switch
     {
-        MOS6502Op.Adc => RefineAdc(operands),
+        MOS6502Op.Adc => RefineByRhs(operands, MOS6502Op.AdcZp, MOS6502Op.AdcImm),
+        MOS6502Op.Sbc => RefineByRhs(operands, MOS6502Op.SbcZp, MOS6502Op.SbcImm),
         _ => null,
     };
 
-    // mos6502.adc operand layout (defs first):
-    //   def[0]: result, def[1]: carry_out,
+    // mos6502.adc / mos6502.sbc operand layout (defs first):
+    //   def[0]: result, def[1]: carry_out / borrow_out,
     //   use[0]: a (operands[2]), use[1]: b (operands[3]), use[2]: carry_in (operands[4]).
     // The RHS (use[1]) drives the addressing mode.
-    private static MOS6502Op? RefineAdc(MirOperand[] operands)
+    private static MOS6502Op? RefineByRhs(MirOperand[] operands, MOS6502Op zpForm, MOS6502Op immForm)
     {
         if (operands.Length < 4) return null;
         return operands[3] switch
         {
-            PhysicalReg phys when IsZeroPage(phys.Id) => MOS6502Op.AdcZp,
-            Immediate                                 => MOS6502Op.AdcImm,
+            PhysicalReg phys when IsZeroPage(phys.Id) => zpForm,
+            Immediate                                 => immForm,
             _ => null,
         };
     }

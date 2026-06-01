@@ -34,8 +34,9 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         {
             return (ArithOp)opcode.Code switch
             {
-                ArithOp.Constant  => SelectConstant(instruction, builder),
-                ArithOp.AddICarry => SelectAddCarry(instruction, builder),
+                ArithOp.Constant   => SelectConstant(instruction, builder),
+                ArithOp.AddICarry  => SelectAddCarry(instruction, builder),
+                ArithOp.SubIBorrow => SelectSubBorrow(instruction, builder),
                 _ => false,
             };
         }
@@ -61,7 +62,8 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // arith.constant 0 : i1 → mos6502.clc with a fresh class-Cc vreg def.
     // arith.constant 1 : i1 → mos6502.sec, ditto.
     // The original constant vreg is RAUW'd to the new clc/sec def so the
-    // downstream addi_with_carry chain head sees a properly-classed carry-in.
+    // downstream addi_with_carry / subi_with_borrow chain head sees a
+    // properly-classed carry-in.
     private static bool SelectConstant(MirInstruction instr, MirBuilder builder)
     {
         var function = builder.Function;
@@ -99,38 +101,48 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // class Ac/Cc; existing typed-vreg uses are reclassified to Ac (a),
     // Imag8 (b), Cc (carry-in).
     private static bool SelectAddCarry(MirInstruction instr, MirBuilder builder)
+        => SelectCarryBorrowOp(instr, builder, MOS6502Op.Adc);
+
+    // arith.subi_with_borrow → mos6502.sbc (pre-AMS). Same operand layout,
+    // class assignment, and tied-def shape as add-with-carry — the only
+    // difference is the emitted opcode tag.
+    private static bool SelectSubBorrow(MirInstruction instr, MirBuilder builder)
+        => SelectCarryBorrowOp(instr, builder, MOS6502Op.Sbc);
+
+    private static bool SelectCarryBorrowOp(MirInstruction instr, MirBuilder builder, MOS6502Op targetOp)
     {
         var function = builder.Function;
 
-        // Operand layout: def[0]=result, def[1]=carry_out, use[0]=a, use[1]=b, use[2]=carry_in
-        var resultVreg   = ((VirtualReg)instr.Operands[0]).Id;
-        var carryOutVreg = ((VirtualReg)instr.Operands[1]).Id;
-        var aVreg        = ((VirtualReg)instr.Operands[2]).Id;
-        var bVreg        = ((VirtualReg)instr.Operands[3]).Id;
-        var carryInVreg  = ((VirtualReg)instr.Operands[4]).Id;
+        // Operand layout: def[0]=result, def[1]=carry/borrow_out,
+        //                 use[0]=a, use[1]=b, use[2]=carry/borrow_in
+        var resultVreg     = ((VirtualReg)instr.Operands[0]).Id;
+        var flagOutVreg    = ((VirtualReg)instr.Operands[1]).Id;
+        var aVreg          = ((VirtualReg)instr.Operands[2]).Id;
+        var bVreg          = ((VirtualReg)instr.Operands[3]).Id;
+        var flagInVreg     = ((VirtualReg)instr.Operands[4]).Id;
 
-        ReclassifyTo(function, aVreg,       MOS6502RegisterClass.Ac);
-        ReclassifyTo(function, bVreg,       MOS6502RegisterClass.Imag8);
-        ReclassifyTo(function, carryInVreg, MOS6502RegisterClass.Cc);
+        ReclassifyTo(function, aVreg,      MOS6502RegisterClass.Ac);
+        ReclassifyTo(function, bVreg,      MOS6502RegisterClass.Imag8);
+        ReclassifyTo(function, flagInVreg, MOS6502RegisterClass.Cc);
 
         var newResult = function.CreateVirtualRegisterInClass(
             MOS6502RegisterClass.Ac,
             MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
-        var newCarry  = function.CreateVirtualRegisterInClass(
+        var newFlag   = function.CreateVirtualRegisterInClass(
             MOS6502RegisterClass.Cc,
             MOS6502RegisterClass.GetName(MOS6502RegisterClass.Cc)!);
 
         builder.SetInsertionPointBefore(instr);
         builder.BuildInstruction(
-            MOS6502Dialect.OpRef(MOS6502Op.Adc),
-            new VirtualReg(newResult,   IsDefinition: true),
-            new VirtualReg(newCarry,    IsDefinition: true),
-            new VirtualReg(aVreg,       IsDefinition: false),
-            new VirtualReg(bVreg,       IsDefinition: false),
-            new VirtualReg(carryInVreg, IsDefinition: false));
+            MOS6502Dialect.OpRef(targetOp),
+            new VirtualReg(newResult,  IsDefinition: true),
+            new VirtualReg(newFlag,    IsDefinition: true),
+            new VirtualReg(aVreg,      IsDefinition: false),
+            new VirtualReg(bVreg,      IsDefinition: false),
+            new VirtualReg(flagInVreg, IsDefinition: false));
 
-        function.ReplaceAllUsesOfRegister(resultVreg,   newResult);
-        function.ReplaceAllUsesOfRegister(carryOutVreg, newCarry);
+        function.ReplaceAllUsesOfRegister(resultVreg,  newResult);
+        function.ReplaceAllUsesOfRegister(flagOutVreg, newFlag);
         builder.Remove(instr);
         return true;
     }

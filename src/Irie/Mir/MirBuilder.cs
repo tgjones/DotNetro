@@ -110,6 +110,22 @@ public sealed class MirBuilder(MirFunction function)
         return (result, carryOut);
     }
 
+    // arith.subi_with_borrow: 2 defs (result, borrow-out), 3 uses (a, b, borrow-in).
+    // borrow_in/out follow 6502 C-flag polarity (1 = no borrow).
+    public (int result, int borrowOut) BuildSubBorrow(IRType type, int a, int b, int borrowInVreg)
+    {
+        var result    = function.CreateVirtualRegister(type);
+        var borrowOut = function.CreateVirtualRegister(IRType.I1);
+        Insert(ArithDialect.OpRef(ArithOp.SubIBorrow), [
+            new VirtualReg(result,       IsDefinition: true),
+            new VirtualReg(borrowOut,    IsDefinition: true),
+            new VirtualReg(a,            IsDefinition: false),
+            new VirtualReg(b,            IsDefinition: false),
+            new VirtualReg(borrowInVreg, IsDefinition: false),
+        ]);
+        return (result, borrowOut);
+    }
+
     // pseudo.unmerge a wide vreg into N freshly-allocated narrow vregs.
     public int[] BuildUnmerge(IRType elementType, int sourceVreg, int count)
     {

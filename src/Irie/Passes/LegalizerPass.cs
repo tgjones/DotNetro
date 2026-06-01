@@ -121,10 +121,11 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         LegalizeNarrowScalar(instr, function, builder, typed.Type, narrowType);
     }
 
-    // Splits a wide arith.addi into a chain of narrow arith.addi_with_carry
-    // instructions. The pseudo.unmerge / pseudo.merge artifacts inserted here
-    // are folded by the artifact combiner whenever they meet matching
-    // upstream / downstream artifacts.
+    // Splits a wide arith.addi / arith.subi into a chain of narrow
+    // arith.addi_with_carry / arith.subi_with_borrow instructions. The
+    // pseudo.unmerge / pseudo.merge artifacts inserted here are folded by the
+    // artifact combiner whenever they meet matching upstream / downstream
+    // artifacts.
     private static void LegalizeNarrowScalar(
         MirInstruction instr,
         MirFunction function,
@@ -132,18 +133,22 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         IRType wideType,
         IRType narrowType)
     {
-        if (instr.Opcode.Dialect != ArithDialect.Id || (ArithOp)instr.Opcode.Code != ArithOp.AddI)
+        if (instr.Opcode.Dialect != ArithDialect.Id
+            || ((ArithOp)instr.Opcode.Code != ArithOp.AddI
+                && (ArithOp)instr.Opcode.Code != ArithOp.SubI))
         {
             var dialect = DialectRegistry.ById(instr.Opcode.Dialect);
             throw new NotSupportedException(
                 $"Legalizer: NarrowScalar not implemented for opcode {dialect.Prefix}.{dialect.GetOpName(instr.Opcode.Code)}");
         }
 
+        var op = (ArithOp)instr.Opcode.Code;
+
         VirtualReg? def = null;
         var uses = new List<VirtualReg>(2);
-        foreach (var op in instr.Operands)
+        foreach (var operand in instr.Operands)
         {
-            if (op is VirtualReg v)
+            if (operand is VirtualReg v)
             {
                 if (v.IsDefinition && def == null) def = v;
                 else if (!v.IsDefinition) uses.Add(v);
@@ -151,7 +156,7 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         }
         if (def == null || uses.Count != 2)
             throw new InvalidOperationException(
-                $"Legalizer: arith.addi instruction has unexpected operand shape.");
+                $"Legalizer: arith.{(op == ArithOp.AddI ? "addi" : "subi")} instruction has unexpected operand shape.");
 
         var lhsVreg    = uses[0].Id;
         var rhsVreg    = uses[1].Id;
@@ -164,16 +169,23 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         var lhsParts = builder.BuildUnmerge(narrowType, lhsVreg, count);
         var rhsParts = builder.BuildUnmerge(narrowType, rhsVreg, count);
 
-        // The chain head needs an explicit zero carry-in vreg so every
-        // arith.addi_with_carry has a uniform 3-use shape.
-        var carryIn = builder.BuildConstant(IRType.I1, 0);
+        // Chain head: addi chains start with a 0 carry-in (CLC); subi chains
+        // start with a 1 borrow-in (SEC) since borrow_in uses 6502 C-flag
+        // polarity. Either way, the constant lets every link have a uniform
+        // 3-use shape.
+        var chainHeadIn = op == ArithOp.AddI ? 0L : 1L;
+        var carryOrBorrowIn = builder.BuildConstant(IRType.I1, chainHeadIn);
         var resultParts = new int[count];
 
         for (var i = 0; i < count; i++)
         {
-            var (r, c) = builder.BuildAddCarry(narrowType, lhsParts[i], rhsParts[i], carryIn);
+            int r, cOrB;
+            if (op == ArithOp.AddI)
+                (r, cOrB) = builder.BuildAddCarry(narrowType, lhsParts[i], rhsParts[i], carryOrBorrowIn);
+            else
+                (r, cOrB) = builder.BuildSubBorrow(narrowType, lhsParts[i], rhsParts[i], carryOrBorrowIn);
             resultParts[i] = r;
-            carryIn = c;
+            carryOrBorrowIn = cOrB;
         }
 
         builder.BuildMergeInto(resultVreg, resultParts);

@@ -19,10 +19,13 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
         {
             return ((ArithOp)opcode.Code) switch
             {
-                ArithOp.AddI      when intType.SizeInBits == 8  => LegalityAction.Legal,
-                ArithOp.AddI      when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
-                ArithOp.AddICarry => LegalityAction.Legal,
-                ArithOp.Constant  when intType.SizeInBits == 1  => LegalityAction.Legal,
+                ArithOp.AddI       when intType.SizeInBits == 8  => LegalityAction.Legal,
+                ArithOp.AddI       when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
+                ArithOp.SubI       when intType.SizeInBits == 8  => LegalityAction.Legal,
+                ArithOp.SubI       when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
+                ArithOp.AddICarry  => LegalityAction.Legal,
+                ArithOp.SubIBorrow => LegalityAction.Legal,
+                ArithOp.Constant   when intType.SizeInBits == 1  => LegalityAction.Legal,
                 _ => LegalityAction.Unsupported,
             };
         }
@@ -43,7 +46,8 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
 
     public override IRType GetNarrowType(OpcodeRef opcode, IRType fromType)
     {
-        if (opcode.Dialect == ArithDialect.Id && (ArithOp)opcode.Code == ArithOp.AddI)
+        if (opcode.Dialect == ArithDialect.Id
+            && ((ArithOp)opcode.Code == ArithOp.AddI || (ArithOp)opcode.Code == ArithOp.SubI))
             return IRType.I8;
 
         throw new NotSupportedException(
