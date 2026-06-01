@@ -1,0 +1,38 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; End-to-end check: the same IntegerAdd32 input as
+; IntegerAdd32-PseudoExpansion.irie goes all the way to MOS6502 assembly
+; text via the MachineCodeEmitter. Each MIR opcode lowers to one 6502
+; instruction; zero-page addresses are RC numbers chosen by the register
+; allocator (MOS6502Registers.RC(n) = 12+n, so $zp2=14 prints as $02,
+; $zp3 as $03, ...).
+;
+; If the register allocator's choices shift, this file and
+; IntegerAdd32-PseudoExpansion.irie must move together.
+
+; CHECK: TestFunction:
+; CHECK:     CLC
+; CHECK:     ADC \$04
+; CHECK:     STA \$04
+; CHECK:     TXA
+; CHECK:     ADC \$05
+; CHECK:     STA \$05
+; CHECK:     LDA \$02
+; CHECK:     LDA \$06
+; CHECK:     STA \$02
+; CHECK:     ADC \$02
+; CHECK:     STA \$02
+; CHECK:     LDA \$03
+; CHECK:     LDA \$07
+; CHECK:     STA \$03
+; CHECK:     ADC \$03
+; CHECK:     STA \$03
+; CHECK:     LDA \$04
+; CHECK:     LDX \$05
+; CHECK:     RTS
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i32 = arith.addi %0, %1
+    core.return %2
+}
