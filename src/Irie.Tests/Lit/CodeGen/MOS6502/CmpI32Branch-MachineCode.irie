@@ -1,0 +1,37 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Step 15 (plan §6 step 3b): multi-byte arith.cmpi + cf.cond_br fusion for
+; i32 operands. The MOS6502 instruction selector widens the cmpi+cond_br
+; into a chain of per-byte CMPs (high-to-low) interleaved with BCC/BNE
+; exits whose targets are determined by the predicate. The unmerged byte
+; vregs are funneled through fresh Anyi8 copies so the long live range
+; doesn't trap any byte in $a / $x past the first CMP step.
+;
+; The leaf path (BCC reached on the low byte) anchors a JMP to the false
+; target so the chain has a definite terminator regardless of fallthrough.
+
+; CHECK: TestCmpI32:
+; CHECK:     CMP \$07
+; CHECK:     BCC \.bb1
+; CHECK:     BNE \.bb2
+; CHECK:     CMP \$06
+; CHECK:     BCC \.bb1
+; CHECK:     BNE \.bb2
+; CHECK:     CMP \$05
+; CHECK:     BCC \.bb1
+; CHECK:     BNE \.bb2
+; CHECK:     CMP \$04
+; CHECK:     BCC \.bb1
+; CHECK:     JMP \.bb2
+
+func @TestCmpI32 : (i32, i32) -> i8 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i1 = arith.cmpi ult, %0, %1
+    cf.cond_br %2, bb1(), bb2()
+bb1():
+    %3 : i8 = arith.constant 1
+    core.return %3
+bb2():
+    %4 : i8 = arith.constant 0
+    core.return %4
+}
