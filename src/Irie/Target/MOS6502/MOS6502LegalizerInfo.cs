@@ -32,6 +32,7 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
                 // driven by the operand types — see GetCmpINarrowType.
                 ArithOp.CmpI       => LegalityAction.Legal,
                 ArithOp.Constant   when intType.SizeInBits == 1  => LegalityAction.Legal,
+                ArithOp.Constant   when intType.SizeInBits == 8  => LegalityAction.Legal,
                 _ => LegalityAction.Unsupported,
             };
         }
@@ -84,6 +85,10 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
                 MemOp.StoreI32    when intType.SizeInBits == 32 => LegalityAction.Custom,
                 MemOp.LoadByteAt  when intType.SizeInBits == 8  => LegalityAction.Legal,
                 MemOp.StoreByteAt when intType.SizeInBits == 8  => LegalityAction.Legal,
+                // mem.fill's TypeOperandIndex points at the byte-pattern (i8) operand;
+                // the count is an Immediate that the Custom path unrolls into per-byte
+                // mem.store.byte_at.
+                MemOp.Fill        when intType.SizeInBits == 8  => LegalityAction.Custom,
                 _ => LegalityAction.Unsupported,
             };
         }
@@ -122,6 +127,10 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
                 case MemOp.StoreI16:
                 case MemOp.StoreI32:
                     LowerWideStore(instr, builder);
+                    return;
+
+                case MemOp.Fill:
+                    LowerMemFill(instr, builder);
                     return;
             }
             throw new NotSupportedException(
@@ -185,6 +194,38 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
             builder.BuildMergeInto(defReg.Id, byteVregs);
         }
 
+        builder.Remove(instr);
+    }
+
+    // mem.fill %addr, %byte, <count>  →  unroll into <count> mem.store.byte_at
+    // ops at offsets 0..count-1, all writing the same byte vreg. Loop-form for
+    // large counts is future work; the active tests use small struct sizes.
+    private static void LowerMemFill(MirInstruction instr, MirBuilder builder)
+    {
+        if (instr.Operands.Length != 3
+            || instr.Operands[0] is not VirtualReg addrReg || addrReg.IsDefinition
+            || instr.Operands[1] is not VirtualReg byteReg || byteReg.IsDefinition
+            || instr.Operands[2] is not Immediate countImm)
+        {
+            throw new InvalidOperationException(
+                "MOS6502LegalizerInfo: mem.fill must have shape `mem.fill %addr, %byte, <count>`.");
+        }
+
+        var count = countImm.Value;
+        if (count < 0 || count > 256)
+        {
+            throw new NotSupportedException(
+                $"MOS6502LegalizerInfo: mem.fill count {count} is out of range (loop-form not implemented; expected 0..256).");
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            builder.BuildInstruction(
+                MemDialect.OpRef(MemOp.StoreByteAt),
+                new VirtualReg(addrReg.Id, IsDefinition: false),
+                new Immediate(i),
+                new VirtualReg(byteReg.Id, IsDefinition: false));
+        }
         builder.Remove(instr);
     }
 

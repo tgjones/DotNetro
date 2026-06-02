@@ -110,11 +110,11 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         return false;
     }
 
-    // arith.constant 0 : i1 → mos6502.clc with a fresh class-Cc vreg def.
-    // arith.constant 1 : i1 → mos6502.sec, ditto.
-    // The original constant vreg is RAUW'd to the new clc/sec def so the
-    // downstream addi_with_carry / subi_with_borrow chain head sees a
-    // properly-classed carry-in.
+    // arith.constant N : iK → target op carrying the immediate.
+    //   i1: 0 → mos6502.clc, 1 → mos6502.sec (flag-class vreg def).
+    //   i8: a fresh Anyi8 vreg is defined via `pseudo.copy <imm>`. The pseudo
+    //       expander turns that into LDA/LDX/LDY-immediate (or a zp store via
+    //       $a) depending on the RA's chosen physreg.
     private static bool SelectConstant(MirInstruction instr, MirBuilder builder)
     {
         var function = builder.Function;
@@ -122,30 +122,56 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         var immOp = (Immediate)instr.Operands[1];
 
         var annotation = function.GetVRegAnnotation(defOp.Id);
-        if (annotation is not TypedVReg typed || typed.Type != IRType.I1)
+        if (annotation is not TypedVReg typed)
             throw new NotSupportedException(
                 $"MOS6502InstructionSelector: arith.constant of {annotation} is not yet supported.");
 
-        var targetOp = immOp.Value switch
+        if (typed.Type == IRType.I1)
         {
-            0 => MOS6502Op.Clc,
-            1 => MOS6502Op.Sec,
-            _ => throw new NotSupportedException(
-                $"MOS6502InstructionSelector: arith.constant {immOp.Value} : i1 is not yet supported."),
-        };
+            var targetOp = immOp.Value switch
+            {
+                0 => MOS6502Op.Clc,
+                1 => MOS6502Op.Sec,
+                _ => throw new NotSupportedException(
+                    $"MOS6502InstructionSelector: arith.constant {immOp.Value} : i1 is not yet supported."),
+            };
 
-        var newDef = function.CreateVirtualRegisterInClass(
-            MOS6502RegisterClass.Cc,
-            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Cc)!);
+            var newDef = function.CreateVirtualRegisterInClass(
+                MOS6502RegisterClass.Cc,
+                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Cc)!);
 
-        builder.SetInsertionPointBefore(instr);
-        builder.BuildInstruction(
-            MOS6502Dialect.OpRef(targetOp),
-            new VirtualReg(newDef, IsDefinition: true));
+            builder.SetInsertionPointBefore(instr);
+            builder.BuildInstruction(
+                MOS6502Dialect.OpRef(targetOp),
+                new VirtualReg(newDef, IsDefinition: true));
 
-        function.ReplaceAllUsesOfRegister(defOp.Id, newDef);
-        builder.Remove(instr);
-        return true;
+            function.ReplaceAllUsesOfRegister(defOp.Id, newDef);
+            builder.Remove(instr);
+            return true;
+        }
+
+        if (typed.Type == IRType.I8)
+        {
+            // %byte : any8 = pseudo.copy <imm>
+            // PseudoExpansion turns this into an LDA/LDX/LDY-imm followed by
+            // an STA-to-zp if the RA picked a zero-page slot.
+            var newDef = function.CreateVirtualRegisterInClass(
+                MOS6502RegisterClass.Anyi8,
+                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
+
+            builder.SetInsertionPointBefore(instr);
+            builder.BuildInstruction(
+                PseudoDialect.OpRef(PseudoOp.Copy),
+                new VirtualReg(newDef, IsDefinition: true),
+                new Immediate(immOp.Value));
+
+            function.ReplaceAllUsesOfRegister(defOp.Id, newDef);
+            builder.Remove(instr);
+            return true;
+        }
+
+        throw new NotSupportedException(
+            $"MOS6502InstructionSelector: arith.constant of {typed.Type.DisplayName} is not yet supported.");
     }
 
     // arith.addi_with_carry → mos6502.adc (pre-AMS). New defs are created in

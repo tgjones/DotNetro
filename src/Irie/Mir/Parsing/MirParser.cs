@@ -117,11 +117,19 @@ internal sealed class MirParser
         var returnType = ParseType();
         Expect(MirTokenKind.LBrace);
 
+        var function = new MirFunction(name, paramTypes, returnType);
+
+        // Optional `frame_slot N : type @name` declarations before the first
+        // block. The frontend reserves one slot per address-taken local; the
+        // FrameLoweringPass materialises each as a module-level MirGlobal.
+        while (_current.Kind == MirTokenKind.Identifier && _current.Text == "frame_slot")
+        {
+            ParseFrameSlot(function);
+        }
+
         // Collect every token in the function body so the inner two-pass
         // block resolution can do its own scan without re-lexing.
         var body = CollectBodyTokens();
-
-        var function = new MirFunction(name, paramTypes, returnType);
 
         // Pass 1: identify block headers (BlockLabel LParen ... RParen Colon).
         // A bare `bbN` or `bbN(args)` without a trailing colon is a block-target
@@ -140,6 +148,21 @@ internal sealed class MirParser
             ParseBlock(tokens, function, blockMap, headerPositions);
 
         return function;
+    }
+
+    private void ParseFrameSlot(MirFunction function)
+    {
+        Advance(); // consume 'frame_slot'
+        var indexToken = Expect(MirTokenKind.Integer);
+        Expect(MirTokenKind.Colon);
+        var typeToken = Expect(MirTokenKind.Identifier);
+        var type = ParseTypeName(typeToken);
+        Expect(MirTokenKind.At);
+        var nameToken = Expect(MirTokenKind.Identifier);
+        function.FrameSlots.Add(new FrameSlot(
+            Index:      (int)indexToken.IntValue!.Value,
+            Type:       type,
+            SymbolName: nameToken.Text!));
     }
 
     // -------------------------------------------------------------------------

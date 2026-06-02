@@ -21,6 +21,8 @@ public sealed class MemDialect : Dialect
         MemOp.StoreI32    => "store.i32",
         MemOp.LoadByteAt  => "load.byte_at",
         MemOp.StoreByteAt => "store.byte_at",
+        MemOp.FrameAddr   => "frame_addr",
+        MemOp.Fill        => "fill",
         _ => throw new ArgumentOutOfRangeException(nameof(code), code, $"Unknown mem opcode {code}."),
     };
 
@@ -37,6 +39,8 @@ public sealed class MemDialect : Dialect
             case "store.i32":     code = (ushort)MemOp.StoreI32;    return true;
             case "load.byte_at":  code = (ushort)MemOp.LoadByteAt;  return true;
             case "store.byte_at": code = (ushort)MemOp.StoreByteAt; return true;
+            case "frame_addr":    code = (ushort)MemOp.FrameAddr;   return true;
+            case "fill":          code = (ushort)MemOp.Fill;        return true;
         }
         code = 0;
         return false;
@@ -53,17 +57,23 @@ public sealed class MemDialect : Dialect
             MemOp.StoreI16    => StoreI8Info,
             MemOp.StoreI32    => StoreI8Info,
             MemOp.StoreByteAt => StoreByteAtInfo,
+            // mem.fill's pattern byte (i8) is the legality-driving operand;
+            // the count is an Immediate that the Custom legalizer unrolls.
+            MemOp.Fill        => FillInfo,
             _ => DialectInstructionInfo.Empty,
         };
 
     private static readonly DialectInstructionInfo StoreI8Info     = new(TypeOperandIndex: 1);
     private static readonly DialectInstructionInfo StoreByteAtInfo = new(TypeOperandIndex: 2);
+    private static readonly DialectInstructionInfo FillInfo        = new(TypeOperandIndex: 1);
 
-    // mem.symbol is pure (returns a constant pointer value). Loads and stores
-    // observe / modify memory, so they have side effects.
+    // mem.symbol / mem.frame_addr are pure (they return a constant pointer
+    // value). Loads, stores, and fills observe or modify memory, so they have
+    // side effects.
     public override bool IsSideEffectFree(ushort code) => ((MemOp)code) switch
     {
-        MemOp.Symbol => true,
+        MemOp.Symbol    => true,
+        MemOp.FrameAddr => true,
         _ => false,
     };
 

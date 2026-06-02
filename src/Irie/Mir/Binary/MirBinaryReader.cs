@@ -81,6 +81,15 @@ internal static class MirBinaryReader
 
         var function = new MirFunction(name, paramTypes, returnType);
 
+        var frameSlotCount = reader.ReadInt32();
+        for (var i = 0; i < frameSlotCount; i++)
+        {
+            var slotIndex = reader.ReadInt32();
+            var slotType = ReadType(reader);
+            var slotName = reader.ReadString();
+            function.FrameSlots.Add(new FrameSlot(slotIndex, slotType, slotName));
+        }
+
         var vregCount = reader.ReadInt32();
         for (var i = 0; i < vregCount; i++)
         {

@@ -96,6 +96,9 @@ internal sealed class MirWriter
         var paramStr = string.Join(", ", function.ParameterTypes.Select(FormatType));
         writer.WriteLine($"func @{function.Name} : ({paramStr}) -> {FormatType(function.ReturnType)} {{");
 
+        foreach (var slot in function.FrameSlots)
+            writer.WriteLine($"  frame_slot {slot.Index} : {FormatType(slot.Type)} @{slot.SymbolName}");
+
         var blockIndex = new Dictionary<MirBlock, int>();
         for (var i = 0; i < function.Blocks.Count; i++)
             blockIndex[function.Blocks[i]] = i;

@@ -84,6 +84,14 @@ internal static class MirBinaryWriter
             WriteType(type, writer);
         WriteType(function.ReturnType, writer);
 
+        writer.Write(function.FrameSlots.Count);
+        foreach (var slot in function.FrameSlots)
+        {
+            writer.Write(slot.Index);
+            WriteType(slot.Type, writer);
+            writer.Write(slot.SymbolName);
+        }
+
         var vregIds = function.VirtualRegisterIds;
         writer.Write(vregIds.Count);
         foreach (var id in vregIds)

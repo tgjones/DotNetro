@@ -216,6 +216,19 @@ public sealed class MirBuilder(MirFunction function)
         return result;
     }
 
+    // mem.frame_addr <slot_index> → %p : i16
+    // Surface the address of one of the function's reserved frame slots.
+    // The slot itself must already be registered on `function.FrameSlots`.
+    public int BuildFrameAddr(int slotIndex)
+    {
+        var result = function.CreateVirtualRegister(IRType.Pointer);
+        Insert(MemDialect.OpRef(MemOp.FrameAddr), [
+            new VirtualReg(result, IsDefinition: true),
+            new Immediate(slotIndex),
+        ]);
+        return result;
+    }
+
     // Remove an instruction from its block and detach it (Parent = null).
     public void Remove(MirInstruction instruction)
     {

@@ -93,19 +93,41 @@ public sealed class MOS6502PseudoExpander : Irie.Target.PseudoExpander
 
     private static void ExpandImmediateToReg(int dst, long value, MirBuilder builder)
     {
-        var op = dst switch
+        switch (dst)
         {
-            MOS6502Registers.A => MOS6502Op.LdaImm,
-            MOS6502Registers.X => MOS6502Op.LdxImm,
-            MOS6502Registers.Y => MOS6502Op.LdyImm,
-            _ => throw new NotImplementedException(
-                $"MOS6502PseudoExpander: cannot materialise immediate {value} directly into " +
-                $"${MOS6502Registers.NameOf(dst)}; only A/X/Y supported."),
-        };
+            case MOS6502Registers.A:
+                builder.BuildInstruction(MOS6502Dialect.OpRef(MOS6502Op.LdaImm),
+                    new PhysicalReg(dst, IsDefinition: true),
+                    new Immediate(value));
+                return;
+            case MOS6502Registers.X:
+                builder.BuildInstruction(MOS6502Dialect.OpRef(MOS6502Op.LdxImm),
+                    new PhysicalReg(dst, IsDefinition: true),
+                    new Immediate(value));
+                return;
+            case MOS6502Registers.Y:
+                builder.BuildInstruction(MOS6502Dialect.OpRef(MOS6502Op.LdyImm),
+                    new PhysicalReg(dst, IsDefinition: true),
+                    new Immediate(value));
+                return;
+        }
 
-        builder.BuildInstruction(MOS6502Dialect.OpRef(op),
-            new PhysicalReg(dst, IsDefinition: true),
-            new Immediate(value));
+        if (IsZeroPage(dst))
+        {
+            // No direct "store immediate to zp" on the 6502 — route through
+            // $a: LDA #N ; STA $zpN. Plan §4.1 calls this out explicitly.
+            builder.BuildInstruction(MOS6502Dialect.OpRef(MOS6502Op.LdaImm),
+                new PhysicalReg(MOS6502Registers.A, IsDefinition: true),
+                new Immediate(value));
+            builder.BuildInstruction(MOS6502Dialect.OpRef(MOS6502Op.StaZp),
+                new PhysicalReg(dst, IsDefinition: true),
+                new PhysicalReg(MOS6502Registers.A, IsDefinition: false));
+            return;
+        }
+
+        throw new NotImplementedException(
+            $"MOS6502PseudoExpander: cannot materialise immediate {value} directly into " +
+            $"${MOS6502Registers.NameOf(dst)}.");
     }
 
     private static void Emit(MirBuilder builder, MOS6502Op op, int dst, int src)
