@@ -176,6 +176,33 @@ public sealed class MirBuilder(MirFunction function)
         return defs;
     }
 
+    // pseudo.extract: %byte = pseudo.extract %wide, <bit_offset>
+    // Carves out a sub-range of `sourceVreg` starting at `bitOffset` bits.
+    // The result vreg's type (sub-range width) is determined by `resultType`.
+    public int BuildExtract(IRType resultType, int sourceVreg, long bitOffset)
+    {
+        var result = function.CreateVirtualRegister(resultType);
+        Insert(PseudoDialect.OpRef(PseudoOp.Extract), [
+            new VirtualReg(result,     IsDefinition: true),
+            new VirtualReg(sourceVreg, IsDefinition: false),
+            new Immediate(bitOffset),
+        ]);
+        return result;
+    }
+
+    // pseudo.insert: %new = pseudo.insert %wide, %sub, <bit_offset>
+    public int BuildInsert(IRType resultType, int wideVreg, int subVreg, long bitOffset)
+    {
+        var result = function.CreateVirtualRegister(resultType);
+        Insert(PseudoDialect.OpRef(PseudoOp.Insert), [
+            new VirtualReg(result,   IsDefinition: true),
+            new VirtualReg(wideVreg, IsDefinition: false),
+            new VirtualReg(subVreg,  IsDefinition: false),
+            new Immediate(bitOffset),
+        ]);
+        return result;
+    }
+
     // Remove an instruction from its block and detach it (Parent = null).
     public void Remove(MirInstruction instruction)
     {

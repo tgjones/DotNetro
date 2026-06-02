@@ -273,6 +273,7 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
             return (Irie.Dialects.Pseudo.PseudoOp)instr.Opcode.Code switch
             {
                 Irie.Dialects.Pseudo.PseudoOp.Unmerge => TryCombineUnmerge(instr, deadInstrs),
+                Irie.Dialects.Pseudo.PseudoOp.Extract => TryCombineExtract(instr, deadInstrs),
                 _ => false,
             };
         }
@@ -333,6 +334,71 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
             // added to the worklist *after* its consumer (e.g. when
             // legalization inserts a fresh BuildMergeInto whose result feeds an
             // existing unmerge that was popped earlier).
+            if (function.GetUseCount(mergeDef.Id) == 1)
+                deadInstrs.Add(mergeInstr);
+
+            return true;
+        }
+
+        // Pattern: Extract(Merge(p0..pN), bit_offset) → replace extract def with the
+        // matching part vreg when bit_offset aligns to a part boundary and the
+        // extracted width equals the part width.
+        //
+        // Operand layout for pseudo.extract:
+        //   [0] = def (the byte/slice vreg)
+        //   [1] = source wide vreg
+        //   [2] = Immediate bit offset
+        //
+        // Operand layout for pseudo.merge:
+        //   [0]    = def (wide vreg)
+        //   [1..N] = part vregs in low-to-high order
+        private bool TryCombineExtract(MirInstruction extract, List<MirInstruction> deadInstrs)
+        {
+            if (extract.Operands.Length != 3) return false;
+            if (extract.Operands[0] is not VirtualReg defReg || !defReg.IsDefinition) return false;
+            if (extract.Operands[1] is not VirtualReg srcReg || srcReg.IsDefinition) return false;
+            if (extract.Operands[2] is not Immediate bitOffsetImm) return false;
+
+            var defType = AnnotationType(function.GetVRegAnnotation(defReg.Id));
+            if (defType is null) return false;
+            var extractWidth = defType.SizeInBits;
+            var bitOffset = bitOffsetImm.Value;
+
+            var mergeInstr = function.GetDefinition(srcReg.Id);
+            if (mergeInstr is null) return false;
+            if (mergeInstr.Opcode.Dialect != Irie.Dialects.Pseudo.PseudoDialect.Id) return false;
+            if ((Irie.Dialects.Pseudo.PseudoOp)mergeInstr.Opcode.Code != Irie.Dialects.Pseudo.PseudoOp.Merge)
+                return false;
+
+            // Walk the merge's part vregs and find the one whose [offset, offset+width)
+            // range exactly matches the extract.
+            var runningOffset = 0L;
+            VirtualReg? mergeDef = null;
+            VirtualReg? matchingPart = null;
+            foreach (var op in mergeInstr.Operands)
+            {
+                if (op is not VirtualReg v) continue;
+                if (v.IsDefinition && mergeDef is null) { mergeDef = v; continue; }
+                if (v.IsDefinition) continue;
+
+                var partType = AnnotationType(function.GetVRegAnnotation(v.Id));
+                if (partType is null) return false;
+                var partWidth = partType.SizeInBits;
+
+                if (runningOffset == bitOffset && partWidth == extractWidth)
+                {
+                    matchingPart = v;
+                    break;
+                }
+                runningOffset += partWidth;
+            }
+            if (matchingPart is null || mergeDef is null) return false;
+
+            // RAUW: every use of the extract's def becomes a use of the matching part.
+            function.ReplaceAllUsesOfRegister(oldVreg: defReg.Id, newVreg: matchingPart.Id);
+            deadInstrs.Add(extract);
+
+            // If the merge had only this consumer (the extract), it's now dead too.
             if (function.GetUseCount(mergeDef.Id) == 1)
                 deadInstrs.Add(mergeInstr);
 
