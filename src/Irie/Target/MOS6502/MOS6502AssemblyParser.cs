@@ -72,10 +72,15 @@ public static class MOS6502AssemblyParser
         if (string.IsNullOrEmpty(text))
             return (AddressingMode.Implied, null);
 
-        // Immediate: #$XX
+        // Immediate: #$XX or #<sym (low half) or #>sym (high half)
         if (text.StartsWith('#'))
         {
-            var value = ParseHex(text[1..], lineNumber);
+            var body = text[1..];
+            if (body.StartsWith('<'))
+                return (AddressingMode.Immediate, new MachineCodeOperand.ExternalRef(body[1..], SymbolHalf.LowByte));
+            if (body.StartsWith('>'))
+                return (AddressingMode.Immediate, new MachineCodeOperand.ExternalRef(body[1..], SymbolHalf.HighByte));
+            var value = ParseHex(body, lineNumber);
             return (AddressingMode.Immediate, new MachineCodeOperand.Immediate(value));
         }
 

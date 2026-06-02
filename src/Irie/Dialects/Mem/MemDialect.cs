@@ -39,7 +39,19 @@ public sealed class MemDialect : Dialect
     }
 
     public override DialectInstructionInfo GetInstructionInfo(ushort code) =>
-        DialectInstructionInfo.Empty;
+        ((MemOp)code) switch
+        {
+            // mem.store.* has no def operand; point the legalizer at the
+            // value operand (use[1]) so it can query the value's IRType.
+            // Operand layout: use[0]=addr (i16 pointer), use[1]=value.
+            MemOp.StoreI8  => StoreInfo,
+            MemOp.StoreI16 => StoreInfo,
+            MemOp.StoreI32 => StoreInfo,
+            _ => DialectInstructionInfo.Empty,
+        };
+
+    private static readonly DialectInstructionInfo StoreInfo = new(
+        TypeOperandIndex: 1);
 
     // mem.symbol is pure (returns a constant pointer value). Loads and stores
     // observe / modify memory, so they have side effects.

@@ -23,6 +23,14 @@ public enum EmitOperandKind
     // 2-byte absolute address. The MIR operand is either a Symbol (external
     // function name) or a BlockTarget (intra-function jump).
     AbsoluteAddress,
+
+    // 1-byte immediate carrying the low (`SymbolLowByte`) or high
+    // (`SymbolHighByte`) half of a Symbol operand's final address. The MIR
+    // operand is a Symbol; the emitter produces a MachineCodeOperand.ExternalRef
+    // tagged with SymbolHalf.LowByte / .HighByte so the assembler resolves only
+    // that half.
+    SymbolLowByte,
+    SymbolHighByte,
 }
 
 // Per-opcode rule: which 6502 byte to emit, how to interpret the operand,
@@ -86,6 +94,34 @@ public static class MOS6502MachineCodeEmitTable
         // Operands: def[0]=zp (the address), use[0]=$a.
         // Index 0 = def[0]; the source register is implicit in the opcode.
         [MOS6502Op.StaZp] = new EmitRule(MOS6502Opcode.STA_ZeroPage, EmitOperandKind.ZeroPageAddress, 0),
+
+        // $a = mos6502.lda.imm #N
+        // Operands: def[0]=$a, use[0]=Immediate. Index 1 = use[0].
+        [MOS6502Op.LdaImm] = new EmitRule(MOS6502Opcode.LDA_Immediate, EmitOperandKind.Immediate, 1),
+
+        // $x = mos6502.ldx.imm #N — same shape as LdaImm.
+        [MOS6502Op.LdxImm] = new EmitRule(MOS6502Opcode.LDX_Immediate, EmitOperandKind.Immediate, 1),
+
+        // $y = mos6502.ldy.imm #N — same shape as LdaImm.
+        [MOS6502Op.LdyImm] = new EmitRule(MOS6502Opcode.LDY_Immediate, EmitOperandKind.Immediate, 1),
+
+        // $a = mos6502.lda.imm.symlo @sym — operands: def[0]=$a, use[0]=Symbol.
+        // Encodes as LDA_Immediate with the low byte of @sym.
+        [MOS6502Op.LdaImmSymLo] = new EmitRule(MOS6502Opcode.LDA_Immediate, EmitOperandKind.SymbolLowByte, 1),
+
+        // $a = mos6502.lda.imm.symhi @sym — same shape, high byte.
+        [MOS6502Op.LdaImmSymHi] = new EmitRule(MOS6502Opcode.LDA_Immediate, EmitOperandKind.SymbolHighByte, 1),
+
+        // $a = mos6502.lda.indy $zpN
+        // Operands: def[0]=$a, use[0]=zp (pointer low byte). Implicit-use $y
+        // (the Y register for the offset) follows.
+        // Index 1 = use[0].
+        [MOS6502Op.LdaIndY] = new EmitRule(MOS6502Opcode.LDA_IndirectY, EmitOperandKind.ZeroPageAddress, 1),
+
+        // mos6502.sta.indy $zpN, $a
+        // Operands: use[0]=zp (pointer low byte), use[1]=$a (source). Implicit-use $y.
+        // Index 0 = use[0]; the source is in $a per the opcode definition.
+        [MOS6502Op.StaIndY] = new EmitRule(MOS6502Opcode.STA_IndirectY, EmitOperandKind.ZeroPageAddress, 0),
 
         // $a = mos6502.lda.zp $zpN
         // Operands: def[0]=$a, use[0]=zp. Index 1 = use[0].

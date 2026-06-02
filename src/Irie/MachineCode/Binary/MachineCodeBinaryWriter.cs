@@ -57,9 +57,10 @@ internal static class MachineCodeBinaryWriter
                 writer.Write((byte)OperandKindTag.LabelRef);
                 writer.Write(name);
                 break;
-            case MachineCodeOperand.ExternalRef(var name):
+            case MachineCodeOperand.ExternalRef(var name, var half):
                 writer.Write((byte)OperandKindTag.ExternalRef);
                 writer.Write(name);
+                writer.Write((byte)half);
                 break;
             default:
                 throw new InvalidOperationException($"Unknown operand type: {operand.GetType().Name}");

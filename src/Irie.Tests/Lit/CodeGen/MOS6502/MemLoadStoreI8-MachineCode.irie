@@ -1,0 +1,29 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; End-to-end check for mem.load.i8 / mem.store.i8 through a mem.symbol
+; address: the symbol's low/high bytes are materialised into the scratch
+; zero-page pair ($02 / $03) via `LDA #<sym` / `LDA #>sym` and STA, and the
+; load/store use indirect-Y addressing. The second `LDY #$00` before the
+; store is redundant in this snippet but is emitted on every mem op (the
+; isel always re-zeros Y; a peephole could fold it later).
+
+; CHECK: TestMemByte:
+; CHECK:     LDA #<hello
+; CHECK:     STA \$02
+; CHECK:     LDA #>hello
+; CHECK:     STA \$03
+; CHECK:     LDY #\$00
+; CHECK:     LDA \(\$02\),Y
+; CHECK:     LDY #\$00
+; CHECK:     STA \(\$02\),Y
+; CHECK:     RTS
+
+global @hello : i32 = bytes "Hi!"
+
+func @TestMemByte : () -> void {
+bb0():
+    %0 : i16 = mem.symbol @hello
+    %1 : i8  = mem.load.i8 %0
+    mem.store.i8 %0, %1
+    core.return
+}

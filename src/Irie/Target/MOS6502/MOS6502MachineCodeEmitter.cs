@@ -48,6 +48,8 @@ public sealed class MOS6502MachineCodeEmitter : Irie.Target.MachineCodeEmitter
             EmitOperandKind.Immediate       => EmitImmediate(instr, rule.OperandIndex!.Value),
             EmitOperandKind.BranchTarget    => EmitBranchTarget(instr, rule.OperandIndex!.Value, parent),
             EmitOperandKind.AbsoluteAddress => EmitAbsoluteAddress(instr, rule.OperandIndex!.Value, parent),
+            EmitOperandKind.SymbolLowByte   => EmitSymbolHalf(instr, rule.OperandIndex!.Value, SymbolHalf.LowByte),
+            EmitOperandKind.SymbolHighByte  => EmitSymbolHalf(instr, rule.OperandIndex!.Value, SymbolHalf.HighByte),
             _ => throw new InvalidOperationException($"Unhandled EmitOperandKind {rule.Kind}."),
         };
 
@@ -79,6 +81,15 @@ public sealed class MOS6502MachineCodeEmitter : Irie.Target.MachineCodeEmitter
             throw new InvalidOperationException(
                 $"MOS6502MachineCodeEmitter: expected a BlockTarget at operand[{index}] of {(MOS6502Op)instr.Opcode.Code}, got {operand}.");
         return new MachineCodeOperand.LabelRef(BlockLabel(parent.Blocks.IndexOf(target.Block)));
+    }
+
+    private static MachineCodeOperand EmitSymbolHalf(MirInstruction instr, int index, SymbolHalf half)
+    {
+        var operand = instr.Operands[index];
+        if (operand is not Symbol(var name))
+            throw new InvalidOperationException(
+                $"MOS6502MachineCodeEmitter: expected a Symbol at operand[{index}] of {(MOS6502Op)instr.Opcode.Code}, got {operand}.");
+        return new MachineCodeOperand.ExternalRef(name, half);
     }
 
     private static MachineCodeOperand EmitAbsoluteAddress(MirInstruction instr, int index, MirFunction parent)

@@ -1,4 +1,5 @@
 using Irie.Dialects.Arith;
+using Irie.Dialects.Mem;
 using Irie.Dialects.Pseudo;
 using Irie.Mir;
 
@@ -41,6 +42,21 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
                 PseudoOp.Copy    => LegalityAction.Legal,
                 PseudoOp.Merge   => LegalityAction.Legal,
                 PseudoOp.Unmerge => LegalityAction.Legal,
+                _ => LegalityAction.Unsupported,
+            };
+        }
+
+        if (opcode.Dialect == MemDialect.Id)
+        {
+            // mem.symbol produces an i16 pointer that the isel pattern-matches
+            // through to the per-byte lda.imm.symlo/symhi ops. mem.load.i8 /
+            // mem.store.i8 are legal as-is; wider load/store widths are
+            // narrowed in step 9 (not yet implemented).
+            return ((MemOp)opcode.Code) switch
+            {
+                MemOp.Symbol  when intType.SizeInBits == 16 => LegalityAction.Legal,
+                MemOp.LoadI8  when intType.SizeInBits == 8  => LegalityAction.Legal,
+                MemOp.StoreI8 when intType.SizeInBits == 8  => LegalityAction.Legal,
                 _ => LegalityAction.Unsupported,
             };
         }

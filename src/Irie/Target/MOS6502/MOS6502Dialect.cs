@@ -42,8 +42,10 @@ public sealed class MOS6502Dialect : Dialect
         [MOS6502Op.Ror] = "ror",
 
         // LDA
-        [MOS6502Op.LdaImm]  = "lda.imm",
-        [MOS6502Op.LdaZp]   = "lda.zp",
+        [MOS6502Op.LdaImm]       = "lda.imm",
+        [MOS6502Op.LdaImmSymLo]  = "lda.imm.symlo",
+        [MOS6502Op.LdaImmSymHi]  = "lda.imm.symhi",
+        [MOS6502Op.LdaZp]        = "lda.zp",
         [MOS6502Op.LdaZpX]  = "lda.zpx",
         [MOS6502Op.LdaAbs]  = "lda.abs",
         [MOS6502Op.LdaAbsX] = "lda.absx",

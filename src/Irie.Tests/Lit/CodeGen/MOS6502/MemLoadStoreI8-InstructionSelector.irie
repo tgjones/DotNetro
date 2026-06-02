@@ -1,0 +1,32 @@
+; RUN: @iriec --target mos6502 --stop-after InstructionSelector @file
+
+; Checks instruction selection for mem.load.i8 / mem.store.i8 against an
+; address produced by mem.symbol: the i16 pointer's bytes are pinned to a
+; scratch zero-page pair ($zp2/$zp3 — step 8 hack to guarantee adjacency for
+; the indirect-Y addressing mode), Y is zeroed, and the load/store use
+; indirect-Y. The mem.symbol op disappears once its last use is consumed.
+
+; CHECK: func @TestMemByte : \(\) -> void \{
+; CHECK:   bb0\(\):
+; CHECK:     %2 : ac = mos6502.lda.imm.symlo @hello
+; CHECK:     \$zp2 = pseudo.copy %2
+; CHECK:     %3 : ac = mos6502.lda.imm.symhi @hello
+; CHECK:     \$zp3 = pseudo.copy %3
+; CHECK:     %4 : yc = mos6502.ldy.imm 0
+; CHECK:     \$y = pseudo.copy %4
+; CHECK:     %5 : ac = mos6502.lda.indy \$zp2, implicit \$zp3, implicit \$y
+; CHECK:     %6 : yc = mos6502.ldy.imm 0
+; CHECK:     \$y = pseudo.copy %6
+; CHECK:     mos6502.sta.indy \$zp2, %5, implicit \$zp3, implicit \$y
+; CHECK:     mos6502.rts
+; CHECK: \}
+
+global @hello : i32 = bytes "Hi!"
+
+func @TestMemByte : () -> void {
+bb0():
+    %0 : i16 = mem.symbol @hello
+    %1 : i8  = mem.load.i8 %0
+    mem.store.i8 %0, %1
+    core.return
+}
