@@ -117,6 +117,7 @@ internal sealed class EcmaMethod
             .Replace('.', '_')
             .Replace('$', '_')
             .Replace('<', '_')
-            .Replace('>', '_');
+            .Replace('>', '_')
+            .Replace('|', '_');
     }
 }

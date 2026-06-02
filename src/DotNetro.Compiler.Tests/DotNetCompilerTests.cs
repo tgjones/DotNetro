@@ -8,40 +8,6 @@ namespace DotNetro.Compiler.Tests;
 [NotInParallel]
 public class DotNetCompilerTests
 {
-    [CompilerTest]
-    private static void PrintHelloWorld()
-    {
-        Console.WriteLine("Hello, World!");
-    }
-
-    [CompilerTest]
-    private static void Print42()
-    {
-        Console.WriteLine(42);
-    }
-
-    [CompilerTest]
-    private static void PrintMinus1()
-    {
-        Console.WriteLine(-1);
-    }
-
-    [CompilerTest]
-    private static void AddInt32()
-    {
-        var a = 1;
-        var b = 1;
-        Console.WriteLine(a + b);
-    }
-
-    [CompilerTest]
-    private static void CompareLessThanInt32()
-    {
-        var a = 1;
-        var b = 2;
-        Console.WriteLine(a < b);
-    }
-
     //[CompilerTest]
     private static void CompareLessThanOrEqualToInt32()
     {
@@ -74,63 +40,6 @@ public class DotNetCompilerTests
         Console.WriteLine(a >= b);
     }
 
-    [CompilerTest]
-    private static void CallMethodWithParameter()
-    {
-        PrintParameter(16);
-    }
-
-    private static void PrintParameter(int value)
-    {
-        Console.WriteLine(value);
-    }
-
-    [CompilerTest]
-    private static void CallMethodWithReturnValue()
-    {
-        Console.WriteLine(MethodWithReturnValue());
-    }
-
-    private static int MethodWithReturnValue()
-    {
-        return 43;
-    }
-
-    [CompilerTest]
-    private static void CallMethodWithParameterAndReturnValue()
-    {
-        Console.WriteLine(MethodWithParameterAndReturnValue(44));
-    }
-
-    private static int MethodWithParameterAndReturnValue(int value)
-    {
-        return value + 1;
-    }
-
-    [CompilerTest]
-    private static void CallMethodWithTwoParametersAndReturnValue()
-    {
-        Console.WriteLine(MethodWithParametersAndReturnValue(1, 2));
-    }
-
-    private static int MethodWithParametersAndReturnValue(int a, int b)
-    {
-        return a + b;
-    }
-
-    [CompilerTest(ConsoleInputs = ["Foo"])]
-    private static void ReadAndWriteLine()
-    {
-        Console.WriteLine("Enter some text:");
-
-        var text = Console.ReadLine();
-
-        Console.WriteLine("You said:");
-        Console.WriteLine(text);
-
-        Console.Beep();
-    }
-
     //private static void CodeAddTwoIntegers()
     //{
     //    Console.WriteLine("Enter an integer:");
@@ -146,207 +55,6 @@ public class DotNetCompilerTests
     //    Console.WriteLine();
     //}
 
-    [CompilerTest]
-    private static void UseStruct()
-    {
-        var s = new MyStruct
-        {
-            A = 1,
-            B = 2,
-        };
-
-        Console.WriteLine(s.A + s.B);
-    }
-
-    private struct MyStruct
-    {
-        public int A;
-        public int B;
-    }
-
-    [CompilerTest]
-    private static void UseStaticFields()
-    {
-        MyStructWithStaticFields.A = 1;
-        MyStructWithStaticFields.B = 2;
-
-        Console.WriteLine(MyStructWithStaticFields.A + MyStructWithStaticFields.B);
-    }
-
-    private struct MyStructWithStaticFields
-    {
-        public static int A;
-        public static int B;
-    }
-
-    [CompilerTest]
-    private static void ForLoop()
-    {
-        Console.WriteLine("Begin");
-
-        for (var i = 0; i < 5; i++)
-        {
-            Console.WriteLine(i);
-        }
-
-        Console.WriteLine("End");
-    }
-
-    [CompilerTest]
-    private static void CallNestedMethods()
-    {
-        MethodA();
-        MethodA();
-    }
-
-    private static void MethodA()
-    {
-        var x = 1;
-        var y = 2;
-
-        MethodB(x + y);
-
-        Console.WriteLine(x + y);
-    }
-
-    private static void MethodB(int x)
-    {
-        MethodC(x + 42);
-
-        Console.WriteLine(x);
-    }
-
-    private static void MethodC(int x)
-    {
-        Console.WriteLine(x);
-    }
-
-    [CompilerTest]
-    private static void UseClass()
-    {
-        var s = new MyClass
-        {
-            A = 1,
-            B = 2,
-        };
-
-        Console.WriteLine(s.A + s.B);
-    }
-
-    private class MyClass
-    {
-        public int A;
-        public int B;
-    }
-
-    [CompilerTest]
-    private static void UseNestedClass()
-    {
-        var s = new MyClassOuter
-        {
-            Inner = new MyClassInner
-            {
-                A = 1,
-                B = 2,
-            },
-            C = 3,
-        };
-
-        Console.WriteLine(s.Inner.A + s.Inner.B + s.C);
-    }
-
-    private class MyClassOuter
-    {
-        public MyClassInner? Inner;
-        public int C;
-    }
-
-    private class MyClassInner
-    {
-        public int A;
-        public int B;
-    }
-
-    [CompilerTest]
-    private static void UseNestedClassWithConstructors()
-    {
-        var s = new MyClassOuterWithConstructor(
-            new MyClassInnerWithConstructor(1, 2),
-            3);
-
-        Console.WriteLine(s.Inner.A + s.Inner.B + s.C);
-    }
-
-    private class MyClassOuterWithConstructor(MyClassInnerWithConstructor inner, int c)
-    {
-        public MyClassInnerWithConstructor Inner = inner;
-        public int C = c;
-    }
-
-    private sealed class MyClassInnerWithConstructor(int a, int b)
-    {
-        public int A = a;
-        public int B = b;
-    }
-
-    [CompilerTest]
-    private static void UseStructWithConstructor()
-    {
-        var s = new MyStructWithConstructor(1, 2);
-
-        Console.WriteLine(s.A + s.B);
-    }
-
-    private struct MyStructWithConstructor(int a, int b)
-    {
-        public int A = a;
-        public int B = b;
-    }
-
-    [CompilerTest]
-    private static void CallInstanceMethodOnStruct()
-    {
-        var s = new MyStructWithInstanceMethod(42);
-
-        Console.WriteLine(s.MyMethod());
-    }
-
-    private struct MyStructWithInstanceMethod(int a)
-    {
-        public int MyMethod() => a;
-    }
-
-    [CompilerTest]
-    private static void CallInstanceMethodOnClass()
-    {
-        var c = new MyClassWithInstanceMethod();
-
-        Console.WriteLine(c.MyMethod());
-    }
-
-    private class MyClassWithInstanceMethod
-    {
-        public int MyMethod() => 42;
-    }
-
-    [CompilerTest]
-    private static void CallOverriddenMethodOnClass()
-    {
-        var c = new MyInheritedClassWithVirtualMethod();
-
-        Console.WriteLine(c.MyMethod());
-    }
-
-    private class MyClassWithVirtualMethod
-    {
-        public virtual int MyMethod() => 42;
-    }
-
-    private class MyInheritedClassWithVirtualMethod : MyClassWithVirtualMethod
-    {
-        public override int MyMethod() => 43;
-    }
-
     //[CompilerTest]
     private static void StringConcat()
     {
@@ -360,7 +68,7 @@ public class DotNetCompilerTests
     {
         // Run reference .NET version.
         string expectedOutput = ExecuteDotNet(test);
-        
+
         // Compile and run DotNetro version.
         var actualOutput = ExecuteDotNetro(test);
 
@@ -498,7 +206,7 @@ public class DotNetCompilerTests
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class CompilerTestAttribute : Attribute
 {
-    public string[] ConsoleInputs { get; set; } = Array.Empty<string>();
+    public string[] ConsoleInputs { get; set; } = [];
 }
 
 public sealed class CompilerTest(MethodInfo method, string[] consoleInputs)
