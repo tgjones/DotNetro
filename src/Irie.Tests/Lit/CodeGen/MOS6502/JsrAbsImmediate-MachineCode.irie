@@ -1,0 +1,16 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Verifies that `mos6502.jsr.abs` accepts an Immediate operand (a literal
+; 16-bit absolute address) in addition to a Symbol. Used by hand-written
+; runtime.mir helpers that target fixed OS-call entry points such as the
+; BBC Micro's OSWRCH ($FFEE) and OSWORD ($FFF1). Plan §6 step 13.
+
+; CHECK: CallOswrch:
+; CHECK:     JSR \$FFEE
+; CHECK:     RTS
+
+func @CallOswrch : () -> void {
+bb0():
+    mos6502.jsr.abs 65518
+    mos6502.rts
+}

@@ -97,10 +97,13 @@ public sealed class MOS6502MachineCodeEmitter : Irie.Target.MachineCodeEmitter
         var operand = instr.Operands[index];
         return operand switch
         {
-            Symbol(var name) => new MachineCodeOperand.ExternalRef(name),
+            Symbol(var name)   => new MachineCodeOperand.ExternalRef(name),
             BlockTarget target => new MachineCodeOperand.LabelRef(BlockLabel(parent.Blocks.IndexOf(target.Block))),
+            // Immediate carries a literal 16-bit address (e.g. `JSR $FFEE` for an
+            // OS call). The assembly writer formats this as `$XXXX`.
+            Mir.Immediate imm  => new MachineCodeOperand.Immediate(imm.Value),
             _ => throw new InvalidOperationException(
-                $"MOS6502MachineCodeEmitter: expected a Symbol or BlockTarget at operand[{index}] of {(MOS6502Op)instr.Opcode.Code}, got {operand}."),
+                $"MOS6502MachineCodeEmitter: expected a Symbol, BlockTarget or Immediate at operand[{index}] of {(MOS6502Op)instr.Opcode.Code}, got {operand}."),
         };
     }
 
