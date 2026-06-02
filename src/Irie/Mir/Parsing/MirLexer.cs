@@ -4,10 +4,11 @@ namespace Irie.Mir.Parsing;
 
 internal sealed class MirLexer
 {
-    private static readonly Dictionary<string, MirTokenKind> Keywords = new()
-    {
-        ["func"] = MirTokenKind.Func,
-    };
+    // No reserved keywords. Identifiers like `func` are matched by their text
+    // in the parser (e.g. ParseFunction expects Identifier("func")), so that
+    // dialect opcode parts like `call.func` lex as ordinary identifiers and
+    // don't collide with syntactic-looking words.
+    private static readonly Dictionary<string, MirTokenKind> Keywords = new();
 
     private readonly TextReader _reader;
     private int _current;

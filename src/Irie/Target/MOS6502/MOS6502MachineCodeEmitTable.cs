@@ -79,6 +79,9 @@ public static class MOS6502MachineCodeEmitTable
         // mos6502.jmp.abs T — operands[0] = BlockTarget.
         [MOS6502Op.JmpAbs] = new EmitRule(MOS6502Opcode.JMP_Absolute, EmitOperandKind.AbsoluteAddress, 0),
 
+        // mos6502.jsr.abs @callee — operands[0] = Symbol; rest are implicit.
+        [MOS6502Op.JsrAbs] = new EmitRule(MOS6502Opcode.JSR_Absolute, EmitOperandKind.AbsoluteAddress, 0),
+
         // $zpN = mos6502.sta.zp $a
         // Operands: def[0]=zp (the address), use[0]=$a.
         // Index 0 = def[0]; the source register is implicit in the opcode.

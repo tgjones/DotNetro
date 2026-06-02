@@ -2,9 +2,6 @@ namespace Irie.Mir.Parsing;
 
 internal enum MirTokenKind
 {
-    // Keywords
-    Func,
-
     // Punctuation
     At,
     Arrow,

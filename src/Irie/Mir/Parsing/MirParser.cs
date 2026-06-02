@@ -32,7 +32,9 @@ internal sealed class MirParser
 
     private MirFunction ParseFunction()
     {
-        Expect(MirTokenKind.Func);
+        var funcKeyword = Expect(MirTokenKind.Identifier);
+        if (funcKeyword.Text != "func")
+            throw Fail(funcKeyword, $"Expected 'func', got '{funcKeyword.Text}'");
         Expect(MirTokenKind.At);
         var name = Expect(MirTokenKind.Identifier).Text!;
         Expect(MirTokenKind.Colon);

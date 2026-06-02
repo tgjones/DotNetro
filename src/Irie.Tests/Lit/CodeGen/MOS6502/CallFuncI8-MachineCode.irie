@@ -1,0 +1,16 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; End-to-end check for call.func: an i8 → i8 sibling call lowers all the
+; way to JSR. Caller-saved physregs are clobbered by the JSR, so the
+; allocator can pick $a for the arg-in / return-out path without further
+; saves.
+
+; CHECK: TestCall:
+; CHECK:     JSR Callee
+; CHECK:     RTS
+
+func @TestCall : (i8) -> i8 {
+bb0(%0 : i8):
+    %1 : i8 = call.func @Callee, %0
+    core.return %1
+}

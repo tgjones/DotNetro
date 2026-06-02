@@ -59,7 +59,10 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
 
     // Step 1 — widen each entry-block livein pseudo.copy result vreg's class
     // to the flexible 8-bit class. Without this every `Ac`-class livein would
-    // need to share $A.
+    // need to share $A. Also covers vregs that ISel never reclassified (e.g.
+    // a parameter that flows only through pseudo.copy to a call site, with no
+    // arith op in between): the entry-block-livein vreg starts as TypedVReg
+    // and needs *some* class assignment for RA to work.
     private void WidenLiveinsToFlexibleClass(MirFunction function, int flexibleI8)
     {
         if (function.Blocks.Count == 0) return;
@@ -75,8 +78,7 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
             if (instr.Operands[0] is not VirtualReg { IsDefinition: true } def) continue;
             if (instr.Operands[1] is not PhysicalReg { IsDefinition: false }) continue;
 
-            if (function.GetVRegAnnotation(def.Id) is ClassedVReg)
-                function.ReclassifyVirtualRegister(def.Id, flexibleI8, flexibleName);
+            function.ReclassifyVirtualRegister(def.Id, flexibleI8, flexibleName);
         }
     }
 
