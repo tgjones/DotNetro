@@ -34,4 +34,13 @@ public class LitTestRunnerTests
             .Throws<Exception>()
             .WithMessageContaining("CHECK failed");
     }
+
+    [Test]
+    public async Task OrphanCheckFailed()
+    {
+        await Assert
+            .That(() => LitTestRunner.Run("Assets/OrphanCheckFailed.txt"))
+            .Throws<Exception>()
+            .WithMessageContaining("No RUN directive for label 'missing'");
+    }
 }

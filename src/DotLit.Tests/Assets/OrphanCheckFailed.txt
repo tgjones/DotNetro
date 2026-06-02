@@ -1,0 +1,3 @@
+// RUN: echo Hello
+// CHECK: Hello
+// CHECK-missing: ShouldFail

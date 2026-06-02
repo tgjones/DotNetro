@@ -20,8 +20,10 @@
 ; CHECK:     LDY #\$00
 ; CHECK:     LDA \$02
 ; CHECK:     STA \(\$00\),Y
-; CHECK:     LDY #\$01
 ; CHECK:     LDA \$03
+; CHECK:     STA \$02
+; CHECK:     LDY #\$01
+; CHECK:     LDA \$02
 ; CHECK:     STA \(\$00\),Y
 ; CHECK:     RTS
 
