@@ -49,4 +49,21 @@ public abstract class CallLowering
         IRType[] returnTypes,
         int[] returnVregs,
         MirBuilder builder);
+
+    // Called for each `call.indirect` instruction. Same shape as LowerCall
+    // but the callee is an i16 function-pointer vreg instead of a Symbol.
+    // The target is responsible for getting control to that pointer — on
+    // MOS6502 by parking the pointer in fixed zero-page slots and jumping
+    // to a runtime trampoline that performs `JMP (zp)`.
+    public virtual void LowerIndirectCall(
+        int targetPtrVreg,
+        IRType[] argTypes,
+        int[] argVregs,
+        IRType[] returnTypes,
+        int[] returnVregs,
+        MirBuilder builder)
+    {
+        throw new NotImplementedException(
+            "CallLowering.LowerIndirectCall must be overridden by the target for call.indirect ops.");
+    }
 }

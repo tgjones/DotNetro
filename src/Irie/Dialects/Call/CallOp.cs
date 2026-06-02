@@ -14,4 +14,18 @@ public enum CallOp : ushort
     // physreg setups + mos6502.jsr.abs + per-return pseudo.copy ← physreg
     // teardowns. Not a terminator — control returns to the next instruction.
     Func,
+
+    // %r0, %r1, ... = call.indirect %target, %arg0, %arg1, ...
+    //
+    // Call through an i16 function pointer. Operand layout:
+    //   defs[0..N-1]: return-value vregs (typed, in CC order)
+    //   uses[0]:      i16 target-pointer vreg
+    //   uses[1..M]:   arg vregs (typed, in CC order)
+    //
+    // The frontend lowers IL `callvirt` to a vtable load + this op (plan
+    // §2.3 / §4.8). AbiLowering routes through CallLowering.LowerIndirectCall
+    // which on MOS6502 parks the pointer in fixed zero-page slots and jumps
+    // to a runtime trampoline (`@__call_indirect_trampoline`) that performs
+    // the indirect JMP. Not a terminator.
+    Indirect,
 }

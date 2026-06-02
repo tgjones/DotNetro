@@ -162,6 +162,25 @@ public sealed class MirBuilder(MirFunction function)
         return defs;
     }
 
+    // call.indirect %target, %arg0, %arg1, ... → %r0, %r1, ...
+    // Same shape as BuildCall but the callee is an i16 target-pointer vreg
+    // instead of a Symbol.
+    public int[] BuildCallIndirect(int targetPtrVreg, IRType[] returnTypes, params int[] argVregs)
+    {
+        var defs = new int[returnTypes.Length];
+        var operands = new MirOperand[returnTypes.Length + 1 + argVregs.Length];
+        for (var i = 0; i < returnTypes.Length; i++)
+        {
+            defs[i] = function.CreateVirtualRegister(returnTypes[i]);
+            operands[i] = new VirtualReg(defs[i], IsDefinition: true);
+        }
+        operands[returnTypes.Length] = new VirtualReg(targetPtrVreg, IsDefinition: false);
+        for (var i = 0; i < argVregs.Length; i++)
+            operands[returnTypes.Length + 1 + i] = new VirtualReg(argVregs[i], IsDefinition: false);
+        Insert(CallDialect.OpRef(CallOp.Indirect), operands);
+        return defs;
+    }
+
     // pseudo.unmerge a wide vreg into N freshly-allocated narrow vregs.
     public int[] BuildUnmerge(IRType elementType, int sourceVreg, int count)
     {

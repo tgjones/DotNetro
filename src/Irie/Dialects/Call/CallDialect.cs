@@ -12,7 +12,8 @@ public sealed class CallDialect : Dialect
 
     public override string GetOpName(ushort code) => ((CallOp)code) switch
     {
-        CallOp.Func => "func",
+        CallOp.Func     => "func",
+        CallOp.Indirect => "indirect",
         _ => throw new ArgumentOutOfRangeException(nameof(code), code, $"Unknown call opcode {code}."),
     };
 
@@ -20,7 +21,8 @@ public sealed class CallDialect : Dialect
     {
         switch (name)
         {
-            case "func": code = (ushort)CallOp.Func; return true;
+            case "func":     code = (ushort)CallOp.Func;     return true;
+            case "indirect": code = (ushort)CallOp.Indirect; return true;
         }
         code = 0;
         return false;

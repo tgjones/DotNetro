@@ -1,0 +1,24 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Step 18: call.indirect through an i16 function pointer. The MOS6502
+; AbiLowering parks the pointer's two bytes into the reserved zero-page
+; pair $1E / $1F (RC30 / RC31, the trampoline's target slots) and jumps
+; to the @__call_indirect_trampoline runtime helper.
+;
+; The trampoline (a future runtime.mir entry) reads $1E / $1F as a 16-bit
+; pointer and does `JMP (zp)` to dispatch into the actual function. The
+; emitted code below only depends on the trampoline existing under the
+; expected symbol name; the runtime helper itself is hand-written and
+; linked separately.
+
+; CHECK: TestCallIndirect:
+; CHECK:     STA \$1E
+; CHECK:     STX \$1F
+; CHECK:     JSR __call_indirect_trampoline
+; CHECK:     RTS
+
+func @TestCallIndirect : (i16) -> i8 {
+bb0(%0 : i16):
+    %1 : i8 = call.indirect %0
+    core.return %1
+}
