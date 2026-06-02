@@ -1,16 +1,10 @@
 using System.CommandLine;
 
 var programFileArgument = new Argument<string?>("program-file") { Description = "Path to a raw 6502 program file, or - for stdin.", Arity = ArgumentArity.ZeroOrOne };
-var targetSystemOption = new Option<string>("--target-system", "Target system. Currently: bbcmicro (default).")
-{
-    DefaultValueFactory = _ => "bbcmicro",
-};
-var inputOption = new Option<string?>("--input", "Console input. Use \\r to separate lines.");
-var maxTicksOption = new Option<int>("--max-ticks", "Tick budget before the run is aborted as a runaway. Default: 1,000,000.")
-{
-    DefaultValueFactory = _ => 1_000_000,
-};
-var traceOption = new Option<FileInfo?>("--trace", "Write a per-instruction PC/A/X/Y/P/SP trace to file.");
+var targetSystemOption = new Option<string>("--target-system") { Description = "Target system. Currently: bbcmicro (default).", DefaultValueFactory = _ => "bbcmicro" };
+var inputOption = new Option<string?>("--input") { Description = "Console input. Use \\r to separate lines." };
+var maxTicksOption = new Option<int>("--max-ticks") { Description = "Tick budget before the run is aborted as a runaway. Default: 1,000,000.", DefaultValueFactory = _ => 1_000_000 };
+var traceOption = new Option<FileInfo?>("--trace") { Description = "Write a per-instruction PC/A/X/Y/P/SP trace to file." };
 
 var rootCommand = new RootCommand("DotNetro 6502 emulator");
 rootCommand.Arguments.Add(programFileArgument);

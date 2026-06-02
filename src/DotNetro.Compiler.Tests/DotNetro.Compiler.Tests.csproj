@@ -16,6 +16,7 @@
     <ProjectReference Include="..\DotNetro.Compiler\DotNetro.Compiler.csproj" />
     <ProjectReference Include="..\DotNetro\DotNetro.csproj" />
     <ProjectReference Include="..\DotNetro.Compiler.Tests.CsCompiler\DotNetro.Compiler.Tests.CsCompiler.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\DotNetro.Compiler.Tests.Emulator\DotNetro.Compiler.Tests.Emulator.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>

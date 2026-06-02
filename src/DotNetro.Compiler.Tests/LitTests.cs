@@ -15,6 +15,7 @@ public sealed class LitTests
         {
             ["cs_compiler"] = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, $"../../../../DotNetro.Compiler.Tests.CsCompiler/bin/{buildConfig}/net10.0/DotNetro.Compiler.Tests.CsCompiler")),
             ["dnrc"] = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, $"../../../../DotNetro.Compiler.Driver/bin/{buildConfig}/net10.0/dnrc")),
+            ["emulator"] = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, $"../../../../DotNetro.Compiler.Tests.Emulator/bin/{buildConfig}/net10.0/DotNetro.Compiler.Tests.Emulator")),
         }.ToImmutableDictionary()));
     }
 
