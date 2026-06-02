@@ -126,6 +126,21 @@ public sealed class MirBuilder(MirFunction function)
         return (result, borrowOut);
     }
 
+    // arith.cmpi <pred>, %a, %b: 1 def (i1 result), 3 uses (predicate Immediate, a, b).
+    // The predicate is encoded as the first use Immediate; the writer/parser
+    // render it symbolically via ArithDialect.TryFormat/ParseImmediateUse.
+    public int BuildCmpI(ArithCmpPredicate predicate, int aVreg, int bVreg)
+    {
+        var result = function.CreateVirtualRegister(IRType.I1);
+        Insert(ArithDialect.OpRef(ArithOp.CmpI), [
+            new VirtualReg(result, IsDefinition: true),
+            new Immediate((long)predicate),
+            new VirtualReg(aVreg,  IsDefinition: false),
+            new VirtualReg(bVreg,  IsDefinition: false),
+        ]);
+        return result;
+    }
+
     // pseudo.unmerge a wide vreg into N freshly-allocated narrow vregs.
     public int[] BuildUnmerge(IRType elementType, int sourceVreg, int count)
     {

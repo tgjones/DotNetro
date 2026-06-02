@@ -89,29 +89,40 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
 
     private void LegalizeInstruction(MirInstruction instr, MirFunction function, MirBuilder builder)
     {
-        // The legality query keys off the type of the first vreg def.
-        VirtualReg? firstDef = null;
-        foreach (var op in instr.Operands)
+        // The legality query keys off the type of either the first vreg def or
+        // a specific operand designated by the dialect's TypeOperandIndex.
+        var dialect = DialectRegistry.ById(instr.Opcode.Dialect);
+        var info = dialect.GetInstructionInfo(instr.Opcode.Code);
+
+        VirtualReg? queryOperand = null;
+        if (info.TypeOperandIndex is int idx)
         {
-            if (op is VirtualReg v && v.IsDefinition)
+            if (idx >= 0 && idx < instr.Operands.Length && instr.Operands[idx] is VirtualReg v)
+                queryOperand = v;
+        }
+        else
+        {
+            foreach (var op in instr.Operands)
             {
-                firstDef = v;
-                break;
+                if (op is VirtualReg vd && vd.IsDefinition)
+                {
+                    queryOperand = vd;
+                    break;
+                }
             }
         }
-        if (firstDef == null) return;
+        if (queryOperand == null) return;
 
-        var annotation = function.GetVRegAnnotation(firstDef.Id);
+        var annotation = function.GetVRegAnnotation(queryOperand.Id);
         if (annotation is not TypedVReg typed)
             throw new InvalidOperationException(
-                $"Legalizer: vreg %{firstDef.Id} has non-typed annotation {annotation}");
+                $"Legalizer: vreg %{queryOperand.Id} has non-typed annotation {annotation}");
 
         var action = legalizerInfo.GetAction(instr.Opcode, typed.Type);
 
         if (action == LegalityAction.Legal) return;
         if (action == LegalityAction.Unsupported)
         {
-            var dialect = DialectRegistry.ById(instr.Opcode.Dialect);
             throw new InvalidOperationException(
                 $"Legalizer: opcode {dialect.Prefix}.{dialect.GetOpName(instr.Opcode.Code)} " +
                 $"with type {typed.Type.DisplayName} is unsupported on this target.");

@@ -270,7 +270,7 @@ internal sealed class MirParser
         var useOperands = new List<MirOperand>();
         while (IsUseOperandStart(tokens, headerPositions))
         {
-            useOperands.Add(ParseUseOperand(tokens, blockMap, headerPositions));
+            useOperands.Add(ParseUseOperand(tokens, blockMap, headerPositions, opcodeRef, useOperands.Count));
             if (tokens.Current.Kind == MirTokenKind.Comma)
                 tokens.Advance();
             else
@@ -312,14 +312,20 @@ internal sealed class MirParser
         MirTokenKind.BlockLabel when !headerPositions.Contains(tokens.Position) => true,
         // %N not followed by `:` is unambiguously a use; the def form is `%N : annotation`.
         MirTokenKind.ValueRef when tokens.Peek.Kind != MirTokenKind.Colon => true,
-        MirTokenKind.Identifier when tokens.Current.Text is "implicit" or "implicit-def" => true,
+        // An Identifier followed by `.` would be the next instruction's opcode,
+        // so it terminates the use loop. Otherwise it's either `implicit` /
+        // `implicit-def`, or a dialect-specific symbolic immediate (e.g. cmpi's
+        // predicate name `slt`).
+        MirTokenKind.Identifier when tokens.Peek.Kind != MirTokenKind.Dot => true,
         _ => false,
     };
 
     private MirOperand ParseUseOperand(
         TokenReader tokens,
         Dictionary<long, MirBlock> blockMap,
-        HashSet<int> headerPositions)
+        HashSet<int> headerPositions,
+        OpcodeRef opcode,
+        int useIndex)
     {
         switch (tokens.Current.Kind)
         {
@@ -361,11 +367,13 @@ internal sealed class MirParser
                     }
                     else
                     {
-                        var argList = new List<MirOperand> { ParseUseOperand(tokens, blockMap, headerPositions) };
+                        // Block-target args are not dialect-aware (no opcode
+                        // context here); use a sentinel index of -1.
+                        var argList = new List<MirOperand> { ParseUseOperand(tokens, blockMap, headerPositions, opcode, -1) };
                         while (tokens.Current.Kind == MirTokenKind.Comma)
                         {
                             tokens.Advance();
-                            argList.Add(ParseUseOperand(tokens, blockMap, headerPositions));
+                            argList.Add(ParseUseOperand(tokens, blockMap, headerPositions, opcode, -1));
                         }
                         args = argList.ToArray();
                     }
@@ -390,6 +398,18 @@ internal sealed class MirParser
                 var isDef = tokens.Advance().Text == "implicit-def";
                 var physToken = tokens.Expect(MirTokenKind.PhysRegRef);
                 return new PhysicalReg(ResolvePhysReg(physToken), IsDefinition: isDef, IsImplicit: true);
+            }
+
+            case MirTokenKind.Identifier:
+            {
+                // Dialect-specific symbolic immediate (e.g. arith.cmpi's `slt`).
+                var identToken = tokens.Advance();
+                var dialect = DialectRegistry.ById(opcode.Dialect);
+                if (useIndex >= 0
+                    && dialect.TryParseImmediateUse(opcode.Code, useIndex, identToken.Text!, out var value))
+                    return new Immediate(value);
+                throw Fail(identToken,
+                    $"Unexpected identifier '{identToken.Text}' in operand position {useIndex} of opcode {dialect.Prefix}.{dialect.GetOpName(opcode.Code)}");
             }
 
             default:

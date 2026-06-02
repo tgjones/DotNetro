@@ -32,6 +32,27 @@ public abstract class Dialect
     // pseudo.unmerge) that the legalization artifact combiner can fold.
     public abstract bool IsArtifact(ushort code);
 
+    // Optional symbolic rendering for an Immediate use operand. Returns true
+    // and sets `text` if the dialect wants to render the immediate symbolically
+    // (e.g. `arith.cmpi`'s first use is a predicate enum value rendered as
+    // `slt`, `eq`, etc.); returns false to fall back to numeric formatting.
+    // `useIndex` is the index of the operand among the instruction's uses
+    // (after the defs).
+    public virtual bool TryFormatImmediateUse(ushort code, int useIndex, long value, out string text)
+    {
+        text = string.Empty;
+        return false;
+    }
+
+    // Inverse of TryFormatImmediateUse. Returns true and sets `value` when the
+    // dialect can interpret `text` as a symbolic immediate at the given use
+    // position; returns false to let the parser try other interpretations.
+    public virtual bool TryParseImmediateUse(ushort code, int useIndex, string text, out long value)
+    {
+        value = 0;
+        return false;
+    }
+
     // Called by DialectRegistry.Register exactly once when the dialect is
     // registered. The implementation stores the assigned ID in its own static
     // slot — the registry never references a dialect class by name.

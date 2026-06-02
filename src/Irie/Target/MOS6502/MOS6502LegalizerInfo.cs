@@ -25,6 +25,10 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
                 ArithOp.SubI       when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
                 ArithOp.AddICarry  => LegalityAction.Legal,
                 ArithOp.SubIBorrow => LegalityAction.Legal,
+                // arith.cmpi's first def is i1 (the boolean result), so the
+                // type query here is always i1. The narrowing decision is
+                // driven by the operand types — see GetCmpINarrowType.
+                ArithOp.CmpI       => LegalityAction.Legal,
                 ArithOp.Constant   when intType.SizeInBits == 1  => LegalityAction.Legal,
                 _ => LegalityAction.Unsupported,
             };

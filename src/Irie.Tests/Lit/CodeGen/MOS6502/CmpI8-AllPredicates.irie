@@ -1,0 +1,36 @@
+; RUN: @iriec --target mos6502 --stop-after Legalizer @file
+
+; Verifies all 10 predicate kinds round-trip symbolically through the parser
+; and writer. Each cmpi feeds an unused i1 vreg; the legalizer's trivially-
+; dead pass DCEs none of them because they all flow into the unconditional
+; branch arg list, keeping the predicates visible in the output.
+
+; CHECK: func @TestCmpAll : \(i8, i8\) -> void \{
+; CHECK:     %2 : i1 = arith.cmpi eq, %0, %1
+; CHECK:     %3 : i1 = arith.cmpi ne, %0, %1
+; CHECK:     %4 : i1 = arith.cmpi slt, %0, %1
+; CHECK:     %5 : i1 = arith.cmpi sgt, %0, %1
+; CHECK:     %6 : i1 = arith.cmpi sle, %0, %1
+; CHECK:     %7 : i1 = arith.cmpi sge, %0, %1
+; CHECK:     %8 : i1 = arith.cmpi ult, %0, %1
+; CHECK:     %9 : i1 = arith.cmpi ugt, %0, %1
+; CHECK:     %10 : i1 = arith.cmpi ule, %0, %1
+; CHECK:     %11 : i1 = arith.cmpi uge, %0, %1
+
+func @TestCmpAll : (i8, i8) -> void {
+bb0(%0 : i8, %1 : i8):
+    %2  : i1 = arith.cmpi eq,  %0, %1
+    %3  : i1 = arith.cmpi ne,  %0, %1
+    %4  : i1 = arith.cmpi slt, %0, %1
+    %5  : i1 = arith.cmpi sgt, %0, %1
+    %6  : i1 = arith.cmpi sle, %0, %1
+    %7  : i1 = arith.cmpi sge, %0, %1
+    %8  : i1 = arith.cmpi ult, %0, %1
+    %9  : i1 = arith.cmpi ugt, %0, %1
+    %10 : i1 = arith.cmpi ule, %0, %1
+    %11 : i1 = arith.cmpi uge, %0, %1
+    cf.cond_br %2, bb1(%3, %4, %5, %6, %7, %8, %9, %10, %11), bb1(%3, %4, %5, %6, %7, %8, %9, %10, %11)
+
+bb1(%12 : i1, %13 : i1, %14 : i1, %15 : i1, %16 : i1, %17 : i1, %18 : i1, %19 : i1, %20 : i1):
+    core.return
+}

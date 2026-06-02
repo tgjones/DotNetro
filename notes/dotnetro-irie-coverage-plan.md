@@ -515,15 +515,29 @@ for unsupported cases) — they're added as the relevant slice lands.
    emit). Add lit test `IntegerSub32-*.irie` matching today's
    `IntegerAdd32-*.irie` chain. No new dialects.
 
-2. **`arith.cmpi` predicate encoding + i32 → i8 narrowing.** Land the
-   predicate-immediate format (resolves [unified-ir-plan #1](unified-ir-plan.md)).
-   No isel changes yet — lit test stops after Legalizer.
+2. **`arith.cmpi` predicate encoding.** Land the predicate-immediate format
+   (resolves [unified-ir-plan #1](unified-ir-plan.md)): predicate is the
+   first use Immediate, rendered symbolically as `eq`/`slt`/etc. via a new
+   `Dialect.TryFormat/ParseImmediateUse` hook. `cmpi i8` legal. Add
+   `DialectInstructionInfo.TypeOperandIndex` so the legalizer can key off
+   an operand type (not just the def type) — necessary because cmpi's def
+   is always i1. Lit test stops after Legalizer.
+   **Deferred to step 3:** `cmpi iK > 8` narrowing. The plan originally
+   bundled it here, but a clean shape for the i1 result of a multi-byte
+   cmp requires either new i1 logic ops (`and`/`xor`/`or`) or a way to
+   extract the V flag from an SBC chain. Both are easier to skip once
+   step 3's cmp+cond_br fusion is in place: branches consume 6502 flags
+   directly, so the multi-byte cmp can lower to a series of target ops
+   without needing an MIR-level i1 combiner.
 
-3. **Cmp + cond_br fusion.** Wire the isel fusion path: `cmpi i8` +
-   `cf.cond_br` → `mos6502.cmp` + `mos6502.b<pred>` + `mos6502.jmp.abs`
-   (with `bgt`/`blt`/`bge` synthesised). Lit test for an i8 less-than
-   branch. Re-test `IntegerSub32` to confirm cmp doesn't conflict with
-   sub on the SBC chain.
+3. **Cmp + cond_br fusion + multi-byte cmp.** Wire the isel fusion path:
+   `cmpi i8` + `cf.cond_br` → `mos6502.cmp` + `mos6502.b<pred>` +
+   `mos6502.jmp.abs` (with `bgt`/`blt`/`bge` synthesised). Multi-byte
+   (i32) `cmpi` is narrowed to a chain of per-byte target ops by the
+   legalizer + fusion pass working together, since branches naturally
+   read the flag chain. Lit tests for an i8 less-than branch and an i32
+   less-than branch. Re-test `IntegerSub32` to confirm cmp doesn't
+   conflict with sub on the SBC chain.
 
 4. **`call.func` + `CallLowering.LowerCall`.** Add the op, the lowering,
    the emit row for `JsrAbs`, and a minimal lit test calling a sibling

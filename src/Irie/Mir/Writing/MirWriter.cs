@@ -72,6 +72,7 @@ internal sealed class MirWriter
         var defStrings = new List<string>();
         var useStrings = new List<string>();
         var implicitStrings = new List<string>();
+        var useIndex = 0;
         for (var i = 0; i < instruction.Operands.Length; i++)
         {
             var op = instruction.Operands[i];
@@ -86,7 +87,8 @@ internal sealed class MirWriter
             else
             {
                 var tiedTo = tied != null && i < tied.Length ? tied[i] : -1;
-                useStrings.Add(FormatUseOperand(op, function, blockIndex, tiedTo));
+                useStrings.Add(FormatUseOperand(op, function, blockIndex, tiedTo, dialect, instruction.Opcode.Code, useIndex));
+                useIndex++;
             }
         }
 
@@ -124,15 +126,22 @@ internal sealed class MirWriter
 
     // Uses print unannotated per the format spec — the annotation is taken from
     // the def site. The one exception is `(tied-def N)`, pulled from the
-    // dialect's TiedOperands metadata.
+    // dialect's TiedOperands metadata. Immediate uses can opt into symbolic
+    // rendering via Dialect.TryFormatImmediateUse (e.g. arith.cmpi's predicate).
     private string FormatUseOperand(
         MirOperand operand,
         MirFunction function,
         Dictionary<MirBlock, int> blockIndex,
-        int tiedToDefIndex)
+        int tiedToDefIndex,
+        Dialect dialect,
+        ushort opcode,
+        int useIndex)
     {
         if (operand is VirtualReg vreg && tiedToDefIndex >= 0)
             return $"%{vreg.Id}(tied-def {tiedToDefIndex})";
+        if (operand is Immediate imm
+            && dialect.TryFormatImmediateUse(opcode, useIndex, imm.Value, out var symbolic))
+            return symbolic;
         return FormatOperand(operand, function, blockIndex);
     }
 

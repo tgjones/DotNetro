@@ -1,0 +1,37 @@
+; RUN: @iriec --target mos6502 --stop-after Legalizer @file
+
+; Checks the predicate encoding on arith.cmpi: the predicate is stored as an
+; Immediate operand at use position 0; the writer/parser render it
+; symbolically (`slt`, `eq`, etc.). cmpi i8 is Legal on MOS6502 — passes
+; through the legalizer unchanged.
+;
+; The function uses cf.cond_br to consume the i1 result (instead of returning
+; it) to keep this test focused on the cmpi predicate encoding. Multi-byte
+; (i32) cmpi narrowing is deferred to step 3, where it is handled jointly
+; with cmp+cond_br fusion: branches consume 6502 N/Z/C/V flags directly,
+; avoiding the need for i1 combiner ops at the MIR level.
+
+; CHECK: func @TestCmpI8 : \(i8, i8\) -> void \{
+; CHECK:   bb0\(\):
+; CHECK:     \[liveins: \$a, \$x\]
+; CHECK:     %0 : i8 = pseudo.copy \$a
+; CHECK:     %1 : i8 = pseudo.copy \$x
+; CHECK:     %2 : i1 = arith.cmpi slt, %0, %1
+; CHECK:     cf.cond_br %2, bb1, bb2
+; CHECK:   bb1\(\):
+; CHECK:     pseudo.return
+; CHECK:   bb2\(\):
+; CHECK:     pseudo.return
+; CHECK: \}
+
+func @TestCmpI8 : (i8, i8) -> void {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi slt, %0, %1
+    cf.cond_br %2, bb1, bb2
+
+bb1():
+    core.return
+
+bb2():
+    core.return
+}
