@@ -24,4 +24,16 @@ public enum MemOp : ushort
     StoreI8,
     StoreI16,
     StoreI32,
+
+    // Post-legalization byte forms emitted by the MOS6502 target when widening
+    // mem.load / mem.store across the address. The offset is an Immediate that
+    // the isel materialises into the indirect-Y addressing mode's Y register
+    // (or, in the future, folds into an absolute-plus-offset addressing mode).
+    //
+    // %v : i8 = mem.load.byte_at %addr, <offset>
+    //   def[0] = result byte vreg, use[0] = i16 pointer vreg, use[1] = Immediate offset.
+    LoadByteAt,
+    // mem.store.byte_at %addr, <offset>, %val
+    //   use[0] = i16 pointer vreg, use[1] = Immediate offset, use[2] = i8 value vreg.
+    StoreByteAt,
 }

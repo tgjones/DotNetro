@@ -1,0 +1,36 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; End-to-end check for mem.load.i16 / mem.store.i16 through a mem.symbol
+; address. The Custom legalizer rewrites each wide op into a chain of
+; per-byte mem.load.byte_at / mem.store.byte_at calls at offsets 0..1, and
+; isel lowers those to LDA/STA ($zp),Y with Y stepping through the byte
+; index. The pointer setup ($00 / $01) is cached across the chain.
+
+; CHECK: TestMemI16:
+; CHECK:     LDA #<ptr
+; CHECK:     STA \$00
+; CHECK:     LDA #>ptr
+; CHECK:     STA \$01
+; CHECK:     LDY #\$00
+; CHECK:     LDA \(\$00\),Y
+; CHECK:     STA \$02
+; CHECK:     LDY #\$01
+; CHECK:     LDA \(\$00\),Y
+; CHECK:     STA \$03
+; CHECK:     LDY #\$00
+; CHECK:     LDA \$02
+; CHECK:     STA \(\$00\),Y
+; CHECK:     LDY #\$01
+; CHECK:     LDA \$03
+; CHECK:     STA \(\$00\),Y
+; CHECK:     RTS
+
+global @ptr : i32
+
+func @TestMemI16 : () -> void {
+bb0():
+    %0 : i16 = mem.symbol @ptr
+    %1 : i16 = mem.load.i16 %0
+    mem.store.i16 %0, %1
+    core.return
+}

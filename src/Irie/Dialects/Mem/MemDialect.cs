@@ -12,13 +12,15 @@ public sealed class MemDialect : Dialect
 
     public override string GetOpName(ushort code) => ((MemOp)code) switch
     {
-        MemOp.Symbol   => "symbol",
-        MemOp.LoadI8   => "load.i8",
-        MemOp.LoadI16  => "load.i16",
-        MemOp.LoadI32  => "load.i32",
-        MemOp.StoreI8  => "store.i8",
-        MemOp.StoreI16 => "store.i16",
-        MemOp.StoreI32 => "store.i32",
+        MemOp.Symbol      => "symbol",
+        MemOp.LoadI8      => "load.i8",
+        MemOp.LoadI16     => "load.i16",
+        MemOp.LoadI32     => "load.i32",
+        MemOp.StoreI8     => "store.i8",
+        MemOp.StoreI16    => "store.i16",
+        MemOp.StoreI32    => "store.i32",
+        MemOp.LoadByteAt  => "load.byte_at",
+        MemOp.StoreByteAt => "store.byte_at",
         _ => throw new ArgumentOutOfRangeException(nameof(code), code, $"Unknown mem opcode {code}."),
     };
 
@@ -26,13 +28,15 @@ public sealed class MemDialect : Dialect
     {
         switch (name)
         {
-            case "symbol":    code = (ushort)MemOp.Symbol;   return true;
-            case "load.i8":   code = (ushort)MemOp.LoadI8;   return true;
-            case "load.i16":  code = (ushort)MemOp.LoadI16;  return true;
-            case "load.i32":  code = (ushort)MemOp.LoadI32;  return true;
-            case "store.i8":  code = (ushort)MemOp.StoreI8;  return true;
-            case "store.i16": code = (ushort)MemOp.StoreI16; return true;
-            case "store.i32": code = (ushort)MemOp.StoreI32; return true;
+            case "symbol":        code = (ushort)MemOp.Symbol;      return true;
+            case "load.i8":       code = (ushort)MemOp.LoadI8;      return true;
+            case "load.i16":      code = (ushort)MemOp.LoadI16;     return true;
+            case "load.i32":      code = (ushort)MemOp.LoadI32;     return true;
+            case "store.i8":      code = (ushort)MemOp.StoreI8;     return true;
+            case "store.i16":     code = (ushort)MemOp.StoreI16;    return true;
+            case "store.i32":     code = (ushort)MemOp.StoreI32;    return true;
+            case "load.byte_at":  code = (ushort)MemOp.LoadByteAt;  return true;
+            case "store.byte_at": code = (ushort)MemOp.StoreByteAt; return true;
         }
         code = 0;
         return false;
@@ -42,16 +46,18 @@ public sealed class MemDialect : Dialect
         ((MemOp)code) switch
         {
             // mem.store.* has no def operand; point the legalizer at the
-            // value operand (use[1]) so it can query the value's IRType.
-            // Operand layout: use[0]=addr (i16 pointer), use[1]=value.
-            MemOp.StoreI8  => StoreInfo,
-            MemOp.StoreI16 => StoreInfo,
-            MemOp.StoreI32 => StoreInfo,
+            // value operand so it can query the value's IRType. For the
+            // wide forms (use[1] = value), and for the byte form
+            // (use[2] = value after use[0]=addr, use[1]=offset).
+            MemOp.StoreI8     => StoreI8Info,
+            MemOp.StoreI16    => StoreI8Info,
+            MemOp.StoreI32    => StoreI8Info,
+            MemOp.StoreByteAt => StoreByteAtInfo,
             _ => DialectInstructionInfo.Empty,
         };
 
-    private static readonly DialectInstructionInfo StoreInfo = new(
-        TypeOperandIndex: 1);
+    private static readonly DialectInstructionInfo StoreI8Info     = new(TypeOperandIndex: 1);
+    private static readonly DialectInstructionInfo StoreByteAtInfo = new(TypeOperandIndex: 2);
 
     // mem.symbol is pure (returns a constant pointer value). Loads and stores
     // observe / modify memory, so they have side effects.

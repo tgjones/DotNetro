@@ -97,9 +97,9 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             {
                 // mem.symbol passes through; it is removed by SelectMemLoad /
                 // SelectMemStore when its last use is consumed.
-                MemOp.Symbol  => true,
-                MemOp.LoadI8  => SelectMemLoadI8(instruction, builder),
-                MemOp.StoreI8 => SelectMemStoreI8(instruction, builder),
+                MemOp.Symbol      => true,
+                MemOp.LoadByteAt  => SelectMemLoadByteAt(instruction, builder),
+                MemOp.StoreByteAt => SelectMemStoreByteAt(instruction, builder),
                 _ => false,
             };
         }
@@ -356,50 +356,64 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         function.ReclassifyVirtualRegister(vreg, classId, name);
     }
 
-    // Step-8 scratch pair: the indirect-Y pointer's two bytes are pinned to
-    // these RC slots so the LDA/STA ($zp),Y addressing mode finds them adjacent
-    // in zero page. A proper RA-aware register-pair model is future work;
-    // pinning keeps the bytes guaranteed-consecutive without RA changes.
+    // Indirect-Y pointer scratch pair: the two bytes of any mem.symbol-derived
+    // address get pinned to these adjacent zero-page slots so LDA/STA ($zp),Y
+    // can use them without an RA-aware register-pair model.
     //
-    // RC2/RC3 are also the first two CC arg slots, so they're safe to reuse
-    // in functions that don't take more than ~2 i8 args. The active step-8
-    // lit tests all use leaf void functions, so the conflict can't arise.
-    private const int PointerZpLo = 14; // MOS6502Registers.RC(2)
-    private const int PointerZpHi = 15; // MOS6502Registers.RC(3)
+    // Pinned to RC0/RC1 because those are reserved (excluded from the Imag8
+    // allocatable pool in MOS6502RegisterInfo). If we used in-pool slots the
+    // RA would freely reuse them as spill destinations between consecutive
+    // mem ops on the same global, clobbering the pointer mid-sequence. RC0/RC1
+    // are nominally the soft-stack pointer per CC_MOS, but no current pass
+    // touches them; when frame slots / spilling land in step 11+, either pick
+    // a different scratch pair or move the soft stack pointer.
+    private const int PointerZpLo = 12; // MOS6502Registers.RC(0)
+    private const int PointerZpHi = 13; // MOS6502Registers.RC(1)
 
-    // mem.load.i8 %p → lda.indy through a zero-page pointer pair.
+    // mem.load.byte_at %p, <offset> → lda.indy through a zero-page pointer pair.
     // Only handles the case where %p is defined by `mem.symbol @name`; other
     // address-vreg sources (frame slots, heap pointers) come in later steps.
-    private bool SelectMemLoadI8(MirInstruction instr, MirBuilder builder)
+    private bool SelectMemLoadByteAt(MirInstruction instr, MirBuilder builder)
     {
-        // Operand layout: def[0]=value vreg (i8), use[0]=address vreg (i16).
+        // Operand layout: def[0]=value vreg (i8), use[0]=address vreg (i16),
+        //                 use[1]=Immediate byte offset.
         var function = builder.Function;
-        if (instr.Operands.Length != 2
-            || instr.Operands[0] is not VirtualReg defReg || !defReg.IsDefinition
-            || instr.Operands[1] is not VirtualReg addrReg || addrReg.IsDefinition)
+        if (instr.Operands.Length != 3
+            || instr.Operands[0] is not VirtualReg defReg  || !defReg.IsDefinition
+            || instr.Operands[1] is not VirtualReg addrReg || addrReg.IsDefinition
+            || instr.Operands[2] is not Immediate offset)
             throw new InvalidOperationException(
-                "MOS6502InstructionSelector: mem.load.i8 must have shape `%def : i8 = mem.load.i8 %addr`.");
+                "MOS6502InstructionSelector: mem.load.byte_at must have shape `%def : i8 = mem.load.byte_at %addr, <offset>`.");
 
-        var calleeSymbol = ResolveSymbolAddressOrThrow(function, addrReg.Id, "mem.load.i8");
+        var calleeSymbol = ResolveSymbolAddressOrThrow(function, addrReg.Id, "mem.load.byte_at");
 
         builder.SetInsertionPointBefore(instr);
-        EmitPointerSetup(builder, calleeSymbol);
+        EmitPointerSetup(builder, calleeSymbol, offset.Value);
 
         // %a3 : ac = mos6502.lda.indy $rc2, implicit-use $rc3, implicit-use $y
-        // (The $y operand is implicit because it's required by the addressing
-        // mode but not a per-load choice — we always set it to 0 above.)
-        var resultVreg = function.CreateVirtualRegisterInClass(
+        // Then copy the result out of $a into a flexible Anyi8 vreg so it can
+        // be parked in zero page when more loads are in flight. Without the
+        // copy, multi-byte loads tie every byte to $a and the RA runs out of
+        // physregs in class Ac as soon as two byte loads are live.
+        var ldaVreg = function.CreateVirtualRegisterInClass(
             MOS6502RegisterClass.Ac,
             MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
 
         builder.BuildInstruction(
             MOS6502Dialect.OpRef(MOS6502Op.LdaIndY),
-            new VirtualReg(resultVreg, IsDefinition: true),
+            new VirtualReg(ldaVreg, IsDefinition: true),
             new PhysicalReg(PointerZpLo, IsDefinition: false),
             new PhysicalReg(PointerZpHi, IsDefinition: false, IsImplicit: true),
             new PhysicalReg(MOS6502Registers.Y, IsDefinition: false, IsImplicit: true));
 
-        // RAUW the original load's def vreg to the new ac vreg.
+        var resultVreg = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Anyi8,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(resultVreg, IsDefinition: true),
+            new VirtualReg(ldaVreg,    IsDefinition: false));
+
         function.ReplaceAllUsesOfRegister(defReg.Id, resultVreg);
         builder.Remove(instr);
 
@@ -407,31 +421,39 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         return true;
     }
 
-    // mem.store.i8 %p, %v → sta.indy through a zero-page pointer pair.
-    private bool SelectMemStoreI8(MirInstruction instr, MirBuilder builder)
+    // mem.store.byte_at %p, <offset>, %v → sta.indy through a zero-page pointer pair.
+    private bool SelectMemStoreByteAt(MirInstruction instr, MirBuilder builder)
     {
-        // Operand layout: use[0]=address vreg (i16), use[1]=value vreg (i8).
+        // Operand layout: use[0]=address vreg (i16), use[1]=Immediate offset,
+        //                 use[2]=value vreg (i8).
         var function = builder.Function;
-        if (instr.Operands.Length != 2
+        if (instr.Operands.Length != 3
             || instr.Operands[0] is not VirtualReg addrReg || addrReg.IsDefinition
-            || instr.Operands[1] is not VirtualReg valReg  || valReg.IsDefinition)
+            || instr.Operands[1] is not Immediate offset
+            || instr.Operands[2] is not VirtualReg valReg  || valReg.IsDefinition)
             throw new InvalidOperationException(
-                "MOS6502InstructionSelector: mem.store.i8 must have shape `mem.store.i8 %addr, %val`.");
+                "MOS6502InstructionSelector: mem.store.byte_at must have shape `mem.store.byte_at %addr, <offset>, %val`.");
 
-        var calleeSymbol = ResolveSymbolAddressOrThrow(function, addrReg.Id, "mem.store.i8");
+        var calleeSymbol = ResolveSymbolAddressOrThrow(function, addrReg.Id, "mem.store.byte_at");
 
         builder.SetInsertionPointBefore(instr);
-        EmitPointerSetup(builder, calleeSymbol);
+        EmitPointerSetup(builder, calleeSymbol, offset.Value);
 
-        // sta.indy emits `STA ($rc2),Y`. Operands: use[0]=$rc2 (zp), use[1]=$a
-        // (the source byte, in the accumulator). Implicit uses: $rc3 (pointer
-        // high byte) and $y (the offset).
-        ReclassifyTo(function, valReg.Id, MOS6502RegisterClass.Ac);
+        // sta.indy emits `STA ($rc2),Y`. The source byte must be in $a (Ac
+        // class). Insert a pseudo.copy to an Ac vreg so the value flows
+        // through $a regardless of where the source vreg was allocated.
+        var srcVreg = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Ac,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(srcVreg,   IsDefinition: true),
+            new VirtualReg(valReg.Id, IsDefinition: false));
 
         builder.BuildInstruction(
             MOS6502Dialect.OpRef(MOS6502Op.StaIndY),
             new PhysicalReg(PointerZpLo, IsDefinition: false),
-            new VirtualReg(valReg.Id, IsDefinition: false),
+            new VirtualReg(srcVreg, IsDefinition: false),
             new PhysicalReg(PointerZpHi, IsDefinition: false, IsImplicit: true),
             new PhysicalReg(MOS6502Registers.Y, IsDefinition: false, IsImplicit: true));
 
@@ -455,7 +477,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // pointer into the scratch pair (see _pointerSetupEmitted) — the bytes
     // remain valid for subsequent uses in the same function (until a call
     // clobbers them; step-8 lit tests are leaf functions).
-    private void EmitPointerSetup(MirBuilder builder, string symbolName)
+    private void EmitPointerSetup(MirBuilder builder, string symbolName, long byteOffset)
     {
         var function = builder.Function;
         var firstUse = _pointerSetupEmitted.Add(symbolName);
@@ -489,16 +511,17 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
                 new VirtualReg(hiVreg, IsDefinition: false));
         }
 
-        // ldy.imm 0 → fresh Yc vreg, then pin to $y. Re-emitted on every
-        // mem.load/store so the addressing mode finds Y live at the use
-        // site, even if cached pointer setup was reused.
+        // ldy.imm <offset> → fresh Yc vreg, then pin to $y. Re-emitted on
+        // every mem.load.byte_at / mem.store.byte_at so the addressing mode
+        // finds Y live at the use site (even if cached pointer setup was
+        // reused, the offset may differ per byte for a multi-byte load/store).
         var yVreg = function.CreateVirtualRegisterInClass(
             MOS6502RegisterClass.Yc,
             MOS6502RegisterClass.GetName(MOS6502RegisterClass.Yc)!);
         builder.BuildInstruction(
             MOS6502Dialect.OpRef(MOS6502Op.LdyImm),
             new VirtualReg(yVreg, IsDefinition: true),
-            new Immediate(0));
+            new Immediate(byteOffset));
         builder.BuildInstruction(
             PseudoDialect.OpRef(PseudoOp.Copy),
             new PhysicalReg(MOS6502Registers.Y, IsDefinition: true),

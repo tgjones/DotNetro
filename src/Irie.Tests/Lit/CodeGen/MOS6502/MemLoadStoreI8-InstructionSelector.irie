@@ -1,23 +1,34 @@
 ; RUN: @iriec --target mos6502 --stop-after InstructionSelector @file
 
 ; Checks instruction selection for mem.load.i8 / mem.store.i8 against an
-; address produced by mem.symbol: the i16 pointer's bytes are pinned to a
-; scratch zero-page pair ($zp2/$zp3 — step 8 hack to guarantee adjacency for
-; the indirect-Y addressing mode), Y is zeroed, and the load/store use
-; indirect-Y. The mem.symbol op disappears once its last use is consumed.
+; address produced by mem.symbol. The legalizer first lowers each typed
+; mem.load.i8 / mem.store.i8 to a `mem.load.byte_at %p, 0` / `mem.store.byte_at`
+; chain (offset is always 0 here — multi-byte chains land in step 9 / the
+; MemLoadStoreI16 tests).
+;
+; Isel then:
+;   - materialises the symbol's low/high bytes into the dedicated scratch
+;     pair $zp0/$zp1 (RC0/RC1, reserved outside the Imag8 allocatable pool
+;     so RA never reuses them mid-sequence);
+;   - zeroes Y;
+;   - emits lda.indy / sta.indy through $zp0;
+;   - routes the loaded byte through an Anyi8 vreg so the RA can park it in
+;     zero page if the store reuses $a for pointer-byte setup.
 
 ; CHECK: func @TestMemByte : \(\) -> void \{
 ; CHECK:   bb0\(\):
-; CHECK:     %2 : ac = mos6502.lda.imm.symlo @hello
-; CHECK:     \$zp2 = pseudo.copy %2
-; CHECK:     %3 : ac = mos6502.lda.imm.symhi @hello
-; CHECK:     \$zp3 = pseudo.copy %3
-; CHECK:     %4 : yc = mos6502.ldy.imm 0
-; CHECK:     \$y = pseudo.copy %4
-; CHECK:     %5 : ac = mos6502.lda.indy \$zp2, implicit \$zp3, implicit \$y
-; CHECK:     %6 : yc = mos6502.ldy.imm 0
-; CHECK:     \$y = pseudo.copy %6
-; CHECK:     mos6502.sta.indy \$zp2, %5, implicit \$zp3, implicit \$y
+; CHECK:     %3 : ac = mos6502.lda.imm.symlo @hello
+; CHECK:     \$zp0 = pseudo.copy %3
+; CHECK:     %4 : ac = mos6502.lda.imm.symhi @hello
+; CHECK:     \$zp1 = pseudo.copy %4
+; CHECK:     %5 : yc = mos6502.ldy.imm 0
+; CHECK:     \$y = pseudo.copy %5
+; CHECK:     %6 : ac = mos6502.lda.indy \$zp0, implicit \$zp1, implicit \$y
+; CHECK:     %7 : any8 = pseudo.copy %6
+; CHECK:     %8 : yc = mos6502.ldy.imm 0
+; CHECK:     \$y = pseudo.copy %8
+; CHECK:     %9 : ac = pseudo.copy %7
+; CHECK:     mos6502.sta.indy \$zp0, %9, implicit \$zp1, implicit \$y
 ; CHECK:     mos6502.rts
 ; CHECK: \}
 

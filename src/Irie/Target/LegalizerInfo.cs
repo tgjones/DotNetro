@@ -15,11 +15,24 @@ public abstract class LegalizerInfo
 
     // Returns the type to narrow to for a NarrowScalar action.
     public abstract IRType GetNarrowType(OpcodeRef opcode, IRType fromType);
+
+    // Hook for the Custom legality action: the target rewrites the instruction
+    // via the builder (and removes the original). The builder is positioned at
+    // the instruction on entry. Throws if the target doesn't recognise the op.
+    public virtual void LegalizeCustom(MirInstruction instruction, MirBuilder builder)
+    {
+        throw new NotImplementedException(
+            "LegalizerInfo.LegalizeCustom must be overridden by the target for any opcode that " +
+            "returns LegalityAction.Custom.");
+    }
 }
 
 public enum LegalityAction
 {
     Legal,
     NarrowScalar,
+    // Target-supplied transformation: the legalizer calls
+    // LegalizerInfo.LegalizeCustom which mutates the IR via the builder.
+    Custom,
     Unsupported,
 }

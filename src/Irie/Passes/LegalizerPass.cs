@@ -128,6 +128,13 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
                 $"with type {typed.Type.DisplayName} is unsupported on this target.");
         }
 
+        if (action == LegalityAction.Custom)
+        {
+            builder.SetInsertionPointBefore(instr);
+            legalizerInfo.LegalizeCustom(instr, builder);
+            return;
+        }
+
         var narrowType = legalizerInfo.GetNarrowType(instr.Opcode, typed.Type);
         LegalizeNarrowScalar(instr, function, builder, typed.Type, narrowType);
     }
