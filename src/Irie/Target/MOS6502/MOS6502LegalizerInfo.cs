@@ -1,4 +1,5 @@
 using Irie.Dialects.Arith;
+using Irie.Dialects.Cast;
 using Irie.Dialects.Mem;
 using Irie.Dialects.Pseudo;
 using Irie.Mir;
@@ -42,6 +43,17 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
                 PseudoOp.Copy    => LegalityAction.Legal,
                 PseudoOp.Merge   => LegalityAction.Legal,
                 PseudoOp.Unmerge => LegalityAction.Legal,
+                _ => LegalityAction.Unsupported,
+            };
+        }
+
+        if (opcode.Dialect == CastDialect.Id)
+        {
+            return ((CastOp)opcode.Code) switch
+            {
+                // cast.trunc lowers to a pseudo.extract / pseudo.merge of the
+                // source vreg's low bytes via the Custom action below.
+                CastOp.Trunc => LegalityAction.Custom,
                 _ => LegalityAction.Unsupported,
             };
         }
@@ -96,28 +108,40 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
     // read or write from address+0, address+1, …
     public override void LegalizeCustom(MirInstruction instr, MirBuilder builder)
     {
-        if (instr.Opcode.Dialect != MemDialect.Id)
-            throw new NotSupportedException(
-                $"MOS6502LegalizerInfo: no Custom legalization for {instr.Opcode}");
-
-        switch ((MemOp)instr.Opcode.Code)
+        if (instr.Opcode.Dialect == MemDialect.Id)
         {
-            case MemOp.LoadI8:
-            case MemOp.LoadI16:
-            case MemOp.LoadI32:
-                LowerWideLoad(instr, builder);
-                return;
+            switch ((MemOp)instr.Opcode.Code)
+            {
+                case MemOp.LoadI8:
+                case MemOp.LoadI16:
+                case MemOp.LoadI32:
+                    LowerWideLoad(instr, builder);
+                    return;
 
-            case MemOp.StoreI8:
-            case MemOp.StoreI16:
-            case MemOp.StoreI32:
-                LowerWideStore(instr, builder);
-                return;
-
-            default:
-                throw new NotSupportedException(
-                    $"MOS6502LegalizerInfo: no Custom legalization for mem opcode {(MemOp)instr.Opcode.Code}");
+                case MemOp.StoreI8:
+                case MemOp.StoreI16:
+                case MemOp.StoreI32:
+                    LowerWideStore(instr, builder);
+                    return;
+            }
+            throw new NotSupportedException(
+                $"MOS6502LegalizerInfo: no Custom legalization for mem opcode {(MemOp)instr.Opcode.Code}");
         }
+
+        if (instr.Opcode.Dialect == CastDialect.Id)
+        {
+            switch ((CastOp)instr.Opcode.Code)
+            {
+                case CastOp.Trunc:
+                    LowerTrunc(instr, builder);
+                    return;
+            }
+            throw new NotSupportedException(
+                $"MOS6502LegalizerInfo: no Custom legalization for cast opcode {(CastOp)instr.Opcode.Code}");
+        }
+
+        throw new NotSupportedException(
+            $"MOS6502LegalizerInfo: no Custom legalization for {instr.Opcode}");
     }
 
     // %v : iN = mem.load.iN %p  →  per-byte mem.load.byte_at chain + pseudo.merge.
@@ -161,6 +185,54 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
             builder.BuildMergeInto(defReg.Id, byteVregs);
         }
 
+        builder.Remove(instr);
+    }
+
+    // %y : iM = cast.trunc %x : iN  (M < N)  →  pseudo.unmerge + pseudo.merge
+    // of the low M/8 byte vregs. The special case M = 8 reduces to a single
+    // pseudo.extract (the artifact combiner from step 6 folds it through any
+    // upstream pseudo.merge, so a truncate of a multi-byte construct collapses
+    // to a direct reference to the desired byte).
+    private static void LowerTrunc(MirInstruction instr, MirBuilder builder)
+    {
+        var function = builder.Function;
+        if (instr.Operands.Length != 2
+            || instr.Operands[0] is not VirtualReg defReg || !defReg.IsDefinition
+            || instr.Operands[1] is not VirtualReg srcReg || srcReg.IsDefinition)
+        {
+            throw new InvalidOperationException(
+                "MOS6502LegalizerInfo: cast.trunc must have shape `%def : iM = cast.trunc %src : iN`.");
+        }
+
+        var defType = ((TypedVReg)function.GetVRegAnnotation(defReg.Id)).Type;
+        var srcType = ((TypedVReg)function.GetVRegAnnotation(srcReg.Id)).Type;
+        if (defType.SizeInBits >= srcType.SizeInBits)
+        {
+            throw new InvalidOperationException(
+                $"MOS6502LegalizerInfo: cast.trunc requires the target type to be narrower " +
+                $"than the source (got {defType.DisplayName} ← {srcType.DisplayName}).");
+        }
+
+        var defByteCount = defType.SizeInBits / 8;
+        var srcByteCount = srcType.SizeInBits / 8;
+
+        if (defByteCount == 1)
+        {
+            // Single-byte truncation: surface as a pseudo.extract at offset 0
+            // so the artifact combiner can fold it against an upstream merge.
+            var byteVreg = builder.BuildExtract(IRType.I8, srcReg.Id, bitOffset: 0);
+            function.ReplaceAllUsesOfRegister(defReg.Id, byteVreg);
+            builder.Remove(instr);
+            return;
+        }
+
+        // Wider-than-byte truncation: unmerge the source into its byte vregs
+        // and re-merge only the low defByteCount of them into the original
+        // def vreg.
+        var sourceBytes = builder.BuildUnmerge(IRType.I8, srcReg.Id, srcByteCount);
+        var lowBytes = new int[defByteCount];
+        Array.Copy(sourceBytes, lowBytes, defByteCount);
+        builder.BuildMergeInto(defReg.Id, lowBytes);
         builder.Remove(instr);
     }
 

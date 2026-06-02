@@ -437,6 +437,19 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         var calleeSymbol = ResolveSymbolAddressOrThrow(function, addrReg.Id, "mem.store.byte_at");
 
         builder.SetInsertionPointBefore(instr);
+
+        // Park the value in an Anyi8 vreg *before* pointer setup so its live
+        // range doesn't trap $a across the pointer-byte LDAs. Without this,
+        // a parameter-in-$a value would stay in $a from function entry until
+        // the sta.indy, and the lda.imm.symlo / .symhi clobbers $a mid-flight.
+        var parkedVreg = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Anyi8,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(parkedVreg, IsDefinition: true),
+            new VirtualReg(valReg.Id,  IsDefinition: false));
+
         EmitPointerSetup(builder, calleeSymbol, offset.Value);
 
         // sta.indy emits `STA ($rc2),Y`. The source byte must be in $a (Ac
@@ -447,8 +460,8 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
         builder.BuildInstruction(
             PseudoDialect.OpRef(PseudoOp.Copy),
-            new VirtualReg(srcVreg,   IsDefinition: true),
-            new VirtualReg(valReg.Id, IsDefinition: false));
+            new VirtualReg(srcVreg,    IsDefinition: true),
+            new VirtualReg(parkedVreg, IsDefinition: false));
 
         builder.BuildInstruction(
             MOS6502Dialect.OpRef(MOS6502Op.StaIndY),

@@ -13,7 +13,10 @@
 ;   - zeroes Y;
 ;   - emits lda.indy / sta.indy through $zp0;
 ;   - routes the loaded byte through an Anyi8 vreg so the RA can park it in
-;     zero page if the store reuses $a for pointer-byte setup.
+;     zero page if the store reuses $a for pointer-byte setup;
+;   - parks the store source in an Anyi8 vreg *before* the second pointer
+;     setup so a value that arrived in $a (e.g. a parameter byte) is
+;     evicted before the lda.imm.symlo / .symhi clobbers $a.
 
 ; CHECK: func @TestMemByte : \(\) -> void \{
 ; CHECK:   bb0\(\):
@@ -25,10 +28,11 @@
 ; CHECK:     \$y = pseudo.copy %5
 ; CHECK:     %6 : ac = mos6502.lda.indy \$zp0, implicit \$zp1, implicit \$y
 ; CHECK:     %7 : any8 = pseudo.copy %6
-; CHECK:     %8 : yc = mos6502.ldy.imm 0
-; CHECK:     \$y = pseudo.copy %8
-; CHECK:     %9 : ac = pseudo.copy %7
-; CHECK:     mos6502.sta.indy \$zp0, %9, implicit \$zp1, implicit \$y
+; CHECK:     %8 : any8 = pseudo.copy %7
+; CHECK:     %9 : yc = mos6502.ldy.imm 0
+; CHECK:     \$y = pseudo.copy %9
+; CHECK:     %10 : ac = pseudo.copy %8
+; CHECK:     mos6502.sta.indy \$zp0, %10, implicit \$zp1, implicit \$y
 ; CHECK:     mos6502.rts
 ; CHECK: \}
 
