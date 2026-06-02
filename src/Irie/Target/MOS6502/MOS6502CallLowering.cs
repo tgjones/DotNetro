@@ -178,7 +178,16 @@ public sealed class MOS6502CallLowering : Irie.Target.CallLowering
 
     // Caller-saved scratch physregs that any arbitrary callee may clobber,
     // independent of the call's arg/return registers. RC0/RC1 are reserved
-    // as the soft stack pointer and survive across calls.
+    // as the soft stack pointer and survive across calls. RC2..RC15 are
+    // listed here as the CC arg-passing slots; RC16..RC31 are intentionally
+    // left out so the register allocator has a pool of "effectively
+    // callee-saved" zero-page slots for values that need to live across
+    // calls (until proper spilling / frame slots land in steps 11+, this
+    // is the stopgap that lets simple cross-call patterns like
+    // `call @F, %x; call @F, %x` allocate without spilling).
+    //
+    // Once frame slots + spilling are wired up, RC16..RC31 should be added
+    // here so the CC matches LLVM-MOS conventions (all RC* caller-saved).
     private static readonly int[] CallerSavedScratch =
     [
         MOS6502Registers.A,
@@ -187,8 +196,6 @@ public sealed class MOS6502CallLowering : Irie.Target.CallLowering
         MOS6502Registers.C, MOS6502Registers.N, MOS6502Registers.Z,
         MOS6502Registers.V, MOS6502Registers.I, MOS6502Registers.D,
         MOS6502Registers.B,
-        // RC2..RC15: also caller-saved (used for CC arg slots; conservatively
-        // treat all as clobbered even when not all are used as args).
         MOS6502Registers.RC(2),  MOS6502Registers.RC(3),
         MOS6502Registers.RC(4),  MOS6502Registers.RC(5),
         MOS6502Registers.RC(6),  MOS6502Registers.RC(7),

@@ -218,7 +218,15 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
         }
     }
 
-    // Step 5 — linear scan with copy hints. Returns vreg → physreg.
+    // Step 5 — linear scan with copy hints and clobber-aware physreg selection.
+    // Returns vreg → physreg.
+    //
+    // Clobber awareness: instructions whose operand array includes implicit-def
+    // PhysicalReg operands (e.g. mos6502.jsr.abs implicit-def $a, …) destroy
+    // the named physreg's value. A vreg V can be placed on physreg P only if
+    // no clobber of P falls strictly between V's def slot and V's last-use
+    // slot. Without this check, a value parked in P during a call site would
+    // silently get overwritten by the callee.
     private Dictionary<int, int> LinearScanAllocate(MirFunction function, Liveness liveness)
     {
         var intervals = liveness.RangeOf
@@ -226,6 +234,8 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
             .OrderBy(x => x.range.Start)
             .ThenBy(x => x.vreg)
             .ToList();
+
+        var clobberSlots = ComputeClobberSlots(function, liveness);
 
         var assignment = new Dictionary<int, int>();
         var physregActive = new Dictionary<int, int>();
@@ -249,14 +259,17 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
             var hint = TryGetCopyHintPhysReg(function, vreg, allocatable);
 
             int? chosen = null;
-            if (hint.HasValue && !physregActive.ContainsKey(hint.Value))
+            if (hint.HasValue
+                && !physregActive.ContainsKey(hint.Value)
+                && IsClobberFree(hint.Value, range, clobberSlots))
                 chosen = hint.Value;
 
             if (chosen == null)
             {
                 foreach (var candidate in allocatable)
                 {
-                    if (!physregActive.ContainsKey(candidate))
+                    if (!physregActive.ContainsKey(candidate)
+                        && IsClobberFree(candidate, range, clobberSlots))
                     {
                         chosen = candidate;
                         break;
@@ -267,13 +280,53 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
             if (chosen == null)
                 throw new NotImplementedException(
                     $"RegisterAllocator: no free physical register in class {classed.Name} " +
-                    $"for vreg %{vreg} (spilling not implemented).");
+                    $"for vreg %{vreg} (spilling not implemented, or the live range crosses a " +
+                    "physreg-clobbering instruction such as mos6502.jsr.abs).");
 
             assignment[vreg] = chosen.Value;
             physregActive[chosen.Value] = vreg;
         }
 
         return assignment;
+    }
+
+    // For each physreg, the set of instruction slots where it is implicitly
+    // defined (clobbered) by some non-copy instruction. pseudo.copy explicit
+    // physreg defs are NOT clobbers — RA places them on purpose.
+    private static Dictionary<int, List<int>> ComputeClobberSlots(MirFunction function, Liveness liveness)
+    {
+        var clobbers = new Dictionary<int, List<int>>();
+        foreach (var block in function.Blocks)
+        {
+            foreach (var instr in block.Instructions)
+            {
+                if (!liveness.SlotOf.TryGetValue(instr, out var slot)) continue;
+                foreach (var op in instr.Operands)
+                {
+                    if (op is PhysicalReg p && p.IsDefinition && p.IsImplicit)
+                    {
+                        if (!clobbers.TryGetValue(p.Id, out var slots))
+                            clobbers[p.Id] = slots = new List<int>();
+                        slots.Add(slot);
+                    }
+                }
+            }
+        }
+        return clobbers;
+    }
+
+    // V at P safely iff no clobber slot K of P satisfies Vs < K < Ve.
+    // A clobber at V's def slot (K == Vs) is fine (V is "born" at or after
+    // the clobber). A clobber at V's last-use slot (K == Ve) is fine too
+    // because the use reads V's value before the clobber takes effect within
+    // the same instruction.
+    private static bool IsClobberFree(int physReg, LiveRange range, Dictionary<int, List<int>> clobberSlots)
+    {
+        if (!clobberSlots.TryGetValue(physReg, out var slots)) return true;
+        foreach (var k in slots)
+            if (k > range.Start && k < range.End)
+                return false;
+        return true;
     }
 
     // Hint rule — only the livein form: `%v = pseudo.copy $P` hints `%v` to
