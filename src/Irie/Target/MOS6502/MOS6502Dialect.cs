@@ -249,13 +249,14 @@ public sealed class MOS6502Dialect : Dialect
 
     private static readonly HashSet<MOS6502Op> _terminators =
     [
+        // RTS / RTI: function returns. JMP: unconditional transfer, no
+        // fallthrough. Conditional branches (Beq/Bne/etc.) are NOT terminators
+        // in our model — they may branch to their target, but control falls
+        // through to the next instruction on the not-taken path. JSR returns
+        // to the caller after the called function returns, so it's not a
+        // terminator either.
         MOS6502Op.Rts, MOS6502Op.Rti,
-        MOS6502Op.Beq, MOS6502Op.Bne,
-        MOS6502Op.Bcc, MOS6502Op.Bcs,
-        MOS6502Op.Bmi, MOS6502Op.Bpl,
-        MOS6502Op.Bvc, MOS6502Op.Bvs,
-        MOS6502Op.Bgt,
-        MOS6502Op.JmpAbs, MOS6502Op.JmpInd, MOS6502Op.JsrAbs,
+        MOS6502Op.JmpAbs, MOS6502Op.JmpInd,
     ];
 
     public override string GetOpName(ushort code)
@@ -283,6 +284,9 @@ public sealed class MOS6502Dialect : Dialect
             MOS6502Op.Sbc    => SbcInfo,
             MOS6502Op.SbcZp  => SbcInfo,
             MOS6502Op.SbcImm => SbcInfo,
+            MOS6502Op.Cmp    => CmpInfo,
+            MOS6502Op.CmpZp  => CmpInfo,
+            MOS6502Op.CmpImm => CmpInfo,
             _ => DialectInstructionInfo.Empty,
         };
 
@@ -311,6 +315,22 @@ public sealed class MOS6502Dialect : Dialect
             MOS6502RegisterClass.Cc,    // use[2]: borrow_in (carry-flag polarity)
         ],
         TiedOperands: [-1, -1, 0, -1, -1]);
+
+    // Pre-AMS `mos6502.cmp` and its AMS-refined variants (`cmp.zp`, `cmp.imm`).
+    // Explicit operands: use[0]=a (in $a), use[1]=b. Sets flags $n, $z, $c as
+    // implicit defs — they live as separate PhysicalReg(IsImplicit=true)
+    // entries in the operand array so RA understands the clobber. No tied
+    // operands (cmp doesn't write back to A).
+    private static readonly DialectInstructionInfo CmpInfo = new(
+        OperandClasses: [
+            MOS6502RegisterClass.Ac,    // use[0]: a
+            MOS6502RegisterClass.Imag8, // use[1]: b
+        ],
+        ImplicitDefs: [
+            MOS6502Registers.N,
+            MOS6502Registers.Z,
+            MOS6502Registers.C,
+        ]);
 
     // Target ops conservatively touch physregs/memory; treat them as having
     // side effects for DCE purposes until a finer-grained model is in place.

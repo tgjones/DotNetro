@@ -58,6 +58,27 @@ public static class MOS6502MachineCodeEmitTable
         // $a, $c = mos6502.sbc.zp $a, $zpN, $c — same shape as AdcZp.
         [MOS6502Op.SbcZp] = new EmitRule(MOS6502Opcode.SBC_ZeroPage, EmitOperandKind.ZeroPageAddress, 3),
 
+        // mos6502.cmp.zp $a, $zpN implicit-def $n, $z, $c
+        // Operands: use[0]=$a (explicit), use[1]=zp (explicit), then implicit defs.
+        // Index 1 = use[1], the zero-page address.
+        [MOS6502Op.CmpZp] = new EmitRule(MOS6502Opcode.CMP_ZeroPage, EmitOperandKind.ZeroPageAddress, 1),
+
+        // mos6502.cmp.imm $a, #N implicit-def $n, $z, $c
+        // Index 1 = use[1] = immediate.
+        [MOS6502Op.CmpImm] = new EmitRule(MOS6502Opcode.CMP_Immediate, EmitOperandKind.Immediate, 1),
+
+        // mos6502.b<pred> T implicit $<flag>
+        // operands[0] = BlockTarget T; operand[1] = implicit flag use (not encoded).
+        [MOS6502Op.Beq]    = new EmitRule(MOS6502Opcode.BEQ,          EmitOperandKind.BranchTarget,    0),
+        [MOS6502Op.Bne]    = new EmitRule(MOS6502Opcode.BNE,          EmitOperandKind.BranchTarget,    0),
+        [MOS6502Op.Bcc]    = new EmitRule(MOS6502Opcode.BCC,          EmitOperandKind.BranchTarget,    0),
+        [MOS6502Op.Bcs]    = new EmitRule(MOS6502Opcode.BCS,          EmitOperandKind.BranchTarget,    0),
+        [MOS6502Op.Bmi]    = new EmitRule(MOS6502Opcode.BMI,          EmitOperandKind.BranchTarget,    0),
+        [MOS6502Op.Bpl]    = new EmitRule(MOS6502Opcode.BPL,          EmitOperandKind.BranchTarget,    0),
+
+        // mos6502.jmp.abs T — operands[0] = BlockTarget.
+        [MOS6502Op.JmpAbs] = new EmitRule(MOS6502Opcode.JMP_Absolute, EmitOperandKind.AbsoluteAddress, 0),
+
         // $zpN = mos6502.sta.zp $a
         // Operands: def[0]=zp (the address), use[0]=$a.
         // Index 0 = def[0]; the source register is implicit in the opcode.
@@ -69,6 +90,15 @@ public static class MOS6502MachineCodeEmitTable
 
         // $x = mos6502.ldx.zp $zpN — same shape as LdaZp.
         [MOS6502Op.LdxZp] = new EmitRule(MOS6502Opcode.LDX_ZeroPage, EmitOperandKind.ZeroPageAddress, 1),
+
+        // $y = mos6502.ldy.zp $zpN — same shape as LdaZp/LdxZp.
+        [MOS6502Op.LdyZp] = new EmitRule(MOS6502Opcode.LDY_ZeroPage, EmitOperandKind.ZeroPageAddress, 1),
+
+        // $zpN = mos6502.stx.zp $x — same shape as StaZp.
+        [MOS6502Op.StxZp] = new EmitRule(MOS6502Opcode.STX_ZeroPage, EmitOperandKind.ZeroPageAddress, 0),
+
+        // $zpN = mos6502.sty.zp $y — same shape as StaZp.
+        [MOS6502Op.StyZp] = new EmitRule(MOS6502Opcode.STY_ZeroPage, EmitOperandKind.ZeroPageAddress, 0),
 
         // $a = mos6502.txa $x — both operands implicit in the encoding.
         [MOS6502Op.Txa]   = new EmitRule(MOS6502Opcode.TXA,          EmitOperandKind.Implied,         null),

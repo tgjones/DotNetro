@@ -41,24 +41,28 @@ public sealed class MOS6502AddressingModeSelectorPass : MirFunctionPass
         }
     }
 
-    // Pre-AMS opcodes are refined based on the second use (the RHS source).
+    // Pre-AMS opcodes are refined based on the source operand (the RHS).
     // Returns null if the opcode is already addressing-mode-specific or has no
     // refinement rule yet.
     private static MOS6502Op? TryRefine(MOS6502Op op, MirOperand[] operands) => op switch
     {
-        MOS6502Op.Adc => RefineByRhs(operands, MOS6502Op.AdcZp, MOS6502Op.AdcImm),
-        MOS6502Op.Sbc => RefineByRhs(operands, MOS6502Op.SbcZp, MOS6502Op.SbcImm),
+        // adc/sbc: 2 defs precede the uses; RHS is operands[3].
+        MOS6502Op.Adc => RefineByOperand(operands, 3, MOS6502Op.AdcZp, MOS6502Op.AdcImm),
+        MOS6502Op.Sbc => RefineByOperand(operands, 3, MOS6502Op.SbcZp, MOS6502Op.SbcImm),
+        // cmp: implicit flag defs come AFTER explicit uses in the operand array;
+        // explicit operands are use[0]=a (operands[0]) and use[1]=b (operands[1]).
+        // RHS is operands[1].
+        MOS6502Op.Cmp => RefineByOperand(operands, 1, MOS6502Op.CmpZp, MOS6502Op.CmpImm),
         _ => null,
     };
 
-    // mos6502.adc / mos6502.sbc operand layout (defs first):
-    //   def[0]: result, def[1]: carry_out / borrow_out,
-    //   use[0]: a (operands[2]), use[1]: b (operands[3]), use[2]: carry_in (operands[4]).
-    // The RHS (use[1]) drives the addressing mode.
-    private static MOS6502Op? RefineByRhs(MirOperand[] operands, MOS6502Op zpForm, MOS6502Op immForm)
+    // Refine an opcode based on the operand at the given index.
+    //   PhysicalReg in zero-page → zp form.
+    //   Immediate                → imm form.
+    private static MOS6502Op? RefineByOperand(MirOperand[] operands, int index, MOS6502Op zpForm, MOS6502Op immForm)
     {
-        if (operands.Length < 4) return null;
-        return operands[3] switch
+        if (operands.Length <= index) return null;
+        return operands[index] switch
         {
             PhysicalReg phys when IsZeroPage(phys.Id) => zpForm,
             Immediate                                 => immForm,

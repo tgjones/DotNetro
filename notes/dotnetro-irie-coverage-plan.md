@@ -530,14 +530,26 @@ for unsupported cases) — they're added as the relevant slice lands.
    directly, so the multi-byte cmp can lower to a series of target ops
    without needing an MIR-level i1 combiner.
 
-3. **Cmp + cond_br fusion + multi-byte cmp.** Wire the isel fusion path:
-   `cmpi i8` + `cf.cond_br` → `mos6502.cmp` + `mos6502.b<pred>` +
-   `mos6502.jmp.abs` (with `bgt`/`blt`/`bge` synthesised). Multi-byte
-   (i32) `cmpi` is narrowed to a chain of per-byte target ops by the
-   legalizer + fusion pass working together, since branches naturally
-   read the flag chain. Lit tests for an i8 less-than branch and an i32
-   less-than branch. Re-test `IntegerSub32` to confirm cmp doesn't
-   conflict with sub on the SBC chain.
+3. **Cmp + cond_br fusion (i8, unsigned/equality predicates).** Wire the
+   isel fusion path: `cmpi i8` + `cf.cond_br` → `mos6502.cmp` +
+   `mos6502.b<pred>` + `mos6502.jmp.abs`. Conditional branches are no
+   longer terminators (they may fall through to the JMP); JMP is the
+   real terminator. `mos6502.cmp` carries flag side-effects as
+   implicit-defs on `$n`/`$z`/`$c`; branches read their flag via an
+   implicit-use. Block layout: T = conditional target; F = falls
+   through to the JMP. Coverage so far: `eq`, `ne`, `ult`, `uge`.
+   Signed predicates (`slt`, `sgt`, `sle`, `sge`) and `ugt`/`ule`
+   are deferred — they need either synthetic-branch expansion (for
+   signed: SBC + N⊕V check) or two-branch sequences (for `ugt`/`ule`:
+   BEQ + BCC chain), which fold in naturally once a use case appears
+   (signed branches needed by step 15 ForLoop, where i32 cmp also
+   lands).
+
+3b. **Multi-byte (i32/i16) cmpi + branch.** Deferred to step 15 (ForLoop)
+   where i32 less-than-branch is exercised. The multi-byte cmp lowers
+   to a chain of per-byte target ops by isel + a target-private cmp
+   widening pass, sidestepping the need for MIR-level i1 combiner
+   vocabulary.
 
 4. **`call.func` + `CallLowering.LowerCall`.** Add the op, the lowering,
    the emit row for `JsrAbs`, and a minimal lit test calling a sibling

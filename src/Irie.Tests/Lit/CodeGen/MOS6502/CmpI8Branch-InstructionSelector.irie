@@ -1,0 +1,39 @@
+; RUN: @iriec --target mos6502 --stop-after InstructionSelector @file
+
+; Checks the cmp+cond_br fusion in MOS6502 instruction selection.
+;
+; Input shape (after Legalizer):
+;   %r : i1 = arith.cmpi eq, %a, %b
+;   cf.cond_br %r, T, F
+;
+; Output shape (after ISel): the i1 vreg is gone; the cmp's flag side-effects
+; are encoded as implicit-defs on `mos6502.cmp`, and the branch reads its
+; flag via an implicit-use. The cond_br's F target becomes an explicit
+; `mos6502.jmp.abs` after the conditional branch (control falls through to
+; the JMP if the branch isn't taken).
+
+; CHECK: func @CmpEq : \(i8, i8\) -> void \{
+; CHECK:   bb0\(\):
+; CHECK:     \[liveins: \$a, \$x\]
+; CHECK:     %0 : ac = pseudo.copy \$a
+; CHECK:     %1 : zp = pseudo.copy \$x
+; CHECK:     mos6502.cmp %0, %1, implicit-def \$n, implicit-def \$z, implicit-def \$c
+; CHECK:     mos6502.beq bb1, implicit \$z
+; CHECK:     mos6502.jmp.abs bb2
+; CHECK:   bb1\(\):
+; CHECK:     mos6502.rts
+; CHECK:   bb2\(\):
+; CHECK:     mos6502.rts
+; CHECK: \}
+
+func @CmpEq : (i8, i8) -> void {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi eq, %0, %1
+    cf.cond_br %2, bb1, bb2
+
+bb1():
+    core.return
+
+bb2():
+    core.return
+}
