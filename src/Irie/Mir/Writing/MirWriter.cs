@@ -17,10 +17,77 @@ internal sealed class MirWriter
     private void WriteAll(MirModule module, TextWriter writer)
     {
         MirBootstrap.EnsureRegistered();
+
+        foreach (var global in module.Globals)
+            WriteGlobal(global, writer);
+
+        var hasGlobals = module.Globals.Count > 0;
         for (var i = 0; i < module.Functions.Count; i++)
         {
-            if (i > 0) writer.WriteLine();
+            if (i > 0 || hasGlobals) writer.WriteLine();
             WriteFunction(module.Functions[i], writer);
+        }
+    }
+
+    // Module-level globals: `global @name : <type> [= <initializer>]`.
+    // Initializer is omitted for zero-init (`.bss`-style) globals.
+    private static void WriteGlobal(MirGlobal global, TextWriter writer)
+    {
+        writer.Write($"global @{global.SymbolName} : {global.Type.DisplayName}");
+        if (global.Initializer is not null)
+        {
+            writer.Write(" = ");
+            WriteInitializer(global.Initializer, writer);
+        }
+        writer.WriteLine();
+    }
+
+    private static void WriteInitializer(MirInitializer initializer, TextWriter writer)
+    {
+        if (initializer.Items.Length == 1)
+        {
+            WriteDataItem(initializer.Items[0], writer);
+            return;
+        }
+        writer.Write("[");
+        for (var i = 0; i < initializer.Items.Length; i++)
+        {
+            if (i > 0) writer.Write(", ");
+            WriteDataItem(initializer.Items[i], writer);
+        }
+        writer.Write("]");
+    }
+
+    private static void WriteDataItem(MirDataItem item, TextWriter writer)
+    {
+        switch (item)
+        {
+            case DataBytes(var bytes):
+                writer.Write("bytes \"");
+                foreach (var b in bytes)
+                {
+                    switch (b)
+                    {
+                        case (byte)'\\': writer.Write(@"\\"); break;
+                        case (byte)'"':  writer.Write("\\\""); break;
+                        case (byte)'\n': writer.Write(@"\n"); break;
+                        case (byte)'\r': writer.Write(@"\r"); break;
+                        case (byte)'\t': writer.Write(@"\t"); break;
+                        case >= 0x20 and < 0x7F:
+                            writer.Write((char)b);
+                            break;
+                        default:
+                            writer.Write($"\\x{b:X2}");
+                            break;
+                    }
+                }
+                writer.Write("\"");
+                break;
+            case DataSymbolRef(var name):
+                writer.Write($"@{name}");
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown MirDataItem: {item.GetType().Name}");
         }
     }
 

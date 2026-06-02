@@ -1,0 +1,29 @@
+; RUN: @iriec --target mos6502 --emit=mir --run-pass none @file
+
+; Round-trip test for module-level globals: parses a module with a string
+; constant, a zero-init static field, and a vtable made of symbol refs;
+; the pipeline does nothing (the --run-pass selects no real pass — the
+; --emit=mir prints the parsed module verbatim).
+;
+; mem.symbol is also tested: it carries a Symbol operand whose name must
+; refer to one of the module's globals, and produces an i16 pointer.
+
+; CHECK: global @hello : i32 = bytes "Hi!"
+; CHECK: global @counter : i32
+; CHECK: global @MyClass_vtable : i32 = \[@hello, @counter\]
+
+; CHECK: func @TestSymbol : \(\) -> i16 \{
+; CHECK:   bb0\(\):
+; CHECK:     %0 : i16 = mem.symbol @hello
+; CHECK:     core.return %0
+; CHECK: \}
+
+global @hello : i32 = bytes "Hi!"
+global @counter : i32
+global @MyClass_vtable : i32 = [@hello, @counter]
+
+func @TestSymbol : () -> i16 {
+bb0():
+    %0 : i16 = mem.symbol @hello
+    core.return %0
+}

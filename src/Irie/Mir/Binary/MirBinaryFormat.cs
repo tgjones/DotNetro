@@ -31,4 +31,10 @@ internal static class MirBinaryFormat
         Typed   = 0,
         Classed = 1,
     }
+
+    internal enum DataItemTag : byte
+    {
+        Bytes     = 0,
+        SymbolRef = 1,
+    }
 }

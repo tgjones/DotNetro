@@ -29,10 +29,44 @@ internal static class MirBinaryReader
         }
 
         var module = new MirModule();
+
+        var globalCount = reader.ReadInt32();
+        for (var i = 0; i < globalCount; i++)
+            module.Globals.Add(ReadGlobal(reader));
+
         var functionCount = reader.ReadInt32();
         for (var i = 0; i < functionCount; i++)
             module.Functions.Add(ReadFunction(reader, dialectMap));
         return module;
+    }
+
+    private static MirGlobal ReadGlobal(BinaryReader reader)
+    {
+        var name = reader.ReadString();
+        var type = ReadType(reader);
+        var size = reader.ReadInt32();
+        var hasInitializer = reader.ReadBoolean();
+        MirInitializer? initializer = null;
+        if (hasInitializer)
+        {
+            var itemCount = reader.ReadInt32();
+            var items = new MirDataItem[itemCount];
+            for (var i = 0; i < itemCount; i++)
+                items[i] = ReadDataItem(reader);
+            initializer = new MirInitializer(items);
+        }
+        return new MirGlobal(name, type, size, initializer);
+    }
+
+    private static MirDataItem ReadDataItem(BinaryReader reader)
+    {
+        var tag = (DataItemTag)reader.ReadByte();
+        return tag switch
+        {
+            DataItemTag.Bytes     => new DataBytes(reader.ReadBytes(reader.ReadInt32())),
+            DataItemTag.SymbolRef => new DataSymbolRef(reader.ReadString()),
+            _ => throw new InvalidDataException($"Unknown data item tag: {(byte)tag}"),
+        };
     }
 
     private static MirFunction ReadFunction(BinaryReader reader, DialectId[] dialectMap)

@@ -128,6 +128,26 @@ public class MirBinaryRoundTripTests
     }
 
     [Test]
+    public async Task RoundTrip_GlobalsWithInitializers()
+    {
+        // Exercises every MirGlobal shape: bytes initializer, no initializer
+        // (zero-init), and a SymbolRef-array initializer (vtable shape).
+        var input = """
+            global @hello : i32 = bytes "Hi!"
+            global @counter : i32
+            global @Vtbl : i32 = [@hello, @counter]
+
+            func @F : () -> i16 {
+            bb0():
+                %0 : i16 = mem.symbol @hello
+                core.return %0
+            }
+            """.ReplaceLineEndings("\n") + "\n";
+
+        await AssertBinaryRoundTrips(input);
+    }
+
+    [Test]
     public async Task Read_RejectsBadMagic()
     {
         using var stream = new MemoryStream([0, 1, 2, 3, 1, 0, 0, 0]);

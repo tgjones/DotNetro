@@ -26,8 +26,82 @@ internal sealed class MirParser
     {
         var module = new MirModule();
         while (_current.Kind != MirTokenKind.Eof)
-            module.Functions.Add(ParseFunction());
+        {
+            // Module-level declarations are distinguished by their opening
+            // identifier: `func` for a function, `global` for a global.
+            if (_current.Kind != MirTokenKind.Identifier)
+                throw Fail(_current, $"Expected 'func' or 'global', got '{_current.Kind}'");
+            switch (_current.Text)
+            {
+                case "func":
+                    module.Functions.Add(ParseFunction());
+                    break;
+                case "global":
+                    module.Globals.Add(ParseGlobal());
+                    break;
+                default:
+                    throw Fail(_current, $"Expected 'func' or 'global', got '{_current.Text}'");
+            }
+        }
         return module;
+    }
+
+    // global @name : <type> [= <initializer>]
+    //   initializer := <data-item> | '[' <data-item> (',' <data-item>)* ']'
+    //   data-item   := 'bytes' STRING | '@' IDENTIFIER
+    private MirGlobal ParseGlobal()
+    {
+        var globalKeyword = Expect(MirTokenKind.Identifier);
+        if (globalKeyword.Text != "global")
+            throw Fail(globalKeyword, $"Expected 'global', got '{globalKeyword.Text}'");
+        Expect(MirTokenKind.At);
+        var name = Expect(MirTokenKind.Identifier).Text!;
+        Expect(MirTokenKind.Colon);
+        var type = ParseType();
+
+        MirInitializer? initializer = null;
+        if (_current.Kind == MirTokenKind.Equals)
+        {
+            Advance(); // consume '='
+            initializer = ParseInitializer();
+        }
+
+        var size = type.SizeInBits / 8;
+        return new MirGlobal(name, type, size, initializer);
+    }
+
+    private MirInitializer ParseInitializer()
+    {
+        if (_current.Kind == MirTokenKind.LBracket)
+        {
+            Advance(); // consume '['
+            var items = new List<MirDataItem> { ParseDataItem() };
+            while (_current.Kind == MirTokenKind.Comma)
+            {
+                Advance();
+                items.Add(ParseDataItem());
+            }
+            Expect(MirTokenKind.RBracket);
+            return new MirInitializer(items.ToArray());
+        }
+        return new MirInitializer([ParseDataItem()]);
+    }
+
+    private MirDataItem ParseDataItem()
+    {
+        if (_current.Kind == MirTokenKind.Identifier && _current.Text == "bytes")
+        {
+            Advance(); // consume 'bytes'
+            var literal = Expect(MirTokenKind.String);
+            return new DataBytes(System.Text.Encoding.UTF8.GetBytes(literal.Text!));
+        }
+        if (_current.Kind == MirTokenKind.At)
+        {
+            Advance(); // consume '@'
+            var nameToken = Expect(MirTokenKind.Identifier);
+            return new DataSymbolRef(nameToken.Text!);
+        }
+        throw Fail(_current, $"Expected data item ('bytes \"…\"' or '@symbol'), got '{_current.Kind}'");
     }
 
     private MirFunction ParseFunction()

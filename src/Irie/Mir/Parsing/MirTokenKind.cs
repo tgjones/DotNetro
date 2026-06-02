@@ -22,6 +22,7 @@ internal enum MirTokenKind
     ValueRef,      // %N — virtual register reference
     PhysRegRef,    // $N (numeric) or $name (symbolic) — physical register reference
     BlockLabel,    // bbN — block label (header definition or operand reference)
+    String,        // "..." — quoted string literal (used for global initializers)
 
     Eof,
 }

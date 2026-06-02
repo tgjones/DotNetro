@@ -2,11 +2,12 @@ using Irie.Dialects.Arith;
 using Irie.Dialects.Call;
 using Irie.Dialects.Cf;
 using Irie.Dialects.Core;
+using Irie.Dialects.Mem;
 using Irie.Dialects.Pseudo;
 
 namespace Irie.Mir;
 
-// Registers the five non-target dialects (core, arith, cf, call, pseudo)
+// Registers the six non-target dialects (core, arith, cf, call, mem, pseudo)
 // into DialectRegistry. Idempotent — safe to call multiple times. The Mir
 // parser and writer both call this on first use, so most callers never need
 // to.
@@ -28,6 +29,7 @@ public static class MirBootstrap
             DialectRegistry.Register(new ArithDialect());
             DialectRegistry.Register(new CfDialect());
             DialectRegistry.Register(new CallDialect());
+            DialectRegistry.Register(new MemDialect());
             DialectRegistry.Register(new PseudoDialect());
             _registered = true;
         }

@@ -1,5 +1,6 @@
 using Irie.Dialects.Arith;
 using Irie.Dialects.Call;
+using Irie.Dialects.Mem;
 using Irie.Dialects.Pseudo;
 
 namespace Irie.Mir;
@@ -199,6 +200,18 @@ public sealed class MirBuilder(MirFunction function)
             new VirtualReg(wideVreg, IsDefinition: false),
             new VirtualReg(subVreg,  IsDefinition: false),
             new Immediate(bitOffset),
+        ]);
+        return result;
+    }
+
+    // mem.symbol @name → %p : i16
+    // Returns the i16 pointer vreg holding the address of the named global.
+    public int BuildMemSymbol(string symbolName)
+    {
+        var result = function.CreateVirtualRegister(IRType.Pointer);
+        Insert(MemDialect.OpRef(MemOp.Symbol), [
+            new VirtualReg(result, IsDefinition: true),
+            new Symbol(symbolName),
         ]);
         return result;
     }

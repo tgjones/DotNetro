@@ -20,9 +20,45 @@ internal static class MirBinaryWriter
         foreach (var prefix in dialectTable.Keys)
             writer.Write(prefix);
 
+        writer.Write(module.Globals.Count);
+        foreach (var global in module.Globals)
+            WriteGlobal(global, writer);
+
         writer.Write(module.Functions.Count);
         foreach (var function in module.Functions)
             WriteFunction(function, writer, dialectTable);
+    }
+
+    private static void WriteGlobal(MirGlobal global, BinaryWriter writer)
+    {
+        writer.Write(global.SymbolName);
+        WriteType(global.Type, writer);
+        writer.Write(global.SizeInBytes);
+        writer.Write(global.Initializer is not null);
+        if (global.Initializer is not null)
+        {
+            writer.Write(global.Initializer.Items.Length);
+            foreach (var item in global.Initializer.Items)
+                WriteDataItem(item, writer);
+        }
+    }
+
+    private static void WriteDataItem(MirDataItem item, BinaryWriter writer)
+    {
+        switch (item)
+        {
+            case DataBytes(var bytes):
+                writer.Write((byte)DataItemTag.Bytes);
+                writer.Write(bytes.Length);
+                writer.Write(bytes);
+                break;
+            case DataSymbolRef(var name):
+                writer.Write((byte)DataItemTag.SymbolRef);
+                writer.Write(name);
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown MirDataItem: {item.GetType().Name}");
+        }
     }
 
     private static Dictionary<string, int> BuildDialectTable(MirModule module)

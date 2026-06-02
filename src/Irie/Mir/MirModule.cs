@@ -8,6 +8,10 @@ public sealed class MirModule
 {
     public List<MirFunction> Functions { get; } = [];
 
+    // Module-level named regions of memory: strings, static fields, vtables,
+    // and frame slot stash space. See MirGlobal for the data model.
+    public List<MirGlobal> Globals { get; } = [];
+
     public MirFunction CreateFunction(string name, IRType[] paramTypes, IRType returnType, Action<MirFunction> configure)
     {
         var function = new MirFunction(name, paramTypes, returnType);
