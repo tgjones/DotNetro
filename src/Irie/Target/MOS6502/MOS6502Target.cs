@@ -27,4 +27,18 @@ public class MOS6502Target : Irie.Target.Target
     {
         pm.AddPass(new MOS6502AddressingModeSelectorPass());
     }
+
+    // Hand-written MIR runtime (currently just the indirect-call trampoline;
+    // OS-call wrappers, `start`, ManagedHeap_Alloc, etc. will be added in later
+    // plan steps). Loaded as an embedded resource; the IL→MIR translator will
+    // parse this string and merge the functions into the produced module.
+    public virtual string GetRuntime()
+    {
+        const string resourceName = "Irie.Target.MOS6502.runtime.irie";
+        using var stream = typeof(MOS6502Target).Assembly.GetManifestResourceStream(resourceName)
+            ?? throw new InvalidOperationException(
+                $"Embedded runtime resource '{resourceName}' not found.");
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
 }

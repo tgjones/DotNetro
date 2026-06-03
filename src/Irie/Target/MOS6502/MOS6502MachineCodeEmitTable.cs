@@ -87,6 +87,12 @@ public static class MOS6502MachineCodeEmitTable
         // mos6502.jmp.abs T — operands[0] = BlockTarget.
         [MOS6502Op.JmpAbs] = new EmitRule(MOS6502Opcode.JMP_Absolute, EmitOperandKind.AbsoluteAddress, 0),
 
+        // mos6502.jmp.ind <imm> — operands[0] = Immediate (zero-page address).
+        // AddressingMode.Indirect (from MOS6502InstructionInfo) routes encoding
+        // through EncodeTwoByteOperand, which accepts Immediate and writes
+        // it as a 2-byte LE word (e.g. `JMP ($001E)` for `mos6502.jmp.ind 30`).
+        [MOS6502Op.JmpInd] = new EmitRule(MOS6502Opcode.JMP_Indirect, EmitOperandKind.AbsoluteAddress, 0),
+
         // mos6502.jsr.abs @callee — operands[0] = Symbol; rest are implicit.
         [MOS6502Op.JsrAbs] = new EmitRule(MOS6502Opcode.JSR_Absolute, EmitOperandKind.AbsoluteAddress, 0),
 

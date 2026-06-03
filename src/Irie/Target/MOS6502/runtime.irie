@@ -1,0 +1,12 @@
+; MOS6502 runtime — hand-written MIR loaded as an embedded resource by
+; MOS6502Target.GetRuntime(). Functions here are appended to the MirModule
+; produced by IL→MIR translation so the resulting program links.
+
+; Indirect-call trampoline. MOS6502CallLowering.LowerIndirectCall parks the
+; target address in RC30/RC31 (zero-page bytes $1E/$1F) and emits
+; `jsr.abs @__call_indirect_trampoline`. The trampoline then dispatches via
+; `JMP ($1E)`, which reads the 16-bit target from $001E/$001F.
+func @__call_indirect_trampoline : () -> void {
+bb0():
+    mos6502.jmp.ind 30
+}
