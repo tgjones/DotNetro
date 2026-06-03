@@ -1,0 +1,145 @@
+; RUN: not @iriec --target mos6502 --emit=bin --origin=0x1000 @file
+
+; A function whose BEQ target is more than 127 bytes away. The encoder must
+; throw a clear error rather than silently emitting a wrap-around offset.
+; The branch from bb0 targets bb1, which is preceded by 130 single-byte
+; CLC instructions — far enough to make the signed-8-bit offset overflow.
+
+func @TooFar : () -> void {
+bb0():
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb1, implicit $8
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.clc
+    mos6502.jmp.abs bb1
+bb1():
+    mos6502.rts
+}

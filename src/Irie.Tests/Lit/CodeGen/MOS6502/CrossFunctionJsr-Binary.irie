@@ -1,0 +1,23 @@
+; RUN: @iriec --target mos6502 --emit=bin --origin=0x1000 @file | @irie-mc --hex-dump
+
+; Verifies cross-function ExternalRef resolution: @Caller's `mos6502.jsr.abs
+; @helper` resolves to the absolute address of @helper, which is laid out
+; immediately after @Caller at $1004.
+;
+; Layout starting at $1000:
+;   $1000: JSR $1004      ; 20 04 10 — JSR to helper
+;   $1003: RTS            ; 60       — end of Caller
+;   $1004: RTS            ; 60       — helper
+
+; CHECK: 00000000: 20 04 10 60 60
+
+func @Caller : () -> void {
+bb0():
+    mos6502.jsr.abs @helper
+    mos6502.rts
+}
+
+func @helper : () -> void {
+bb0():
+    mos6502.rts
+}

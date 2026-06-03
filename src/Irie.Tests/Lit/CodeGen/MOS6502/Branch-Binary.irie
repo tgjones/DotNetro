@@ -1,0 +1,27 @@
+; RUN: @iriec --target mos6502 --emit=bin --origin=0x1000 @file | @irie-mc --hex-dump
+
+; Exercises three things in one test:
+;   1. Per-function label table (bb1, bb2 mapping).
+;   2. Relative-offset computation for Bxx (target - (instructionAddr + 2)
+;      encoded as a signed 8-bit value).
+;   3. JMP absolute addressing (3-byte little-endian).
+;
+; Layout starting at $1000:
+;   $1000: CMP #$00       ; C9 00
+;   $1002: BEQ bb2        ; F0 04 — offset from $1004 to bb2 at $1008 is +4
+;   $1004: JMP bb1        ; 4C 07 10 — absolute address $1007
+;   $1007: RTS            ; 60      — bb1
+;   $1008: RTS            ; 60      — bb2
+
+; CHECK: 00000000: C9 00 F0 04 4C 07 10 60  60
+
+func @Branch : () -> void {
+bb0():
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb2, implicit $8
+    mos6502.jmp.abs bb1
+bb1():
+    mos6502.rts
+bb2():
+    mos6502.rts
+}

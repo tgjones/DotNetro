@@ -19,7 +19,13 @@ var startAt = new Option<string>("--start-at") { Description = "Start at the spe
 
 var runPass = new Option<string>("--run-pass") { Description = "Run only the specified pass (shorthand for --start-at X --stop-after X); use 'none' to parse and reprint with no passes" };
 
-var emitOption = new Option<string>("--emit") { Description = "Output form: 'mir' (default) writes post-pipeline MIR text; 'asm' writes target assembly text; 'mc' writes structured MachineCode binary to stdout" };
+var emitOption = new Option<string>("--emit") { Description = "Output form: 'mir' (default) writes post-pipeline MIR text; 'asm' writes target assembly text; 'mc' writes structured MachineCode binary to stdout; 'bin' writes flat machine-code bytes (optionally packaged by the target) to stdout" };
+
+var originOption = new Option<string?>("--origin")
+{
+    Description = "Origin (load address) for --emit=bin, as hex (0x1900) or decimal. " +
+                  "Defaults to the target's DefaultOrigin if specified."
+};
 
 var rootCommand = new RootCommand("Irie lowering tool — translates MIR to target machine code");
 rootCommand.Arguments.Add(inputArgument);
@@ -28,6 +34,7 @@ rootCommand.Options.Add(stopAfter);
 rootCommand.Options.Add(startAt);
 rootCommand.Options.Add(runPass);
 rootCommand.Options.Add(emitOption);
+rootCommand.Options.Add(originOption);
 
 rootCommand.SetAction(parseResult =>
 {
@@ -84,8 +91,18 @@ rootCommand.SetAction(parseResult =>
             mc.Write(bw);
             break;
         }
+        case "bin":
+        {
+            var mc = target.MachineCodeEmitter.Emit(module);
+            var originValue = ResolveOrigin(parseResult.GetValue(originOption), target.DefaultOrigin);
+            var bytes  = new MOS6502BinaryEncoder().Encode(mc, originValue);
+            var image  = target.PackageImage(bytes, originValue);
+            using var stdout = Console.OpenStandardOutput();
+            stdout.Write(image, 0, image.Length);
+            break;
+        }
         default:
-            throw new ArgumentException($"Unknown --emit '{emit}' (expected 'mir', 'asm', or 'mc').");
+            throw new ArgumentException($"Unknown --emit '{emit}' (expected 'mir', 'asm', 'mc', or 'bin').");
     }
 
     if (inputReader != Console.In)
@@ -93,3 +110,50 @@ rootCommand.SetAction(parseResult =>
 });
 
 return await rootCommand.Parse(args).InvokeAsync();
+
+static int ResolveOrigin(string? originText, int? defaultOrigin)
+{
+    if (originText != null)
+        return ParseOrigin(originText);
+    if (defaultOrigin is int d)
+        return d;
+    throw new ArgumentException("--origin is required for --emit=bin with this target (no default origin).");
+}
+
+static int ParseOrigin(string text)
+{
+    if (string.IsNullOrWhiteSpace(text))
+        throw new ArgumentException($"--origin value is empty.");
+
+    var s = text.Trim();
+    int @base;
+    string digits;
+
+    if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+    {
+        @base = 16;
+        digits = s[2..];
+    }
+    else if (s.StartsWith('$'))
+    {
+        @base = 16;
+        digits = s[1..];
+    }
+    else
+    {
+        @base = 10;
+        digits = s;
+    }
+
+    if (digits.Length == 0)
+        throw new ArgumentException($"--origin value '{text}' has no digits after the prefix.");
+
+    try
+    {
+        return Convert.ToInt32(digits, @base);
+    }
+    catch (Exception ex) when (ex is FormatException or OverflowException or ArgumentException)
+    {
+        throw new ArgumentException($"--origin value '{text}' is not a valid integer.", ex);
+    }
+}
