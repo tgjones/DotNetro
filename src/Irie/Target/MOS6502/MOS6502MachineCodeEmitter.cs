@@ -13,7 +13,28 @@ public sealed class MOS6502MachineCodeEmitter : Irie.Target.MachineCodeEmitter
         var result = new MachineCodeModule();
         foreach (var function in module.Functions)
             EmitFunction(function, result.CreateFunction(function.Name));
+        foreach (var global in module.Globals)
+            result.Globals.Add(LowerGlobal(global));
         return result;
+    }
+
+    private static MachineCodeGlobal LowerGlobal(MirGlobal global)
+    {
+        if (global.Initializer is null)
+            return new MachineCodeGlobal(global.SymbolName, global.SizeInBytes, Items: null);
+
+        var items = new MachineCodeDataItem[global.Initializer.Items.Length];
+        for (var i = 0; i < items.Length; i++)
+        {
+            items[i] = global.Initializer.Items[i] switch
+            {
+                DataBytes(var bytes)         => new MachineCodeDataBytes(bytes),
+                DataSymbolRef(var symbolName) => new MachineCodeDataSymbolRef(symbolName),
+                var item => throw new InvalidOperationException(
+                    $"MOS6502MachineCodeEmitter: unknown MirDataItem {item.GetType().Name} in global '{global.SymbolName}'."),
+            };
+        }
+        return new MachineCodeGlobal(global.SymbolName, global.SizeInBytes, items);
     }
 
     private static void EmitFunction(MirFunction src, MachineCodeFunction dst)

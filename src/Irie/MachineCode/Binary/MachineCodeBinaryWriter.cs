@@ -6,6 +6,8 @@ internal static class MachineCodeBinaryWriter
 {
     public static void Write(MachineCodeModule module, BinaryWriter writer)
     {
+        // Globals are encoded only in the final binary; they're not part of the
+        // MachineCode binary round-trip yet.
         writer.Write(module.Functions.Count);
         foreach (var function in module.Functions)
             Write(function, writer);

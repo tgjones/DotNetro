@@ -1,0 +1,23 @@
+; RUN: @iriec --target mos6502 --emit=bin --origin=0x1000 @file | @irie-mc --hex-dump
+
+; Verifies that a DataSymbolRef inside a MirGlobal resolves to a 2-byte
+; little-endian absolute address of the referenced function.
+;
+; Layout starting at $1000:
+;   $1000: RTS              ; 60     — @entry
+;   $1001: RTS              ; 60     — @foo (sym target)
+;   $1002: 01 10            ;        — @vt: LE address of @foo at $1001
+
+; CHECK: 00000000: 60 60 01 10
+
+func @entry : () -> void {
+bb0():
+    mos6502.rts
+}
+
+func @foo : () -> void {
+bb0():
+    mos6502.rts
+}
+
+global @vt : i16 = @foo

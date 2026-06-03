@@ -10,6 +10,11 @@ public sealed class MOS6502BinaryEncoder
     // Function name → absolute start address. Resolves ExternalRef in pass 2.
     private Dictionary<string, int> _functionAddrs = new();
 
+    // Global symbol name → absolute start address. Shares the symbol namespace
+    // with _functionAddrs but kept separate so duplicate-function-name checks
+    // still report function-vs-function clashes specifically.
+    private Dictionary<string, int> _globalAddrs = new();
+
     // Per-function local label name → absolute address. Resolves LabelRef in pass 2.
     private Dictionary<MachineCodeFunction, Dictionary<string, int>> _localLabelAddrs = new();
 
@@ -17,20 +22,31 @@ public sealed class MOS6502BinaryEncoder
     // address it was laid out at and the function it belongs to (for label resolution).
     private List<LayoutEntry> _layoutEntries = new();
 
+    // The globals to encode in pass 2, in declaration order, each with the
+    // address it was laid out at.
+    private List<GlobalLayoutEntry> _globalLayoutEntries = new();
+
     public byte[] Encode(MachineCodeModule module, int origin)
     {
         var layout = LayoutOnly(module, origin);
         _functionAddrs = layout.FunctionAddrs;
+        _globalAddrs = layout.GlobalAddrs;
         _localLabelAddrs = layout.LocalLabelAddrs;
         _layoutEntries = layout.Entries;
+        _globalLayoutEntries = layout.GlobalEntries;
 
         // Total length spans from origin to the cursor after the last laid-out
-        // instruction. If the module is empty we emit an empty byte stream.
+        // instruction or global. If the module is empty we emit an empty byte stream.
         var totalLength = 0;
         foreach (var entry in _layoutEntries)
         {
             var mode = MOS6502InstructionInfo.Instance.Get(entry.Instruction.Opcode).Mode;
             var end = entry.Addr - origin + InstructionLength(mode);
+            if (end > totalLength) totalLength = end;
+        }
+        foreach (var globalEntry in _globalLayoutEntries)
+        {
+            var end = globalEntry.Addr - origin + globalEntry.Global.SizeInBytes;
             if (end > totalLength) totalLength = end;
         }
 
@@ -73,7 +89,48 @@ public sealed class MOS6502BinaryEncoder
             }
         }
 
+        foreach (var globalEntry in _globalLayoutEntries)
+            EncodeGlobal(bytes, origin, globalEntry);
+
         return bytes;
+    }
+
+    private void EncodeGlobal(byte[] bytes, int origin, GlobalLayoutEntry entry)
+    {
+        var (addr, global) = entry;
+
+        // Zero-init: byte[] default-init already wrote zeros, nothing to do.
+        if (global.Items is null) return;
+
+        var cursor = addr - origin;
+        var end = cursor + global.SizeInBytes;
+
+        foreach (var item in global.Items)
+        {
+            switch (item)
+            {
+                case MachineCodeDataBytes(var data):
+                    if (cursor + data.Length > end)
+                        throw new InvalidOperationException(
+                            $"MOS6502BinaryEncoder: data items in global '{global.SymbolName}' exceed its declared size of {global.SizeInBytes} bytes.");
+                    Array.Copy(data, 0, bytes, cursor, data.Length);
+                    cursor += data.Length;
+                    break;
+
+                case MachineCodeDataSymbolRef(var name):
+                    if (cursor + 2 > end)
+                        throw new InvalidOperationException(
+                            $"MOS6502BinaryEncoder: data items in global '{global.SymbolName}' exceed its declared size of {global.SizeInBytes} bytes.");
+                    WriteLE16(bytes, cursor, ResolveSymbol(name, addr));
+                    cursor += 2;
+                    break;
+
+                default:
+                    throw new InvalidOperationException(
+                        $"MOS6502BinaryEncoder: unknown data item kind {item.GetType().Name} in global '{global.SymbolName}'.");
+            }
+        }
+        // Remaining bytes between cursor and end stay zero (default byte[] init).
     }
 
     private void EncodeOneByteOperand(byte[] bytes, int bytePos, int addr, MachineCodeInstruction instr, AddressingMode mode)
@@ -86,11 +143,11 @@ public sealed class MOS6502BinaryEncoder
                 break;
 
             case MachineCodeOperand.ExternalRef ext when ext.Half == SymbolHalf.LowByte:
-                WriteByte(bytes, bytePos + 1, ResolveFunctionSymbol(ext.Name, addr) & 0xFF);
+                WriteByte(bytes, bytePos + 1, ResolveSymbol(ext.Name, addr) & 0xFF);
                 break;
 
             case MachineCodeOperand.ExternalRef ext when ext.Half == SymbolHalf.HighByte:
-                WriteByte(bytes, bytePos + 1, (ResolveFunctionSymbol(ext.Name, addr) >> 8) & 0xFF);
+                WriteByte(bytes, bytePos + 1, (ResolveSymbol(ext.Name, addr) >> 8) & 0xFF);
                 break;
 
             default:
@@ -129,7 +186,7 @@ public sealed class MOS6502BinaryEncoder
                 break;
 
             case MachineCodeOperand.ExternalRef ext when ext.Half == SymbolHalf.Full:
-                WriteLE16(bytes, bytePos + 1, ResolveFunctionSymbol(ext.Name, addr));
+                WriteLE16(bytes, bytePos + 1, ResolveSymbol(ext.Name, addr));
                 break;
 
             case MachineCodeOperand.ExternalRef ext:
@@ -150,12 +207,12 @@ public sealed class MOS6502BinaryEncoder
         return addr;
     }
 
-    private int ResolveFunctionSymbol(string name, int referringAddr)
+    private int ResolveSymbol(string name, int referringAddr)
     {
-        if (!_functionAddrs.TryGetValue(name, out var addr))
-            throw new InvalidOperationException(
-                $"MOS6502BinaryEncoder: undefined symbol '{name}' referenced from instruction at ${referringAddr:X4}.");
-        return addr;
+        if (_functionAddrs.TryGetValue(name, out var addr)) return addr;
+        if (_globalAddrs.TryGetValue(name, out addr))       return addr;
+        throw new InvalidOperationException(
+            $"MOS6502BinaryEncoder: undefined symbol '{name}' referenced from instruction at ${referringAddr:X4}.");
     }
 
     private static void WriteByte(byte[] bytes, int pos, int value)
@@ -174,8 +231,10 @@ public sealed class MOS6502BinaryEncoder
     public LayoutResult LayoutOnly(MachineCodeModule module, int origin)
     {
         var functionAddrs = new Dictionary<string, int>();
+        var globalAddrs = new Dictionary<string, int>();
         var localLabelAddrs = new Dictionary<MachineCodeFunction, Dictionary<string, int>>();
         var entries = new List<LayoutEntry>();
+        var globalEntries = new List<GlobalLayoutEntry>();
 
         var cursor = origin;
 
@@ -211,7 +270,20 @@ public sealed class MOS6502BinaryEncoder
             }
         }
 
-        return new LayoutResult(functionAddrs, localLabelAddrs, entries);
+        foreach (var global in module.Globals)
+        {
+            if (functionAddrs.ContainsKey(global.SymbolName))
+                throw new InvalidOperationException(
+                    $"MOS6502BinaryEncoder: global '{global.SymbolName}' clashes with function of the same name.");
+            if (!globalAddrs.TryAdd(global.SymbolName, cursor))
+                throw new InvalidOperationException(
+                    $"MOS6502BinaryEncoder: duplicate global name '{global.SymbolName}'.");
+
+            globalEntries.Add(new GlobalLayoutEntry(cursor, global));
+            cursor += global.SizeInBytes;
+        }
+
+        return new LayoutResult(functionAddrs, globalAddrs, localLabelAddrs, entries, globalEntries);
     }
 
     private static int InstructionLength(AddressingMode mode) => mode switch
@@ -234,8 +306,12 @@ public sealed class MOS6502BinaryEncoder
 
     public sealed record LayoutEntry(int Addr, MachineCodeFunction Parent, MachineCodeInstruction Instruction);
 
+    public sealed record GlobalLayoutEntry(int Addr, MachineCodeGlobal Global);
+
     public sealed record LayoutResult(
         Dictionary<string, int> FunctionAddrs,
+        Dictionary<string, int> GlobalAddrs,
         Dictionary<MachineCodeFunction, Dictionary<string, int>> LocalLabelAddrs,
-        List<LayoutEntry> Entries);
+        List<LayoutEntry> Entries,
+        List<GlobalLayoutEntry> GlobalEntries);
 }
