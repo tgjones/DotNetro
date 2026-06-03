@@ -31,4 +31,10 @@ public abstract class Target
     // Targets append their own post-RA passes (e.g. addressing-mode selection
     // for MOS6502) — there is no generic stage at this point in the pipeline.
     public virtual void AddPostRegisterAllocationPasses(Irie.Passes.PassManager pm) { }
+
+    // Default origin (load address) when --origin is not supplied; null = no opinion.
+    public virtual int? DefaultOrigin => null;
+
+    // Packages a flat 6502 byte buffer into a target-system image format; default is identity.
+    public virtual byte[] PackageImage(byte[] code, int origin) => code;
 }
