@@ -1,5 +1,6 @@
-// RUN: @cs_compiler @file | @dnrc --emit program | @emulator --target-system bbcmicro
-// CHECK: 3
+// RUN-dotnet: @cs_compiler @file | @dotnet_runner
+// RUN-emulated: @cs_compiler @file | @dnrc --emit program | @emulator --target-system bbcmicro
+// DIFF: dotnet emulated
 MyStructWithStaticFields.A = 1;
 MyStructWithStaticFields.B = 2;
 Console.WriteLine(MyStructWithStaticFields.A + MyStructWithStaticFields.B);

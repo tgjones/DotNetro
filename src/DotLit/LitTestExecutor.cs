@@ -31,6 +31,7 @@ internal static class LitTestExecutor
             }
         }
 
+        var outputsByLabel = new Dictionary<string, string>();
         foreach (var (label, runs) in runsByLabel)
         {
             var labelOutput = "";
@@ -39,9 +40,34 @@ internal static class LitTestExecutor
                 var commandOutput = ExecuteRunCommand(run.CommandLine, run.ExpectFailure);
                 labelOutput += commandOutput;
             }
+            outputsByLabel[label] = labelOutput;
             allRunOutput += labelOutput;
+        }
 
-            if (!checksByLabel.TryGetValue(label, out var checks))
+        foreach (var diff in testFile.Commands.OfType<DiffCommand>())
+        {
+            if (!outputsByLabel.TryGetValue(diff.Label1, out var output1))
+            {
+                errorMessages.Add($"DIFF: no RUN-{diff.Label1}: directive found");
+                successful = false;
+                continue;
+            }
+            if (!outputsByLabel.TryGetValue(diff.Label2, out var output2))
+            {
+                errorMessages.Add($"DIFF: no RUN-{diff.Label2}: directive found");
+                successful = false;
+                continue;
+            }
+            if (NormalizeOutput(output1) != NormalizeOutput(output2))
+            {
+                errorMessages.Add($"DIFF failed: output of '{diff.Label1}' does not match '{diff.Label2}'.\n--- {diff.Label1} ---\n{output1}\n--- {diff.Label2} ---\n{output2}");
+                successful = false;
+            }
+        }
+
+        foreach (var (label, checks) in checksByLabel)
+        {
+            if (!outputsByLabel.TryGetValue(label, out var labelOutput))
                 continue;
 
             var currentCharIndex = 0;
@@ -62,6 +88,9 @@ internal static class LitTestExecutor
         return new LitTestResult(successful, [.. errorMessages], allRunOutput);
     }
 
+    private static string NormalizeOutput(string output) =>
+        output.Replace("\r\n", "\n");
+
     private static string ExecuteRunCommand(string commandLine, bool expectFailure = false)
     {
         using var process = new Process();
@@ -80,16 +109,19 @@ internal static class LitTestExecutor
         process.StartInfo.ArgumentList.Add(shellFlag);
         process.StartInfo.ArgumentList.Add(commandLine);
 
-        var output = "";
+        var outputBuilder = new System.Text.StringBuilder();
+        var outputLock = new object();
 
         process.OutputDataReceived += (sender, e) =>
         {
-            output += e.Data + Environment.NewLine;
+            if (e.Data != null)
+                outputBuilder.Append(e.Data + Environment.NewLine);
         };
 
         process.ErrorDataReceived += (sender, e) =>
         {
-            output += e.Data + Environment.NewLine;
+            if (e.Data != null)
+                outputBuilder.Append(e.Data + Environment.NewLine);
         };
 
         process.Start();
@@ -98,6 +130,8 @@ internal static class LitTestExecutor
         process.BeginErrorReadLine();
 
         process.WaitForExit();
+
+        var output = outputBuilder.ToString();
 
         if (expectFailure)
         {

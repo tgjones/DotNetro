@@ -48,6 +48,13 @@ internal static partial class LitTestParser
                     var label = commandType.Length > 5 ? commandType[6..] : "";
                     commands.Add(new CheckCommand(commandArgs, Label: label));
                 }
+                else if (commandType == "DIFF")
+                {
+                    var parts = commandArgs.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length != 2)
+                        throw new InvalidOperationException($"DIFF directive requires exactly two labels: {commandArgs}");
+                    commands.Add(new DiffCommand(parts[0], parts[1]));
+                }
                 else
                 {
                     throw new InvalidOperationException($"Invalid command {commandType}");

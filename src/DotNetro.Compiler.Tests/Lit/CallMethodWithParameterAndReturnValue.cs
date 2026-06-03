@@ -1,5 +1,6 @@
-// RUN: @cs_compiler @file | @dnrc --emit program | @emulator --target-system bbcmicro
-// CHECK: 45
+// RUN-dotnet: @cs_compiler @file | @dotnet_runner
+// RUN-emulated: @cs_compiler @file | @dnrc --emit program | @emulator --target-system bbcmicro
+// DIFF: dotnet emulated
 Console.WriteLine(MethodWithParameterAndReturnValue(44));
 
 static int MethodWithParameterAndReturnValue(int value)
