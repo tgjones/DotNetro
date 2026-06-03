@@ -2,10 +2,9 @@ using Irie.MachineCode;
 
 namespace Irie.Target.MOS6502;
 
-// Two-pass encoder: pass 1 (here) walks the module assigning absolute
-// addresses to functions, local labels, and instructions; pass 2 (not yet
-// implemented) will use the layout tables below to emit the actual 6502
-// byte stream. See notes/mir-to-binary-plan.md §2.1.
+// Two-pass encoder: pass 1 walks the module assigning absolute addresses to
+// functions, local labels, and instructions; pass 2 uses the layout tables to
+// emit the actual 6502 byte stream. See notes/mir-to-binary-plan.md §2.1.
 public sealed class MOS6502BinaryEncoder
 {
     // Function name → absolute start address. Resolves ExternalRef in pass 2.
@@ -25,8 +24,149 @@ public sealed class MOS6502BinaryEncoder
         _localLabelAddrs = layout.LocalLabelAddrs;
         _layoutEntries = layout.Entries;
 
-        throw new NotImplementedException(
-            "MOS6502BinaryEncoder pass 2 (encode) is not yet implemented — see step 3 of notes/mir-to-binary-plan.md.");
+        // Total length spans from origin to the cursor after the last laid-out
+        // instruction. If the module is empty we emit an empty byte stream.
+        var totalLength = 0;
+        foreach (var entry in _layoutEntries)
+        {
+            var mode = MOS6502InstructionInfo.Instance.Get(entry.Instruction.Opcode).Mode;
+            var end = entry.Addr - origin + InstructionLength(mode);
+            if (end > totalLength) totalLength = end;
+        }
+
+        var bytes = new byte[totalLength];
+
+        foreach (var (addr, parent, instr) in _layoutEntries)
+        {
+            var bytePos = addr - origin;
+            WriteByte(bytes, bytePos, instr.Opcode);
+
+            var mode = MOS6502InstructionInfo.Instance.Get(instr.Opcode).Mode;
+            switch (mode)
+            {
+                case AddressingMode.Implied:
+                    break;
+
+                case AddressingMode.Immediate:
+                case AddressingMode.ZeroPage:
+                case AddressingMode.ZeroPageX:
+                case AddressingMode.ZeroPageY:
+                case AddressingMode.IndirectX:
+                case AddressingMode.IndirectY:
+                    EncodeOneByteOperand(bytes, bytePos, addr, instr, mode);
+                    break;
+
+                case AddressingMode.Relative:
+                    EncodeRelativeOperand(bytes, bytePos, addr, parent, instr);
+                    break;
+
+                case AddressingMode.Absolute:
+                case AddressingMode.AbsoluteX:
+                case AddressingMode.AbsoluteY:
+                case AddressingMode.Indirect:
+                    EncodeTwoByteOperand(bytes, bytePos, addr, parent, instr, mode);
+                    break;
+
+                default:
+                    throw new InvalidOperationException(
+                        $"MOS6502BinaryEncoder: cannot encode addressing mode {mode} for opcode ${instr.Opcode:X2} at ${addr:X4}.");
+            }
+        }
+
+        return bytes;
+    }
+
+    private void EncodeOneByteOperand(byte[] bytes, int bytePos, int addr, MachineCodeInstruction instr, AddressingMode mode)
+    {
+        var operand = instr.Operands[0];
+        switch (operand)
+        {
+            case MachineCodeOperand.Immediate imm:
+                WriteByte(bytes, bytePos + 1, (int)(imm.Value & 0xFF));
+                break;
+
+            case MachineCodeOperand.ExternalRef ext when ext.Half == SymbolHalf.LowByte:
+                WriteByte(bytes, bytePos + 1, ResolveFunctionSymbol(ext.Name, addr) & 0xFF);
+                break;
+
+            case MachineCodeOperand.ExternalRef ext when ext.Half == SymbolHalf.HighByte:
+                WriteByte(bytes, bytePos + 1, (ResolveFunctionSymbol(ext.Name, addr) >> 8) & 0xFF);
+                break;
+
+            default:
+                throw new InvalidOperationException(
+                    $"MOS6502BinaryEncoder: opcode ${instr.Opcode:X2} ({mode}) at ${addr:X4} has unsupported operand kind {operand.GetType().Name}.");
+        }
+    }
+
+    private void EncodeRelativeOperand(byte[] bytes, int bytePos, int addr, MachineCodeFunction parent, MachineCodeInstruction instr)
+    {
+        var operand = instr.Operands[0];
+        if (operand is not MachineCodeOperand.LabelRef labelRef)
+            throw new InvalidOperationException(
+                $"MOS6502BinaryEncoder: relative branch opcode ${instr.Opcode:X2} at ${addr:X4} requires a LabelRef operand but got {operand.GetType().Name}.");
+
+        var targetAddr = ResolveLocalLabel(parent, labelRef.Name, addr);
+        var offset = targetAddr - (addr + 2);
+        if (offset < -128 || offset > 127)
+            throw new InvalidOperationException(
+                $"MOS6502BinaryEncoder: branch out of range for opcode ${instr.Opcode:X2} at ${addr:X4} → '{labelRef.Name}' (offset {offset}).");
+
+        WriteByte(bytes, bytePos + 1, (byte)(sbyte)offset);
+    }
+
+    private void EncodeTwoByteOperand(byte[] bytes, int bytePos, int addr, MachineCodeFunction parent, MachineCodeInstruction instr, AddressingMode mode)
+    {
+        var operand = instr.Operands[0];
+        switch (operand)
+        {
+            case MachineCodeOperand.Immediate imm:
+                WriteLE16(bytes, bytePos + 1, (int)(imm.Value & 0xFFFF));
+                break;
+
+            case MachineCodeOperand.LabelRef labelRef:
+                WriteLE16(bytes, bytePos + 1, ResolveLocalLabel(parent, labelRef.Name, addr));
+                break;
+
+            case MachineCodeOperand.ExternalRef ext when ext.Half == SymbolHalf.Full:
+                WriteLE16(bytes, bytePos + 1, ResolveFunctionSymbol(ext.Name, addr));
+                break;
+
+            case MachineCodeOperand.ExternalRef ext:
+                throw new InvalidOperationException(
+                    $"MOS6502BinaryEncoder: opcode ${instr.Opcode:X2} ({mode}) at ${addr:X4} cannot use SymbolHalf.{ext.Half} — low/high halves only make sense in Immediate mode.");
+
+            default:
+                throw new InvalidOperationException(
+                    $"MOS6502BinaryEncoder: opcode ${instr.Opcode:X2} ({mode}) at ${addr:X4} has unsupported operand kind {operand.GetType().Name}.");
+        }
+    }
+
+    private int ResolveLocalLabel(MachineCodeFunction parent, string name, int referringAddr)
+    {
+        if (!_localLabelAddrs.TryGetValue(parent, out var labelMap) || !labelMap.TryGetValue(name, out var addr))
+            throw new InvalidOperationException(
+                $"MOS6502BinaryEncoder: undefined local label '{name}' referenced from function '{parent.Name}' at ${referringAddr:X4}.");
+        return addr;
+    }
+
+    private int ResolveFunctionSymbol(string name, int referringAddr)
+    {
+        if (!_functionAddrs.TryGetValue(name, out var addr))
+            throw new InvalidOperationException(
+                $"MOS6502BinaryEncoder: undefined symbol '{name}' referenced from instruction at ${referringAddr:X4}.");
+        return addr;
+    }
+
+    private static void WriteByte(byte[] bytes, int pos, int value)
+    {
+        bytes[pos] = (byte)(value & 0xFF);
+    }
+
+    private static void WriteLE16(byte[] bytes, int pos, int value)
+    {
+        bytes[pos]     = (byte)(value & 0xFF);
+        bytes[pos + 1] = (byte)((value >> 8) & 0xFF);
     }
 
     // Runs pass 1 in isolation and returns the resolved layout. Encode() calls
