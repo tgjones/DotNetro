@@ -151,6 +151,13 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         IRType wideType,
         IRType narrowType)
     {
+        if (instr.Opcode.Dialect == ArithDialect.Id
+            && (ArithOp)instr.Opcode.Code == ArithOp.Constant)
+        {
+            LegalizeNarrowConstant(instr, function, builder, wideType, narrowType);
+            return;
+        }
+
         if (instr.Opcode.Dialect != ArithDialect.Id
             || ((ArithOp)instr.Opcode.Code != ArithOp.AddI
                 && (ArithOp)instr.Opcode.Code != ArithOp.SubI))
@@ -207,6 +214,43 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         }
 
         builder.BuildMergeInto(resultVreg, resultParts);
+        builder.Remove(instr);
+    }
+
+    // %v : iN = arith.constant <value>  →  one arith.constant : i8 per byte
+    // (LSB-first) + pseudo.merge of all parts into the original def vreg. The
+    // artifact combiner collapses the merge whenever a downstream
+    // pseudo.unmerge consumes it per-byte.
+    private static void LegalizeNarrowConstant(
+        MirInstruction instr,
+        MirFunction function,
+        MirBuilder builder,
+        IRType wideType,
+        IRType narrowType)
+    {
+        if (instr.Operands.Length != 2
+            || instr.Operands[0] is not VirtualReg defReg || !defReg.IsDefinition
+            || instr.Operands[1] is not Immediate valueImm)
+        {
+            throw new InvalidOperationException(
+                "Legalizer: arith.constant must have shape `%def : iN = arith.constant <imm>`.");
+        }
+
+        var partCount = wideType.SizeInBits / narrowType.SizeInBits;
+        var partWidth = narrowType.SizeInBits;
+        var value = (ulong)valueImm.Value;
+        var mask = partWidth >= 64 ? ulong.MaxValue : ((1UL << partWidth) - 1UL);
+
+        builder.SetInsertionPointBefore(instr);
+
+        var parts = new int[partCount];
+        for (var i = 0; i < partCount; i++)
+        {
+            var byteValue = (long)((value >> (i * partWidth)) & mask);
+            parts[i] = builder.BuildConstant(narrowType, byteValue);
+        }
+
+        builder.BuildMergeInto(defReg.Id, parts);
         builder.Remove(instr);
     }
 

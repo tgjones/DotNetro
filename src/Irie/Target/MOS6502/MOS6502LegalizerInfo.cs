@@ -33,6 +33,7 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
                 ArithOp.CmpI       => LegalityAction.Legal,
                 ArithOp.Constant   when intType.SizeInBits == 1  => LegalityAction.Legal,
                 ArithOp.Constant   when intType.SizeInBits == 8  => LegalityAction.Legal,
+                ArithOp.Constant   when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
                 _ => LegalityAction.Unsupported,
             };
         }
@@ -99,7 +100,9 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
     public override IRType GetNarrowType(OpcodeRef opcode, IRType fromType)
     {
         if (opcode.Dialect == ArithDialect.Id
-            && ((ArithOp)opcode.Code == ArithOp.AddI || (ArithOp)opcode.Code == ArithOp.SubI))
+            && ((ArithOp)opcode.Code == ArithOp.AddI
+                || (ArithOp)opcode.Code == ArithOp.SubI
+                || (ArithOp)opcode.Code == ArithOp.Constant))
             return IRType.I8;
 
         throw new NotSupportedException(

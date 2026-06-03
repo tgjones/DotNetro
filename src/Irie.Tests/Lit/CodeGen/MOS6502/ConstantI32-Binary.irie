@@ -1,0 +1,34 @@
+; RUN: @iriec --target mos6502 --emit=bin --origin=0x1900 @file | @irie-mc --hex-dump
+
+; End-to-end: an i32 constant flows through the full pipeline (legalizer +
+; isel + RA + AMS + pseudo expansion + encoder). The legalizer narrows the
+; wide `arith.constant 42 : i32` into 4 byte-sized constants (42, 0, 0, 0
+; LSB-first) which are loaded into the i32 return ABI registers via
+; immediate loads + zero-page stores, then re-read into the return physregs.
+;
+; Each MIR opcode lowers to one 6502 instruction:
+;
+;   LDA #$2A            ; A9 2A       ; constant byte 0 = 42
+;   STA $02             ; 85 02       ; park in zp2 (RC0)
+;   LDA #$00            ; A9 00       ; constant byte 1 = 0
+;   STA $03             ; 85 03       ; park in zp3 (RC1)
+;   LDA #$00            ; A9 00       ; constant byte 2 = 0
+;   STA $04             ; 85 04
+;   LDA #$00            ; A9 00       ; constant byte 3 = 0
+;   STA $05             ; 85 05
+;   LDA $02             ; A5 02       ; load return byte 0 -> A
+;   LDX $03             ; A6 03       ; load return byte 1 -> X
+;   LDA $04             ; A5 04       ; load byte 2 (via A as scratch)
+;   STA $02             ; 85 02       ; into return zp2
+;   LDA $05             ; A5 05       ; load byte 3 (via A as scratch)
+;   STA $03             ; 85 03       ; into return zp3
+;   RTS                 ; 60
+
+; CHECK: 00000000: A9 2A 85 02 A9 00 85 03  A9 00 85 04 A9 00 85 05
+; CHECK: 00000010: A5 02 A6 03 A5 04 85 02  A5 05 85 03 60
+
+func @TestConstant : () -> i32 {
+bb0():
+    %0 : i32 = arith.constant 42
+    core.return %0
+}
