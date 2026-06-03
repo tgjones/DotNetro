@@ -4,7 +4,7 @@ using Irie.Passes;
 namespace Irie.Target.MOS6502;
 
 // MOS6502 target for the unified-MIR pipeline driven by `iriec`.
-public sealed class MOS6502Target : Irie.Target.Target
+public class MOS6502Target : Irie.Target.Target
 {
     public MOS6502Target()
     {

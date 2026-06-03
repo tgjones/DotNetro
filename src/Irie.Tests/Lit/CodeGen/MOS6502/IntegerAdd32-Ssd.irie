@@ -1,0 +1,24 @@
+; RUN: @iriec --target mos6502-bbcmicro --emit=bin @file | @irie-mc --hex-dump
+
+; End-to-end BBC Micro DFS image verification: the same IntegerAdd32 input
+; as IntegerAdd32-Binary.irie, packaged as a single-file .ssd disk image.
+; Asserts the catalogue header (title, file name, load/exec/length/start
+; sector) and the code body at sector 2.
+
+; --- Sector 0: disk title chars 0-7 then file entry (7-char name + dir char) ---
+;                  D  o  t  N  e  t  r  o   M  A  I  N  _  _  _  $
+; CHECK: 00000000: 44 6F 74 4E 65 74 72 6F  4D 41 49 4E 20 20 20 24
+
+; --- Sector 1: catalogue header + file metadata ---
+; Byte layout at 0x100: title-cont(4), cycle, n*8=08, boot/sec-hi, total-sec-lo,
+;   then file entry: load-lo load-hi exec-lo exec-hi len-lo len-hi packed-hi start-sec
+; CHECK: 00000100: .. .. .. .. .. 08 .. ..  00 20 00 20 23 00 00 02
+
+; --- Sector 2: code begins (matches IntegerAdd32-Binary.irie) ---
+; CHECK: 00000200: 18 65 04 85 04 8A 65 05  85 05 A5 02 A5 06 85 02
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i32 = arith.addi %0, %1
+    core.return %2
+}

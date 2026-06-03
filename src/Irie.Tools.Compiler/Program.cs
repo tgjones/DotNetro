@@ -51,7 +51,8 @@ rootCommand.SetAction(parseResult =>
 
     Target target = targetName switch
     {
-        "mos6502" => new MOS6502Target(),
+        "mos6502"          => new MOS6502Target(),
+        "mos6502-bbcmicro" => new MOS6502BbcMicroTarget(),
         _ => throw new ArgumentException($"Unknown --target '{targetName}'."),
     };
 
