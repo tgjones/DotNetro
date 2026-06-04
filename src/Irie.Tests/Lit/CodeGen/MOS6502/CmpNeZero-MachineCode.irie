@@ -1,0 +1,68 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Step 16 (plan §6 G5): brtrue lowers to `arith.cmpi <ne>, %x, <0>` + cf.cond_br.
+; Verify the ne-against-constant-0 path end-to-end at i8, i16, and i32. Mirror
+; of CmpEqZero-MachineCode.irie but with the true/false targets swapped: any
+; BNE early-exits to the true block, and full equality falls through to false.
+; This is the regression guard for the frontend's `brtrue`.
+
+; --- i8: single CMP, BNE to the true block, fallthrough JMP to false. ---
+; CHECK: CmpNeZeroI8:
+; CHECK:     LDA #\$00
+; CHECK:     STA \$02
+; CHECK:     CMP \$02
+; CHECK:     BNE \.bb1
+; CHECK:     JMP \.bb2
+
+; --- i16: high byte first; any BNE exits to true; full equality → false. ---
+; CHECK: CmpNeZeroI16:
+; CHECK:     CMP \$03
+; CHECK:     BNE \.bb1
+; CHECK:     CMP \$02
+; CHECK:     BNE \.bb1
+; CHECK:     JMP \.bb2
+
+; --- i32: four-byte chain, same shape. ---
+; CHECK: CmpNeZeroI32:
+; CHECK:     CMP \$07
+; CHECK:     BNE \.bb1
+; CHECK:     CMP \$06
+; CHECK:     BNE \.bb1
+; CHECK:     CMP \$05
+; CHECK:     BNE \.bb1
+; CHECK:     CMP \$04
+; CHECK:     BNE \.bb1
+; CHECK:     JMP \.bb2
+
+func @CmpNeZeroI8 : (i8) -> void {
+bb0(%0 : i8):
+    %1 : i8 = arith.constant 0
+    %2 : i1 = arith.cmpi ne, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    core.return
+bb2():
+    core.return
+}
+
+func @CmpNeZeroI16 : (i16) -> void {
+bb0(%0 : i16):
+    %1 : i16 = arith.constant 0
+    %2 : i1 = arith.cmpi ne, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    core.return
+bb2():
+    core.return
+}
+
+func @CmpNeZeroI32 : (i32) -> void {
+bb0(%0 : i32):
+    %1 : i32 = arith.constant 0
+    %2 : i1 = arith.cmpi ne, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    core.return
+bb2():
+    core.return
+}

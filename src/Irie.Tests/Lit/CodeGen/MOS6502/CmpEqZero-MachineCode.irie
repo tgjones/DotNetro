@@ -1,0 +1,68 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Step 16 (plan §6 G5): brfalse lowers to `arith.cmpi <eq>, %x, <0>` + cf.cond_br.
+; Verify the eq-against-constant-0 path end-to-end at i8, i16, and i32. The
+; constant 0 operand materializes as LDA #$00 + STA into a zero-page byte (one
+; per operand byte); the cmpi+cond_br fusion then emits the per-byte CMP / BEQ /
+; BNE chain. This is the regression guard for the frontend's `brfalse`.
+
+; --- i8: single CMP, BEQ to the true block, fallthrough JMP to false. ---
+; CHECK: CmpEqZeroI8:
+; CHECK:     LDA #\$00
+; CHECK:     STA \$02
+; CHECK:     CMP \$02
+; CHECK:     BEQ \.bb1
+; CHECK:     JMP \.bb2
+
+; --- i16: high byte first; any BNE exits to false; full equality → true. ---
+; CHECK: CmpEqZeroI16:
+; CHECK:     CMP \$03
+; CHECK:     BNE \.bb2
+; CHECK:     CMP \$02
+; CHECK:     BNE \.bb2
+; CHECK:     JMP \.bb1
+
+; --- i32: four-byte chain, same shape. ---
+; CHECK: CmpEqZeroI32:
+; CHECK:     CMP \$07
+; CHECK:     BNE \.bb2
+; CHECK:     CMP \$06
+; CHECK:     BNE \.bb2
+; CHECK:     CMP \$05
+; CHECK:     BNE \.bb2
+; CHECK:     CMP \$04
+; CHECK:     BNE \.bb2
+; CHECK:     JMP \.bb1
+
+func @CmpEqZeroI8 : (i8) -> void {
+bb0(%0 : i8):
+    %1 : i8 = arith.constant 0
+    %2 : i1 = arith.cmpi eq, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    core.return
+bb2():
+    core.return
+}
+
+func @CmpEqZeroI16 : (i16) -> void {
+bb0(%0 : i16):
+    %1 : i16 = arith.constant 0
+    %2 : i1 = arith.cmpi eq, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    core.return
+bb2():
+    core.return
+}
+
+func @CmpEqZeroI32 : (i32) -> void {
+bb0(%0 : i32):
+    %1 : i32 = arith.constant 0
+    %2 : i1 = arith.cmpi eq, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    core.return
+bb2():
+    core.return
+}
