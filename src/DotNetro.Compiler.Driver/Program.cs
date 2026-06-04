@@ -4,11 +4,13 @@ using DotNetro.Compiler;
 var assemblyOption = new Option<string?>("--assembly") { Description = "Path to the assembly to compile, or - for stdin" };
 var outputOption = new Option<FileInfo?>("--output") { Description = "Path to the output file, or - for stdout" };
 var emitOption = new Option<EmitFormat?>("--emit") { Description = "The format to emit (Assembly, Program, or Executable)", DefaultValueFactory = x => EmitFormat.Executable };
+var mirOption = new Option<bool>("--mir") { Description = "Use the experimental IL→MIR pipeline (Irie) instead of the legacy 6502 code generator" };
 
 var rootCommand = new RootCommand();
 rootCommand.Options.Add(assemblyOption);
 rootCommand.Options.Add(outputOption);
 rootCommand.Options.Add(emitOption);
+rootCommand.Options.Add(mirOption);
 
 rootCommand.SetAction(parseResult =>
 {
@@ -28,9 +30,12 @@ rootCommand.SetAction(parseResult =>
         createdTempAssembly = true;
     }
 
+    var useMir = parseResult.GetValue(mirOption);
+
     var compilationResult = CompilerDriver.Compile(
         Path.GetFullPath(assembly),
-        "Main");
+        "Main",
+        useMir);
 
     var outputStream = (output == null || output.FullName == "-")
         ? Console.OpenStandardOutput()

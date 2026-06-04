@@ -1,4 +1,8 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
+
+using Irie.Mir;
+using Irie.Passes;
+using Irie.Target.MOS6502;
 
 using Sixty502DotNet.Shared;
 
@@ -6,13 +10,61 @@ namespace DotNetro.Compiler;
 
 public static class CompilerDriver
 {
-    public static CompilationResult Compile(string dotNetAssemblyPath, string entryPointMethodName)
+    public static CompilationResult Compile(string dotNetAssemblyPath, string entryPointMethodName, bool useMir = false)
     {
+        if (useMir)
+        {
+            return CompileViaMir(dotNetAssemblyPath, entryPointMethodName);
+        }
+
         var assemblyCode = DotNetCompiler.Compile(dotNetAssemblyPath, entryPointMethodName, null);
 
         var assemblerOutput = Assemble(assemblyCode);
 
         return new CompilationResult(assemblyCode, assemblerOutput.Listing, assemblerOutput.CompiledProgram, assemblerOutput.CompiledImage);
+    }
+
+    // New IL→MIR pipeline: translate the IL to an Irie MirModule, run it through
+    // the MOS6502 BBC Micro pass pipeline, and produce program (raw) + image
+    // (.ssd) bytes. Mirrors Irie.Tools.Compiler's Program.cs.
+    private static CompilationResult CompileViaMir(string dotNetAssemblyPath, string entryPointMethodName)
+    {
+        var target = new MOS6502BbcMicroTarget();
+
+        MirModule module;
+        using (var translator = new IlToMirTranslator(dotNetAssemblyPath, target.GetRuntime()))
+        {
+            module = translator.Translate(entryPointMethodName);
+        }
+
+        var context = new CompilationContext(module);
+
+        var passMgr = new PassManager(null, null);
+        passMgr.AddPass(new FrameLoweringPass());
+        passMgr.AddPass(new AbiLoweringPass(target.CallLowering));
+        passMgr.AddPass(new LegalizerPass(target.LegalizerInfo));
+        passMgr.AddPass(new InstructionSelectorPass(target.InstructionSelector));
+        passMgr.AddPass(new PhiEliminationPass());
+        passMgr.AddPass(new TwoAddressInstructionPass());
+        passMgr.AddPass(new RegisterAllocatorPass(target.RegisterInfo));
+        passMgr.AddPass(new CopyEliminationPass());
+        target.AddPostRegisterAllocationPasses(passMgr);
+        passMgr.AddPass(new PseudoExpansionPass(target.PseudoExpander));
+        passMgr.Run(context);
+
+        var origin = target.DefaultOrigin!.Value;
+        var machineCode = target.MachineCodeEmitter.Emit(module);
+        var program = new MOS6502BinaryEncoder().Encode(machineCode, origin);
+        var image = target.PackageImage(program, origin);
+
+        // The MIR pipeline does not produce a Sixty502 listing / assembly text;
+        // those fields stay empty (the --emit assembly path is not supported
+        // through --mir).
+        return new CompilationResult(
+            string.Empty,
+            string.Empty,
+            new ReadOnlyCollection<byte>(program),
+            new ReadOnlyCollection<byte>(image));
     }
 
     private static AssemblerResult Assemble(string assemblyCode)
