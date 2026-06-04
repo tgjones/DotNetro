@@ -86,9 +86,13 @@ public sealed class RegisterAllocatorTests
     //   %0:ac = pseudo.copy $a    ; slot 0 → %0 range [0, 1]
     //   %1:ac = arith.addi %0, %0 ; slot 1 → %0 used (end=1), %1 defined (start=1)
     //
-    // When allocating %1 (start=1): %0 has end=1 ≤ 1, so $a is freed and
-    // %1 falls back to $a (only allocatable in `ac`). With < instead of ≤
-    // the pass would throw — no other physreg is available in `ac`.
+    // %0 is widened to `any8` by the livein widening (its def is a livein-form
+    // pseudo.copy in the entry block) and lands in $a via its copy hint. %1
+    // stays in `ac` because it is touched by the non-copy `arith.addi`, so the
+    // copy-only widening leaves it alone — exercising the single-physreg
+    // expiry path. When allocating %1 (start=1): %0 has end=1 ≤ 1, so $a is
+    // freed and %1 falls back to $a (the only allocatable in `ac`). With <
+    // instead of ≤ the pass would throw — no other physreg is available.
     [Test]
     public async Task ExpiryAtSameSlot_FreesPhysregForNextInterval()
     {

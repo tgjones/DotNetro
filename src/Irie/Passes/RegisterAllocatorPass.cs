@@ -42,7 +42,10 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
     {
         var flexibleI8 = registerInfo.FlexibleI8ClassId;
         if (flexibleI8 != 0)
+        {
             WidenLiveinsToFlexibleClass(function, flexibleI8);
+            WidenUnconstrainedToFlexibleClass(function, flexibleI8);
+        }
 
         InsertConstraintFixupCopies(function);
         InsertResultPreservationCopies(function, flexibleI8);
@@ -81,6 +84,69 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
             function.ReclassifyVirtualRegister(def.Id, flexibleI8, flexibleName);
         }
     }
+
+    // Step 1b — widen every vreg whose class is a single-physreg-class subset
+    // of the flexible 8-bit class but which is touched *only* by pseudo.copy
+    // instructions. Such a vreg has no hard physreg requirement of its own:
+    // every real (target-dialect) operand that constrains a value to a
+    // specific physreg reaches it through a pseudo.copy, so the value itself
+    // is free to live anywhere 8-bit.
+    //
+    // ISel reclassifies the *source* of an `arith.addi_with_carry` to `Ac`
+    // (because that source becomes the ADC's tied use after two-address
+    // expansion). For a constant-defined or call-crossing addend byte, the
+    // value itself is only ever read through a `pseudo.copy` into the actual
+    // ADC accumulator vreg — it has no hard `Ac` requirement of its own. Left
+    // in `Ac`, four such bytes pile onto the single `$a` and RA runs dry.
+    // Widening them to `any8` parks them in the abundant RC* pool, mirroring
+    // exactly what live-in addend bytes already get from step 1.
+    //
+    // The copy-only test is deliberately conservative: a vreg that appears as
+    // an operand of any non-copy instruction (e.g. the per-link `mos6502.adc`
+    // accumulator, or a value the selector deliberately materialised in `$a`
+    // via `mos6502.lda.imm.symlo`) keeps its selected class, because target
+    // ops carry implicit physreg constraints that are not all declared in
+    // their DialectInstructionInfo. Only Ac/Xc — single-physreg classes wholly
+    // contained in the flexible class — are widened; Imag8 (zp) is left alone.
+    private void WidenUnconstrainedToFlexibleClass(MirFunction function, int flexibleI8)
+    {
+        var flexibleRegs = registerInfo.GetAllocatableRegisters(flexibleI8);
+
+        // A vreg is "copy-only" until proven otherwise: any appearance as an
+        // operand of a non-pseudo.copy instruction disqualifies it.
+        var touchedByNonCopy = new HashSet<int>();
+        foreach (var block in function.Blocks)
+        {
+            foreach (var instr in block.Instructions)
+            {
+                if (IsCopy(instr)) continue;
+                foreach (var op in instr.Operands)
+                    if (op is VirtualReg v)
+                        touchedByNonCopy.Add(v.Id);
+            }
+        }
+
+        var flexibleName = ClassNameOrFallback(flexibleI8);
+        foreach (var vreg in function.VirtualRegisterIds.ToList())
+        {
+            if (touchedByNonCopy.Contains(vreg)) continue;
+            if (!function.TryGetVRegAnnotation(vreg, out var annotation)
+                || annotation is not ClassedVReg classed) continue;
+            if (classed.ClassId == flexibleI8) continue;
+
+            // Only widen classes whose physregs are wholly contained in the
+            // flexible class, and that are strictly narrower (a single physreg).
+            var narrow = registerInfo.GetAllocatableRegisters(classed.ClassId);
+            if (narrow.Length != 1) continue;
+            if (!Contains(flexibleRegs, narrow[0])) continue;
+
+            function.ReclassifyVirtualRegister(vreg, flexibleI8, flexibleName);
+        }
+    }
+
+    private static bool IsCopy(MirInstruction instr) =>
+        instr.Opcode.Dialect == PseudoDialect.Id
+        && (PseudoOp)instr.Opcode.Code == PseudoOp.Copy;
 
     // Step 2 — for every operand whose dialect-declared class does not match
     // the operand's vreg class, insert a pseudo.copy into a fresh vreg in the

@@ -13,15 +13,19 @@
 ; the first JSR. The RA picks RC16 (first non-clobbered RC), so the lowering
 ; is:
 ;   STA $10  — preserve %0 to RC16 (address $10) before consumption
-;   LDA $10  — reload %0 into $a as the arg for the first JSR
-;   JSR      — call 1 (clobbers $a, but %0 lives in $10)
+;   JSR      — call 1 (the arg is already in $a, untouched by the STA;
+;              clobbers $a, but %0 lives in $10)
 ;   LDA $10  — reload %0 into $a as the arg for the second JSR
 ;   JSR      — call 2 (clobbers $a again, but %0 isn't used after)
 ;   RTS
+;
+; The save/restore run `$zp16 = $a ; $a = $zp16` that the RA emits before the
+; first JSR collapses: MOS6502ParallelCopyPass resolves it to the net parallel
+; copy {$zp16 <- $a} ($a keeps its entry value), so the redundant reload before
+; the first call is dropped — $a already holds the argument.
 
 ; CHECK: TestCrossCall:
 ; CHECK:     STA \$10
-; CHECK:     LDA \$10
 ; CHECK:     JSR Callee
 ; CHECK:     LDA \$10
 ; CHECK:     JSR Callee

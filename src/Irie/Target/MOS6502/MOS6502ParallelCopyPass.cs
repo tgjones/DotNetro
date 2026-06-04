@@ -71,31 +71,30 @@ public sealed class MOS6502ParallelCopyPass : MirFunctionPass
 
                 if (copies.Count <= 1) continue; // nothing to reorder
 
-                // Only reschedule runs we can prove are an *acyclic* parallel
-                // copy: unique destinations, and no source that equals an earlier
-                // destination. Under those two conditions parallel-copy semantics
-                // and the emitted sequential order coincide, so reordering to dodge
-                // the $a-scratch hazard is guaranteed to preserve meaning.
-                //
-                // A source equal to an earlier destination is deliberately left
-                // alone: such a run is *either* a permutation cycle (swap) *or* a
-                // sequential save/restore idiom (e.g. `$zpN = copy $a ; $a = copy
-                // $zpN`, RA spilling $a around a clobbering call), and the two are
-                // syntactically indistinguishable. Treating a save/restore as a
-                // parallel swap would corrupt $a, so we never reorder either. The
-                // reported call-argument clobber (multi-byte values placed into
-                // distinct CC registers) is always acyclic, so this covers it.
-                if (!IsAcyclicParallelCopy(copies)) continue;
-
                 // If the emitted order already executes correctly under the 6502
                 // $a-scratch hazard, leave it untouched — no need to reschedule
                 // (avoids pessimizing the many already-correct copy runs RA emits).
                 if (NaturalOrderIsSafe(copies)) continue;
 
+                // A post-RA contiguous copy run is a *sequential* copy list: each
+                // copy reads the current register state, so a source that equals an
+                // earlier destination is an ordinary forward data dependence, not a
+                // permutation cycle. (PhiElimination has already broken any real
+                // value cycle with a temp; a contiguous `$zpN<-$a ; $a<-$zpN` save/
+                // restore pair without an intervening clobber is simply a no-op on
+                // $a.) Resolve the run's net effect into a parallel copy
+                // {dst <- originalSource} by symbolically simulating it, then let the
+                // classic parallel-copy scheduler reschedule that — correctly
+                // dodging the $a-scratch hazard while preserving every register's
+                // final value. Chains collapse, genuine value cycles (if any survive)
+                // are broken by Schedule's scratch-temp path.
+                var parallel = ResolveToParallelCopy(copies);
+                if (parallel.Count == 0) continue; // run was a net no-op
+
                 // Physregs live just after the run — temps must avoid these so a
                 // cycle-break / $a-save never clobbers a value still needed.
                 var liveOut = LiveOutAfterRun(block, runEnd: i);
-                var scheduled = Schedule(copies, liveOut);
+                var scheduled = Schedule(parallel, liveOut);
 
                 // Replace the run in-place with the scheduled copies.
                 block.Instructions.RemoveRange(runStart, copies.Count);
@@ -205,21 +204,43 @@ public sealed class MOS6502ParallelCopyPass : MirFunctionPass
         return live;
     }
 
-    // True if the run is an acyclic parallel copy: every (non-identity) copy
-    // writes a distinct destination, and no copy reads a register written by an
-    // earlier copy. Under these conditions the emitted sequential order and the
-    // parallel-copy interpretation agree on every register's final value, so the
-    // run may be safely reordered to avoid the $a-scratch hazard.
-    private static bool IsAcyclicParallelCopy(List<(int dst, int src)> copies)
+    // Reduces a *sequential* copy run to the equivalent *parallel* copy
+    // {dst <- originalSource} that produces the same final register state.
+    //
+    // We symbolically simulate the run: every register starts holding its own
+    // entry symbol, and each copy `dst <- src` sets dst's symbol to src's
+    // current symbol. The resulting map (dst → the *entry* register whose value
+    // dst ends up holding) is a parallel copy reading only entry values, so it
+    // can be freely rescheduled by the classic sequentializer.
+    //
+    // Chains collapse automatically (`zp5<-a ; zp3<-zp5` ⇒ zp3 ends holding a's
+    // entry value, so the parallel copy is `zp3 <- a`). Identity results (a
+    // register that ends holding its own entry value — e.g. a contiguous
+    // save/restore of $a) are dropped. Registers written then overwritten
+    // contribute only their final mapping.
+    private static List<(int dst, int src)> ResolveToParallelCopy(List<(int dst, int src)> copies)
     {
-        var writtenDsts = new HashSet<int>();
+        // current[r] = entry register whose value r currently holds.
+        var current = new Dictionary<int, int>();
+        int SymOf(int r) => current.TryGetValue(r, out var s) ? s : r;
+
+        // Preserve first-write order of destinations for stable output.
+        var dstOrder = new List<int>();
+        var seen = new HashSet<int>();
+
         foreach (var (dst, src) in copies)
         {
-            if (dst == src) continue;
-            if (writtenDsts.Contains(src)) return false; // source already overwritten — cycle / chain
-            if (!writtenDsts.Add(dst)) return false;     // duplicate destination
+            current[dst] = SymOf(src);
+            if (seen.Add(dst)) dstOrder.Add(dst);
         }
-        return true;
+
+        var result = new List<(int dst, int src)>();
+        foreach (var dst in dstOrder)
+        {
+            var src = current[dst];
+            if (src != dst) result.Add((dst, src));
+        }
+        return result;
     }
 
     private static bool IsPhysRegCopy(MirInstruction instr, out int dst, out int src)
@@ -267,8 +288,15 @@ public sealed class MOS6502ParallelCopyPass : MirFunctionPass
 
         var working = copies.Where(c => c.dst != c.src).ToList(); // drop identities
 
-        // A1: evacuate $a if it is read.
-        if (working.Any(c => c.src == a))
+        // A1: evacuate $a only when its entry value is *both* read and at risk of
+        // being disturbed before those reads complete. $a's value is at risk when
+        // some copy writes $a (dst == $a) or trashes it as a hidden scratch
+        // (zp→zp / $x↔$y). If $a is merely read and never disturbed (e.g. a
+        // collapsed save/restore where $a keeps its entry value), the reads can
+        // stay direct — saving would only emit a pointless STA/LDA round-trip.
+        var aReadByCopy = working.Any(c => c.src == a);
+        var aValueAtRisk = working.Any(c => c.dst == a || ClobbersAccumulator(c.dst, c.src));
+        if (aReadByCopy && aValueAtRisk)
         {
             var savedA = scratch.Next();
             result.Add((savedA, a));   // STA $savedA — does not clobber $a.

@@ -1,0 +1,56 @@
+; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file
+
+; Register-pressure regression: an i32 add whose addends are *constants*
+; (not entry-block live-ins) and whose result is returned.
+;
+; ISel reclassifies each addend byte to the scarce `ac` class (it becomes the
+; source of an `arith.addi_with_carry` → `mos6502.adc` tied use). Those byte
+; values are only ever read through a `pseudo.copy` into the real per-link ADC
+; accumulator, so they carry no hard `$a` requirement of their own. Without
+; widening, four such bytes pile onto the single `$a` and the allocator throws
+; "no free physical register in class ac".
+;
+; RegisterAllocatorPass.WidenUnconstrainedToFlexibleClass widens every vreg
+; that is touched only by `pseudo.copy` from its single-physreg class to the
+; flexible `any8` class, parking the constant addend bytes in the abundant RC*
+; (zero-page) pool — mirroring what entry-block live-in addend bytes already
+; get. After this pass every operand is a physreg and the four constant bytes
+; live in $zp2..$zp9 with $a reused per chained ADC.
+
+; CHECK: func @F : \(\) -> i32 \{
+; CHECK:   bb0\(\):
+; CHECK:     \$zp2 = pseudo.copy 1
+; CHECK:     \$zp3 = pseudo.copy 0
+; CHECK:     \$zp4 = pseudo.copy 0
+; CHECK:     \$zp5 = pseudo.copy 0
+; CHECK:     \$zp6 = pseudo.copy 1
+; CHECK:     \$zp7 = pseudo.copy 0
+; CHECK:     \$zp8 = pseudo.copy 0
+; CHECK:     \$zp9 = pseudo.copy 0
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$zp2
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp6, \$c
+; CHECK:     \$zp2 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp3
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp7, \$c
+; CHECK:     \$zp3 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp4
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp8, \$c
+; CHECK:     \$zp4 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp5
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp9, \$c
+; CHECK:     \$zp5 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp2
+; CHECK:     \$x = pseudo.copy \$zp3
+; CHECK:     \$zp2 = pseudo.copy \$zp4
+; CHECK:     \$zp3 = pseudo.copy \$zp5
+; CHECK:     mos6502.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
+; CHECK: \}
+
+func @F : () -> i32 {
+bb0():
+    %0 : i32 = arith.constant 1
+    %1 : i32 = arith.constant 1
+    %2 : i32 = arith.addi %0, %1
+    core.return %2
+}
