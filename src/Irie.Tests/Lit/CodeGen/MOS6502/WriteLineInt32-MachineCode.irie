@@ -1,74 +1,36 @@
-; MOS6502 runtime — hand-written MIR loaded as an embedded resource by
-; MOS6502Target.GetRuntime(). Functions here are appended to the MirModule
-; produced by IL→MIR translation so the resulting program links.
+; RUN: @iriec --target mos6502 --emit=asm @file
 
-; Indirect-call trampoline. MOS6502CallLowering.LowerIndirectCall parks the
-; target address in RC30/RC31 (zero-page bytes $1E/$1F) and emits
-; `jsr.abs @__call_indirect_trampoline`. The trampoline then dispatches via
-; `JMP ($1E)`, which reads the 16-bit target from $001E/$001F.
-func @__call_indirect_trampoline : () -> void {
-bb0():
-    mos6502.jmp.ind 30
-}
-
-; ---------------------------------------------------------------------------
-; BBC Micro OS-call wrappers.
+; @WriteLineInt32 from runtime.irie: prints a signed 32-bit integer in decimal
+; followed by CR. Hand-written, fully-lowered MOS6502 MIR (the generic i32
+; magnitude loop overruns the spill-free register allocator). Ported from
+; BbcMicroCodeGenerator.CompileSystemConsoleWriteLineInt32. The i32 argument
+; arrives LSB-first in $a, $x, $zp2, $zp3 per CC_MOS. Plan §6 step 6.
 ;
-; These are inherently target-specific: they JSR a fixed ROM vector. There is
-; no generic "call ROM address" op, so the bodies are written directly in
-; mos6502 MIR (jsr.abs to a numeric absolute address + rts). The char/args
-; arrive in $a/$x/$y per CC_MOS; AbiLowering records them as block live-ins
-; and, because nothing between the live-in and the JSR clobbers those
-; registers, they are preserved into the ROM call unchanged.
+; We spot-check the structural landmarks: the value bytes copied into working
+; zero-page, the sign test, the '-' + two's-complement negate path, and the
+; CR (#$0D) / osasci tail that terminates the line.
 
-; @oswrch — write the char in the first i8 arg ($a) to output. JSR $FFEE.
-func @oswrch : (i8) -> void {
-bb0(%0 : i8):
-    mos6502.jsr.abs 65518
-    mos6502.rts
-}
+; CHECK: WriteLineInt32:
+; CHECK:     STA \$04
+; CHECK:     STX \$05
+; CHECK:     LDA \$07
+; CHECK:     CMP #\$00
+; CHECK:     BPL \.bb2
+; CHECK:     LDA #\$2D
+; CHECK:     JSR osasci
+; CHECK:     CLC
+; CHECK:     EOR #\$FF
+; CHECK:     ADC #\$01
+; CHECK:     LDA #\$0D
+; CHECK:     JSR osasci
+; CHECK:     RTS
 
-; @osasci — like @oswrch but expands CR to CR/LF. JSR $FFE3.
 func @osasci : (i8) -> void {
 bb0(%0 : i8):
     mos6502.jsr.abs 65507
     mos6502.rts
 }
 
-; @osword — OS call dispatcher. JSR $FFF1. Callers set up A (call number),
-; X (control-block low byte) and Y (control-block high byte) before calling;
-; CC_MOS only assigns A/X here, so the Y argument is the caller's concern.
-func @osword : (i8) -> void {
-bb0(%0 : i8):
-    mos6502.jsr.abs 65521
-    mos6502.rts
-}
-
-; ---------------------------------------------------------------------------
-; @WriteLineInt32 : (i32) -> void
-;
-; Prints a signed 32-bit integer in decimal followed by CR (which osasci
-; expands to CR/LF). Ported from
-; DotNetro.Compiler.CodeGen.BbcMicroCodeGenerator.CompileSystemConsoleWriteLineInt32.
-;
-; WHY TARGET MIR (not generic dialects): the magnitude loop needs an i32 value
-; that is simultaneously loaded from / stored to memory AND run through a
-; multi-byte subtract inside a loop. Expressed generically, that overruns the
-; (spill-free) linear-scan register allocator — four live accumulator bytes
-; exceed the single $a register, and a loop-carried i32 can't be threaded as a
-; wide block argument either. So this is hand-written, fully-lowered MOS6502
-; MIR; the pipeline passes it through unchanged (isel passes mos6502.* ops
-; through; AMS only refines pre-AMS forms; pseudo-expansion sees no copies).
-;
-; Algorithm (no division): keep the working value in zero-page slots zp4..zp7
-; (lo..hi). If the MSB's sign bit is set, print '-' and two's-complement
-; negate. Then, for each power of ten 1e9 down to 1 (unrolled, the constant
-; loaded into zp9..zp12), repeatedly subtract the power while the value is
-; >= it (32-bit SEC/SBC, BCS to keep + INX the digit counter, else ADC the
-; power back). The pad flag (zp8) suppresses leading zeros; the
-; printed-something flag (zp13) forces a final '0' when the value was zero.
-;
-; The i32 argument arrives LSB-first in $a, $x, $zp2, $zp3 per CC_MOS.
 func @WriteLineInt32 : (i32) -> void {
 bb0(%0 : i32):
     ; Copy the incoming value bytes into working zero-page slots zp4..zp7.
@@ -802,41 +764,5 @@ bb83():
 bb84():
     $0 = mos6502.lda.imm 13
     mos6502.jsr.abs @osasci, implicit $0
-    mos6502.rts
-}
-
-; ---------------------------------------------------------------------------
-; @WriteLineString : (i16) -> void
-;
-; The i16 argument is a pointer to a NUL-terminated string. Loops byte-by-byte
-; printing each character with osasci (so a CR in the string expands to CR/LF),
-; stopping at the terminator. Matches
-; DotNetro.Compiler.CodeGen.BbcMicroCodeGenerator.CompileSystemConsoleWriteLineString.
-;
-; WHY TARGET MIR (not generic dialects): the byte load dereferences a *runtime*
-; pointer, and the instruction selector currently only lowers mem.load.i8 when
-; the address is a `mem.symbol @name` (it throws "Non-symbolic i16 addresses
-; (frame slots, heap pointers) land later" otherwise). So the load is written
-; as a hand-rolled indirect-Y load through a zero-page pointer pair. The rest
-; (compare-to-zero, osasci call, INY) is trivially expressible but kept in
-; target MIR to stay in one block stream with the load.
-;
-; The i16 pointer arrives in $a (low byte) and $x (high byte) per CC_MOS; it is
-; parked in the zero-page pointer pair zp0/zp1, then dereferenced via LDA (zp),Y
-; with Y walking the string. INY/jmp loops until the NUL terminator is hit.
-func @WriteLineString : (i16) -> void {
-bb0(%0 : i16):
-    $12 = mos6502.sta.zp $0
-    $13 = mos6502.stx.zp $1
-    $2 = mos6502.ldy.imm 0
-    mos6502.jmp.abs bb1
-bb1():
-    $0 = mos6502.lda.indy $12, implicit $13, implicit $2
-    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
-    mos6502.beq bb2, implicit $8
-    mos6502.jsr.abs @osasci, implicit $0
-    mos6502.iny
-    mos6502.jmp.abs bb1
-bb2():
     mos6502.rts
 }

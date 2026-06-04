@@ -1,0 +1,37 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; The BBC Micro OS-call wrappers from runtime.irie. Each is inherently
+; target-specific (there is no generic "call ROM address" op), so the body is
+; a hand-written `mos6502.jsr.abs` to a fixed ROM vector + `mos6502.rts`. The
+; char/args arrive in $a/$x/$y per CC_MOS and are preserved into the JSR
+; because nothing between the live-in and the JSR clobbers them. Plan §6 step 6.
+
+; CHECK: oswrch:
+; CHECK:     JSR \$FFEE
+; CHECK:     RTS
+
+; CHECK: osasci:
+; CHECK:     JSR \$FFE3
+; CHECK:     RTS
+
+; CHECK: osword:
+; CHECK:     JSR \$FFF1
+; CHECK:     RTS
+
+func @oswrch : (i8) -> void {
+bb0(%0 : i8):
+    mos6502.jsr.abs 65518
+    mos6502.rts
+}
+
+func @osasci : (i8) -> void {
+bb0(%0 : i8):
+    mos6502.jsr.abs 65507
+    mos6502.rts
+}
+
+func @osword : (i8) -> void {
+bb0(%0 : i8):
+    mos6502.jsr.abs 65521
+    mos6502.rts
+}

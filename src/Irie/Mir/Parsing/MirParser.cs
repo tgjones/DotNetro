@@ -403,6 +403,12 @@ internal sealed class MirParser
 
     private static bool IsUseOperandStart(TokenReader tokens, HashSet<int> headerPositions) => tokens.Current.Kind switch
     {
+        // A PhysRegRef that begins the *next* instruction's def list — `$a = …`
+        // or `$a, $c = …` — must terminate this instruction's use loop rather
+        // than be swallowed as a use operand. Without this guard, a zero-use
+        // instruction (e.g. `$c = mos6502.sec`, `mos6502.inx`) followed by a
+        // physreg-def line mis-parses, because the use loop is newline-blind.
+        MirTokenKind.PhysRegRef when StartsPhysRegDef(tokens) => false,
         MirTokenKind.PhysRegRef => true,
         MirTokenKind.Integer    => true,
         MirTokenKind.At         => true,
@@ -418,6 +424,28 @@ internal sealed class MirParser
         MirTokenKind.Identifier when tokens.Peek.Kind != MirTokenKind.Dot => true,
         _ => false,
     };
+
+    // True when the token stream at the current position is the start of a
+    // physreg def list — a run of `$reg` separated by commas, terminated by `=`
+    // (e.g. `$a =` or `$a, $c =`). Mirrors the def-parsing logic in
+    // ParseInstruction so the use-operand loop can stop at an instruction
+    // boundary the (newline-insensitive) lexer doesn't otherwise mark.
+    private static bool StartsPhysRegDef(TokenReader tokens)
+    {
+        var offset = 0;
+        while (tokens.PeekAt(offset).Kind == MirTokenKind.PhysRegRef)
+        {
+            if (tokens.PeekAt(offset + 1).Kind == MirTokenKind.Equals)
+                return true;
+            if (tokens.PeekAt(offset + 1).Kind == MirTokenKind.Comma)
+            {
+                offset += 2;
+                continue;
+            }
+            return false;
+        }
+        return false;
+    }
 
     private MirOperand ParseUseOperand(
         TokenReader tokens,
@@ -572,6 +600,7 @@ internal sealed class MirParser
         public MirToken Current => At(_position);
         public MirToken Peek    => At(_position + 1);
         public MirToken Peek2   => At(_position + 2);
+        public MirToken PeekAt(int offset) => At(_position + offset);
         public bool IsAtEnd     => _position >= tokens.Count;
 
         private MirToken At(int pos) =>

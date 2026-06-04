@@ -75,6 +75,24 @@ public static class MOS6502MachineCodeEmitTable
         // Index 1 = use[1] = immediate.
         [MOS6502Op.CmpImm] = new EmitRule(MOS6502Opcode.CMP_Immediate, EmitOperandKind.Immediate, 1),
 
+        // $a, $c = mos6502.adc.imm $a, #N, $c — same operand block as AdcZp
+        // (AdcInfo): def[0]=$a, def[1]=$c, use[0]=$a (tied), use[1]=imm, use[2]=$c.
+        // Index 3 = use[1], the immediate. Used by hand-written runtime helpers
+        // (e.g. WriteLineInt32's two's-complement negate).
+        [MOS6502Op.AdcImm] = new EmitRule(MOS6502Opcode.ADC_Immediate, EmitOperandKind.Immediate, 3),
+
+        // $a = mos6502.ora.imm $a, #N — def[0]=$a, use[0]=$a, use[1]=imm.
+        // Index 2 = use[1], the immediate. Used to OR a digit value with '0'.
+        [MOS6502Op.OraImm] = new EmitRule(MOS6502Opcode.ORA_Immediate, EmitOperandKind.Immediate, 2),
+
+        // $a = mos6502.eor.imm $a, #N — same shape as OraImm. Used by the
+        // two's-complement negate (EOR #$FF) in WriteLineInt32.
+        [MOS6502Op.EorImm] = new EmitRule(MOS6502Opcode.EOR_Immediate, EmitOperandKind.Immediate, 2),
+
+        // mos6502.inx / mos6502.iny — implied; both operands (if any) implicit.
+        [MOS6502Op.Inx]    = new EmitRule(MOS6502Opcode.INX,          EmitOperandKind.Implied,         null),
+        [MOS6502Op.Iny]    = new EmitRule(MOS6502Opcode.INY,          EmitOperandKind.Implied,         null),
+
         // mos6502.b<pred> T implicit $<flag>
         // operands[0] = BlockTarget T; operand[1] = implicit flag use (not encoded).
         [MOS6502Op.Beq]    = new EmitRule(MOS6502Opcode.BEQ,          EmitOperandKind.BranchTarget,    0),

@@ -1,0 +1,46 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; @WriteLineString from runtime.irie: prints a NUL-terminated string. The i16
+; pointer argument arrives in $a (low) / $x (high) per CC_MOS and is parked in
+; the zero-page pointer pair $00/$01, then dereferenced with LDA ($00),Y while
+; Y walks the string. The load is hand-written target MIR (lda.indy) because
+; the instruction selector only lowers a generic mem.load.i8 through a
+; `mem.symbol @name` address, not a runtime pointer. Plan §6 step 6.
+
+; CHECK: WriteLineString:
+; CHECK:     STA \$00
+; CHECK:     STX \$01
+; CHECK:     LDY #\$00
+; CHECK:     JMP \.bb1
+; CHECK: \.bb1:
+; CHECK:     LDA \(\$00\),Y
+; CHECK:     CMP #\$00
+; CHECK:     BEQ \.bb2
+; CHECK:     JSR osasci
+; CHECK:     INY
+; CHECK:     JMP \.bb1
+; CHECK: \.bb2:
+; CHECK:     RTS
+
+func @osasci : (i8) -> void {
+bb0(%0 : i8):
+    mos6502.jsr.abs 65507
+    mos6502.rts
+}
+
+func @WriteLineString : (i16) -> void {
+bb0(%0 : i16):
+    $12 = mos6502.sta.zp $0
+    $13 = mos6502.stx.zp $1
+    $2 = mos6502.ldy.imm 0
+    mos6502.jmp.abs bb1
+bb1():
+    $0 = mos6502.lda.indy $12, implicit $13, implicit $2
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb2, implicit $8
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.iny
+    mos6502.jmp.abs bb1
+bb2():
+    mos6502.rts
+}
