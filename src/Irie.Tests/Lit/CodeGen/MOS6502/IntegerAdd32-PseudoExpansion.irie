@@ -11,29 +11,37 @@
 ;   $zpN = pseudo.copy $zpM  →  mos6502.lda.zp + mos6502.sta.zp (goes via $a)
 ;
 ; Only target opcodes and the closing rts remain — no `pseudo.*` or `core.*`.
-; Note: the lda+sta expansion for the two zp→zp copies (e.g. $zp2 from $zp6)
-; clobbers $a even though $a is live in the surrounding window. This is a
-; known v2 register-allocator quality bug — the allocator currently emits
-; zp→zp copies in live-$a windows — to be addressed separately. The expander
-; faithfully implements what unified-IR plan §5.6 calls for.
+; Note: where a zp→zp copy would clobber $a while $a still holds a live value
+; (and at the return-value setup, whose $a output is consumed by the rts),
+; MOS6502ParallelCopyPass reschedules the acyclic parallel copy: it evacuates the
+; live $a value into a free scratch zp slot (here $zp8 / $zp9) and emits the
+; $a-destined load last, so the lda+sta expansion no longer corrupts $a.
 
 ; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
-; CHECK:   bb0\(\):
+; CHECK: bb0\(\):
 ; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
 ; CHECK:     \$c = mos6502.clc
 ; CHECK:     \$a, \$c = mos6502.adc.zp \$a, \$zp4, \$c
 ; CHECK:     \$zp4 = mos6502.sta.zp \$a
 ; CHECK:     \$a = mos6502.txa \$x
 ; CHECK:     \$a, \$c = mos6502.adc.zp \$a, \$zp5, \$c
-; CHECK:     \$zp5 = mos6502.sta.zp \$a
+; CHECK:     \$zp8 = mos6502.sta.zp \$a
 ; CHECK:     \$a = mos6502.lda.zp \$zp2
+; CHECK:     \$zp9 = mos6502.sta.zp \$a
+; CHECK:     \$a = mos6502.lda.zp \$zp8
+; CHECK:     \$zp5 = mos6502.sta.zp \$a
 ; CHECK:     \$a = mos6502.lda.zp \$zp6
 ; CHECK:     \$zp2 = mos6502.sta.zp \$a
+; CHECK:     \$a = mos6502.lda.zp \$zp9
 ; CHECK:     \$a, \$c = mos6502.adc.zp \$a, \$zp2, \$c
-; CHECK:     \$zp2 = mos6502.sta.zp \$a
+; CHECK:     \$zp6 = mos6502.sta.zp \$a
 ; CHECK:     \$a = mos6502.lda.zp \$zp3
+; CHECK:     \$zp8 = mos6502.sta.zp \$a
+; CHECK:     \$a = mos6502.lda.zp \$zp6
+; CHECK:     \$zp2 = mos6502.sta.zp \$a
 ; CHECK:     \$a = mos6502.lda.zp \$zp7
 ; CHECK:     \$zp3 = mos6502.sta.zp \$a
+; CHECK:     \$a = mos6502.lda.zp \$zp8
 ; CHECK:     \$a, \$c = mos6502.adc.zp \$a, \$zp3, \$c
 ; CHECK:     \$zp3 = mos6502.sta.zp \$a
 ; CHECK:     \$a = mos6502.lda.zp \$zp4
