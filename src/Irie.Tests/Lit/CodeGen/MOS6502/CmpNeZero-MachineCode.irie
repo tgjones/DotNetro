@@ -5,32 +5,60 @@
 ; of CmpEqZero-MachineCode.irie but with the true/false targets swapped: any
 ; BNE early-exits to the true block, and full equality falls through to false.
 ; This is the regression guard for the frontend's `brtrue`.
+;
+; As in CmpEqZero, the live-in byte is stashed to a zero-page slot (STA $02 /
+; STX $05) before the const-0 materialization clobbers $a, then reloaded for the
+; CMP — RA now models the $a clobber of the LDA #$00 ; STA $zp const setup.
 
-; --- i8: single CMP, BNE to the true block, fallthrough JMP to false. ---
+; --- i8: stash byte0, materialise 0, reload, single CMP, BNE true / JMP false. ---
 ; CHECK: CmpNeZeroI8:
-; CHECK:     LDA #\$00
 ; CHECK:     STA \$02
-; CHECK:     CMP \$02
+; CHECK:     LDA #\$00
+; CHECK:     STA \$03
+; CHECK:     LDA \$02
+; CHECK:     CMP \$03
 ; CHECK:     BNE \.bb1
 ; CHECK:     JMP \.bb2
 
 ; --- i16: high byte first; any BNE exits to true; full equality → false. ---
 ; CHECK: CmpNeZeroI16:
-; CHECK:     CMP \$03
+; CHECK:     STA \$02
+; CHECK:     LDA #\$00
+; CHECK:     STA \$03
+; CHECK:     LDA #\$00
+; CHECK:     STA \$04
+; CHECK:     STX \$05
+; CHECK:     TXA
+; CHECK:     CMP \$04
 ; CHECK:     BNE \.bb1
-; CHECK:     CMP \$02
+; CHECK:     LDA \$02
+; CHECK:     CMP \$03
 ; CHECK:     BNE \.bb1
 ; CHECK:     JMP \.bb2
 
 ; --- i32: four-byte chain, same shape. ---
 ; CHECK: CmpNeZeroI32:
+; CHECK:     STA \$04
+; CHECK:     LDA #\$00
+; CHECK:     STA \$05
+; CHECK:     LDA #\$00
+; CHECK:     STA \$06
+; CHECK:     LDA #\$00
+; CHECK:     STA \$07
+; CHECK:     LDA #\$00
+; CHECK:     STA \$08
+; CHECK:     STX \$09
+; CHECK:     LDA \$03
+; CHECK:     CMP \$08
+; CHECK:     BNE \.bb1
+; CHECK:     LDA \$02
 ; CHECK:     CMP \$07
 ; CHECK:     BNE \.bb1
+; CHECK:     LDA \$09
 ; CHECK:     CMP \$06
 ; CHECK:     BNE \.bb1
+; CHECK:     LDA \$04
 ; CHECK:     CMP \$05
-; CHECK:     BNE \.bb1
-; CHECK:     CMP \$04
 ; CHECK:     BNE \.bb1
 ; CHECK:     JMP \.bb2
 

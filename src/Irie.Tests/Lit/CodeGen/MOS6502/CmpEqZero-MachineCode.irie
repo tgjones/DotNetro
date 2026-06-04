@@ -5,32 +5,62 @@
 ; constant 0 operand materializes as LDA #$00 + STA into a zero-page byte (one
 ; per operand byte); the cmpi+cond_br fusion then emits the per-byte CMP / BEQ /
 ; BNE chain. This is the regression guard for the frontend's `brfalse`.
+;
+; The compared value arrives in $a/$x (call-convention live-ins). Because the
+; const-0 materialization (LDA #$00 ; STA $zp) routes through $a, RA now models
+; that $a clobber and evicts the live-in byte to a zero-page slot *before* the
+; const setup (STA $02 / STX $05), reloading it for the CMP. Without that the
+; CMP would compare the already-clobbered $a against 0.
 
-; --- i8: single CMP, BEQ to the true block, fallthrough JMP to false. ---
+; --- i8: stash byte0, materialise 0, reload, single CMP, BEQ true / JMP false. ---
 ; CHECK: CmpEqZeroI8:
-; CHECK:     LDA #\$00
 ; CHECK:     STA \$02
-; CHECK:     CMP \$02
+; CHECK:     LDA #\$00
+; CHECK:     STA \$03
+; CHECK:     LDA \$02
+; CHECK:     CMP \$03
 ; CHECK:     BEQ \.bb1
 ; CHECK:     JMP \.bb2
 
 ; --- i16: high byte first; any BNE exits to false; full equality → true. ---
 ; CHECK: CmpEqZeroI16:
-; CHECK:     CMP \$03
+; CHECK:     STA \$02
+; CHECK:     LDA #\$00
+; CHECK:     STA \$03
+; CHECK:     LDA #\$00
+; CHECK:     STA \$04
+; CHECK:     STX \$05
+; CHECK:     TXA
+; CHECK:     CMP \$04
 ; CHECK:     BNE \.bb2
-; CHECK:     CMP \$02
+; CHECK:     LDA \$02
+; CHECK:     CMP \$03
 ; CHECK:     BNE \.bb2
 ; CHECK:     JMP \.bb1
 
 ; --- i32: four-byte chain, same shape. ---
 ; CHECK: CmpEqZeroI32:
+; CHECK:     STA \$04
+; CHECK:     LDA #\$00
+; CHECK:     STA \$05
+; CHECK:     LDA #\$00
+; CHECK:     STA \$06
+; CHECK:     LDA #\$00
+; CHECK:     STA \$07
+; CHECK:     LDA #\$00
+; CHECK:     STA \$08
+; CHECK:     STX \$09
+; CHECK:     LDA \$03
+; CHECK:     CMP \$08
+; CHECK:     BNE \.bb2
+; CHECK:     LDA \$02
 ; CHECK:     CMP \$07
 ; CHECK:     BNE \.bb2
+; CHECK:     LDA \$09
 ; CHECK:     CMP \$06
 ; CHECK:     BNE \.bb2
+; CHECK:     LDA \$04
 ; CHECK:     CMP \$05
-; CHECK:     BNE \.bb2
-; CHECK:     CMP \$04
 ; CHECK:     BNE \.bb2
 ; CHECK:     JMP \.bb1
 

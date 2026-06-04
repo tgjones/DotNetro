@@ -302,6 +302,7 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
             .ToList();
 
         var clobberSlots = ComputeClobberSlots(function, liveness);
+        var physRegReservations = ComputePhysRegReservations(function, liveness);
 
         var assignment = new Dictionary<int, int>();
         var physregActive = new Dictionary<int, int>();
@@ -324,18 +325,20 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
 
             var hint = TryGetCopyHintPhysReg(function, vreg, allocatable);
 
+            bool Available(int candidate) =>
+                !physregActive.ContainsKey(candidate)
+                && IsClobberFree(candidate, range, clobberSlots)
+                && IsReservationFree(candidate, vreg, range, physRegReservations);
+
             int? chosen = null;
-            if (hint.HasValue
-                && !physregActive.ContainsKey(hint.Value)
-                && IsClobberFree(hint.Value, range, clobberSlots))
+            if (hint.HasValue && Available(hint.Value))
                 chosen = hint.Value;
 
             if (chosen == null)
             {
                 foreach (var candidate in allocatable)
                 {
-                    if (!physregActive.ContainsKey(candidate)
-                        && IsClobberFree(candidate, range, clobberSlots))
+                    if (Available(candidate))
                     {
                         chosen = candidate;
                         break;
@@ -359,26 +362,152 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
     // For each physreg, the set of instruction slots where it is implicitly
     // defined (clobbered) by some non-copy instruction. pseudo.copy explicit
     // physreg defs are NOT clobbers — RA places them on purpose.
-    private static Dictionary<int, List<int>> ComputeClobberSlots(MirFunction function, Liveness liveness)
+    //
+    // A pseudo.copy can still clobber a physreg the target uses as hidden
+    // scratch when it lowers the copy (e.g. MOS6502 routes an immediate-into-zp
+    // copy through $A). Those clobbers are queried from the target via
+    // GetPseudoCopyScratchClobbers and recorded at the copy's slot, so RA won't
+    // keep an unrelated live value in that scratch register across the copy.
+    private Dictionary<int, List<int>> ComputeClobberSlots(MirFunction function, Liveness liveness)
     {
         var clobbers = new Dictionary<int, List<int>>();
+
+        void Record(int physReg, int slot)
+        {
+            if (!clobbers.TryGetValue(physReg, out var slots))
+                clobbers[physReg] = slots = new List<int>();
+            slots.Add(slot);
+        }
+
         foreach (var block in function.Blocks)
         {
             foreach (var instr in block.Instructions)
             {
                 if (!liveness.SlotOf.TryGetValue(instr, out var slot)) continue;
+
                 foreach (var op in instr.Operands)
                 {
-                    if (op is PhysicalReg p && p.IsDefinition && p.IsImplicit)
-                    {
-                        if (!clobbers.TryGetValue(p.Id, out var slots))
-                            clobbers[p.Id] = slots = new List<int>();
-                        slots.Add(slot);
-                    }
+                    if (op is PhysicalReg { IsDefinition: true, IsImplicit: true } p)
+                        Record(p.Id, slot);
+                }
+
+                if (IsCopy(instr) && instr.Operands.Length == 2
+                    && instr.Operands[0] is VirtualReg { IsDefinition: true } dstVreg
+                    && function.GetVRegAnnotation(dstVreg.Id) is ClassedVReg dstClass)
+                {
+                    var src = instr.Operands[1];
+                    var srcClass = ResolveOperandClass(function, src);
+                    foreach (var scratch in registerInfo.GetPseudoCopyScratchClobbers(
+                                 src, srcClass, dstClass.ClassId))
+                        Record(scratch, slot);
                 }
             }
         }
         return clobbers;
+    }
+
+    // Live ranges of physical registers that hold a value across instructions
+    // without that value being represented by a vreg. The motivating case: a
+    // call (mos6502.jsr.abs) implicit-defs its result physregs ($a, $x, $zp2,
+    // $zp3 for an i32), and the caller reads each back with a `pseudo.copy
+    // %save = $P` to relocate it. Between the call and that copy the physreg is
+    // live, yet liveness (vreg-only) never sees it. Without reserving it, RA
+    // may park an unrelated vreg's eviction on $zp2 *before* the copy reads
+    // $zp2, destroying the result — the same kind of physreg-liveness gap as
+    // the $A-scratch clobber, but on the *source* side of a copy.
+    //
+    // For each physreg P we walk the function in slot order, tracking the slot
+    // of the most recent instruction that defines P (explicit or implicit). A
+    // `pseudo.copy %v = $P` reading P closes a reservation interval
+    // [defSlot, readSlot] owned by the consumer vreg %v. A redefinition of P
+    // resets the tracked def slot. The consumer is recorded so it is not
+    // excluded from using P itself (it legitimately reads P at the interval's
+    // end).
+    private Dictionary<int, List<(int Start, int End, int Consumer)>> ComputePhysRegReservations(
+        MirFunction function, Liveness liveness)
+    {
+        var reservations = new Dictionary<int, List<(int, int, int)>>();
+        // Most recent def slot per physreg; -1 = no live value to protect.
+        var lastDefSlot = new Dictionary<int, int>();
+
+        void Reserve(int physReg, int start, int end, int consumer)
+        {
+            if (!reservations.TryGetValue(physReg, out var list))
+                reservations[physReg] = list = new List<(int, int, int)>();
+            list.Add((start, end, consumer));
+        }
+
+        foreach (var block in function.Blocks)
+        {
+            // Physregs live on entry to the block (call-convention params for the
+            // entry block, cross-block live values elsewhere) are defined "before"
+            // the block, so seed their def slot at the block's first instruction.
+            // A relocation copy reading such a live-in must keep the physreg
+            // reserved up to that read, exactly as for an instruction-produced def.
+            var firstSlot = block.Instructions.Count > 0
+                && liveness.SlotOf.TryGetValue(block.Instructions[0], out var fs)
+                ? fs
+                : -1;
+            if (firstSlot >= 0)
+                foreach (var liveIn in block.LiveIns)
+                    lastDefSlot[liveIn] = firstSlot;
+
+            foreach (var instr in block.Instructions)
+            {
+                if (!liveness.SlotOf.TryGetValue(instr, out var slot)) continue;
+
+                // A `pseudo.copy %v = $P` reads physreg P: close P's reservation.
+                if (IsCopy(instr) && instr.Operands.Length == 2
+                    && instr.Operands[0] is VirtualReg { IsDefinition: true } dst
+                    && instr.Operands[1] is PhysicalReg { IsDefinition: false } srcReg
+                    && lastDefSlot.TryGetValue(srcReg.Id, out var defSlot)
+                    && defSlot >= 0)
+                {
+                    Reserve(srcReg.Id, defSlot, slot, dst.Id);
+                }
+
+                // Record physreg defs (explicit or implicit) as the new live point.
+                foreach (var op in instr.Operands)
+                    if (op is PhysicalReg { IsDefinition: true } d)
+                        lastDefSlot[d.Id] = slot;
+            }
+        }
+        return reservations;
+    }
+
+    // Vreg V (range Vr) may use physreg P unless a reservation interval of P —
+    // owned by a different consumer — overlaps Vr. Overlap is the half-open
+    // test `Vr.Start < resEnd && Vr.End > resStart`: a vreg born exactly at the
+    // reservation's end (the consumer reading P) does not conflict, and a vreg
+    // dying exactly at the reservation's start does not conflict either.
+    private static bool IsReservationFree(
+        int physReg, int vreg, LiveRange range,
+        Dictionary<int, List<(int Start, int End, int Consumer)>> reservations)
+    {
+        if (!reservations.TryGetValue(physReg, out var list)) return true;
+        foreach (var (start, end, consumer) in list)
+        {
+            if (vreg == consumer) continue;
+            if (range.Start < end && range.End > start) return false;
+        }
+        return true;
+    }
+
+    // Register class of a copy operand as known during clobber analysis: a vreg
+    // carries its ClassedVReg annotation; a physreg's class is derived from the
+    // target's class membership; an Immediate (or anything else) has no class.
+    private int ResolveOperandClass(MirFunction function, MirOperand operand)
+    {
+        switch (operand)
+        {
+            case VirtualReg v
+                when function.GetVRegAnnotation(v.Id) is ClassedVReg classed:
+                return classed.ClassId;
+            case PhysicalReg p:
+                return registerInfo.ClassOfPhysicalRegister(p.Id);
+            default:
+                return 0;
+        }
     }
 
     // V at P safely iff no clobber slot K of P satisfies Vs < K < Ve.
