@@ -259,6 +259,10 @@ internal sealed class IlToMirTranslator : IDisposable
                     case ILOpCode.Ldarg_3: TranslateLdarg(3); break;
                     case ILOpCode.Ldarg_s: TranslateLdarg(ilReader.ReadByte()); break;
 
+                    case ILOpCode.Br_s:
+                        TranslateBr(ilReader.ReadSByte() + ilReader.Offset, ilReader.Offset);
+                        break;
+
                     case ILOpCode.Call:
                         TranslateCall(MetadataTokens.Handle(ilReader.ReadInt32()));
                         break;
@@ -316,6 +320,19 @@ internal sealed class IlToMirTranslator : IDisposable
                     $"IL→MIR: ldarg {index} out of range (method {_method.UniqueName}).");
             var type = ToIRType(_method.Parameters[index].Type);
             _stack.Push(new StackValue(_parameterVregs[index], type));
+        }
+
+        // Roslyn's Debug-mode codegen routes every `return value;` through a
+        // single epilogue: `stloc.0; br.s <end>; <end>: ldloc.0; ret`, where the
+        // branch target is the instruction immediately following the branch. That
+        // fall-through `br.s` is a no-op for our single-block model. General
+        // (non-fall-through) control flow is a later porting group.
+        private void TranslateBr(int target, int nextOffset)
+        {
+            if (target != nextOffset)
+                throw new NotSupportedException(
+                    $"IL→MIR: non-fall-through branch (br.s to {target}) is not supported yet " +
+                    $"(method {_method.UniqueName}).");
         }
 
         private void TranslateCall(Handle methodHandle)
