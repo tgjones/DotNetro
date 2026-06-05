@@ -1,0 +1,192 @@
+--- |
+  ; ModuleID = './pressure/many-calls.ll'
+  source_filename = "./pressure/many-calls.c"
+  target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+  target triple = "mos-unknown-unknown"
+  
+  ; Function Attrs: nounwind
+  define dso_local i16 @many_calls(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) local_unnamed_addr #0 {
+    %5 = tail call i16 @g(i16 noundef %0) #2
+    %6 = tail call i16 @g(i16 noundef %1) #2
+    %7 = tail call i16 @g(i16 noundef %2) #2
+    %8 = tail call i16 @g(i16 noundef %3) #2
+    %9 = add i16 %1, %0
+    %10 = add i16 %9, %2
+    %11 = add i16 %10, %3
+    %12 = add i16 %11, %5
+    %13 = add i16 %12, %6
+    %14 = add i16 %13, %7
+    %15 = add i16 %14, %8
+    ret i16 %15
+  }
+  
+  declare dso_local i16 @g(i16 noundef) local_unnamed_addr #1
+  
+  attributes #0 = { nounwind "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+  attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+  attributes #2 = { nounwind }
+  
+  !llvm.module.flags = !{!0}
+  !llvm.ident = !{!1}
+  !llvm.errno.tbaa = !{!2}
+  
+  !0 = !{i32 7, !"frame-pointer", i32 2}
+  !1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+  !2 = !{!3, !3, i64 0}
+  !3 = !{!"int", !4, i64 0}
+  !4 = !{!"omnipotent char", !5, i64 0}
+  !5 = !{!"Simple C/C++ TBAA"}
+...
+---
+name:            many_calls
+alignment:       1
+exposesReturnsTwice: false
+legalized:       true
+regBankSelected: true
+selected:        true
+failedISel:      false
+tracksRegLiveness: true
+hasWinCFI:       false
+noPhis:          true
+isSSA:           false
+noVRegs:         true
+hasFakeUses:     false
+callsEHReturn:   false
+callsUnwindInit: false
+hasEHContTarget: false
+hasEHScopes:     false
+hasEHFunclets:   false
+isOutlined:      false
+debugInstrRef:   false
+failsVerification: false
+tracksDebugUserValues: true
+registers:       []
+liveins:         []
+frameInfo:
+  isFrameAddressTaken: false
+  isReturnAddressTaken: false
+  hasStackMap:     false
+  hasPatchPoint:   false
+  stackSize:       0
+  offsetAdjustment: 0
+  maxAlignment:    1
+  adjustsStack:    true
+  hasCalls:        true
+  framePointerPolicy: all
+  stackProtector:  ''
+  functionContext: ''
+  maxCallFrameSize: 4294967295
+  cvBytesOfCalleeSavedRegisters: 0
+  hasOpaqueSPAdjustment: false
+  hasVAStart:      false
+  hasMustTailInVarArgFunc: false
+  hasTailCall:     false
+  isCalleeSavedInfoValid: false
+  localFrameSize:  0
+fixedStack:      []
+stack:
+  - { id: 0, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 1, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+entry_values:    []
+callSites:       []
+debugValueSubstitutions: []
+constants:       []
+machineFunctionInfo: {}
+body:             |
+  bb.0 (%ir-block.4):
+    liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  
+    renamable $rc24 = COPY $a
+    renamable $rc25 = COPY $x
+    renamable $rc27 = COPY $rc2
+    renamable $rc20 = COPY $rc3
+    renamable $rc26 = COPY $rc4
+    renamable $rc21 = COPY $rc5
+    renamable $rc22 = COPY $rc6
+    renamable $rc23 = COPY $rc7
+    ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+    $x = COPY renamable $rc25
+    $a = COPY renamable $rc24
+    JSR @g, mos_csr, implicit $a, implicit $x, implicit-def $a, implicit-def $x
+    dead early-clobber renamable $rs1 = STStk $a, %stack.1, 0 :: (store (s8) into %stack.1)
+    dead early-clobber renamable $rs1 = STStk $x, %stack.0, 0 :: (store (s8) into %stack.0)
+    ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+    ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+    $x = COPY renamable $rc20
+    $a = COPY renamable $rc27
+    JSR @g, mos_csr, implicit $a, implicit $x, implicit-def $a, implicit-def $x
+    renamable $rc28 = COPY $a
+    renamable $rc29 = COPY $x
+    ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+    ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+    $x = COPY renamable $rc21
+    $a = COPY renamable $rc26
+    JSR @g, mos_csr, implicit $a, implicit $x, implicit-def $a, implicit-def $x
+    renamable $rc30 = COPY $a
+    renamable $rc31 = COPY $x
+    ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+    ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+    $x = COPY renamable $rc23
+    $a = COPY renamable $rc22
+    JSR @g, mos_csr, implicit $a, implicit $x, implicit-def $a, implicit-def $x
+    renamable $rc2 = COPY $a
+    renamable $rc3 = COPY $x
+    ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+    renamable $a = COPY killed renamable $rc27
+    renamable $c = LDImm1 0
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc24, killed renamable $c
+    renamable $x = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc20
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc25, killed renamable $c
+    renamable $rc4 = COPY killed renamable $a
+    renamable $c = LDImm1 0
+    renamable $a = COPY killed renamable $x
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc26, killed renamable $c
+    renamable $rc5 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc4
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc21, killed renamable $c
+    renamable $rc4 = COPY killed renamable $a
+    renamable $c = LDImm1 0
+    renamable $a = COPY killed renamable $rc5
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc22, killed renamable $c
+    renamable $rc8 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc4
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc23, killed renamable $c
+    renamable $rc4 = COPY killed renamable $a
+    renamable $rc5, dead early-clobber renamable $rs3 = LDStk %stack.1, 0 :: (load (s8) from %stack.1)
+    renamable $c = LDImm1 0
+    renamable $a = COPY killed renamable $rc8
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc5, killed renamable $c
+    renamable $rc5 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc4
+    renamable $rc4, dead early-clobber renamable $rs3 = LDStk %stack.0, 0 :: (load (s8) from %stack.0)
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc4, killed renamable $c
+    renamable $rc4 = COPY killed renamable $a
+    renamable $c = LDImm1 0
+    renamable $a = COPY killed renamable $rc5
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc28, killed renamable $c
+    renamable $rc5 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc4
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc29, killed renamable $c
+    renamable $rc4 = COPY killed renamable $a
+    renamable $c = LDImm1 0
+    renamable $a = COPY killed renamable $rc5
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc30, killed renamable $c
+    renamable $y = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc4
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc31, killed renamable $c
+    renamable $x = COPY killed renamable $a
+    renamable $c = LDImm1 0
+    renamable $a = COPY killed renamable $y
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc2, killed renamable $c
+    renamable $y = COPY killed renamable $a
+    renamable $a = COPY killed renamable $x
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc3, killed renamable $c
+    $x = COPY killed renamable $a
+    $a = COPY killed renamable $y
+    RTS implicit $a, implicit $x
+...

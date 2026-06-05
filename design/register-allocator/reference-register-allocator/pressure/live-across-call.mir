@@ -1,0 +1,103 @@
+--- |
+  ; ModuleID = './pressure/live-across-call.ll'
+  source_filename = "./pressure/live-across-call.c"
+  target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+  target triple = "mos-unknown-unknown"
+  
+  ; Function Attrs: nounwind
+  define dso_local i16 @live_across_call(i16 noundef %0) local_unnamed_addr #0 {
+    %2 = tail call i16 @g(i16 noundef %0) #2
+    %3 = add nsw i16 %2, %0
+    ret i16 %3
+  }
+  
+  declare dso_local i16 @g(i16 noundef) local_unnamed_addr #1
+  
+  attributes #0 = { nounwind "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+  attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+  attributes #2 = { nounwind }
+  
+  !llvm.module.flags = !{!0}
+  !llvm.ident = !{!1}
+  !llvm.errno.tbaa = !{!2}
+  
+  !0 = !{i32 7, !"frame-pointer", i32 2}
+  !1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+  !2 = !{!3, !3, i64 0}
+  !3 = !{!"int", !4, i64 0}
+  !4 = !{!"omnipotent char", !5, i64 0}
+  !5 = !{!"Simple C/C++ TBAA"}
+...
+---
+name:            live_across_call
+alignment:       1
+exposesReturnsTwice: false
+legalized:       true
+regBankSelected: true
+selected:        true
+failedISel:      false
+tracksRegLiveness: true
+hasWinCFI:       false
+noPhis:          true
+isSSA:           false
+noVRegs:         true
+hasFakeUses:     false
+callsEHReturn:   false
+callsUnwindInit: false
+hasEHContTarget: false
+hasEHScopes:     false
+hasEHFunclets:   false
+isOutlined:      false
+debugInstrRef:   false
+failsVerification: false
+tracksDebugUserValues: true
+registers:       []
+liveins:         []
+frameInfo:
+  isFrameAddressTaken: false
+  isReturnAddressTaken: false
+  hasStackMap:     false
+  hasPatchPoint:   false
+  stackSize:       0
+  offsetAdjustment: 0
+  maxAlignment:    1
+  adjustsStack:    true
+  hasCalls:        true
+  framePointerPolicy: all
+  stackProtector:  ''
+  functionContext: ''
+  maxCallFrameSize: 4294967295
+  cvBytesOfCalleeSavedRegisters: 0
+  hasOpaqueSPAdjustment: false
+  hasVAStart:      false
+  hasMustTailInVarArgFunc: false
+  hasTailCall:     false
+  isCalleeSavedInfoValid: false
+  localFrameSize:  0
+fixedStack:      []
+stack:           []
+entry_values:    []
+callSites:       []
+debugValueSubstitutions: []
+constants:       []
+machineFunctionInfo: {}
+body:             |
+  bb.0 (%ir-block.1):
+    liveins: $a, $x
+  
+    renamable $rc20 = COPY $a
+    renamable $rc21 = COPY $x
+    ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+    $x = COPY renamable $rc21
+    $a = COPY renamable $rc20
+    JSR @g, mos_csr, implicit $a, implicit $x, implicit-def $a, implicit-def $x
+    ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+    renamable $c = LDImm1 0
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc20, killed renamable $c
+    renamable $y = COPY killed renamable $a
+    renamable $a = COPY killed renamable $x
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc21, killed renamable $c
+    $x = COPY killed renamable $a
+    $a = COPY killed renamable $y
+    RTS implicit $a, implicit $x
+...

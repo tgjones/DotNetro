@@ -1,0 +1,459 @@
+--- |
+  ; ModuleID = './pressure/pressure-i64.ll'
+  source_filename = "./pressure/pressure-i64.c"
+  target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+  target triple = "mos-unknown-unknown"
+  
+  ; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none)
+  define dso_local i64 @pressure_i64(i64 noundef %0, i64 noundef %1, i64 noundef %2) local_unnamed_addr #0 {
+    %4 = add nsw i64 %1, %0
+    %5 = add nsw i64 %2, %1
+    %6 = add nsw i64 %2, %0
+    %7 = xor i64 %5, %4
+    %8 = xor i64 %5, %6
+    %9 = add nsw i64 %7, %8
+    %10 = xor i64 %6, %4
+    %11 = add nsw i64 %9, %10
+    ret i64 %11
+  }
+  
+  attributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) "frame-pointer"="all" "no-trapping-math"="true" "nonreentrant" "stack-protector-buffer-size"="8" }
+  
+  !llvm.module.flags = !{!0}
+  !llvm.ident = !{!1}
+  !llvm.errno.tbaa = !{!2}
+  
+  !0 = !{i32 7, !"frame-pointer", i32 2}
+  !1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+  !2 = !{!3, !3, i64 0}
+  !3 = !{!"int", !4, i64 0}
+  !4 = !{!"omnipotent char", !5, i64 0}
+  !5 = !{!"Simple C/C++ TBAA"}
+...
+---
+name:            pressure_i64
+alignment:       1
+exposesReturnsTwice: false
+legalized:       true
+regBankSelected: true
+selected:        true
+failedISel:      false
+tracksRegLiveness: true
+hasWinCFI:       false
+noPhis:          true
+isSSA:           false
+noVRegs:         true
+hasFakeUses:     false
+callsEHReturn:   false
+callsUnwindInit: false
+hasEHContTarget: false
+hasEHScopes:     false
+hasEHFunclets:   false
+isOutlined:      false
+debugInstrRef:   false
+failsVerification: false
+tracksDebugUserValues: true
+registers:       []
+liveins:         []
+frameInfo:
+  isFrameAddressTaken: false
+  isReturnAddressTaken: false
+  hasStackMap:     false
+  hasPatchPoint:   false
+  stackSize:       0
+  offsetAdjustment: 0
+  maxAlignment:    1
+  adjustsStack:    false
+  hasCalls:        false
+  framePointerPolicy: all
+  stackProtector:  ''
+  functionContext: ''
+  maxCallFrameSize: 4294967295
+  cvBytesOfCalleeSavedRegisters: 0
+  hasOpaqueSPAdjustment: false
+  hasVAStart:      false
+  hasMustTailInVarArgFunc: false
+  hasTailCall:     false
+  isCalleeSavedInfoValid: false
+  localFrameSize:  0
+fixedStack:
+  - { id: 0, type: default, offset: 7, size: 1, alignment: 1, stack-id: default, 
+      isImmutable: true, isAliased: false, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 1, type: default, offset: 6, size: 1, alignment: 1, stack-id: default, 
+      isImmutable: true, isAliased: false, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 2, type: default, offset: 5, size: 1, alignment: 1, stack-id: default, 
+      isImmutable: true, isAliased: false, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 3, type: default, offset: 4, size: 1, alignment: 1, stack-id: default, 
+      isImmutable: true, isAliased: false, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 4, type: default, offset: 3, size: 1, alignment: 1, stack-id: default, 
+      isImmutable: true, isAliased: false, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 5, type: default, offset: 2, size: 1, alignment: 1, stack-id: default, 
+      isImmutable: true, isAliased: false, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 6, type: default, offset: 1, size: 1, alignment: 1, stack-id: default, 
+      isImmutable: true, isAliased: false, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 7, type: default, offset: 0, size: 1, alignment: 1, stack-id: default, 
+      isImmutable: true, isAliased: false, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+stack:
+  - { id: 0, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 1, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 2, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 3, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 4, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 5, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 6, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 7, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 8, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 9, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 10, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 11, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 12, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 13, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 14, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 15, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 16, name: '', type: spill-slot, offset: 0, size: 1, alignment: 1, 
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true, 
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+entry_values:    []
+callSites:       []
+debugValueSubstitutions: []
+constants:       []
+machineFunctionInfo: {}
+body:             |
+  bb.0 (%ir-block.3):
+    liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  
+    renamable $rc27 = COPY $a
+    renamable $rc25 = COPY $x
+    renamable $rc26 = COPY $rc2
+    renamable $x = COPY killed renamable $rc3
+    STAbs killed renamable $x, %stack.12 :: (store (s8) into %stack.12)
+    renamable $x = COPY killed renamable $rc4
+    STAbs killed renamable $x, %stack.11 :: (store (s8) into %stack.11)
+    renamable $x = COPY killed renamable $rc5
+    STAbs killed renamable $x, %stack.10 :: (store (s8) into %stack.10)
+    renamable $x = COPY killed renamable $rc6
+    STAbs killed renamable $x, %stack.8 :: (store (s8) into %stack.8)
+    renamable $x = COPY killed renamable $rc7
+    STAbs killed renamable $x, %stack.7 :: (store (s8) into %stack.7)
+    renamable $rc20 = COPY $rc8
+    renamable $rc21 = COPY $rc9
+    renamable $rc24 = COPY $rc10
+    renamable $rc10 = COPY $rc13
+    renamable $rc8 = COPY $rc14
+    renamable $y = COPY killed renamable $rc15
+    STAbs killed renamable $y, %stack.9 :: (store (s8) into %stack.9)
+    renamable $y = LDImm 0
+    renamable $rc2, renamable $c, dead renamable $v = AddrLostk %fixed-stack.7, 0
+    renamable $rc3, dead renamable $c, dead renamable $v = AddrHistk %fixed-stack.7, 0, killed renamable $c
+    renamable $a = LDIndirIdx killed renamable $rs1, renamable $y :: (invariant load (s8) from %fixed-stack.7)
+    STAbs killed renamable $a, %stack.14 :: (store (s8) into %stack.14)
+    renamable $rc2, renamable $c, dead renamable $v = AddrLostk %fixed-stack.6, 0
+    renamable $rc3, dead renamable $c, dead renamable $v = AddrHistk %fixed-stack.6, 0, killed renamable $c
+    renamable $a = LDIndirIdx killed renamable $rs1, renamable $y :: (invariant load (s8) from %fixed-stack.6)
+    renamable $rc15 = COPY killed renamable $a
+    renamable $rc28, renamable $c, dead renamable $v = AddrLostk %fixed-stack.5, 0
+    renamable $rc29, dead renamable $c, dead renamable $v = AddrHistk %fixed-stack.5, 0, killed renamable $c
+    renamable $rc30, renamable $c, dead renamable $v = AddrLostk %fixed-stack.4, 0
+    renamable $rc31, dead renamable $c, dead renamable $v = AddrHistk %fixed-stack.4, 0, killed renamable $c
+    renamable $rc18, renamable $c, dead renamable $v = AddrLostk %fixed-stack.3, 0
+    renamable $rc19, dead renamable $c, dead renamable $v = AddrHistk %fixed-stack.3, 0, killed renamable $c
+    renamable $rc22, renamable $c, dead renamable $v = AddrLostk %fixed-stack.2, 0
+    renamable $rc23, dead renamable $c, dead renamable $v = AddrHistk %fixed-stack.2, 0, killed renamable $c
+    renamable $rc4, renamable $c, dead renamable $v = AddrLostk %fixed-stack.1, 0
+    renamable $rc5, dead renamable $c, dead renamable $v = AddrHistk %fixed-stack.1, 0, killed renamable $c
+    renamable $rc2, renamable $c, dead renamable $v = AddrLostk %fixed-stack.0, 0
+    renamable $rc3, dead renamable $c, dead renamable $v = AddrHistk %fixed-stack.0, 0, killed renamable $c
+    renamable $c = LDImm1 0
+    renamable $a = COPY renamable $rc20
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, renamable $rc27, killed renamable $c
+    STAbs killed renamable $a, %stack.0 :: (store (s8) into %stack.0)
+    renamable $a = COPY renamable $rc21
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, renamable $rc25, killed renamable $c
+    STAbs killed renamable $a, %stack.2 :: (store (s8) into %stack.2)
+    renamable $a = COPY renamable $rc24
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, renamable $rc26, killed renamable $c
+    STAbs killed renamable $a, %stack.1 :: (store (s8) into %stack.1)
+    renamable $a = COPY renamable $rc11
+    renamable $rc14 = COPY killed renamable $rc11
+    renamable $x = LDAbs %stack.12 :: (load (s8) from %stack.12)
+    renamable $rc7 = COPY killed renamable $x
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, renamable $rc7, killed renamable $c
+    STAbs killed renamable $a, %stack.3 :: (store (s8) into %stack.3)
+    renamable $a = COPY renamable $rc12
+    renamable $rc13 = COPY killed renamable $rc12
+    renamable $x = LDAbs %stack.11 :: (load (s8) from %stack.11)
+    renamable $rc12 = COPY killed renamable $x
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, renamable $rc12, killed renamable $c
+    STAbs killed renamable $a, %stack.4 :: (store (s8) into %stack.4)
+    renamable $a = COPY renamable $rc10
+    renamable $x = LDAbs %stack.10 :: (load (s8) from %stack.10)
+    renamable $rc9 = COPY killed renamable $x
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, renamable $rc9, killed renamable $c
+    STAbs killed renamable $a, %stack.5 :: (store (s8) into %stack.5)
+    renamable $rc6 = COPY killed renamable $rc8
+    renamable $a = COPY renamable $rc6
+    renamable $x = LDAbs %stack.8 :: (load (s8) from %stack.8)
+    renamable $rc8 = COPY killed renamable $x
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, renamable $rc8, killed renamable $c
+    renamable $rc11lsb = COPY killed renamable $c
+    STAbs killed renamable $a, %stack.6 :: (store (s8) into %stack.6)
+    renamable $a = LDIndirIdx killed renamable $rs14, renamable $y :: (invariant load (s8) from %fixed-stack.5)
+    renamable $rc29 = COPY killed renamable $a
+    renamable $a = LDIndirIdx killed renamable $rs15, renamable $y :: (invariant load (s8) from %fixed-stack.4)
+    renamable $rc28 = COPY killed renamable $a
+    renamable $a = LDIndirIdx killed renamable $rs9, renamable $y :: (invariant load (s8) from %fixed-stack.3)
+    renamable $rc18 = COPY killed renamable $a
+    renamable $a = LDIndirIdx killed renamable $rs11, renamable $y :: (invariant load (s8) from %fixed-stack.2)
+    renamable $x = COPY killed renamable $a
+    renamable $a = LDIndirIdx killed renamable $rs2, renamable $y :: (invariant load (s8) from %fixed-stack.1)
+    renamable $rc4 = COPY killed renamable $a
+    renamable $a = LDIndirIdx killed renamable $rs1, killed renamable $y :: (invariant load (s8) from %fixed-stack.0)
+    renamable $rc5 = COPY killed renamable $a
+    renamable $a = LDAbs %stack.14 :: (load (s8) from %stack.14)
+    renamable $c = LDImm1 0
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc20, killed renamable $c
+    renamable $rc22 = COPY killed renamable $a
+    renamable $a = COPY renamable $rc15
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc21, killed renamable $c
+    renamable $rc20 = COPY killed renamable $a
+    renamable $a = COPY renamable $rc29
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc24, killed renamable $c
+    renamable $rc19 = COPY killed renamable $a
+    renamable $a = COPY renamable $rc28
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc14, killed renamable $c
+    renamable $rc24 = COPY killed renamable $a
+    renamable $a = COPY renamable $rc18
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc13, killed renamable $c
+    renamable $rc23 = COPY killed renamable $a
+    renamable $a = COPY renamable $x
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc10, killed renamable $c
+    renamable $rc10 = COPY killed renamable $a
+    renamable $a = COPY renamable $rc4
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc6, killed renamable $c
+    renamable $rc21 = COPY killed renamable $a
+    renamable $a = COPY renamable $rc5
+    renamable $y = LDAbs %stack.9 :: (load (s8) from %stack.9)
+    renamable $rc2 = COPY killed renamable $y
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, renamable $rc2, killed renamable $c
+    renamable $rc30 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc2
+    renamable $y = LDAbs %stack.7 :: (load (s8) from %stack.7)
+    renamable $rc2 = COPY killed renamable $y
+    renamable $c = COPY killed renamable $rc11lsb
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, renamable $rc2, killed renamable $c
+    STAbs killed renamable $a, %stack.13 :: (store (s8) into %stack.13)
+    renamable $a = LDAbs %stack.14 :: (load (s8) from %stack.14)
+    renamable $c = LDImm1 0
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc27, killed renamable $c
+    STAbs renamable $a, %stack.14 :: (store (s8) into %stack.14)
+    renamable $rc6 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc15
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc25, killed renamable $c
+    renamable $rc3 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc29
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc26, killed renamable $c
+    renamable $rc26 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc28
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc7, killed renamable $c
+    renamable $y = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc18
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc12, killed renamable $c
+    renamable $rc31 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $x
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc9, killed renamable $c
+    STAbs killed renamable $a, %stack.16 :: (store (s8) into %stack.16)
+    renamable $a = COPY killed renamable $rc4
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc8, killed renamable $c
+    STAbs killed renamable $a, %stack.15 :: (store (s8) into %stack.15)
+    renamable $a = COPY killed renamable $rc5
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc2, killed renamable $c
+    renamable $rc25 = COPY killed renamable $a
+    renamable $rc2 = COPY killed renamable $rc6
+    renamable $a = COPY killed renamable $rc22
+    renamable $rc12 = COPY renamable $a
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc2
+    renamable $rc2 = COPY killed renamable $a
+    renamable $rc22 = COPY killed renamable $rc3
+    renamable $rc3 = COPY renamable $rc22
+    renamable $a = COPY killed renamable $rc20
+    renamable $rc13 = COPY renamable $a
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc3
+    renamable $rc3 = COPY killed renamable $a
+    renamable $rc4 = COPY renamable $rc26
+    renamable $a = COPY killed renamable $rc19
+    renamable $rc14 = COPY renamable $a
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc4
+    renamable $rc4 = COPY killed renamable $a
+    renamable $rc5 = COPY renamable $y
+    renamable $a = COPY killed renamable $rc24
+    renamable $rc8 = COPY renamable $a
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc5
+    renamable $rc5 = COPY killed renamable $a
+    renamable $rc6 = COPY renamable $rc31
+    renamable $a = COPY killed renamable $rc23
+    renamable $rc18 = COPY renamable $a
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc6
+    renamable $rc6 = COPY killed renamable $a
+    renamable $x = LDAbs %stack.16 :: (load (s8) from %stack.16)
+    renamable $rc7 = COPY killed renamable $x
+    renamable $a = COPY killed renamable $rc10
+    renamable $rc19 = COPY renamable $a
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc7
+    renamable $rc7 = COPY killed renamable $a
+    renamable $x = LDAbs %stack.15 :: (load (s8) from %stack.15)
+    renamable $rc9 = COPY killed renamable $x
+    renamable $a = COPY killed renamable $rc21
+    renamable $rc27 = COPY renamable $a
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc9
+    renamable $rc9 = COPY killed renamable $a
+    renamable $rc10 = COPY renamable $rc25
+    renamable $a = COPY killed renamable $rc30
+    renamable $rc28 = COPY renamable $a
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc10
+    renamable $rc10 = COPY killed renamable $a
+    renamable $x = LDAbs %stack.0 :: (load (s8) from %stack.0)
+    renamable $rc11 = COPY killed renamable $x
+    renamable $a = COPY killed renamable $rc12
+    renamable $a = EORImag8 killed renamable $a, renamable $rc11
+    renamable $rc15 = COPY killed renamable $a
+    renamable $x = LDAbs %stack.2 :: (load (s8) from %stack.2)
+    renamable $rc12 = COPY killed renamable $x
+    renamable $a = COPY killed renamable $rc13
+    renamable $a = EORImag8 killed renamable $a, renamable $rc12
+    renamable $rc13 = COPY killed renamable $a
+    renamable $c = LDImm1 0
+    renamable $a = COPY killed renamable $rc15
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc2, killed renamable $c
+    renamable $rc29 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc13
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc3, killed renamable $c
+    renamable $rc24 = COPY killed renamable $a
+    renamable $x = LDAbs %stack.1 :: (load (s8) from %stack.1)
+    renamable $rc13 = COPY killed renamable $x
+    renamable $a = COPY killed renamable $rc14
+    renamable $a = EORImag8 killed renamable $a, renamable $rc13
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc4, killed renamable $c
+    renamable $rc30 = COPY killed renamable $a
+    renamable $x = LDAbs %stack.3 :: (load (s8) from %stack.3)
+    renamable $rc14 = COPY killed renamable $x
+    renamable $a = COPY killed renamable $rc8
+    renamable $a = EORImag8 killed renamable $a, renamable $rc14
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc5, killed renamable $c
+    renamable $rc21 = COPY killed renamable $a
+    renamable $x = LDAbs %stack.4 :: (load (s8) from %stack.4)
+    renamable $rc15 = COPY killed renamable $x
+    renamable $a = COPY killed renamable $rc18
+    renamable $a = EORImag8 killed renamable $a, renamable $rc15
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc6, killed renamable $c
+    renamable $rc23 = COPY killed renamable $a
+    renamable $x = LDAbs %stack.5 :: (load (s8) from %stack.5)
+    renamable $rc18 = COPY killed renamable $x
+    renamable $a = COPY killed renamable $rc19
+    renamable $a = EORImag8 killed renamable $a, renamable $rc18
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc7, killed renamable $c
+    renamable $rc20 = COPY killed renamable $a
+    renamable $x = LDAbs %stack.6 :: (load (s8) from %stack.6)
+    renamable $rc19 = COPY killed renamable $x
+    renamable $a = COPY killed renamable $rc27
+    renamable $a = EORImag8 killed renamable $a, renamable $rc19
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc9, killed renamable $c
+    renamable $rc27 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc28
+    renamable $x = LDAbs %stack.13 :: (load (s8) from %stack.13)
+    renamable $rc8 = COPY killed renamable $x
+    renamable $a = EORImag8 killed renamable $a, renamable $rc8
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc10, killed renamable $c
+    renamable $x = COPY killed renamable $a
+    renamable $a = LDAbs %stack.14 :: (load (s8) from %stack.14)
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc11
+    renamable $rc2 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc22
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc12
+    renamable $rc3 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc26
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc13
+    renamable $rc4 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $y
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc14
+    renamable $rc5 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc31
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc15
+    renamable $rc6 = COPY killed renamable $a
+    renamable $a = LDAbs %stack.16 :: (load (s8) from %stack.16)
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc18
+    renamable $rc7 = COPY killed renamable $a
+    renamable $a = LDAbs %stack.15 :: (load (s8) from %stack.15)
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc19
+    renamable $rc9 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc25
+    renamable $a = EORImag8 killed renamable $a, killed renamable $rc8
+    renamable $rc8 = COPY killed renamable $a
+    renamable $c = LDImm1 0
+    renamable $a = COPY killed renamable $rc29
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc2, killed renamable $c
+    renamable $y = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc24
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc3, killed renamable $c
+    renamable $rc10 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc30
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc4, killed renamable $c
+    renamable $rc2 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc21
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc5, killed renamable $c
+    renamable $rc3 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc23
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc6, killed renamable $c
+    renamable $rc4 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc20
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc7, killed renamable $c
+    renamable $rc5 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc27
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc9, killed renamable $c
+    renamable $rc6 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $x
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, killed renamable $rc8, killed renamable $c
+    $rc7 = COPY killed renamable $a
+    $x = COPY killed renamable $rc10
+    $a = COPY killed renamable $y
+    RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7
+...

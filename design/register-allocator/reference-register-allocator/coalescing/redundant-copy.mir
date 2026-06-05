@@ -1,0 +1,111 @@
+--- |
+  ; ModuleID = './coalescing/redundant-copy.ll'
+  source_filename = "./coalescing/redundant-copy.c"
+  target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+  target triple = "mos-unknown-unknown"
+  
+  ; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none)
+  define dso_local noundef i16 @redundant_copy(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+    %.frozen = freeze i16 %0
+    %4 = icmp eq i16 %.frozen, 0
+    br i1 %4, label %select.end, label %select.false
+  
+  select.false:                                     ; preds = %3
+    br label %select.end
+  
+  select.end:                                       ; preds = %3, %select.false
+    %5 = phi i16 [ %2, %3 ], [ %1, %select.false ]
+    ret i16 %5
+  }
+  
+  attributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) "frame-pointer"="all" "no-trapping-math"="true" "nonreentrant" "stack-protector-buffer-size"="8" }
+  
+  !llvm.module.flags = !{!0}
+  !llvm.ident = !{!1}
+  !llvm.errno.tbaa = !{!2}
+  
+  !0 = !{i32 7, !"frame-pointer", i32 2}
+  !1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+  !2 = !{!3, !3, i64 0}
+  !3 = !{!"int", !4, i64 0}
+  !4 = !{!"omnipotent char", !5, i64 0}
+  !5 = !{!"Simple C/C++ TBAA"}
+...
+---
+name:            redundant_copy
+alignment:       1
+exposesReturnsTwice: false
+legalized:       true
+regBankSelected: true
+selected:        true
+failedISel:      false
+tracksRegLiveness: true
+hasWinCFI:       false
+noPhis:          true
+isSSA:           false
+noVRegs:         true
+hasFakeUses:     false
+callsEHReturn:   false
+callsUnwindInit: false
+hasEHContTarget: false
+hasEHScopes:     false
+hasEHFunclets:   false
+isOutlined:      false
+debugInstrRef:   false
+failsVerification: false
+tracksDebugUserValues: true
+registers:       []
+liveins:         []
+frameInfo:
+  isFrameAddressTaken: false
+  isReturnAddressTaken: false
+  hasStackMap:     false
+  hasPatchPoint:   false
+  stackSize:       0
+  offsetAdjustment: 0
+  maxAlignment:    1
+  adjustsStack:    false
+  hasCalls:        false
+  framePointerPolicy: all
+  stackProtector:  ''
+  functionContext: ''
+  maxCallFrameSize: 4294967295
+  cvBytesOfCalleeSavedRegisters: 0
+  hasOpaqueSPAdjustment: false
+  hasVAStart:      false
+  hasMustTailInVarArgFunc: false
+  hasTailCall:     false
+  isCalleeSavedInfoValid: false
+  localFrameSize:  0
+fixedStack:      []
+stack:           []
+entry_values:    []
+callSites:       []
+debugValueSubstitutions: []
+constants:       []
+machineFunctionInfo: {}
+body:             |
+  bb.0 (%ir-block.3):
+    successors: %bb.2(0x30000000), %bb.1(0x50000000)
+    liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  
+    renamable $rc6 = COPY $x
+    renamable $x = COPY $rc2
+    renamable $y = COPY $rc3
+    CmpBrZeroMultiByte %bb.2, 1, killed renamable $a, killed renamable $rc6, implicit-def dead $c
+    JMP %bb.1
+  
+  bb.1.select.false:
+    successors: %bb.2(0x80000000)
+    liveins: $x, $y
+  
+    renamable $rc4 = COPY killed renamable $x
+    renamable $rc5 = COPY killed renamable $y
+  
+  bb.2.select.end:
+    liveins: $rc4, $rc5
+  
+    $x = COPY killed renamable $rc5
+    $a = COPY killed renamable $rc4
+    RTS implicit $a, implicit $x
+...

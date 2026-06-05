@@ -1,0 +1,116 @@
+--- |
+  ; ModuleID = './constraints/bitops.ll'
+  source_filename = "./constraints/bitops.c"
+  target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+  target triple = "mos-unknown-unknown"
+  
+  ; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none)
+  define dso_local noundef i16 @bitops(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+    %4 = xor i16 %2, %1
+    %5 = or i16 %2, %1
+    %6 = and i16 %5, %0
+    %7 = or i16 %6, %4
+    ret i16 %7
+  }
+  
+  attributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) "frame-pointer"="all" "no-trapping-math"="true" "nonreentrant" "stack-protector-buffer-size"="8" }
+  
+  !llvm.module.flags = !{!0}
+  !llvm.ident = !{!1}
+  !llvm.errno.tbaa = !{!2}
+  
+  !0 = !{i32 7, !"frame-pointer", i32 2}
+  !1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+  !2 = !{!3, !3, i64 0}
+  !3 = !{!"int", !4, i64 0}
+  !4 = !{!"omnipotent char", !5, i64 0}
+  !5 = !{!"Simple C/C++ TBAA"}
+...
+---
+name:            bitops
+alignment:       1
+exposesReturnsTwice: false
+legalized:       true
+regBankSelected: true
+selected:        true
+failedISel:      false
+tracksRegLiveness: true
+hasWinCFI:       false
+noPhis:          true
+isSSA:           false
+noVRegs:         true
+hasFakeUses:     false
+callsEHReturn:   false
+callsUnwindInit: false
+hasEHContTarget: false
+hasEHScopes:     false
+hasEHFunclets:   false
+isOutlined:      false
+debugInstrRef:   false
+failsVerification: false
+tracksDebugUserValues: true
+registers:       []
+liveins:         []
+frameInfo:
+  isFrameAddressTaken: false
+  isReturnAddressTaken: false
+  hasStackMap:     false
+  hasPatchPoint:   false
+  stackSize:       0
+  offsetAdjustment: 0
+  maxAlignment:    1
+  adjustsStack:    false
+  hasCalls:        false
+  framePointerPolicy: all
+  stackProtector:  ''
+  functionContext: ''
+  maxCallFrameSize: 4294967295
+  cvBytesOfCalleeSavedRegisters: 0
+  hasOpaqueSPAdjustment: false
+  hasVAStart:      false
+  hasMustTailInVarArgFunc: false
+  hasTailCall:     false
+  isCalleeSavedInfoValid: false
+  localFrameSize:  0
+fixedStack:      []
+stack:           []
+entry_values:    []
+callSites:       []
+debugValueSubstitutions: []
+constants:       []
+machineFunctionInfo: {}
+body:             |
+  bb.0 (%ir-block.3):
+    liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  
+    renamable $rc6 = COPY $a
+    renamable $rc7 = COPY $x
+    renamable $x = COPY $rc4
+    renamable $y = COPY $rc5
+    renamable $a = COPY renamable $x
+    renamable $a = EORImag8 killed renamable $a, renamable $rc2
+    renamable $rc4 = COPY killed renamable $a
+    renamable $a = COPY renamable $y
+    renamable $a = EORImag8 killed renamable $a, renamable $rc3
+    renamable $rc5 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $x
+    renamable $a = ORAImag8 killed renamable $a, killed renamable $rc2
+    renamable $x = COPY killed renamable $a
+    renamable $a = COPY killed renamable $y
+    renamable $a = ORAImag8 killed renamable $a, killed renamable $rc3
+    renamable $rc2 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $x
+    renamable $a = ANDImag8 killed renamable $a, killed renamable $rc6
+    renamable $y = COPY killed renamable $a
+    renamable $a = COPY killed renamable $rc2
+    renamable $a = ANDImag8 killed renamable $a, killed renamable $rc7
+    renamable $x = COPY killed renamable $a
+    renamable $a = COPY killed renamable $y
+    renamable $a = ORAImag8 killed renamable $a, killed renamable $rc4
+    renamable $y = COPY killed renamable $a
+    renamable $a = COPY killed renamable $x
+    renamable $a = ORAImag8 killed renamable $a, killed renamable $rc5
+    $x = COPY killed renamable $a
+    $a = COPY killed renamable $y
+    RTS implicit $a, implicit $x
+...

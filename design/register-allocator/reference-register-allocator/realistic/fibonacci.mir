@@ -1,0 +1,176 @@
+--- |
+  ; ModuleID = './realistic/fibonacci.ll'
+  source_filename = "./realistic/fibonacci.c"
+  target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+  target triple = "mos-unknown-unknown"
+  
+  ; Function Attrs: nofree norecurse nosync nounwind memory(none)
+  define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+    %2 = icmp sgt i16 %0, 0
+    br i1 %2, label %.preheader, label %3
+  
+  .preheader:                                       ; preds = %1
+    br label %5
+  
+  3:                                                ; preds = %5, %1
+    %4 = phi i16 [ 0, %1 ], [ %7, %5 ]
+    ret i16 %4
+  
+  5:                                                ; preds = %.preheader, %5
+    %lsr.iv = phi i16 [ %0, %.preheader ], [ %lsr.iv.next, %5 ]
+    %6 = phi i16 [ 0, %.preheader ], [ %7, %5 ]
+    %7 = phi i16 [ 1, %.preheader ], [ %8, %5 ]
+    %8 = add nsw i16 %6, %7
+    %lsr.iv.next = add i16 %lsr.iv, -1
+    %9 = icmp eq i16 %lsr.iv.next, 0
+    br i1 %9, label %3, label %5, !llvm.loop !6
+  }
+  
+  attributes #0 = { nofree norecurse nosync nounwind memory(none) "frame-pointer"="all" "no-trapping-math"="true" "nonreentrant" "stack-protector-buffer-size"="8" }
+  
+  !llvm.module.flags = !{!0}
+  !llvm.ident = !{!1}
+  !llvm.errno.tbaa = !{!2}
+  
+  !0 = !{i32 7, !"frame-pointer", i32 2}
+  !1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+  !2 = !{!3, !3, i64 0}
+  !3 = !{!"int", !4, i64 0}
+  !4 = !{!"omnipotent char", !5, i64 0}
+  !5 = !{!"Simple C/C++ TBAA"}
+  !6 = distinct !{!6, !7}
+  !7 = !{!"llvm.loop.mustprogress"}
+...
+---
+name:            fibonacci
+alignment:       1
+exposesReturnsTwice: false
+legalized:       true
+regBankSelected: true
+selected:        true
+failedISel:      false
+tracksRegLiveness: true
+hasWinCFI:       false
+noPhis:          true
+isSSA:           false
+noVRegs:         true
+hasFakeUses:     false
+callsEHReturn:   false
+callsUnwindInit: false
+hasEHContTarget: false
+hasEHScopes:     false
+hasEHFunclets:   false
+isOutlined:      false
+debugInstrRef:   false
+failsVerification: false
+tracksDebugUserValues: true
+registers:       []
+liveins:         []
+frameInfo:
+  isFrameAddressTaken: false
+  isReturnAddressTaken: false
+  hasStackMap:     false
+  hasPatchPoint:   false
+  stackSize:       0
+  offsetAdjustment: 0
+  maxAlignment:    1
+  adjustsStack:    false
+  hasCalls:        false
+  framePointerPolicy: all
+  stackProtector:  ''
+  functionContext: ''
+  maxCallFrameSize: 4294967295
+  cvBytesOfCalleeSavedRegisters: 0
+  hasOpaqueSPAdjustment: false
+  hasVAStart:      false
+  hasMustTailInVarArgFunc: false
+  hasTailCall:     false
+  isCalleeSavedInfoValid: false
+  localFrameSize:  0
+fixedStack:      []
+stack:           []
+entry_values:    []
+callSites:       []
+debugValueSubstitutions: []
+constants:       []
+machineFunctionInfo: {}
+body:             |
+  bb.0 (%ir-block.1):
+    successors: %bb.1(0x40000000), %bb.2(0x40000000)
+    liveins: $a, $x
+  
+    renamable $y = COPY $a
+    renamable $c = CMPImm renamable $y, 1
+    renamable $a = COPY renamable $x
+    renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a, 0, killed renamable $c
+    GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+    JMP %bb.2
+  
+  bb.1 (%ir-block.1):
+    successors: %bb.3(0x80000000)
+    liveins: $a, $x, $y
+  
+    renamable $a = EORImm killed renamable $a, -128
+    JMP %bb.3
+  
+  bb.2 (%ir-block.1):
+    successors: %bb.3(0x80000000)
+    liveins: $a, $x, $y
+  
+    JMP %bb.3
+  
+  bb.3 (%ir-block.1):
+    successors: %bb.5(0x50000000), %bb.4(0x30000000)
+    liveins: $a, $x, $y
+  
+    CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+  
+  bb.4:
+    successors: %bb.6(0x80000000)
+  
+    renamable $a = LDImm 0
+    renamable $rc6 = COPY killed renamable $a
+    renamable $a = LDImm 0
+    JMP %bb.6
+  
+  bb.5..preheader:
+    successors: %bb.7(0x80000000)
+    liveins: $x, $y
+  
+    renamable $rc2 = COPY killed renamable $y
+    renamable $y = LDImm 0
+    renamable $a = LDImm 1
+    renamable $rc3 = COPY killed renamable $a
+    renamable $a = LDImm 0
+    renamable $rc5 = COPY renamable $a
+    renamable $rc4 = COPY killed renamable $a
+    JMP %bb.7
+  
+  bb.6 (%ir-block.3):
+    liveins: $a, $rc6
+  
+    $x = COPY killed renamable $a
+    $a = COPY killed renamable $rc6
+    RTS implicit $a, implicit $x
+  
+  bb.7 (%ir-block.5):
+    successors: %bb.6(0x04000000), %bb.7(0x7c000000)
+    liveins: $x, $y, $rc2, $rc3, $rc4, $rc5
+  
+    renamable $a = COPY killed renamable $rc5
+    renamable $c = LDImm1 0
+    renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a, renamable $rc3, killed renamable $c
+    renamable $rc7 = COPY killed renamable $a
+    renamable $a = COPY killed renamable $y
+    renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a, renamable $rc4, killed renamable $c
+    renamable $rc8 = COPY killed renamable $a
+    dead early-clobber renamable $y, renamable $rc2, renamable $x = DecMB killed renamable $rc2(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+    renamable $rc6 = COPY renamable $rc3
+    renamable $a = COPY renamable $rc4
+    renamable $rc5 = COPY killed renamable $rc3
+    renamable $rc3 = COPY killed renamable $rc7
+    renamable $y = COPY killed renamable $rc4
+    renamable $rc4 = COPY killed renamable $rc8
+    CmpBrZeroMultiByte %bb.6, 1, renamable $rc2, renamable $x, implicit-def dead $c
+    JMP %bb.7
+...
