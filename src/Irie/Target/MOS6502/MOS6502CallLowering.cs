@@ -2,10 +2,31 @@ using Irie.Mir;
 
 namespace Irie.Target.MOS6502;
 
-// CC_MOS for the unified-MIR pipeline. Bytes are passed in A, X, RC2, RC3, …
-// (RC0/RC1 reserved as the soft stack pointer); each multi-byte value occupies
-// consecutive registers LSB-first. Mirrors the old Irie.Target.MOS6502.MOS6502CallLowering
-// while emitting the new pseudo dialect ops on the MIR types.
+// CC_MOS for the unified-MIR pipeline. Bytes are passed/returned in A, X, RC2,
+// RC3, … (LSB-first for multi-byte values); RC0/RC1 are the soft stack pointer.
+// Mirrors the old Irie.Target.MOS6502.MOS6502CallLowering while emitting the new
+// pseudo dialect ops on the MIR types.
+//
+// Register save classes follow the LLVM-MOS C calling convention
+// (https://llvm-mos.org/wiki/C_calling_convention):
+//
+//   Caller-saved (volatile; a callee may clobber these freely, so the caller
+//   must preserve any it still needs across a call):
+//       A, X, Y, C, N, V, Z, RC2..RC19   (RC2..RC19 = zp $02..$13)
+//
+//   Callee-saved (a callee that clobbers these must save+restore them, so the
+//   caller can rely on them surviving a call):
+//       PC, S, D, I, RC0, RC1, RC20..RC31   (RC20..RC31 = zp $14..$1F)
+//
+// CAVEAT — the current implementation does NOT yet match this convention:
+// `CallerSavedScratch` below lists RC2..RC15 (not RC2..RC19) and wrongly
+// includes D and I, and no function actually saves/restores the callee-saved
+// RC20..RC31, so cross-call values placed there are not yet preserved. Aligning
+// the clobber set to the table above, plus callee-saved spilling to a static
+// frame, is the subject of notes/static-stack-alloc-plan.md (Layers 0–3). Until
+// that lands, RC16..RC29 are left out of CallerSavedScratch as a stopgap (see
+// the CallerSavedScratch comment) which preserves simple cross-call patterns but
+// miscompiles when a callee reuses those slots (e.g. CallNestedMethods).
 public sealed class MOS6502CallLowering : Irie.Target.CallLowering
 {
     private static readonly int[] ArgRegs =
@@ -276,17 +297,25 @@ public sealed class MOS6502CallLowering : Irie.Target.CallLowering
     private static readonly int CallTargetHi = MOS6502Registers.RC(31);
 
     // Caller-saved scratch physregs that any arbitrary callee may clobber,
-    // independent of the call's arg/return registers. RC0/RC1 are reserved
-    // as the soft stack pointer and survive across calls. RC2..RC15 are
-    // listed here as the CC arg-passing slots; RC16..RC31 are intentionally
-    // left out so the register allocator has a pool of "effectively
-    // callee-saved" zero-page slots for values that need to live across
-    // calls (until proper spilling / frame slots land in steps 11+, this
-    // is the stopgap that lets simple cross-call patterns like
-    // `call @F, %x; call @F, %x` allocate without spilling).
+    // independent of the call's arg/return registers. See the file-header
+    // table for the full LLVM-MOS save classes.
     //
-    // Once frame slots + spilling are wired up, RC16..RC31 should be added
-    // here so the CC matches LLVM-MOS conventions (all RC* caller-saved).
+    // TARGET convention: caller-saved = A, X, Y, C, N, V, Z, RC2..RC19;
+    // callee-saved = RC0, RC1, RC20..RC31 (plus D, I, S, PC). I.e. the flags
+    // D and I should NOT be here, and the RC caller-saved range should run to
+    // RC19, not RC15.
+    //
+    // CURRENT (stopgap) convention, which this list encodes: only RC2..RC15 are
+    // marked clobbered, and RC16..RC31 are left out so the RA has a pool of
+    // "effectively callee-saved" zero-page slots for values that must live
+    // across calls — without any callee actually saving them. This lets simple
+    // cross-call patterns (`call @F, %x; call @F, %x`) allocate without
+    // spilling, but MISCOMPILES when a callee reuses those slots (the
+    // CallNestedMethods bug). D and I are also (incorrectly) included here.
+    //
+    // Fixing this — extend the clobber set to RC2..RC19, drop D/I, and add
+    // callee-saved spilling of RC20..RC31 to a static frame — is Layers 0–1 of
+    // notes/static-stack-alloc-plan.md.
     private static readonly int[] CallerSavedScratch =
     [
         MOS6502Registers.A,
