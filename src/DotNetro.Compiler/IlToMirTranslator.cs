@@ -81,6 +81,12 @@ internal sealed class IlToMirTranslator : IDisposable
         // Append the runtime functions (oswrch, osasci, WriteLineInt32, …).
         module.Functions.AddRange(runtimeModule.Functions);
 
+        // The whole runtime is always linked in, so @WriteLineBoolean (and its
+        // references to @True_String / @False_String) is always present even
+        // when unused. Register those two globals unconditionally so the encoder
+        // can always resolve the symbols.
+        EnsureBooleanStringGlobals();
+
         // Append the string constants / static fields collected during the walk.
         module.Globals.AddRange(_globals.Values);
 
@@ -111,6 +117,21 @@ internal sealed class IlToMirTranslator : IDisposable
         }
 
         return stringKey;
+    }
+
+    // The runtime @WriteLineBoolean references two fixed string globals,
+    // @True_String / @False_String, holding "True" / "False" in the same
+    // CR+NUL format @WriteLineString consumes. They are registered here (rather
+    // than declared in runtime.irie) so the exact byte payload and size match
+    // every other interned string. Registered on demand the first time a
+    // Console.WriteLine(bool) call is translated.
+    private const string TrueStringSymbol = "True_String";
+    private const string FalseStringSymbol = "False_String";
+
+    private void EnsureBooleanStringGlobals()
+    {
+        RegisterStringGlobal(TrueStringSymbol, "True");
+        RegisterStringGlobal(FalseStringSymbol, "False");
     }
 
     // Register a static field as a zero-initialized (.bss-style) MirGlobal and
@@ -317,7 +338,7 @@ internal sealed class IlToMirTranslator : IDisposable
             }
 
             var ilReader = _method.MethodBody!.MethodBodyBlock!.GetILReader();
-            MirBlock currentBlock = entryBlock;
+            _currentBlock = entryBlock;
 
             while (ilReader.RemainingBytes > 0)
             {
@@ -329,8 +350,8 @@ internal sealed class IlToMirTranslator : IDisposable
                 if (instructionOffset != 0
                     && _ilOffsetToBlock.TryGetValue(instructionOffset, out var nextBlock))
                 {
-                    if (!BlockHasTerminator(currentBlock))
-                        EmitBranchTo(currentBlock, nextBlock);
+                    if (!BlockHasTerminator(_currentBlock))
+                        EmitBranchTo(_currentBlock, nextBlock);
 
                     if (_stack.Count != 0)
                         throw new NotSupportedException(
@@ -338,7 +359,7 @@ internal sealed class IlToMirTranslator : IDisposable
                             $"(method {_method.UniqueName}).");
 
                     EnterBlock(nextBlock);
-                    currentBlock = nextBlock;
+                    _currentBlock = nextBlock;
                 }
 
                 var opCode = ReadOpCode(ref ilReader);
@@ -380,23 +401,23 @@ internal sealed class IlToMirTranslator : IDisposable
                     case ILOpCode.Ldarg_s: TranslateLdarg(ilReader.ReadByte()); break;
 
                     case ILOpCode.Br_s:
-                        TranslateBr(currentBlock, ilReader.ReadSByte() + ilReader.Offset);
+                        TranslateBr(_currentBlock, ilReader.ReadSByte() + ilReader.Offset);
                         break;
                     case ILOpCode.Br:
-                        TranslateBr(currentBlock, ilReader.ReadInt32() + ilReader.Offset);
+                        TranslateBr(_currentBlock, ilReader.ReadInt32() + ilReader.Offset);
                         break;
 
                     case ILOpCode.Brtrue_s:
-                        TranslateCondBranch(currentBlock, ilReader.ReadSByte() + ilReader.Offset, branchIfTrue: true);
+                        TranslateCondBranch(_currentBlock, ilReader.ReadSByte() + ilReader.Offset, branchIfTrue: true);
                         break;
                     case ILOpCode.Brtrue:
-                        TranslateCondBranch(currentBlock, ilReader.ReadInt32() + ilReader.Offset, branchIfTrue: true);
+                        TranslateCondBranch(_currentBlock, ilReader.ReadInt32() + ilReader.Offset, branchIfTrue: true);
                         break;
                     case ILOpCode.Brfalse_s:
-                        TranslateCondBranch(currentBlock, ilReader.ReadSByte() + ilReader.Offset, branchIfTrue: false);
+                        TranslateCondBranch(_currentBlock, ilReader.ReadSByte() + ilReader.Offset, branchIfTrue: false);
                         break;
                     case ILOpCode.Brfalse:
-                        TranslateCondBranch(currentBlock, ilReader.ReadInt32() + ilReader.Offset, branchIfTrue: false);
+                        TranslateCondBranch(_currentBlock, ilReader.ReadInt32() + ilReader.Offset, branchIfTrue: false);
                         break;
 
                     case ILOpCode.Ldstr:
@@ -743,6 +764,12 @@ internal sealed class IlToMirTranslator : IDisposable
 
         private int[] _parameterVregs = [];
 
+        // The block currently being emitted into. Normally tracks the IL
+        // basic-block leader, but a value-used compare (TranslateClt's diamond)
+        // splits the current block and redirects this to the merge block so
+        // subsequent IL emits after the materialised 0/1 result.
+        private MirBlock _currentBlock = null!;
+
         private void PushConstant(int value)
         {
             // C# integer literals are i32 on the IL stack.
@@ -793,6 +820,13 @@ internal sealed class IlToMirTranslator : IDisposable
 
         // clt → arith.cmpi <slt>, %a, %b → i1, pushed onto the eval stack.
         // (cge, used by bge, would be sge — added when a test needs it.)
+        //
+        // The cmpi is left unmaterialised: if an immediately-following
+        // brtrue/brfalse consumes it, TranslateCondBranch builds a cf.cond_br on
+        // it and Irie's isel fuses the pair (loop-condition path). If instead the
+        // i1 is consumed as a *value* (e.g. passed to Console.WriteLine(bool)),
+        // TranslateCall materialises it into a concrete 0/1 i8 via a cond_br
+        // diamond (see MaterialiseCompare).
         private void TranslateClt()
         {
             var right = _stack.Pop();
@@ -803,6 +837,56 @@ internal sealed class IlToMirTranslator : IDisposable
 
             var result = _builder.BuildCmpI(ArithCmpPredicate.Slt, left.Vreg, right.Vreg);
             _stack.Push(new StackValue(result, IRType.I1));
+        }
+
+        // Build the cond_br diamond that turns an i1 compare result (defined by a
+        // preceding arith.cmpi at the end of the current block) into a concrete
+        // 0/1 i8:
+        //
+        //   <current>:                              ; cmpi already emitted here
+        //       %c : i1 = arith.cmpi <pred>, %a, %b
+        //       cf.cond_br %c, trueLeg, falseLeg     ; appended here
+        //   trueLeg:  cf.br merge(1 : i8)
+        //   falseLeg: cf.br merge(0 : i8)
+        //   merge(%r : i8):                         ; becomes the new current block
+        //
+        // The cmpi+cond_br pair is selected by isel exactly as the fused branch
+        // path. Returns the merge block's i8 parameter vreg (the 0/1 result).
+        private int MaterialiseCompare(int condVreg)
+        {
+            var trueLeg = _function.CreateBlock();
+            var falseLeg = _function.CreateBlock();
+            var merge = _function.CreateBlock();
+
+            var resultVreg = _function.CreateVirtualRegister(IRType.I8);
+            merge.Parameters.Add(resultVreg);
+
+            // cond_br on the existing cmpi result, at the end of the current block.
+            _builder.SetInsertionPointAtEnd(_currentBlock);
+            _builder.BuildInstruction(
+                CfDialect.OpRef(CfOp.CondBr),
+                new VirtualReg(condVreg, IsDefinition: false),
+                new BlockTarget(trueLeg, []),
+                new BlockTarget(falseLeg, []));
+
+            // trueLeg → merge(1 : i8)
+            _builder.SetInsertionPointAtEnd(trueLeg);
+            var one = _builder.BuildConstant(IRType.I8, 1);
+            _builder.BuildInstruction(
+                CfDialect.OpRef(CfOp.Br),
+                new BlockTarget(merge, [new VirtualReg(one, IsDefinition: false)]));
+
+            // falseLeg → merge(0 : i8)
+            _builder.SetInsertionPointAtEnd(falseLeg);
+            var zero = _builder.BuildConstant(IRType.I8, 0);
+            _builder.BuildInstruction(
+                CfDialect.OpRef(CfOp.Br),
+                new BlockTarget(merge, [new VirtualReg(zero, IsDefinition: false)]));
+
+            // Subsequent IL emits into the merge block.
+            _builder.SetInsertionPointAtEnd(merge);
+            _currentBlock = merge;
+            return resultVreg;
         }
 
         // brtrue/brfalse → cf.cond_br on the i1 condition. The taken edge goes
@@ -922,13 +1006,23 @@ internal sealed class IlToMirTranslator : IDisposable
             {
                 "System_Console_WriteLine_Int32" => "WriteLineInt32",
                 "System_Console_WriteLine_String" => "WriteLineString",
+                "System_Console_WriteLine_Boolean" => "WriteLineBoolean",
                 _ => callee.UniqueName,
             };
             var isSpecialCased = !ReferenceEquals(calleeName, callee.UniqueName);
 
             var argVregs = new int[callee.Parameters.Length];
             for (var i = callee.Parameters.Length - 1; i >= 0; i--)
-                argVregs[i] = _stack.Pop().Vreg;
+            {
+                var arg = _stack.Pop();
+                // An i1 compare result passed as a value (rather than consumed by
+                // a branch) is materialised into a concrete 0/1 i8 here, via the
+                // cond_br diamond. The argument's expected type is i8 (Boolean
+                // maps to i8 in ToIRType), so the materialised i8 matches.
+                argVregs[i] = arg.Type == IRType.I1
+                    ? MaterialiseCompare(arg.Vreg)
+                    : arg.Vreg;
+            }
 
             var returnType = ToIRType(callee.MethodSignature.ReturnType);
             var returnTypes = returnType is VoidType ? Array.Empty<IRType>() : [returnType];

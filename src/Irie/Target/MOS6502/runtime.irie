@@ -45,6 +45,32 @@ bb0(%0 : i8):
 }
 
 ; ---------------------------------------------------------------------------
+; @WriteLineBoolean : (i8) -> void
+;
+; Prints "True" or "False" (each followed by CR, expanded to CR/LF by osasci)
+; depending on whether the argument is non-zero. Mirrors
+; DotNetro.Runtime.ConsoleHelper.WriteLineBoolean.
+;
+; Written in generic MIR: an `arith.cmpi ne` against 0 fused with `cf.cond_br`
+; picks the leg, and each leg loads the address of the matching string global
+; (@True_String / @False_String, registered by the translator in the same
+; CR+NUL format @WriteLineString consumes) and tail-calls @WriteLineString.
+func @WriteLineBoolean : (i8) -> void {
+bb0(%0 : i8):
+    %1 : i8 = arith.constant 0
+    %2 : i1 = arith.cmpi ne, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    %3 : i16 = mem.symbol @True_String
+    call.func @WriteLineString, %3
+    core.return
+bb2():
+    %4 : i16 = mem.symbol @False_String
+    call.func @WriteLineString, %4
+    core.return
+}
+
+; ---------------------------------------------------------------------------
 ; @WriteLineInt32 : (i32) -> void
 ;
 ; Prints a signed 32-bit integer in decimal followed by CR (which osasci

@@ -1,0 +1,42 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Materialising a compare result as a concrete 0/1 value (rather than fusing it
+; into a branch). This is the shape the IL→MIR translator emits for a `clt`
+; whose result is used as a VALUE (e.g. passed to Console.WriteLine(bool))
+; rather than consumed by a following brtrue/brfalse: a cmpi+cond_br diamond
+; whose two legs feed 1 / 0 into a successor block parameter (MIR's PHI). This
+; reuses the existing fused-compare + block-argument machinery — no bare-cmpi
+; support is required in the instruction selector.
+;
+; Here the operands are i32 and the predicate is signed-less-than, so the multi
+; -byte signed compare chain (sign-flip of the top byte + per-byte CMP ladder)
+; drives the BCC/BNE exits into the true / false legs.
+
+; CHECK: CompareToByte:
+; The signed-less-than chain flips bit 7 of each operand's top byte first.
+; CHECK:     EOR #\$80
+; CHECK:     EOR #\$80
+; CHECK:     CMP
+; CHECK:     BCC \.bb1
+; CHECK: \.bb1:
+; CHECK:     LDA #\$01
+; CHECK:     JMP \.bb3
+; CHECK: \.bb2:
+; CHECK:     LDA #\$00
+; CHECK:     JMP \.bb3
+; CHECK: \.bb3:
+; CHECK:     RTS
+
+func @CompareToByte : (i32, i32) -> i8 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i1 = arith.cmpi slt, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    %3 : i8 = arith.constant 1
+    cf.br bb3(%3)
+bb2():
+    %4 : i8 = arith.constant 0
+    cf.br bb3(%4)
+bb3(%5 : i8):
+    core.return %5
+}
