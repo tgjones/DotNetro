@@ -1,0 +1,81 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; @ReadLine and @Beep from runtime.irie: BBC Micro OSWORD helpers, hand-written
+; in target MIR (an OSWORD call has no generic-dialect form). Ported from
+; DotNetro.Compiler.CodeGen.BbcMicroCodeGenerator.CompileSystemConsoleReadLine /
+; CompileSystemConsoleBeep; the control-block bytes are verified against the
+; legacy generator's listing.
+;
+; @ReadLine builds the OSWORD 0 control block in zero page $37-$3B ($0600 input
+; buffer, $EE max length, $20/$FF ASCII range), calls OSWORD, and returns the
+; $0600 buffer pointer as an i16 ($a = $00 low, $x = $06 high per CC_MOS).
+;
+; @Beep points X/Y at the @Sound OSWORD 7 control block (registered by the
+; translator) and calls OSWORD 7. There is no ldx/ldy-immediate-symbol op, so
+; the address bytes flow through $a and the zero-page scratch slot $00.
+
+; CHECK: ReadLine:
+; CHECK:     LDA #\$00
+; CHECK:     STA \$37
+; CHECK:     LDA #\$06
+; CHECK:     STA \$38
+; CHECK:     LDA #\$EE
+; CHECK:     STA \$39
+; CHECK:     LDA #\$20
+; CHECK:     STA \$3A
+; CHECK:     LDA #\$FF
+; CHECK:     STA \$3B
+; CHECK:     LDY #\$00
+; CHECK:     LDX #\$37
+; CHECK:     LDA #\$00
+; CHECK:     JSR \$FFF1
+; CHECK:     LDA #\$00
+; CHECK:     LDX #\$06
+; CHECK:     RTS
+
+; CHECK: Beep:
+; CHECK:     LDA #<Sound
+; CHECK:     STA \$00
+; CHECK:     LDX \$00
+; CHECK:     LDA #>Sound
+; CHECK:     STA \$00
+; CHECK:     LDY \$00
+; CHECK:     LDA #\$07
+; CHECK:     JSR \$FFF1
+; CHECK:     RTS
+
+func @ReadLine : () -> i16 {
+bb0():
+    $0 = mos6502.lda.imm 0
+    $67 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 6
+    $68 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 238
+    $69 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 32
+    $70 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 255
+    $71 = mos6502.sta.zp $0
+    $2 = mos6502.ldy.imm 0
+    $1 = mos6502.ldx.imm 55
+    $0 = mos6502.lda.imm 0
+    mos6502.jsr.abs 65521, implicit $1, implicit $2
+    $0 = mos6502.lda.imm 0
+    $1 = mos6502.ldx.imm 6
+    mos6502.rts implicit $0, implicit $1
+}
+
+func @Beep : () -> void {
+bb0():
+    $0 = mos6502.lda.imm.symlo @Sound
+    $12 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.zp $12
+    $0 = mos6502.lda.imm.symhi @Sound
+    $12 = mos6502.sta.zp $0
+    $2 = mos6502.ldy.zp $12
+    $0 = mos6502.lda.imm 7
+    mos6502.jsr.abs 65521, implicit $0, implicit $1, implicit $2
+    mos6502.rts
+}
+
+global @Sound : i16 = bytes "12"

@@ -45,6 +45,69 @@ bb0(%0 : i8):
 }
 
 ; ---------------------------------------------------------------------------
+; @ReadLine : () -> i16
+;
+; Reads a line of input via OSWORD 0 into the BBC Micro's default input buffer
+; at $0600, and returns that buffer pointer ($0600) as an i16. Ported from
+; DotNetro.Compiler.CodeGen.BbcMicroCodeGenerator.CompileSystemConsoleReadLine.
+;
+; Target MIR (an OSWORD call): builds the control block in zero page $37-$3B
+;   $37/$38 : $0600 = address to place the input string
+;   $39     : $EE   = maximum input line length
+;   $3A     : $20   = minimum acceptable ASCII code
+;   $3B     : $FF   = maximum acceptable ASCII code
+; then LDX #$37 / LDA #0 / JSR osword. The returned i16 pointer is $0600, placed
+; LSB-first into the CC_MOS return registers ($a = $00 low, $x = $06 high).
+;
+; Zero-page physregs: $67..$71 address $37..$71-12 = $37..$3B (RC(n) = 12 + n,
+; and the sta.zp emitter encodes the byte as physreg_id - RC(0)).
+func @ReadLine : () -> i16 {
+bb0():
+    $0 = mos6502.lda.imm 0
+    $67 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 6
+    $68 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 238
+    $69 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 32
+    $70 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 255
+    $71 = mos6502.sta.zp $0
+    $2 = mos6502.ldy.imm 0
+    $1 = mos6502.ldx.imm 55
+    $0 = mos6502.lda.imm 0
+    mos6502.jsr.abs 65521, implicit $1, implicit $2
+    ; Return the buffer pointer $0600: low byte $00 in $a, high byte $06 in $x.
+    $0 = mos6502.lda.imm 0
+    $1 = mos6502.ldx.imm 6
+    mos6502.rts implicit $0, implicit $1
+}
+
+; ---------------------------------------------------------------------------
+; @Beep : () -> void
+;
+; Makes a short beep via OSWORD 7 (SOUND). Ported from
+; DotNetro.Compiler.CodeGen.BbcMicroCodeGenerator.CompileSystemConsoleBeep.
+;
+; Target MIR: points X/Y at the @Sound control block then LDA #7 / JSR osword.
+; The 8-byte control block (channel=1, amplitude=-15, pitch=0, duration=4, each
+; a little-endian 16-bit field) is the @Sound global, registered by the
+; translator. X / Y are loaded via $a (there is no ldx/ldy-immediate-symbol op),
+; parked through the zero-page scratch slot $12 (RC0).
+func @Beep : () -> void {
+bb0():
+    $0 = mos6502.lda.imm.symlo @Sound
+    $12 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.zp $12
+    $0 = mos6502.lda.imm.symhi @Sound
+    $12 = mos6502.sta.zp $0
+    $2 = mos6502.ldy.zp $12
+    $0 = mos6502.lda.imm 7
+    mos6502.jsr.abs 65521, implicit $0, implicit $1, implicit $2
+    mos6502.rts
+}
+
+; ---------------------------------------------------------------------------
 ; @WriteLineBoolean : (i8) -> void
 ;
 ; Prints "True" or "False" (each followed by CR, expanded to CR/LF by osasci)

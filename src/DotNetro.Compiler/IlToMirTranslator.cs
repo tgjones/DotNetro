@@ -81,11 +81,12 @@ internal sealed class IlToMirTranslator : IDisposable
         // Append the runtime functions (oswrch, osasci, WriteLineInt32, …).
         module.Functions.AddRange(runtimeModule.Functions);
 
-        // The whole runtime is always linked in, so @WriteLineBoolean (and its
-        // references to @True_String / @False_String) is always present even
-        // when unused. Register those two globals unconditionally so the encoder
-        // can always resolve the symbols.
-        EnsureBooleanStringGlobals();
+        // The whole runtime is always linked in, so the hand-written helpers
+        // that reference module globals (@WriteLineBoolean → @True_String /
+        // @False_String, @Beep → @Sound) are always present even when unused.
+        // Register those globals unconditionally so the encoder can always
+        // resolve the symbols.
+        EnsureRuntimeGlobals();
 
         // Append the string constants / static fields collected during the walk.
         module.Globals.AddRange(_globals.Values);
@@ -127,11 +128,27 @@ internal sealed class IlToMirTranslator : IDisposable
     // Console.WriteLine(bool) call is translated.
     private const string TrueStringSymbol = "True_String";
     private const string FalseStringSymbol = "False_String";
+    private const string SoundSymbol = "Sound";
 
-    private void EnsureBooleanStringGlobals()
+    // The OSWORD 7 (SOUND) control block @Beep points X/Y at: four little-endian
+    // 16-bit fields — channel = 1, amplitude = -15, pitch = 0, duration = 4.
+    // Byte-for-byte identical to the legacy generator's `.word`/`.short` block.
+    private static readonly byte[] SoundControlBlock =
+        [0x01, 0x00, 0xF1, 0xFF, 0x00, 0x00, 0x04, 0x00];
+
+    private void EnsureRuntimeGlobals()
     {
         RegisterStringGlobal(TrueStringSymbol, "True");
         RegisterStringGlobal(FalseStringSymbol, "False");
+
+        if (!_globals.ContainsKey(SoundSymbol))
+        {
+            _globals[SoundSymbol] = new MirGlobal(
+                SymbolName:  SoundSymbol,
+                Type:        IRType.Pointer,
+                SizeInBytes: SoundControlBlock.Length,
+                Initializer: new MirInitializer([new DataBytes(SoundControlBlock)]));
+        }
     }
 
     // Register a static field as a zero-initialized (.bss-style) MirGlobal and
@@ -240,6 +257,9 @@ internal sealed class IlToMirTranslator : IDisposable
                 PrimitiveTypeCode.Boolean => IRType.I8,
                 PrimitiveTypeCode.Int32 => IRType.I32,
                 PrimitiveTypeCode.IntPtr or PrimitiveTypeCode.UIntPtr => IRType.I16,
+                // A managed string is a heap reference: a 16-bit pointer on the
+                // 6502 (the pointer @ReadLine returns / @WriteLineString consumes).
+                PrimitiveTypeCode.String => IRType.I16,
                 _ => throw new NotSupportedException(
                     $"IL→MIR: primitive type {primitive.PrimitiveTypeCode} is not supported yet."),
             };
@@ -1007,6 +1027,8 @@ internal sealed class IlToMirTranslator : IDisposable
                 "System_Console_WriteLine_Int32" => "WriteLineInt32",
                 "System_Console_WriteLine_String" => "WriteLineString",
                 "System_Console_WriteLine_Boolean" => "WriteLineBoolean",
+                "System_Console_ReadLine" => "ReadLine",
+                "System_Console_Beep" => "Beep",
                 _ => callee.UniqueName,
             };
             var isSpecialCased = !ReferenceEquals(calleeName, callee.UniqueName);
