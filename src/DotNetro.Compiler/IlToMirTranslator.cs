@@ -1,10 +1,13 @@
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 
+using System.Text;
+
 using DotNetro.Compiler.TypeSystem;
 
 using Irie.Dialects.Arith;
 using Irie.Dialects.Core;
+using Irie.Dialects.Mem;
 using Irie.Mir;
 
 namespace DotNetro.Compiler;
@@ -29,6 +32,11 @@ internal sealed class IlToMirTranslator : IDisposable
     private readonly HashSet<string> _runtimeFunctionNames = [];
 
     private readonly string _runtimeText;
+
+    // Module-level globals (string constants, static fields) collected during
+    // the IL walk and appended to the module once translation completes. Keyed
+    // by symbol name so the same string / static field is registered only once.
+    private readonly Dictionary<string, MirGlobal> _globals = [];
 
     // Pointer size is 16-bit on the 6502.
     private const int PointerSize = 2;
@@ -72,7 +80,54 @@ internal sealed class IlToMirTranslator : IDisposable
         // Append the runtime functions (oswrch, osasci, WriteLineInt32, …).
         module.Functions.AddRange(runtimeModule.Functions);
 
+        // Append the string constants / static fields collected during the walk.
+        module.Globals.AddRange(_globals.Values);
+
         return module;
+    }
+
+    // Intern a string constant as a module-level MirGlobal and return its
+    // symbol name. Mirrors DotNetCompiler.CompileLdstr: the key is
+    // `string{token:X8}` and the payload is the ASCII bytes followed by CR
+    // (0x0D) then NUL (0x00) — i.e. the legacy `.cstring "...", 13` format.
+    // @WriteLineString loops over the bytes calling osasci (which expands CR to
+    // CR/LF) until it reaches the NUL terminator.
+    private string RegisterStringGlobal(string stringKey, string value)
+    {
+        if (!_globals.ContainsKey(stringKey))
+        {
+            var ascii = Encoding.ASCII.GetBytes(value);
+            var bytes = new byte[ascii.Length + 2];
+            Array.Copy(ascii, bytes, ascii.Length);
+            bytes[ascii.Length] = 0x0D;     // CR, matching `.cstring "...", 13`
+            bytes[ascii.Length + 1] = 0x00; // NUL terminator
+
+            _globals[stringKey] = new MirGlobal(
+                SymbolName:  stringKey,
+                Type:        IRType.Pointer,
+                SizeInBytes: bytes.Length,
+                Initializer: new MirInitializer([new DataBytes(bytes)]));
+        }
+
+        return stringKey;
+    }
+
+    // Register a static field as a zero-initialized (.bss-style) MirGlobal and
+    // return its symbol name. Mirrors DotNetCompiler's GetStaticFieldName:
+    // `{field.Owner.EncodedName}_{field.Name}`.
+    private string RegisterStaticFieldGlobal(EcmaField field)
+    {
+        var name = $"{field.Owner.EncodedName}_{field.Name}";
+        if (!_globals.ContainsKey(name))
+        {
+            _globals[name] = new MirGlobal(
+                SymbolName:  name,
+                Type:        ToIRType(field.Type),
+                SizeInBytes: field.Type.Size,
+                Initializer: null);
+        }
+
+        return name;
     }
 
     private EcmaMethod? FindMethod(string methodName)
@@ -263,6 +318,18 @@ internal sealed class IlToMirTranslator : IDisposable
                         TranslateBr(ilReader.ReadSByte() + ilReader.Offset, ilReader.Offset);
                         break;
 
+                    case ILOpCode.Ldstr:
+                        TranslateLdstr(ilReader.ReadInt32());
+                        break;
+
+                    case ILOpCode.Ldsfld:
+                        TranslateLdsfld(MetadataTokens.EntityHandle(ilReader.ReadInt32()));
+                        break;
+
+                    case ILOpCode.Stsfld:
+                        TranslateStsfld(MetadataTokens.EntityHandle(ilReader.ReadInt32()));
+                        break;
+
                     case ILOpCode.Call:
                         TranslateCall(MetadataTokens.Handle(ilReader.ReadInt32()));
                         break;
@@ -334,6 +401,70 @@ internal sealed class IlToMirTranslator : IDisposable
                     $"IL→MIR: non-fall-through branch (br.s to {target}) is not supported yet " +
                     $"(method {_method.UniqueName}).");
         }
+
+        // ldstr "..." → intern the string as a MirGlobal, push a `mem.symbol`
+        // pointer (i16) to its bytes. WriteLineString consumes that pointer.
+        private void TranslateLdstr(int token)
+        {
+            var value = _method.MetadataReader.GetUserString(
+                MetadataTokens.UserStringHandle(token));
+            var stringKey = $"string{token:X8}";
+            _parent.RegisterStringGlobal(stringKey, value);
+
+            var ptr = _builder.BuildMemSymbol(stringKey);
+            _stack.Push(new StackValue(ptr, IRType.Pointer));
+        }
+
+        // ldsfld <field> → load the static field's value via its symbolic
+        // address: %p = mem.symbol @<owner>_<field>; %v = mem.load.iN %p.
+        private void TranslateLdsfld(EntityHandle fieldHandle)
+        {
+            var field = _method.DeclaringType.Assembly.GetField(
+                (FieldDefinitionHandle)fieldHandle);
+            var name = _parent.RegisterStaticFieldGlobal(field);
+            var type = ToIRType(field.Type);
+
+            var ptr = _builder.BuildMemSymbol(name);
+            var value = _function.CreateVirtualRegister(type);
+            _builder.BuildInstruction(MemDialect.OpRef(LoadOpFor(type)),
+                new VirtualReg(value, IsDefinition: true),
+                new VirtualReg(ptr, IsDefinition: false));
+            _stack.Push(new StackValue(value, type));
+        }
+
+        // stsfld <field> → store the top of stack into the static field's
+        // symbolic address: %p = mem.symbol @<owner>_<field>; mem.store.iN %p, %v.
+        private void TranslateStsfld(EntityHandle fieldHandle)
+        {
+            var field = _method.DeclaringType.Assembly.GetField(
+                (FieldDefinitionHandle)fieldHandle);
+            var name = _parent.RegisterStaticFieldGlobal(field);
+            var type = ToIRType(field.Type);
+
+            var value = _stack.Pop();
+            var ptr = _builder.BuildMemSymbol(name);
+            _builder.BuildInstruction(MemDialect.OpRef(StoreOpFor(type)),
+                new VirtualReg(ptr, IsDefinition: false),
+                new VirtualReg(value.Vreg, IsDefinition: false));
+        }
+
+        private static MemOp LoadOpFor(IRType type) => type.SizeInBits switch
+        {
+            8 => MemOp.LoadI8,
+            16 => MemOp.LoadI16,
+            32 => MemOp.LoadI32,
+            _ => throw new NotSupportedException(
+                $"IL→MIR: mem.load of {type} is not supported yet."),
+        };
+
+        private static MemOp StoreOpFor(IRType type) => type.SizeInBits switch
+        {
+            8 => MemOp.StoreI8,
+            16 => MemOp.StoreI16,
+            32 => MemOp.StoreI32,
+            _ => throw new NotSupportedException(
+                $"IL→MIR: mem.store of {type} is not supported yet."),
+        };
 
         private void TranslateCall(Handle methodHandle)
         {
