@@ -79,12 +79,15 @@ unlock the largest block of skipped cases.
 ## Other findings surfaced during conversion
 
 - **`cf.cond_br` carrying block-args on its edges leaves stray vregs after RA.**
-  A conditional branch written as `cf.cond_br %p, bb1(%a), bb2(%b)` produced
-  post-RA output still referencing virtual registers (e.g.
-  `mos6502.bne bb1(%10, %11)`), i.e. PhiElimination/RA does not fully lower
-  block-args on *conditional* edges the way it does on `cf.br`. The converted
-  `Select`/`EarlyReturn` tests sidestep this by using arg-less `cond_br` with
-  direct cross-block uses; the bug itself is worth fixing independently.
+  *(Fixed — register-allocator redesign Phase 0.)* A conditional branch written
+  as `cf.cond_br %p, bb1(%a), bb2(%b)` used to produce post-RA output still
+  referencing virtual registers (e.g. `mos6502.bne bb1(%10, %11)`) because
+  PhiElimination inserted the phi-copies before the *shared* terminator. The pass
+  now splits the multi-successor edge: each conditional edge carrying args gets a
+  fresh single-successor block holding the `pseudo.copy` + `cf.br`, so no
+  block-args survive. See `PhiElimination-CondBrArgs{OneEdge,BothEdges}.irie`.
+  The converted `Select`/`EarlyReturn` tests still use arg-less `cond_br` with
+  direct cross-block uses.
 - **i16 compares emit two `cmp`/branch pairs** (one per byte) — that is correct
   multi-byte comparison lowering, not a bug, but it makes branchy tests longer
   than their llvm-mos counterparts.

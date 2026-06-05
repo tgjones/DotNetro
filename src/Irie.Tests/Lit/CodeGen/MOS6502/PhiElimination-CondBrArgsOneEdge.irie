@@ -1,0 +1,35 @@
+; RUN: @iriec --target mos6502 --run-pass PhiElimination @file
+
+; A cf.cond_br carries block-args on only its taken edge (bb1), not its
+; fall-through edge (bb2). The copy lowering the taken edge's arg must run
+; only when that edge is taken, so it cannot be placed before the shared
+; cond_br terminator.
+;
+; PhiElimination splits the taken edge: it appends a fresh single-successor
+; block (bb3) holding the unconditional branch into bb1, lowers the edge's
+; block-arg to a pseudo.copy inside that block, and redirects the cond_br's
+; taken target from bb1(%0) to bb3. After the pass no cf.cond_br carries
+; block-args and no block has parameters.
+
+; CHECK: func @one : \(i8, i8\) -> i8 \{
+; CHECK:   bb0\(\):
+; CHECK:     %2 : i1 = arith.cmpi eq, %0, %1
+; CHECK:     cf.cond_br %2, bb3, bb2
+; CHECK:   bb1\(\):
+; CHECK:     core.return %3
+; CHECK:   bb2\(\):
+; CHECK:     core.return %1
+; CHECK:   bb3\(\):
+; CHECK:     %3 : i8 = pseudo.copy %0
+; CHECK:     cf.br bb1
+; CHECK: \}
+
+func @one : (i8, i8) -> i8 {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi eq, %0, %1
+    cf.cond_br %2, bb1(%0), bb2
+bb1(%3 : i8):
+    core.return %3
+bb2():
+    core.return %1
+}

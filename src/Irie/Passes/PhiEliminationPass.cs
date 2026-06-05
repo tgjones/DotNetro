@@ -1,3 +1,4 @@
+using Irie.Dialects.Cf;
 using Irie.Dialects.Pseudo;
 using Irie.Mir;
 
@@ -12,10 +13,29 @@ namespace Irie.Passes;
 // cycle (e.g. a loop that swaps two live variables), a fresh temporary vreg
 // breaks the cycle.
 //
-// Critical edges (one predecessor with multiple successors, one successor with
-// multiple predecessors) cannot be handled without splitting the edge first.
-// If a critical edge is detected and the target block has parameters, this
-// pass throws NotImplementedException.
+// Critical-edge / multi-successor handling
+// ----------------------------------------
+// The phi-copies for an edge pred -> block must execute *only when that edge is
+// taken*. Inserting them before pred's terminator is correct only if pred has a
+// single successor — then control always flows pred -> block and the copies run
+// on exactly that edge.
+//
+// If pred has more than one successor (its terminator is a `cf.cond_br`, which
+// has a taken and a fall-through edge), inserting the copies before the shared
+// terminator would run them on *both* edges. That is the bug described in the
+// register-allocator redesign plan §1.4 / §5: a `cf.cond_br` carrying block-args
+// on an edge leaves stray vregs after RA because the copies landed in the wrong
+// place.
+//
+// The standard fix is **critical-edge splitting**: for any edge whose source has
+// multiple successors, we insert a fresh intermediate block on that edge. The
+// pred's branch target is redirected to the new block; the new block contains a
+// plain `cf.br block(args)`. The new block has a single successor, so the
+// phi-copies can be inserted there safely. (We split on "pred has >1 successor"
+// rather than the textbook "critical edge" test — source has >1 successor *and*
+// target has >1 predecessor — because even a non-critical edge from a multi-
+// successor branch needs its copies isolated to one edge; splitting it too is
+// harmless.)
 public sealed class PhiEliminationPass : MirFunctionPass
 {
     public override string Name => "PhiElimination";
@@ -24,16 +44,29 @@ public sealed class PhiEliminationPass : MirFunctionPass
     {
         function.RebuildCfg();
 
+        // Phase 1: split every multi-successor edge that feeds a block with
+        // parameters, so each such edge owns a single-successor block into which
+        // its phi-copies can be placed. This rewrites BlockTarget operands, so it
+        // must run (and the CFG be rebuilt) before we insert any copies.
+        SplitMultiSuccessorEdgesIntoParamBlocks(function);
+        function.RebuildCfg();
+
+        // Phase 2: replace each block's parameters with copies in its
+        // predecessors. After phase 1 every predecessor of a parameterized block
+        // has exactly one successor, so inserting copies before its terminator is
+        // correct.
         foreach (var block in function.Blocks.ToList())
         {
             if (block.Parameters.Count == 0) continue;
 
             foreach (var pred in block.Predecessors)
             {
-                if (pred.Successors.Count > 1 && block.Predecessors.Count > 1)
-                    throw new NotImplementedException(
-                        "PhiEliminationPass: critical edge with block parameters — " +
-                        "split the critical edge before running this pass.");
+                // Phase 1 guarantees this: a parameterized block is only ever
+                // reached from single-successor predecessors.
+                if (pred.Successors.Count > 1)
+                    throw new InvalidOperationException(
+                        "PhiEliminationPass: parameterized block still reached from a " +
+                        "multi-successor predecessor after critical-edge splitting.");
 
                 var (termIdx, terminator, btOperandIdx, target) = FindBranch(pred, block);
 
@@ -61,6 +94,53 @@ public sealed class PhiEliminationPass : MirFunctionPass
             }
 
             block.Parameters.Clear();
+        }
+    }
+
+    // Splits every edge whose source block has more than one successor and whose
+    // target block has parameters. For each such edge a fresh block is created
+    // holding a plain `cf.br target(args)`; the source's branch operand is
+    // redirected from `target(args)` to `splitBlock()` (no args). The args travel
+    // with the unconditional branch into the new single-successor block, where
+    // phase 2 can lower them to copies safely.
+    private static void SplitMultiSuccessorEdgesIntoParamBlocks(MirFunction function)
+    {
+        foreach (var block in function.Blocks.ToList())
+        {
+            // A block's terminator may carry several BlockTarget operands (e.g.
+            // cf.cond_br has two). Walk every instruction's operands and split
+            // each multi-successor edge that targets a parameterized block.
+            //
+            // We must decide "multi-successor" from the source's distinct
+            // successor set, so compute it once per source block.
+            var distinctSuccessors = new HashSet<MirBlock>();
+            foreach (var instr in block.Instructions)
+                foreach (var op in instr.Operands)
+                    if (op is BlockTarget t)
+                        distinctSuccessors.Add(t.Block);
+
+            if (distinctSuccessors.Count <= 1) continue;
+
+            foreach (var instr in block.Instructions)
+            {
+                var operands = instr.Operands;
+                for (var j = 0; j < operands.Length; j++)
+                {
+                    if (operands[j] is not BlockTarget target) continue;
+                    if (target.Block.Parameters.Count == 0) continue;
+
+                    // Create the intermediate block carrying the unconditional
+                    // branch (with the original args) into the real target.
+                    var splitBlock = function.CreateBlock();
+                    splitBlock.AddInstruction(
+                        CfDialect.OpRef(CfOp.Br),
+                        new BlockTarget(target.Block, target.Args));
+
+                    // Redirect the source's branch to the split block; the args
+                    // now live on the cf.br inside it, not on this edge.
+                    operands[j] = new BlockTarget(splitBlock, []);
+                }
+            }
         }
     }
 
