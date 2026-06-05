@@ -45,6 +45,7 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
         {
             WidenLiveinsToFlexibleClass(function, flexibleI8);
             WidenUnconstrainedToFlexibleClass(function, flexibleI8);
+            WidenLeftoverTypedToFlexibleClass(function, flexibleI8);
         }
 
         InsertConstraintFixupCopies(function);
@@ -141,6 +142,54 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
             if (!Contains(flexibleRegs, narrow[0])) continue;
 
             function.ReclassifyVirtualRegister(vreg, flexibleI8, flexibleName);
+        }
+    }
+
+    // Step 1c — any vreg still carrying a TypedVReg annotation (width ≤ 8) at
+    // RA time is, by construction, an 8-bit value the instruction selector
+    // never pinned to a specific class: it flows only through pseudo.copy
+    // plumbing. The canonical source is block-parameter narrowing — the i8
+    // block parameters the legalizer introduces survive PhiElimination as
+    // typed pseudo.copy defs in non-entry blocks. Give them the flexible class
+    // so RA can park them in the abundant RC* pool. A still-typed wider vreg
+    // would indicate an isel/legalizer gap, so it is rejected loudly.
+    private void WidenLeftoverTypedToFlexibleClass(MirFunction function, int flexibleI8)
+    {
+        // Only consider vregs that some instruction actually references; an
+        // orphaned typed annotation (e.g. a dead merge result the legalizer
+        // already DCE'd, such as an unused parameter) never reaches RA.
+        var referenced = new HashSet<int>();
+        foreach (var block in function.Blocks)
+            foreach (var instr in block.Instructions)
+                foreach (var op in instr.Operands)
+                    CollectVregRefs(op, referenced);
+
+        var flexibleName = ClassNameOrFallback(flexibleI8);
+        foreach (var vreg in referenced)
+        {
+            if (!function.TryGetVRegAnnotation(vreg, out var annotation)) continue;
+            if (annotation is not TypedVReg typed) continue;
+
+            if (typed.Type.SizeInBits > 8)
+                throw new InvalidOperationException(
+                    $"RegisterAllocator: vreg %{vreg} still has wide type " +
+                    $"{typed.Type.DisplayName} at RA — legalization/isel did not narrow it.");
+
+            function.ReclassifyVirtualRegister(vreg, flexibleI8, flexibleName);
+        }
+    }
+
+    private static void CollectVregRefs(MirOperand op, HashSet<int> into)
+    {
+        switch (op)
+        {
+            case VirtualReg v:
+                into.Add(v.Id);
+                break;
+            case BlockTarget bt:
+                foreach (var arg in bt.Args)
+                    CollectVregRefs(arg, into);
+                break;
         }
     }
 

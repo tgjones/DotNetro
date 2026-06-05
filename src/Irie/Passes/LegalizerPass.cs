@@ -27,6 +27,11 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         var builder = new MirBuilder(function);
         var combiner = new LegalizationArtifactCombiner(function);
 
+        // Narrow any wide (>8-bit) block parameters into per-byte i8 parameters
+        // before the worklist legalization, so the merge/unmerge artifacts it
+        // inserts are picked up by the population loop below.
+        NarrowWideBlockParameters(function, builder);
+
         var instList = new InstructionWorkList();
         var artifactList = new InstructionWorkList();
 
@@ -85,6 +90,129 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         } while (!instList.IsEmpty);
 
         builder.SetObserver(null);
+    }
+
+    // Narrow every wide (>8-bit) block parameter into a run of i8 parameters.
+    // For each narrowed parameter:
+    //   * the block gains N i8 parameter vregs in place of the wide one;
+    //   * a `pseudo.merge` at the top of the block rebinds them into the
+    //     original wide vreg so in-block wide ops keep working (the worklist
+    //     legalizer then narrows those ops and folds the merge);
+    //   * every predecessor edge's matching wide argument is replaced by N i8
+    //     arguments produced by a `pseudo.unmerge` before that terminator (the
+    //     combiner folds unmerge-of-merge round trips away).
+    //
+    // The 8-bit element width matches the rest of the MOS6502 legalization;
+    // a non-byte-multiple parameter width would be a bug upstream.
+    private static void NarrowWideBlockParameters(MirFunction function, MirBuilder builder)
+    {
+        function.RebuildCfg();
+
+        foreach (var block in function.Blocks)
+        {
+            if (block.Parameters.Count == 0) continue;
+
+            // Snapshot the current parameter list; build the new one alongside,
+            // recording, per old parameter slot, how many narrow slots it maps
+            // to (1 if unchanged) so we can rewrite predecessor args in lockstep.
+            var oldParams = block.Parameters.ToArray();
+            var newParams = new List<int>();
+            var slotWidths = new int[oldParams.Length];      // narrow-slot count per old slot
+            var mergeFor = new (int wideVreg, int[] parts)?[oldParams.Length];
+
+            for (var p = 0; p < oldParams.Length; p++)
+            {
+                var wideVreg = oldParams[p];
+                var width = ParamWidthBits(function, wideVreg);
+                if (width <= 8)
+                {
+                    slotWidths[p] = 1;
+                    newParams.Add(wideVreg);
+                    continue;
+                }
+
+                var count = width / 8;
+                slotWidths[p] = count;
+                var parts = new int[count];
+                for (var i = 0; i < count; i++)
+                {
+                    parts[i] = function.CreateVirtualRegister(IRType.I8);
+                    newParams.Add(parts[i]);
+                }
+                mergeFor[p] = (wideVreg, parts);
+            }
+
+            // Nothing widened? Skip.
+            if (newParams.Count == oldParams.Length) continue;
+
+            block.Parameters.Clear();
+            block.Parameters.AddRange(newParams);
+
+            // Insert merges at the top of the block (in original parameter
+            // order) to reconstruct each wide vreg from its byte params.
+            builder.SetInsertionPointAtStart(block);
+            for (var p = 0; p < oldParams.Length; p++)
+            {
+                if (mergeFor[p] is not (int wideVreg, int[] parts)) continue;
+                builder.BuildMergeInto(wideVreg, parts);
+            }
+
+            // Rewrite every predecessor edge's arguments to this block.
+            foreach (var pred in block.Predecessors)
+            {
+                var terminator = pred.Instructions[^1];
+                for (var oi = 0; oi < terminator.Operands.Length; oi++)
+                {
+                    if (terminator.Operands[oi] is not BlockTarget bt || bt.Block != block)
+                        continue;
+
+                    terminator.Operands[oi] = new BlockTarget(
+                        block,
+                        NarrowArgs(function, builder, pred, bt.Args, slotWidths));
+                }
+            }
+        }
+    }
+
+    // Replace each wide argument with the i8 bytes of a pseudo.unmerge emitted
+    // before `pred`'s terminator; narrow args pass through unchanged. slotWidths
+    // gives the narrow-slot count for each original argument position.
+    private static MirOperand[] NarrowArgs(
+        MirFunction function,
+        MirBuilder builder,
+        MirBlock pred,
+        MirOperand[] args,
+        int[] slotWidths)
+    {
+        var result = new List<MirOperand>();
+        builder.SetInsertionPointBefore(pred.Instructions[^1]);
+
+        for (var a = 0; a < args.Length; a++)
+        {
+            var count = a < slotWidths.Length ? slotWidths[a] : 1;
+            if (count <= 1)
+            {
+                result.Add(args[a]);
+                continue;
+            }
+
+            if (args[a] is not VirtualReg v || v.IsDefinition)
+                throw new InvalidOperationException(
+                    "Legalizer: wide block argument must be a virtual-register use.");
+
+            var bytes = builder.BuildUnmerge(IRType.I8, v.Id, count);
+            foreach (var b in bytes)
+                result.Add(new VirtualReg(b, IsDefinition: false));
+        }
+
+        return [.. result];
+    }
+
+    private static int ParamWidthBits(MirFunction function, int vreg)
+    {
+        if (function.TryGetVRegAnnotation(vreg, out var ann) && ann is TypedVReg typed)
+            return typed.Type.SizeInBits;
+        return 8; // already classed / non-typed → treat as narrow
     }
 
     private void LegalizeInstruction(MirInstruction instr, MirFunction function, MirBuilder builder)

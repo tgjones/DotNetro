@@ -1,0 +1,37 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Step 9 (il-to-mir plan): signed multi-byte arith.cmpi (slt / sge) fused with
+; cf.cond_br. The MOS6502 instruction selector reduces a signed ordering compare
+; to the unsigned per-byte CMP chain after flipping the sign bit (bit 7) of the
+; most-significant byte of *both* operands:
+;     a <_signed b  ==  (a ^ 0x80<<msb) <_unsigned (b ^ 0x80<<msb)
+; The two EOR #$80 instructions below flip the i32 top bytes; the chain then
+; runs the same high-to-low BCC/BNE ladder as the unsigned `ult` path.
+
+; CHECK: TestSlt32:
+; CHECK:     EOR #\$80
+; CHECK:     EOR #\$80
+; CHECK:     CMP
+; CHECK:     BCC \.bb1
+; CHECK:     BNE \.bb2
+; CHECK:     CMP
+; CHECK:     BCC \.bb1
+; CHECK:     BNE \.bb2
+; CHECK:     CMP
+; CHECK:     BCC \.bb1
+; CHECK:     BNE \.bb2
+; CHECK:     CMP
+; CHECK:     BCC \.bb1
+; CHECK:     JMP \.bb2
+
+func @TestSlt32 : (i32, i32) -> i8 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i1 = arith.cmpi slt, %0, %1
+    cf.cond_br %2, bb1(), bb2()
+bb1():
+    %3 : i8 = arith.constant 1
+    core.return %3
+bb2():
+    %4 : i8 = arith.constant 0
+    core.return %4
+}

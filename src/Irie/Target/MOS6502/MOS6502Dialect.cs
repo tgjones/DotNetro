@@ -289,6 +289,7 @@ public sealed class MOS6502Dialect : Dialect
             MOS6502Op.Cmp    => CmpInfo,
             MOS6502Op.CmpZp  => CmpInfo,
             MOS6502Op.CmpImm => CmpInfo,
+            MOS6502Op.EorImm => EorImmInfo,
             _ => DialectInstructionInfo.Empty,
         };
 
@@ -333,6 +334,17 @@ public sealed class MOS6502Dialect : Dialect
             MOS6502Registers.Z,
             MOS6502Registers.C,
         ]);
+
+    // `mos6502.eor.imm` accumulator EOR: def[0]=$a (result), use[0]=$a (tied),
+    // use[1]=immediate. The signed-compare sign-flip emits this with virtual
+    // Ac vregs, so the tied-operand metadata is needed for the two-address pass
+    // and RA to share a single $a across the def/use.
+    private static readonly DialectInstructionInfo EorImmInfo = new(
+        OperandClasses: [
+            MOS6502RegisterClass.Ac,    // def[0]: result
+            MOS6502RegisterClass.Ac,    // use[0]: a (tied to def[0])
+        ],
+        TiedOperands: [-1, 0]);
 
     // Target ops conservatively touch physregs/memory; treat them as having
     // side effects for DCE purposes until a finer-grained model is in place.

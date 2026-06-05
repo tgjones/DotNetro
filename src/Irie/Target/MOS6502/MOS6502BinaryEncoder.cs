@@ -26,9 +26,41 @@ public sealed class MOS6502BinaryEncoder
     // address it was laid out at.
     private List<GlobalLayoutEntry> _globalLayoutEntries = new();
 
+    // Relative branches whose target is out of signed-8-bit reach and must be
+    // relaxed into `Bxx_inverse *+5; JMP target` (5 bytes instead of 2).
+    // Determined by iterating layout to a fixpoint (relaxation only grows code).
+    private HashSet<MachineCodeInstruction> _relaxedBranches = new();
+
     public byte[] Encode(MachineCodeModule module, int origin)
     {
-        var layout = LayoutOnly(module, origin);
+        // Iterate layout until the set of out-of-range branches stabilises.
+        // Each relaxed branch grows by 3 bytes, which can push other branches
+        // out of range, so we repeat until no new branch needs relaxing.
+        var relaxed = new HashSet<MachineCodeInstruction>();
+        LayoutResult layout;
+        while (true)
+        {
+            layout = LayoutOnly(module, origin, relaxed);
+            var grew = false;
+            foreach (var entry in layout.Entries)
+            {
+                if (MOS6502InstructionInfo.Instance.Get(entry.Instruction.Opcode).Mode != AddressingMode.Relative)
+                    continue;
+                if (relaxed.Contains(entry.Instruction)) continue;
+
+                var target = ResolveLocalLabelIn(layout.LocalLabelAddrs, entry.Parent,
+                    ((MachineCodeOperand.LabelRef)entry.Instruction.Operands[0]).Name, entry.Addr);
+                var offset = target - (entry.Addr + 2);
+                if (offset < -128 || offset > 127)
+                {
+                    relaxed.Add(entry.Instruction);
+                    grew = true;
+                }
+            }
+            if (!grew) break;
+        }
+
+        _relaxedBranches = relaxed;
         _functionAddrs = layout.FunctionAddrs;
         _globalAddrs = layout.GlobalAddrs;
         _localLabelAddrs = layout.LocalLabelAddrs;
@@ -40,8 +72,7 @@ public sealed class MOS6502BinaryEncoder
         var totalLength = 0;
         foreach (var entry in _layoutEntries)
         {
-            var mode = MOS6502InstructionInfo.Instance.Get(entry.Instruction.Opcode).Mode;
-            var end = entry.Addr - origin + InstructionLength(mode);
+            var end = entry.Addr - origin + EntryLength(entry.Instruction);
             if (end > totalLength) totalLength = end;
         }
         foreach (var globalEntry in _globalLayoutEntries)
@@ -55,9 +86,25 @@ public sealed class MOS6502BinaryEncoder
         foreach (var (addr, parent, instr) in _layoutEntries)
         {
             var bytePos = addr - origin;
-            WriteByte(bytes, bytePos, instr.Opcode);
 
             var mode = MOS6502InstructionInfo.Instance.Get(instr.Opcode).Mode;
+
+            // Relaxed branch: emit `Bxx_inverse *+5; JMP target` (5 bytes). The
+            // inverse branch skips the 3-byte absolute JMP that reaches the far
+            // target. The original short branch's condition is inverted.
+            if (mode == AddressingMode.Relative && _relaxedBranches.Contains(instr))
+            {
+                var labelRef = (MachineCodeOperand.LabelRef)instr.Operands[0];
+                var targetAddr = ResolveLocalLabel(parent, labelRef.Name, addr);
+
+                WriteByte(bytes, bytePos, InverseBranchOpcode(instr.Opcode));
+                WriteByte(bytes, bytePos + 1, 3); // skip the JMP (3 bytes)
+                WriteByte(bytes, bytePos + 2, MOS6502Opcode.JMP_Absolute);
+                WriteLE16(bytes, bytePos + 3, targetAddr);
+                continue;
+            }
+
+            WriteByte(bytes, bytePos, instr.Opcode);
             switch (mode)
             {
                 case AddressingMode.Implied:
@@ -229,6 +276,9 @@ public sealed class MOS6502BinaryEncoder
     // Runs pass 1 in isolation and returns the resolved layout. Encode() calls
     // this internally; tests use it to observe the layout state until pass 2 lands.
     public LayoutResult LayoutOnly(MachineCodeModule module, int origin)
+        => LayoutOnly(module, origin, new HashSet<MachineCodeInstruction>());
+
+    private LayoutResult LayoutOnly(MachineCodeModule module, int origin, HashSet<MachineCodeInstruction> relaxed)
     {
         var functionAddrs = new Dictionary<string, int>();
         var globalAddrs = new Dictionary<string, int>();
@@ -260,7 +310,9 @@ public sealed class MOS6502BinaryEncoder
 
                     case MachineCodeInstruction instr:
                         entries.Add(new LayoutEntry(cursor, function, instr));
-                        cursor += InstructionLength(MOS6502InstructionInfo.Instance.Get(instr.Opcode).Mode);
+                        cursor += relaxed.Contains(instr)
+                            ? 5 // Bxx_inverse (2) + JMP abs (3)
+                            : InstructionLength(MOS6502InstructionInfo.Instance.Get(instr.Opcode).Mode);
                         break;
 
                     default:
@@ -284,6 +336,40 @@ public sealed class MOS6502BinaryEncoder
         }
 
         return new LayoutResult(functionAddrs, globalAddrs, localLabelAddrs, entries, globalEntries);
+    }
+
+    private int EntryLength(MachineCodeInstruction instr)
+    {
+        var mode = MOS6502InstructionInfo.Instance.Get(instr.Opcode).Mode;
+        if (mode == AddressingMode.Relative && _relaxedBranches.Contains(instr))
+            return 5;
+        return InstructionLength(mode);
+    }
+
+    // The conditional-branch opcode that branches on the opposite condition,
+    // used when relaxing an out-of-range branch into a branch-over-JMP.
+    private static int InverseBranchOpcode(int opcode) => opcode switch
+    {
+        MOS6502Opcode.BEQ => MOS6502Opcode.BNE,
+        MOS6502Opcode.BNE => MOS6502Opcode.BEQ,
+        MOS6502Opcode.BCC => MOS6502Opcode.BCS,
+        MOS6502Opcode.BCS => MOS6502Opcode.BCC,
+        MOS6502Opcode.BMI => MOS6502Opcode.BPL,
+        MOS6502Opcode.BPL => MOS6502Opcode.BMI,
+        MOS6502Opcode.BVC => MOS6502Opcode.BVS,
+        MOS6502Opcode.BVS => MOS6502Opcode.BVC,
+        _ => throw new InvalidOperationException(
+            $"MOS6502BinaryEncoder: no inverse branch for opcode ${opcode:X2} (cannot relax)."),
+    };
+
+    private static int ResolveLocalLabelIn(
+        Dictionary<MachineCodeFunction, Dictionary<string, int>> localLabelAddrs,
+        MachineCodeFunction parent, string name, int referringAddr)
+    {
+        if (!localLabelAddrs.TryGetValue(parent, out var labelMap) || !labelMap.TryGetValue(name, out var addr))
+            throw new InvalidOperationException(
+                $"MOS6502BinaryEncoder: undefined local label '{name}' referenced from function '{parent.Name}' at ${referringAddr:X4}.");
+        return addr;
     }
 
     private static int InstructionLength(AddressingMode mode) => mode switch

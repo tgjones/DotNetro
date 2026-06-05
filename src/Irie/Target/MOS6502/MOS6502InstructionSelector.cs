@@ -419,12 +419,27 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         int byteCount)
     {
         if (predicate is not (ArithCmpPredicate.Eq or ArithCmpPredicate.Ne
-            or ArithCmpPredicate.Ult or ArithCmpPredicate.Uge))
+            or ArithCmpPredicate.Ult or ArithCmpPredicate.Uge
+            or ArithCmpPredicate.Slt or ArithCmpPredicate.Sge))
         {
             throw new NotSupportedException(
                 $"MOS6502InstructionSelector: multi-byte arith.cmpi predicate '{ArithCmpPredicateNames.ToText(predicate)}' " +
-                "is not yet supported. Coverage so far: eq, ne, ult, uge. Signed predicates land later.");
+                "is not yet supported. Coverage so far: eq, ne, ult, uge, slt, sge.");
         }
+
+        // Signed ordering compares reduce to the unsigned chain after flipping
+        // the sign bit (bit 7 of the most-significant byte) of both operands:
+        //   a <_signed b  ==  (a ^ msb_mask) <_unsigned (b ^ msb_mask)
+        // where msb_mask has only the whole-value sign bit set. So `slt` runs
+        // the `ult` chain and `sge` the `uge` chain, both on sign-flipped top
+        // bytes. The flip is emitted below, after the bytes are funneled.
+        var signedFlip = predicate is ArithCmpPredicate.Slt or ArithCmpPredicate.Sge;
+        var chainPredicate = predicate switch
+        {
+            ArithCmpPredicate.Slt => ArithCmpPredicate.Ult,
+            ArithCmpPredicate.Sge => ArithCmpPredicate.Uge,
+            _ => predicate,
+        };
 
         var function = builder.Function;
         var block = cmpi.Parent!;
@@ -470,6 +485,15 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         var aBytes = FunnelThroughAnyi8(function, builder, aBytesRaw);
         var bBytes = FunnelThroughAnyi8(function, builder, bBytesRaw);
 
+        // For signed compares, flip bit 7 of the most-significant byte of each
+        // operand so the unsigned chain below computes the signed result.
+        if (signedFlip)
+        {
+            var top = byteCount - 1;
+            aBytes[top] = EorByteWithImmediate(function, builder, aBytes[top], 0x80);
+            bBytes[top] = EorByteWithImmediate(function, builder, bBytes[top], 0x80);
+        }
+
         // Walk high byte → low byte. For each byte: copy the a-byte into a
         // fresh Ac vreg (since the architectural CMP requires $a), constrain
         // the b-byte to Imag8 (zero page), emit CMP, then emit predicate-
@@ -495,12 +519,48 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             EmitCmp(builder, aCmpVreg, byteB);
 
             var isLast = pos == 0;
-            EmitMultiByteExits(builder, predicate, isLast, tTarget, fTarget);
+            EmitMultiByteExits(builder, chainPredicate, isLast, tTarget, fTarget);
         }
 
         builder.Remove(next);
         builder.Remove(cmpi);
         return true;
+    }
+
+    // Emit `result = byte EOR #imm`, returning a fresh Anyi8 vreg holding the
+    // result. The EOR must run in $a, so the byte is copied into a fresh Ac
+    // vreg, EOR'd in place (def tied to use via EorImmInfo), then copied back
+    // out into an Anyi8 vreg so the RA can park it in zero page for the rest of
+    // the compare chain (otherwise it would be pinned to $a and starve the
+    // per-byte CMP funnel).
+    private static int EorByteWithImmediate(MirFunction function, MirBuilder builder, int byteVreg, long imm)
+    {
+        var aIn = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Ac,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(aIn,     IsDefinition: true),
+            new VirtualReg(byteVreg, IsDefinition: false));
+
+        // %aOut : ac = mos6502.eor.imm %aIn, #imm  (def[0] tied to use[0]).
+        var aOut = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Ac,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+        builder.BuildInstruction(
+            MOS6502Dialect.OpRef(MOS6502Op.EorImm),
+            new VirtualReg(aOut, IsDefinition: true),
+            new VirtualReg(aIn,  IsDefinition: false),
+            new Immediate(imm));
+
+        var result = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Anyi8,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(result, IsDefinition: true),
+            new VirtualReg(aOut,   IsDefinition: false));
+        return result;
     }
 
     private static int[] FunnelThroughAnyi8(MirFunction function, MirBuilder builder, int[] bytes)

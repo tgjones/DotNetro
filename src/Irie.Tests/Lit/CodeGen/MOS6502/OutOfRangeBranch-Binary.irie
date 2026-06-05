@@ -1,9 +1,18 @@
-; RUN: not @iriec --target mos6502 --emit=bin --origin=0x1000 @file
+; RUN: @iriec --target mos6502 --emit=bin --origin=0x1000 @file | @irie-mc --hex-dump
 
-; A function whose BEQ target is more than 127 bytes away. The encoder must
-; throw a clear error rather than silently emitting a wrap-around offset.
-; The branch from bb0 targets bb1, which is preceded by 130 single-byte
-; CLC instructions — far enough to make the signed-8-bit offset overflow.
+; A function whose BEQ target is more than 127 bytes away. The signed-8-bit
+; relative offset cannot reach it, so the binary encoder relaxes the branch
+; into `BNE *+3 ; JMP bb1` (the inverse branch skips the 3-byte absolute JMP).
+; The branch from bb0 targets bb1, which is preceded by 130 single-byte clc
+; instructions, placing bb1 at $108C.
+;
+; Expected head bytes (origin $1000):
+;   c9 00     -> cmp #$00
+;   d0 03     -> bne *+3  (inverse of beq, skips the jmp)
+;   4c 8c 10  -> jmp $108c
+;   18 ...    -> 130x clc
+
+; CHECK: 00000000: C9 00 D0 03 4C 8C 10 18
 
 func @TooFar : () -> void {
 bb0():

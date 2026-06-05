@@ -267,8 +267,10 @@ public sealed class MOS6502BinaryEncoderTests
     }
 
     // Pad with enough NOPs that the BEQ target is more than 127 bytes ahead.
+    // The signed-8-bit relative offset cannot reach it, so the encoder relaxes
+    // the branch into `BNE *+3 ; JMP far` (inverse branch over a 3-byte JMP).
     [Test]
-    public async Task Encode_BranchOutOfRange_Throws()
+    public async Task Encode_BranchOutOfRange_Relaxes()
     {
         var module = new MachineCodeModule();
         var function = module.CreateFunction("F");
@@ -279,9 +281,17 @@ public sealed class MOS6502BinaryEncoderTests
         function.EmitLabel("far");
         function.EmitInstruction(MOS6502Opcode.RTS);
 
-        await Assert.That(() => new MOS6502BinaryEncoder().Encode(module, 0x1000))
-            .Throws<InvalidOperationException>()
-            .WithMessageContaining("out of range");
+        var bytes = new MOS6502BinaryEncoder().Encode(module, 0x1000);
+
+        // Relaxed head: BNE +3 ($D0 $03), then JMP far ($4C lo hi).
+        // far = $1000 + 5 (relaxed branch) + 200 (NOPs) = $10CD.
+        await Assert.That(bytes[0]).IsEqualTo((byte)MOS6502Opcode.BNE);
+        await Assert.That(bytes[1]).IsEqualTo((byte)0x03);
+        await Assert.That(bytes[2]).IsEqualTo((byte)MOS6502Opcode.JMP_Absolute);
+        await Assert.That(bytes[3]).IsEqualTo((byte)0xCD);
+        await Assert.That(bytes[4]).IsEqualTo((byte)0x10);
+        // The 200 NOPs follow the 5-byte relaxed branch.
+        await Assert.That(bytes[5]).IsEqualTo((byte)MOS6502Opcode.NOP);
     }
 
     [Test]

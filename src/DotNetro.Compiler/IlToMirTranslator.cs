@@ -6,6 +6,7 @@ using System.Text;
 using DotNetro.Compiler.TypeSystem;
 
 using Irie.Dialects.Arith;
+using Irie.Dialects.Cf;
 using Irie.Dialects.Core;
 using Irie.Dialects.Mem;
 using Irie.Mir;
@@ -243,11 +244,33 @@ internal sealed class IlToMirTranslator : IDisposable
         private readonly MirBuilder _builder;
 
         // Mirrors the IL evaluation stack: vreg IDs (paired with their type so
-        // we can size arith ops). Runs alongside the IL semantics.
+        // we can size arith ops). Runs alongside the IL semantics. Reset to
+        // empty at every basic-block boundary (the current corpus keeps the
+        // eval stack empty across boundaries — see the boundary assertion).
         private readonly Stack<StackValue> _stack = new();
 
         // Primitive SSA locals: local index → current vreg ID (and its type).
+        // Re-seeded to the current block's local parameter vregs at each block
+        // entry so reads observe the merged value flowing in along every edge.
         private readonly Dictionary<int, StackValue> _locals = [];
+
+        // IL has no basic blocks; we discover them by pre-scanning for branch
+        // targets and fall-through-after-branch points (see DiscoverBlocks).
+        // Maps an IL offset that starts a block → the MirBlock for it.
+        private readonly Dictionary<int, MirBlock> _ilOffsetToBlock = [];
+
+        // The IL offsets that start a block, in ascending order. Used to find
+        // the next block when emitting a fall-through terminator.
+        private int[] _blockStartOffsets = [];
+
+        // Per-local IRType (local index → type), used to size the per-block
+        // local parameters and the entry zero-init constants.
+        private IRType[] _localTypes = [];
+
+        // Non-entry blocks carry one parameter vreg per local (in local-index
+        // order) so the loop variable flows across edges as a block argument
+        // (MIR's PHI substitute). Maps a block → its local parameter vregs.
+        private readonly Dictionary<MirBlock, int[]> _blockLocalParams = [];
 
         public MethodTranslator(IlToMirTranslator parent, EcmaMethod method, MirFunction function)
         {
@@ -259,7 +282,14 @@ internal sealed class IlToMirTranslator : IDisposable
 
         public void Translate()
         {
-            var entryBlock = _function.CreateBlock();
+            var locals = _method.MethodBody?.LocalVariables ?? [];
+            _localTypes = new IRType[locals.Length];
+            for (var i = 0; i < locals.Length; i++)
+                _localTypes[i] = ToIRType(locals[i].Type);
+
+            DiscoverBlocks();
+
+            var entryBlock = _ilOffsetToBlock[0];
 
             // Parameters become entry-block parameter vregs (lowered by
             // AbiLoweringPass). Record them so ldarg.N can read them.
@@ -275,9 +305,42 @@ internal sealed class IlToMirTranslator : IDisposable
 
             _builder.SetInsertionPointAtEnd(entryBlock);
 
+            // C# locals are zero-initialised (`.locals init`). Seed every local
+            // with an explicit `arith.constant 0` of its type at function entry
+            // so each local always has a definite SSA value. This makes the
+            // block-parameter wiring total: every non-entry block can take a
+            // parameter for every local, and every edge can supply a value.
+            for (var i = 0; i < _localTypes.Length; i++)
+            {
+                var zero = _builder.BuildConstant(_localTypes[i], 0);
+                _locals[i] = new StackValue(zero, _localTypes[i]);
+            }
+
             var ilReader = _method.MethodBody!.MethodBodyBlock!.GetILReader();
+            MirBlock currentBlock = entryBlock;
+
             while (ilReader.RemainingBytes > 0)
             {
+                var instructionOffset = ilReader.Offset;
+
+                // Entering a new basic block (a discovered leader, but not the
+                // entry which we already opened). Close the previous block with
+                // a fall-through branch if it has no terminator, then switch.
+                if (instructionOffset != 0
+                    && _ilOffsetToBlock.TryGetValue(instructionOffset, out var nextBlock))
+                {
+                    if (!BlockHasTerminator(currentBlock))
+                        EmitBranchTo(currentBlock, nextBlock);
+
+                    if (_stack.Count != 0)
+                        throw new NotSupportedException(
+                            $"IL→MIR: non-empty eval stack at block boundary IL_{instructionOffset:X4} " +
+                            $"(method {_method.UniqueName}).");
+
+                    EnterBlock(nextBlock);
+                    currentBlock = nextBlock;
+                }
+
                 var opCode = ReadOpCode(ref ilReader);
                 switch (opCode)
                 {
@@ -295,6 +358,8 @@ internal sealed class IlToMirTranslator : IDisposable
                     case ILOpCode.Ldc_i4: PushConstant(ilReader.ReadInt32()); break;
 
                     case ILOpCode.Add: TranslateAdd(); break;
+
+                    case ILOpCode.Clt: TranslateClt(); break;
 
                     case ILOpCode.Stloc_0: TranslateStloc(0); break;
                     case ILOpCode.Stloc_1: TranslateStloc(1); break;
@@ -315,7 +380,23 @@ internal sealed class IlToMirTranslator : IDisposable
                     case ILOpCode.Ldarg_s: TranslateLdarg(ilReader.ReadByte()); break;
 
                     case ILOpCode.Br_s:
-                        TranslateBr(ilReader.ReadSByte() + ilReader.Offset, ilReader.Offset);
+                        TranslateBr(currentBlock, ilReader.ReadSByte() + ilReader.Offset);
+                        break;
+                    case ILOpCode.Br:
+                        TranslateBr(currentBlock, ilReader.ReadInt32() + ilReader.Offset);
+                        break;
+
+                    case ILOpCode.Brtrue_s:
+                        TranslateCondBranch(currentBlock, ilReader.ReadSByte() + ilReader.Offset, branchIfTrue: true);
+                        break;
+                    case ILOpCode.Brtrue:
+                        TranslateCondBranch(currentBlock, ilReader.ReadInt32() + ilReader.Offset, branchIfTrue: true);
+                        break;
+                    case ILOpCode.Brfalse_s:
+                        TranslateCondBranch(currentBlock, ilReader.ReadSByte() + ilReader.Offset, branchIfTrue: false);
+                        break;
+                    case ILOpCode.Brfalse:
+                        TranslateCondBranch(currentBlock, ilReader.ReadInt32() + ilReader.Offset, branchIfTrue: false);
                         break;
 
                     case ILOpCode.Ldstr:
@@ -342,6 +423,321 @@ internal sealed class IlToMirTranslator : IDisposable
                         throw new NotSupportedException(
                             $"IL→MIR: opcode {opCode} is not supported yet (method {_method.UniqueName}).");
                 }
+            }
+        }
+
+        // Pre-scan the IL once to find every basic-block leader: offset 0, every
+        // branch target, and every instruction immediately following a branch
+        // (the not-taken fall-through). A MirBlock is created per leader; the
+        // map lets branch ops resolve targets, including forward references.
+        private void DiscoverBlocks()
+        {
+            var leaders = new SortedSet<int> { 0 };
+
+            var scan = _method.MethodBody!.MethodBodyBlock!.GetILReader();
+            while (scan.RemainingBytes > 0)
+            {
+                var opCode = ReadOpCode(ref scan);
+                int? target = null;
+                switch (opCode)
+                {
+                    case ILOpCode.Br_s:
+                    case ILOpCode.Brtrue_s:
+                    case ILOpCode.Brfalse_s:
+                        target = scan.ReadSByte() + scan.Offset;
+                        break;
+                    case ILOpCode.Br:
+                    case ILOpCode.Brtrue:
+                    case ILOpCode.Brfalse:
+                        target = scan.ReadInt32() + scan.Offset;
+                        break;
+                    default:
+                        SkipOperand(ref scan, opCode);
+                        break;
+                }
+
+                if (target is int t)
+                {
+                    leaders.Add(t);
+                    // The instruction after a branch starts a block (fall-through
+                    // for conditionals; dead leader for unconditional br — still
+                    // a boundary, harmless if unreachable).
+                    if (scan.RemainingBytes > 0)
+                        leaders.Add(scan.Offset);
+                }
+            }
+
+            _blockStartOffsets = [.. leaders];
+            foreach (var offset in _blockStartOffsets)
+                _ilOffsetToBlock[offset] = _function.CreateBlock();
+
+            // Compute which locals are live-in to each block; only those become
+            // block parameters (and thus block arguments on the incoming edges).
+            // Threading *all* locals everywhere would make a transient bool temp
+            // (the clt result feeding brtrue) a block argument too, breaking the
+            // cmpi+cond_br fusion (which needs the i1 to have exactly one use).
+            var liveIn = ComputeLocalLiveness();
+
+            foreach (var offset in _blockStartOffsets)
+            {
+                if (offset == 0) continue; // entry block has the method params
+
+                var block = _ilOffsetToBlock[offset];
+                var live = liveIn[offset];
+                var localParams = new int[_localTypes.Length];
+                for (var i = 0; i < _localTypes.Length; i++)
+                    localParams[i] = -1;
+
+                foreach (var localIndex in live)
+                {
+                    var vreg = _function.CreateVirtualRegister(_localTypes[localIndex]);
+                    block.Parameters.Add(vreg);
+                    localParams[localIndex] = vreg;
+                }
+                _blockLocalParams[block] = localParams;
+            }
+        }
+
+        // Classic backwards local-liveness fixpoint over the discovered blocks.
+        // Returns, per block-start offset, the set of local indices that are
+        // live on entry (read along some path before being overwritten). Used
+        // to decide which locals each block carries as parameters.
+        private Dictionary<int, SortedSet<int>> ComputeLocalLiveness()
+        {
+            // Per block: upward-exposed uses (read before any def in the block),
+            // defs (written in the block), and successor block-start offsets.
+            var useBeforeDef = new Dictionary<int, HashSet<int>>();
+            var defined = new Dictionary<int, HashSet<int>>();
+            var successors = new Dictionary<int, List<int>>();
+
+            for (var bi = 0; bi < _blockStartOffsets.Length; bi++)
+            {
+                var start = _blockStartOffsets[bi];
+                var end = bi + 1 < _blockStartOffsets.Length ? _blockStartOffsets[bi + 1] : int.MaxValue;
+
+                var ube = new HashSet<int>();
+                var def = new HashSet<int>();
+                var succ = new List<int>();
+                var endsWithUncondBranch = false;
+                var endsWithReturn = false;
+
+                var scan = _method.MethodBody!.MethodBodyBlock!.GetILReader();
+                AdvanceTo(ref scan, start);
+                while (scan.RemainingBytes > 0 && scan.Offset < end)
+                {
+                    var opCode = ReadOpCode(ref scan);
+                    switch (opCode)
+                    {
+                        case ILOpCode.Ldloc_0: RecordUse(0, ube, def); break;
+                        case ILOpCode.Ldloc_1: RecordUse(1, ube, def); break;
+                        case ILOpCode.Ldloc_2: RecordUse(2, ube, def); break;
+                        case ILOpCode.Ldloc_3: RecordUse(3, ube, def); break;
+                        case ILOpCode.Ldloc_s: RecordUse(scan.ReadByte(), ube, def); break;
+                        case ILOpCode.Ldloca_s: RecordUse(scan.ReadByte(), ube, def); break;
+
+                        case ILOpCode.Stloc_0: def.Add(0); break;
+                        case ILOpCode.Stloc_1: def.Add(1); break;
+                        case ILOpCode.Stloc_2: def.Add(2); break;
+                        case ILOpCode.Stloc_3: def.Add(3); break;
+                        case ILOpCode.Stloc_s: def.Add(scan.ReadByte()); break;
+
+                        case ILOpCode.Br_s:
+                            succ.Add(scan.ReadSByte() + scan.Offset);
+                            endsWithUncondBranch = true;
+                            break;
+                        case ILOpCode.Br:
+                            succ.Add(scan.ReadInt32() + scan.Offset);
+                            endsWithUncondBranch = true;
+                            break;
+                        case ILOpCode.Brtrue_s:
+                        case ILOpCode.Brfalse_s:
+                            succ.Add(scan.ReadSByte() + scan.Offset);
+                            break;
+                        case ILOpCode.Brtrue:
+                        case ILOpCode.Brfalse:
+                            succ.Add(scan.ReadInt32() + scan.Offset);
+                            break;
+                        case ILOpCode.Ret:
+                            endsWithReturn = true;
+                            break;
+                        default:
+                            SkipOperand(ref scan, opCode);
+                            break;
+                    }
+                }
+
+                // Fall-through successor: a block that doesn't end in an
+                // unconditional branch or return flows into the next leader.
+                if (!endsWithUncondBranch && !endsWithReturn && end != int.MaxValue)
+                    succ.Add(end);
+
+                useBeforeDef[start] = ube;
+                defined[start] = def;
+                successors[start] = succ;
+            }
+
+            var liveIn = new Dictionary<int, SortedSet<int>>();
+            var liveOut = new Dictionary<int, HashSet<int>>();
+            foreach (var start in _blockStartOffsets)
+            {
+                liveIn[start] = [];
+                liveOut[start] = [];
+            }
+
+            bool changed;
+            do
+            {
+                changed = false;
+                // Iterate in reverse program order for faster convergence.
+                for (var bi = _blockStartOffsets.Length - 1; bi >= 0; bi--)
+                {
+                    var start = _blockStartOffsets[bi];
+
+                    var outSet = liveOut[start];
+                    var beforeOut = outSet.Count;
+                    foreach (var s in successors[start])
+                        if (liveIn.TryGetValue(s, out var sIn))
+                            foreach (var v in sIn) outSet.Add(v);
+
+                    // liveIn = useBeforeDef ∪ (liveOut − defined)
+                    var inSet = new SortedSet<int>(useBeforeDef[start]);
+                    foreach (var v in outSet)
+                        if (!defined[start].Contains(v)) inSet.Add(v);
+
+                    if (outSet.Count != beforeOut || !inSet.SetEquals(liveIn[start]))
+                    {
+                        liveIn[start] = inSet;
+                        changed = true;
+                    }
+                }
+            } while (changed);
+
+            return liveIn;
+        }
+
+        private static void RecordUse(int local, HashSet<int> useBeforeDef, HashSet<int> defined)
+        {
+            if (!defined.Contains(local))
+                useBeforeDef.Add(local);
+        }
+
+        // Advance an IL reader to a given offset (block discovery helper).
+        private static void AdvanceTo(ref BlobReader reader, int offset)
+        {
+            while (reader.Offset < offset && reader.RemainingBytes > 0)
+            {
+                var opCode = ReadOpCode(ref reader);
+                SkipBranchOrOperand(ref reader, opCode);
+            }
+        }
+
+        // Like SkipOperand but also consumes branch displacement bytes (used
+        // when fast-forwarding to a block start, where branches are just bytes).
+        private static void SkipBranchOrOperand(ref BlobReader reader, ILOpCode opCode)
+        {
+            switch (opCode)
+            {
+                case ILOpCode.Br_s: case ILOpCode.Brtrue_s: case ILOpCode.Brfalse_s:
+                    reader.ReadSByte();
+                    break;
+                case ILOpCode.Br: case ILOpCode.Brtrue: case ILOpCode.Brfalse:
+                    reader.ReadInt32();
+                    break;
+                default:
+                    SkipOperand(ref reader, opCode);
+                    break;
+            }
+        }
+
+        // On entering a discovered block, rebind every local to that block's
+        // parameter vreg (the merged value) and set the builder's insertion
+        // point. The eval stack is empty across boundaries (asserted by caller).
+        private void EnterBlock(MirBlock block)
+        {
+            if (_blockLocalParams.TryGetValue(block, out var localParams))
+            {
+                for (var i = 0; i < localParams.Length; i++)
+                    if (localParams[i] >= 0)
+                        _locals[i] = new StackValue(localParams[i], _localTypes[i]);
+            }
+            _builder.SetInsertionPointAtEnd(block);
+        }
+
+        // Emit `cf.br target(localArgs)` passing the current SSA value of every
+        // local as a block argument, in local-index order.
+        private void EmitBranchTo(MirBlock from, MirBlock target)
+        {
+            _builder.SetInsertionPointAtEnd(from);
+            _builder.BuildInstruction(
+                CfDialect.OpRef(CfOp.Br),
+                new BlockTarget(target, LocalArgsFor(target)));
+        }
+
+        // Block arguments for an edge to `target`: the current value of each
+        // live-in local, in ascending local-index order (matching the order
+        // the target declared its parameters in DiscoverBlocks).
+        private MirOperand[] LocalArgsFor(MirBlock target)
+        {
+            if (!_blockLocalParams.TryGetValue(target, out var localParams))
+                return [];
+
+            var args = new List<MirOperand>();
+            for (var i = 0; i < localParams.Length; i++)
+                if (localParams[i] >= 0)
+                    args.Add(new VirtualReg(_locals[i].Vreg, IsDefinition: false));
+            return [.. args];
+        }
+
+        private static bool BlockHasTerminator(MirBlock block)
+        {
+            if (block.Instructions.Count == 0) return false;
+            var last = block.Instructions[^1];
+            return DialectRegistry.ById(last.Opcode.Dialect).IsTerminator(last.Opcode.Code);
+        }
+
+        private MirBlock BlockAt(int ilOffset) =>
+            _ilOffsetToBlock.TryGetValue(ilOffset, out var block)
+                ? block
+                : throw new InvalidOperationException(
+                    $"IL→MIR: branch target IL_{ilOffset:X4} is not a block leader " +
+                    $"(method {_method.UniqueName}).");
+
+        // Advance a scanning reader past an opcode's inline operand bytes during
+        // block discovery (we only care about branch displacements there).
+        private static void SkipOperand(ref BlobReader reader, ILOpCode opCode)
+        {
+            switch (opCode)
+            {
+                case ILOpCode.Ldc_i4_s:
+                case ILOpCode.Ldloc_s: case ILOpCode.Ldloca_s:
+                case ILOpCode.Stloc_s: case ILOpCode.Ldarg_s: case ILOpCode.Ldarga_s:
+                case ILOpCode.Starg_s:
+                    reader.ReadByte();
+                    break;
+                case ILOpCode.Ldc_i4: case ILOpCode.Call: case ILOpCode.Callvirt:
+                case ILOpCode.Ldstr: case ILOpCode.Ldsfld: case ILOpCode.Stsfld:
+                case ILOpCode.Newobj: case ILOpCode.Ldfld: case ILOpCode.Stfld:
+                case ILOpCode.Ldsflda: case ILOpCode.Ldflda: case ILOpCode.Newarr:
+                case ILOpCode.Box: case ILOpCode.Unbox_any: case ILOpCode.Castclass:
+                case ILOpCode.Isinst: case ILOpCode.Ldtoken: case ILOpCode.Initobj:
+                case ILOpCode.Sizeof: case ILOpCode.Ldftn: case ILOpCode.Ldvirtftn:
+                    reader.ReadInt32();
+                    break;
+                case ILOpCode.Ldc_i8:
+                    reader.ReadInt64();
+                    break;
+                case ILOpCode.Ldc_r4:
+                    reader.ReadSingle();
+                    break;
+                case ILOpCode.Ldc_r8:
+                    reader.ReadDouble();
+                    break;
+                case ILOpCode.Switch:
+                    var n = reader.ReadUInt32();
+                    for (var i = 0; i < n; i++) reader.ReadInt32();
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -389,17 +785,66 @@ internal sealed class IlToMirTranslator : IDisposable
             _stack.Push(new StackValue(_parameterVregs[index], type));
         }
 
-        // Roslyn's Debug-mode codegen routes every `return value;` through a
-        // single epilogue: `stloc.0; br.s <end>; <end>: ldloc.0; ret`, where the
-        // branch target is the instruction immediately following the branch. That
-        // fall-through `br.s` is a no-op for our single-block model. General
-        // (non-fall-through) control flow is a later porting group.
-        private void TranslateBr(int target, int nextOffset)
+        // br / br.s → cf.br to the target block, passing current locals as args.
+        private void TranslateBr(MirBlock from, int target)
         {
-            if (target != nextOffset)
+            EmitBranchTo(from, BlockAt(target));
+        }
+
+        // clt → arith.cmpi <slt>, %a, %b → i1, pushed onto the eval stack.
+        // (cge, used by bge, would be sge — added when a test needs it.)
+        private void TranslateClt()
+        {
+            var right = _stack.Pop();
+            var left = _stack.Pop();
+            if (!left.Type.Equals(right.Type))
                 throw new NotSupportedException(
-                    $"IL→MIR: non-fall-through branch (br.s to {target}) is not supported yet " +
-                    $"(method {_method.UniqueName}).");
+                    $"IL→MIR: clt of mismatched types {left.Type} and {right.Type}.");
+
+            var result = _builder.BuildCmpI(ArithCmpPredicate.Slt, left.Vreg, right.Vreg);
+            _stack.Push(new StackValue(result, IRType.I1));
+        }
+
+        // brtrue/brfalse → cf.cond_br on the i1 condition. The taken edge goes
+        // to the branch target; the not-taken edge falls through to the next
+        // block (the instruction immediately after the branch — a discovered
+        // leader). Irie's isel fuses a preceding arith.cmpi into the cond_br.
+        private void TranslateCondBranch(MirBlock from, int target, bool branchIfTrue)
+        {
+            var cond = _stack.Pop();
+
+            var fallThrough = NextBlockAfter(from);
+            var targetBlock = BlockAt(target);
+
+            // brtrue: cond true → target, false → fall-through.
+            // brfalse: invert the two edges.
+            var trueEdge = branchIfTrue ? targetBlock : fallThrough;
+            var falseEdge = branchIfTrue ? fallThrough : targetBlock;
+
+            _builder.SetInsertionPointAtEnd(from);
+            _builder.BuildInstruction(
+                CfDialect.OpRef(CfOp.CondBr),
+                new VirtualReg(cond.Vreg, IsDefinition: false),
+                new BlockTarget(trueEdge, LocalArgsFor(trueEdge)),
+                new BlockTarget(falseEdge, LocalArgsFor(falseEdge)));
+        }
+
+        // The block that starts at the next leader offset after `block` — the
+        // fall-through successor of a conditional branch.
+        private MirBlock NextBlockAfter(MirBlock block)
+        {
+            // Find block's start offset, then the next leader offset.
+            foreach (var (offset, b) in _ilOffsetToBlock)
+            {
+                if (!ReferenceEquals(b, block)) continue;
+                var idx = Array.IndexOf(_blockStartOffsets, offset);
+                if (idx >= 0 && idx + 1 < _blockStartOffsets.Length)
+                    return _ilOffsetToBlock[_blockStartOffsets[idx + 1]];
+                break;
+            }
+            throw new InvalidOperationException(
+                $"IL→MIR: conditional branch in a block with no fall-through successor " +
+                $"(method {_method.UniqueName}).");
         }
 
         // ldstr "..." → intern the string as a MirGlobal, push a `mem.symbol`
