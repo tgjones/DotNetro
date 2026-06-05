@@ -1,0 +1,24 @@
+; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file
+
+; Derived from reference-register-allocator/widths/truncate.
+; Truncating i32 -> i16 drops the high two bytes; their live ranges end early
+; and the allocator should free those registers promptly. (zext/sext to i32 are
+; not yet legalized, so zero-extend / sign-extend are not expressible.)
+
+; CHECK: func @truncate_i32 : \(i32\) -> i16 \{
+; CHECK: bb0\(\):
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3\]
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$zp3 = pseudo\.copy \$zp3
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x
+; CHECK: \}
+
+func @truncate_i32 : (i32) -> i16 {
+bb0(%0 : i32):
+    %1 : i16 = cast.trunc %0
+    core.return %1
+}

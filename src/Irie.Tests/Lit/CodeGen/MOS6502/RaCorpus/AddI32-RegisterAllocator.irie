@@ -1,0 +1,47 @@
+; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file
+
+; Derived from reference-register-allocator/basics/add-i32.
+; 4-byte carry chain; the abundant $zp* slots hold operand bytes so the single
+; $a is reused per ADC. (Cf. the existing IntegerAdd32-RegisterAllocator test --
+; same shape, kept here as the corpus basics/add-i32 exemplar.)
+
+; CHECK: func @add_i32 : \(i32, i32\) -> i32 \{
+; CHECK: bb0\(\):
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$zp3 = pseudo\.copy \$zp3
+; CHECK:     \$zp4 = pseudo\.copy \$zp4
+; CHECK:     \$zp5 = pseudo\.copy \$zp5
+; CHECK:     \$zp6 = pseudo\.copy \$zp6
+; CHECK:     \$zp7 = pseudo\.copy \$zp7
+; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$zp4 = pseudo\.copy \$zp4
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp4, \$c
+; CHECK:     \$zp4 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$x
+; CHECK:     \$zp5 = pseudo\.copy \$zp5
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp5, \$c
+; CHECK:     \$zp5 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$zp2 = pseudo\.copy \$zp6
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp2, \$c
+; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp3
+; CHECK:     \$zp3 = pseudo\.copy \$zp7
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp3, \$c
+; CHECK:     \$zp3 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp4
+; CHECK:     \$x = pseudo\.copy \$zp5
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$zp3 = pseudo\.copy \$zp3
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
+; CHECK: \}
+
+func @add_i32 : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i32 = arith.addi %0, %1
+    core.return %2
+}

@@ -1,0 +1,80 @@
+; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file
+
+; Derived from reference-register-allocator/basics/many-args.
+; Six i16 args consume all the CC_MOS live-in slots ($a, $x, $zp2..$zp11); the
+; chained adds free them one at a time as the running sum is accumulated.
+
+; CHECK: func @many_args : \(i16, i16, i16, i16, i16, i16\) -> i16 \{
+; CHECK: bb0\(\):
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7, \$zp8, \$zp9, \$zp10, \$zp11\]
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$zp3 = pseudo\.copy \$zp3
+; CHECK:     \$zp4 = pseudo\.copy \$zp4
+; CHECK:     \$zp5 = pseudo\.copy \$zp5
+; CHECK:     \$zp6 = pseudo\.copy \$zp6
+; CHECK:     \$zp7 = pseudo\.copy \$zp7
+; CHECK:     \$zp8 = pseudo\.copy \$zp8
+; CHECK:     \$zp9 = pseudo\.copy \$zp9
+; CHECK:     \$zp10 = pseudo\.copy \$zp10
+; CHECK:     \$zp11 = pseudo\.copy \$zp11
+; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp2, \$c
+; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$x
+; CHECK:     \$zp3 = pseudo\.copy \$zp3
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp3, \$c
+; CHECK:     \$zp3 = pseudo\.copy \$a
+; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$zp2 = pseudo\.copy \$zp4
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp2, \$c
+; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp3
+; CHECK:     \$zp3 = pseudo\.copy \$zp5
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp3, \$c
+; CHECK:     \$zp3 = pseudo\.copy \$a
+; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$zp2 = pseudo\.copy \$zp6
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp2, \$c
+; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp3
+; CHECK:     \$zp3 = pseudo\.copy \$zp7
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp3, \$c
+; CHECK:     \$zp3 = pseudo\.copy \$a
+; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$zp2 = pseudo\.copy \$zp8
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp2, \$c
+; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp3
+; CHECK:     \$zp3 = pseudo\.copy \$zp9
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp3, \$c
+; CHECK:     \$zp3 = pseudo\.copy \$a
+; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$zp2 = pseudo\.copy \$zp10
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp2, \$c
+; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp3
+; CHECK:     \$zp3 = pseudo\.copy \$zp11
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp3, \$c
+; CHECK:     \$zp3 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$x = pseudo\.copy \$zp3
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x
+; CHECK: \}
+
+func @many_args : (i16, i16, i16, i16, i16, i16) -> i16 {
+bb0(%0 : i16, %1 : i16, %2 : i16, %3 : i16, %4 : i16, %5 : i16):
+    %6 : i16 = arith.addi %0, %1
+    %7 : i16 = arith.addi %6, %2
+    %8 : i16 = arith.addi %7, %3
+    %9 : i16 = arith.addi %8, %4
+    %10 : i16 = arith.addi %9, %5
+    core.return %10
+}

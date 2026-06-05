@@ -1,0 +1,58 @@
+; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file
+
+; Derived from reference-register-allocator/control-flow/select (also covers
+; coalescing/redundant-copy). cond ? a : b as a diamond with a merge-block phi:
+; exercises PhiElimination + cross-block allocation. Both incoming values want
+; to be coalesced into the merge parameter's register.
+
+; CHECK: func @select_val : \(i16, i16, i16\) -> i16 \{
+; CHECK: bb0\(\):
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5\]
+; CHECK:     \$zp6 = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$zp3 = pseudo\.copy \$zp3
+; CHECK:     \$zp4 = pseudo\.copy \$zp4
+; CHECK:     \$zp5 = pseudo\.copy \$zp5
+; CHECK:     \$zp7 = pseudo\.copy 0
+; CHECK:     \$zp8 = pseudo\.copy 0
+; CHECK:     \$zp6 = pseudo\.copy \$zp6
+; CHECK:     \$zp9 = pseudo\.copy \$x
+; CHECK:     \$zp7 = pseudo\.copy \$zp7
+; CHECK:     \$zp8 = pseudo\.copy \$zp8
+; CHECK:     \$a = pseudo\.copy \$zp9
+; CHECK:     mos6502\.cmp \$a, \$zp8, implicit-def \$n, implicit-def \$z, implicit-def \$c
+; CHECK:     mos6502\.bne bb1, implicit \$z
+; CHECK:     \$a = pseudo\.copy \$zp6
+; CHECK:     mos6502\.cmp \$a, \$zp7, implicit-def \$n, implicit-def \$z, implicit-def \$c
+; CHECK:     mos6502\.bne bb1, implicit \$z
+; CHECK:     mos6502\.jmp\.abs bb2
+; CHECK: bb1\(\):
+; CHECK:     \[liveins: \$zp2, \$zp3\]
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$zp3 = pseudo\.copy \$zp3
+; CHECK:     mos6502\.jmp\.abs bb3
+; CHECK: bb2\(\):
+; CHECK:     \[liveins: \$zp4, \$zp5\]
+; CHECK:     \$zp2 = pseudo\.copy \$zp4
+; CHECK:     \$zp3 = pseudo\.copy \$zp5
+; CHECK:     mos6502\.jmp\.abs bb3
+; CHECK: bb3\(\):
+; CHECK:     \[liveins: \$zp2, \$zp3\]
+; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$x = pseudo\.copy \$zp3
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x
+; CHECK: \}
+
+func @select_val : (i16, i16, i16) -> i16 {
+bb0(%0 : i16, %1 : i16, %2 : i16):
+    %3 : i16 = arith.constant 0
+    %4 : i1 = arith.cmpi ne, %0, %3
+    cf.cond_br %4, bb1(), bb2()
+bb1():
+    cf.br bb3(%1)
+bb2():
+    cf.br bb3(%2)
+bb3(%5 : i16):
+    core.return %5
+}

@@ -1,0 +1,90 @@
+# RaCorpus — register-allocator tests derived from the llvm-mos corpus
+
+These `.irie` lit tests are derived from the reference corpus in
+[`design/register-allocator/reference-register-allocator/`](../../../../../../design/register-allocator/reference-register-allocator).
+That corpus is C → llvm-mos Machine IR (what a mature allocator produces);
+these tests pin what **Irie's** `RegisterAllocatorPass` produces for the same
+computation, so we can track convergence/divergence as the allocator is
+redesigned.
+
+## Convention
+
+Each test:
+- `; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file`
+- a header comment naming the source corpus case, the llvm-mos behaviour of
+  note, and any divergence;
+- a `; CHECK:` block pinning Irie's **actual** current post-RA output (these are
+  characterization/golden tests — they document today's behaviour, including
+  warts, so the redesign has a baseline to diff against);
+- the input MIR: pre-pipeline generic-dialect MIR (`arith.*`, `cf.*`,
+  `mem.*`, `call.func`, `core.return`).
+
+The CHECK blocks were generated mechanically (run iriec, regex-escape each
+output line); they are not hand-written.
+
+> Note: vregs in the input MIR must be **numeric** (`%0`, `%1`, …) — the MIR
+> lexer rejects named vregs. CHECK lines are regex-escaped and matched in order.
+
+## What converted, and what didn't
+
+Only a subset of the 46 corpus cases can currently be expressed in Irie's
+generic MIR *and* survive the pipeline. The blockers below are not corpus
+problems — they are **Irie's current limitations**, and this table doubles as a
+punch-list for the RA redesign (and the surrounding isel/legalizer work).
+
+### Converted (12 test files, covering ~14 corpus cases)
+
+| Corpus case | Test |
+|-------------|------|
+| basics/ret-const | `RetConstI16-RegisterAllocator` |
+| basics/identity-i8 | `IdentityI8-RegisterAllocator` |
+| basics/add-i16 | `AddI16-RegisterAllocator` |
+| basics/add-i32 | `AddI32-RegisterAllocator` |
+| basics/sub-i16 | `SubI16-RegisterAllocator` |
+| basics/many-args | `ManyArgs-RegisterAllocator` |
+| control-flow/select (+ coalescing/redundant-copy) | `Select-RegisterAllocator` |
+| control-flow/early-return | `EarlyReturn-RegisterAllocator` |
+| pressure/live-across-call | `LiveAcrossCall-RegisterAllocator` |
+| pressure/many-calls *(simplified to 2 calls)* | `ChainedCalls-RegisterAllocator` |
+| memory/global-rw *(simplified: constant delta)* | `GlobalIncr-RegisterAllocator` |
+| widths/truncate | `TruncI32ToI16-RegisterAllocator` |
+
+### Equivalent / duplicate (collapse to a converted or existing test)
+
+| Corpus case | Equivalent to |
+|-------------|---------------|
+| coalescing/copy-passthrough | `IdentityI8` (collapses to a passthrough in SSA) |
+| coalescing/commutative | `AddI16` (identical MIR) |
+| coalescing/swap | `SubI16` straight-line; the interesting swap-*cycle* is the existing `PhiElimination-SwapCycle` test |
+
+### Skipped — blocker, by reason
+
+| Reason | Corpus cases |
+|--------|--------------|
+| **No `arith` multiply** | basics/chain-arith, control-flow/nested-loop, pressure/pressure-high, memory/struct-pass, realistic/factorial-recursive |
+| **No divide/modulo** | realistic/gcd |
+| **No shift op** | constraints/shift-const, constraints/shift-var |
+| **No bitwise and/or/xor** | constraints/bitops, constraints/compare-flags (`&`), pressure/pressure-i16 (`^`), realistic/crc8 (shift+`^`) |
+| **i64 not supported** (+ `^`) | pressure/pressure-i64 |
+| **i8 arithmetic not selectable** (only i16/i32 legalize to byte carry chains; bare `arith.addi i8` has no selection rule) | basics/add-i8, constraints/inc-dec |
+| **`cast.zext`/`cast.sext` to i32 not legalized** | widths/zero-extend, widths/sign-extend, widths/mixed-widths (also i8 arith) |
+| **`mem.load`/`mem.store` only accept `mem.symbol` addresses** (no arbitrary i16 pointers / frame slots) | memory/ptr-deref, memory/array-index |
+| **RA throws under pressure** — *spilling not implemented*; the allocator aborts with "no free physical register" rather than spilling | control-flow/if-else, control-flow/loop-counter, control-flow/loop-sum-array (also mem), control-flow/switch, realistic/fibonacci, realistic/strlen (also mem), basics/stack-args (also stack-arg ABI), memory/struct-return (also aggregate), memory/struct-return-sret (also sret ABI), memory/two-pointer-copy (also mem) |
+
+The single most consequential blocker for this corpus is the last one:
+**the current RA cannot spill**, so even a plain `if/else` diamond or a counted
+loop aborts. Lifting that is the redesign's central job, and it is what would
+unlock the largest block of skipped cases.
+
+## Other findings surfaced during conversion
+
+- **`cf.cond_br` carrying block-args on its edges leaves stray vregs after RA.**
+  A conditional branch written as `cf.cond_br %p, bb1(%a), bb2(%b)` produced
+  post-RA output still referencing virtual registers (e.g.
+  `mos6502.bne bb1(%10, %11)`), i.e. PhiElimination/RA does not fully lower
+  block-args on *conditional* edges the way it does on `cf.br`. The converted
+  `Select`/`EarlyReturn` tests sidestep this by using arg-less `cond_br` with
+  direct cross-block uses; the bug itself is worth fixing independently.
+- **i16 compares emit two `cmp`/branch pairs** (one per byte) — that is correct
+  multi-byte comparison lowering, not a bug, but it makes branchy tests longer
+  than their llvm-mos counterparts.
