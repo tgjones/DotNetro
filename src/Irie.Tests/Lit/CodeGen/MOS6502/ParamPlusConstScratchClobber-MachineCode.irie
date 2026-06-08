@@ -23,26 +23,26 @@
 
 ; CHECK: M:
 ; CHECK:     LDY #\$01
-; CHECK:     STY \$04
-; CHECK:     LDY #\$00
 ; CHECK:     STY \$07
 ; CHECK:     LDY #\$00
 ; CHECK:     STY \$06
 ; CHECK:     LDY #\$00
 ; CHECK:     STY \$05
+; CHECK:     LDY #\$00
+; CHECK:     STY \$04
 ; CHECK:     CLC
-; CHECK:     ADC \$04
-; CHECK:     STA \$04
-; CHECK:     TXA
 ; CHECK:     ADC \$07
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC \$06
 ; CHECK:     TAX
 ; CHECK:     LDA \$02
-; CHECK:     ADC \$06
+; CHECK:     ADC \$05
 ; CHECK:     STA \$02
 ; CHECK:     LDA \$03
-; CHECK:     ADC \$05
+; CHECK:     ADC \$04
 ; CHECK:     STA \$03
-; CHECK:     LDA \$04
+; CHECK:     TYA
 ; CHECK:     RTS
 
 func @M : (i32) -> i32 {

@@ -261,7 +261,12 @@ public sealed class RegisterAllocatorTests
     //
     // %0 coalesces onto $a. %1 also prefers $a (copy bias) but interferes with
     // %0 (now $a), so the colourer skips $a and picks the next allowed colour.
-    // `any8`'s allocatable order puts zp2..zp31 ahead of $a/$x, so %1 → $zp2.
+    // Both %0 and %1 are SHORT-lived (they span no arithmetic chain op — the
+    // addi here is the pre-isel generic op, not a tied two-address op), so the
+    // Phase-5 cost-driven preference promotes the scarce GPRs ($x/$y/$a) ahead of
+    // the zero-page pool: with $a taken by %0, %1 lands in $x. (Before Phase 5 the
+    // class's fixed zp-first order sent %1 to $zp2; the GPR-first preference for
+    // short values is exactly the "$y gap" closure this phase targets.)
     [Test]
     public async Task HintSuppressedWhenPhysregBusy_FallsBackToNextAllocatable()
     {
@@ -284,11 +289,11 @@ public sealed class RegisterAllocatorTests
 
         Pass.Run(fn);
 
-        // First livein keeps its $a hint; the second fills the next free slot.
-        // `any8`'s allocatable order puts zp2..zp31 ahead of $a and $x, so the
-        // first free physreg after $a is busy is $zp2.
+        // First livein keeps its $a hint; the second is a short-lived flexible
+        // value, so the Phase-5 GPR-first preference picks the next free GPR after
+        // $a — that is $x (the short-range GPR order is $x, $y, $a).
         await Assert.That(DefPhysReg(i0)).IsEqualTo(MOS6502Registers.A);
-        await Assert.That(DefPhysReg(i1)).IsEqualTo(MOS6502Registers.RC(2));
+        await Assert.That(DefPhysReg(i1)).IsEqualTo(MOS6502Registers.X);
     }
 
     // Spill-cost chooses the CHEAPEST node. Two non-rematerializable values

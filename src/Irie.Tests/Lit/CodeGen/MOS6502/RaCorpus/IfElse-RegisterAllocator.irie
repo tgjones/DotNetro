@@ -28,12 +28,12 @@
 ; CHECK: bb0\(\):
 ; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3\]
 ; CHECK:     \$zp5 = pseudo\.copy \$a
-; CHECK:     \$x = pseudo\.copy \$x
-; CHECK:     \$zp4 = pseudo\.copy \$zp2
+; CHECK:     \$zp4 = pseudo\.copy \$x
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
 ; CHECK:     \$zp3 = pseudo\.copy \$zp3
-; CHECK:     \$zp2 = pseudo\.copy \$zp5
-; CHECK:     \$a = pseudo\.copy \$x
-; CHECK:     \$zp7 = pseudo\.copy \$zp4
+; CHECK:     \$x = pseudo\.copy \$zp5
+; CHECK:     \$a = pseudo\.copy \$zp4
+; CHECK:     \$zp7 = pseudo\.copy \$zp2
 ; CHECK:     \$zp6 = pseudo\.copy \$zp3
 ; CHECK:     \$a = pseudo\.copy \$a
 ; CHECK:     \$a = pseudo\.copy \$a
@@ -49,37 +49,37 @@
 ; CHECK:     mos6502\.cmp \$a, \$zp6, implicit-def \$n, implicit-def \$z, implicit-def \$c
 ; CHECK:     mos6502\.bcc bb1, implicit \$c
 ; CHECK:     mos6502\.bne bb2, implicit \$z
-; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$a = pseudo\.copy \$x
 ; CHECK:     mos6502\.cmp \$a, \$zp7, implicit-def \$n, implicit-def \$z, implicit-def \$c
 ; CHECK:     mos6502\.bcc bb1, implicit \$c
 ; CHECK:     mos6502\.jmp\.abs bb2
 ; CHECK: bb1\(\):
-; CHECK:     \[liveins: \$zp5, \$x, \$zp4, \$zp3\]
+; CHECK:     \[liveins: \$zp5, \$zp4, \$zp2, \$zp3\]
 ; CHECK:     \$c = mos6502\.clc
 ; CHECK:     \$a = pseudo\.copy \$zp5
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp4, \$c
-; CHECK:     \$zp2 = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$x
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp2, \$c
+; CHECK:     \$y = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp4
 ; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp3, \$c
 ; CHECK:     \$x = pseudo\.copy \$a
-; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$y = pseudo\.copy \$y
 ; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     mos6502\.jmp\.abs bb3
 ; CHECK: bb2\(\):
-; CHECK:     \[liveins: \$zp5, \$x, \$zp4, \$zp3\]
+; CHECK:     \[liveins: \$zp5, \$zp4, \$zp2, \$zp3\]
 ; CHECK:     \$c = mos6502\.sec
 ; CHECK:     \$a = pseudo\.copy \$zp5
-; CHECK:     \$a, \$c = mos6502\.sbc \$a, \$zp4, \$c
-; CHECK:     \$zp2 = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$x
+; CHECK:     \$a, \$c = mos6502\.sbc \$a, \$zp2, \$c
+; CHECK:     \$y = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp4
 ; CHECK:     \$a, \$c = mos6502\.sbc \$a, \$zp3, \$c
 ; CHECK:     \$x = pseudo\.copy \$a
-; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$y = pseudo\.copy \$y
 ; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     mos6502\.jmp\.abs bb3
 ; CHECK: bb3\(\):
-; CHECK:     \[liveins: \$zp2, \$x\]
-; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \[liveins: \$y, \$x\]
+; CHECK:     \$a = pseudo\.copy \$y
 ; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x
 ; CHECK: \}

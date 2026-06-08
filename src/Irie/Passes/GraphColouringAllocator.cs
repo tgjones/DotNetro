@@ -54,8 +54,10 @@ namespace Irie.Passes;
 // Every worklist is processed in a deterministic order and every tie is broken
 // by ascending node id (vreg ids are dense and stable; physreg ids are fixed).
 // Colour choice prefers, in order: (1) a coalesced/copy-hinted colour, then
-// (2) the node's class allocatable order. This makes the characterization lit
-// tests stable (plan §8).
+// (2) for a SHORT-lived value, the scarce architectural GPRs ($x/$y/$a) — the
+// cost-driven Phase-5 preference, see ColourPreferenceOrder — then (3) the
+// node's class default (zp-first) allocatable order. Every tier iterates in a
+// fixed order, so the characterization lit tests stay stable (plan §8).
 internal sealed class GraphColouringAllocator
 {
     private readonly MirFunction _function;
@@ -1036,17 +1038,47 @@ internal sealed class GraphColouringAllocator
                 _colour[v] = _colour[GetAlias(v)];
     }
 
-    // The order in which to try colours for a node: first any colour suggested by
-    // a copy this node is move-related to (so the copy collapses), then the
-    // node's class allocatable order. All filtered to the node's allowed set.
+    // The order in which to try colours for a node (plan §3.5 — register
+    // preference / cost). Three tiers, tried in order:
+    //
+    //   1. COPY/COALESCE HINTS DOMINATE. For each move this node is related to,
+    //      if the OTHER end is already coloured with an allowed colour, prefer it
+    //      so the copy collapses to an identity and vanishes. This is the
+    //      biased-colouring win Phase 3 built; it stays on top because a removed
+    //      copy is worth more than any preference below it.
+    //
+    //   2. COST-DRIVEN GPR-vs-MEMORY ORDERING (the new Phase-5 policy). Absent a
+    //      hint, we no longer fall straight through the class's fixed (zp-first)
+    //      allocatable order. Instead we classify the value's live range:
+    //        * SHORT range  → try the scarce architectural GPRs ($x/$y/$a) FIRST,
+    //          then the zero-page pool. A brief cross-instruction value belongs in
+    //          a cheap real register; interference excludes whichever GPRs are
+    //          busy, so the value lands in the free one (this is what moves
+    //          add-i16's relocated low result byte onto $y — the references' own
+    //          choice — instead of $zp2).
+    //        * LONG range   → keep the class's default zp-first order, so a value
+    //          carried across many arithmetic ops (a loop-carried phi, a long
+    //          chain temporary) sits in the abundant zero-page file and leaves all
+    //          three GPRs free for the ADC/SBC/CMP chain that NEEDS them (plan §2
+    //          lever #4: "keep $a free for arithmetic, prefer the zp pool for
+    //          long-lived values").
+    //      Cheaper-but-overflowing GPR demand falls back to memory naturally: the
+    //      first short value to be coloured grabs a GPR, the next short value whose
+    //      range overlaps it interferes and drops to zp — exactly how the
+    //      references park add-i32's low byte in $y and its middle bytes in zp.
+    //
+    //   3. Whatever allowed colours tiers 1–2 did not already emit, in the class's
+    //      default order (a safety net so every legal colour is still reachable).
+    //
+    // All tiers are filtered to the node's allowed set, and every iteration order
+    // is deterministic (moves by index, GPR list and allowed list in fixed order)
+    // so the characterization lit tests stay stable (plan §8).
     private IEnumerable<int> ColourPreferenceOrder(int node)
     {
         var allowed = _allowedColours[node];
+        var emitted = new HashSet<int>();
 
-        // Copy-bias: for each move this node took part in, if the OTHER end is
-        // already coloured (or precoloured) with an allowed colour, prefer it.
-        // This is the surviving-copy-collapsing heuristic; deterministic because
-        // moves are visited in index order.
+        // ---- Tier 1: copy/coalesce hints (dominant). -----------------------
         if (_moveList.TryGetValue(node, out var moves))
         {
             foreach (var m in moves.OrderBy(x => x))
@@ -1055,15 +1087,166 @@ internal sealed class GraphColouringAllocator
                 var other = GetAlias(move.A) == node ? move.B : move.A;
                 other = GetAlias(other);
                 if (other == node) continue;
+
+                int? hinted = null;
                 if (_colour.TryGetValue(other, out var c) && Contains(allowed, c))
-                    yield return c;
+                    hinted = c;
                 else if (IsPhysNode(other) && Contains(allowed, PhysRegOfNode(other)))
-                    yield return PhysRegOfNode(other);
+                    hinted = PhysRegOfNode(other);
+
+                if (hinted is int h && emitted.Add(h))
+                    yield return h;
             }
         }
 
+        // ---- Tier 2: cost-driven GPR-first ordering for SHORT ranges. ------
+        // Physreg nodes never reach here (they have a single fixed colour); only
+        // vreg nodes are cost-classified.
+        if (!IsPhysNode(node) && IsShortLived(node))
+        {
+            // Copy to an array: a ReadOnlySpan cannot survive a yield boundary.
+            var gprPreference = _registerInfo.GetShortRangeGprPreference().ToArray();
+            foreach (var gpr in gprPreference)
+                if (Contains(allowed, gpr) && emitted.Add(gpr))
+                    yield return gpr;
+        }
+
+        // ---- Tier 3: the class's default (zp-first) allocatable order. -----
         foreach (var c in allowed)
-            yield return c;
+            if (emitted.Add(c))
+                yield return c;
+    }
+
+    // The maximum number of GPR-pressuring (see IsArithmeticOp) instructions a
+    // value's live range may span and still count as SHORT — i.e. cheap enough to
+    // favour a scarce architectural register over the zero-page pool (plan §3.5).
+    //
+    // Why "GPR-chain ops spanned" and not raw slot length: on this target the
+    // pressure on the GPRs comes from the ADC/SBC/CMP/EOR chain, each link of
+    // which pins an operand to $a (and ferries multi-byte data through $x/$y). A
+    // value whose life straddles only a couple of those links can comfortably ride
+    // a GPR (the references put add-i16 and add-i32's low result byte in $y,
+    // spanning one and three chain links respectively). A value that spans MANY of
+    // them — a loop-carried induction value, a long-chain accumulator, a constant
+    // byte threaded through a multi-byte compare — would, if parked in a GPR,
+    // block that GPR for the whole chain (and starve the post-RA copy-scavenger of
+    // scratch); such values belong in the abundant zp file.
+    //
+    // The threshold is 3, tuned against the corpus (plan §6):
+    //   * add-i32's low result byte spans exactly 3 ADC links and the reference
+    //     keeps it in $y — so the threshold must admit a 3-span as short.
+    //   * an i32 (4-byte) compare's high operand bytes each span 4 CMP links; at
+    //     threshold 3 those classify as LONG and stay in zp, which keeps a GPR
+    //     free for the immediate→zp constant copies the same compare emits (the
+    //     post-RA copy-scavenger needs a dead GPR there — without this the
+    //     CompareLessThanInt32 case had all of $a/$x/$y busy and scavenging
+    //     threw). 3 is the largest value that separates these two cases, so it
+    //     maximises legitimate GPR use while respecting the scavenger's need.
+    // (When Phase 4's emergency save/restore lands, the scavenger constraint
+    // relaxes and this threshold can be revisited upward; it is a tuning knob, not
+    // a correctness boundary.)
+    private const int ShortRangeArithSpanThreshold = 3;
+
+    // Is this vreg's live range short enough to prefer a scarce GPR? "Short" =
+    // its live range spans at most ShortRangeArithSpanThreshold GPR-pressuring
+    // instructions (IsArithmeticOp). An op is "spanned" when its slot lies
+    // strictly INSIDE one of the value's live segments — i.e. the value is live
+    // ACROSS that op (computed before it, still needed after). The op that DEFINES
+    // the value (at the segment's start) and an op that merely consumes it at the
+    // segment's end do not count: those are the value's own endpoints, not chain
+    // links it has to survive.
+    private bool IsShortLived(int vreg)
+    {
+        var segments = _intervals.IntervalOf(vreg).Segments;
+        if (segments.Count == 0) return true; // no range at all → trivially short.
+
+        var spanned = 0;
+        foreach (var block in _function.Blocks)
+        {
+            foreach (var instr in block.Instructions)
+            {
+                if (!IsArithmeticOp(instr)) continue;
+                if (!_intervals.BaseSlotOf.TryGetValue(instr, out var baseSlot)) continue;
+
+                // The op is "spanned" iff the value is live both just before and
+                // just after it: its use point and def point both fall strictly
+                // within a single live segment (not merely touching an endpoint).
+                var usePoint = LiveIntervals.UseSlot(baseSlot);
+                var defPoint = LiveIntervals.DefSlot(baseSlot);
+                foreach (var seg in segments)
+                {
+                    if (seg.Start < usePoint && defPoint < seg.End)
+                    {
+                        spanned++;
+                        break;
+                    }
+                }
+
+                if (spanned > ShortRangeArithSpanThreshold) return false;
+            }
+        }
+        return true;
+    }
+
+    // An "arithmetic op" for the cost model = an instruction that creates demand
+    // on a scarce GPR by pinning one of its operands to a single-GPR register
+    // class. On the MOS6502 these are the chip ops that the carry/compare chain is
+    // built from — adc/sbc (result tied to $a), cmp/eor (an operand pinned to $a)
+    // — every one of which needs $a (and, for the multi-byte forms, ferries bytes
+    // through $x/$y). A value whose live range straddles MANY of these is exactly
+    // the value we must keep OUT of the GPRs (parking it in zp leaves the GPRs
+    // free for the chain *and* for the post-RA copy-scavenger). A value that
+    // straddles only a few can safely ride a GPR.
+    //
+    // We detect this GENERICALLY via the declared operand classes: an op counts
+    // if any of its operand-class constraints is a single-register class drawn
+    // from the target's short-range GPR set (GprPressureClasses, computed once
+    // below). This is broader — and more correct — than keying on tied operands
+    // alone: a `mos6502.cmp` pins its accumulator operand to `ac` but has NO tied
+    // operand, yet it is unmistakably $a-chain pressure. The earlier tied-only
+    // test missed cmp/eor and so mis-classified constants feeding a multi-byte
+    // compare as "short", parking them in $x/$y — which left no GPR free for the
+    // immediate→zp copies the same compare emits, and the post-RA scavenger then
+    // could not find scratch (the CompareLessThanInt32 regression). Counting any
+    // GPR-pinned operand fixes that at the policy level rather than papering over
+    // it downstream.
+    private bool IsArithmeticOp(MirInstruction instr)
+    {
+        var info = DialectRegistry.ById(instr.Opcode.Dialect)
+            .GetInstructionInfo(instr.Opcode.Code);
+        var classes = info.OperandClasses;
+        if (classes == null) return false;
+        foreach (var c in classes)
+            if (c != 0 && GprPressureClasses.Contains(c))
+                return true;
+        return false;
+    }
+
+    // The single-register register classes that correspond to the scarce GPRs the
+    // short-range preference draws on (e.g. on the MOS6502: `ac` for $a, `xc` for
+    // $x, `yc` for $y). An operand pinned to one of these classes is GPR-chain
+    // pressure. Computed once from the target: a class qualifies if its allocatable
+    // set is exactly one register and that register is in the short-range GPR list.
+    private HashSet<int>? _gprPressureClasses;
+    private HashSet<int> GprPressureClasses =>
+        _gprPressureClasses ??= ComputeGprPressureClasses();
+
+    private HashSet<int> ComputeGprPressureClasses()
+    {
+        var gprs = _registerInfo.GetShortRangeGprPreference().ToArray();
+        var result = new HashSet<int>();
+        // Walk every operand-class that appears in the function and keep those that
+        // are a single-register class over a short-range GPR. (We can derive the
+        // class of each GPR directly from the target.)
+        foreach (var gpr in gprs)
+        {
+            var classId = _registerInfo.ClassOfPhysicalRegister(gpr);
+            if (classId == 0) continue;
+            var regs = _registerInfo.GetAllocatableRegisters(classId);
+            if (regs.Length == 1 && regs[0] == gpr)
+                result.Add(classId);
+        }
+        return result;
     }
 
     // =========================================================================

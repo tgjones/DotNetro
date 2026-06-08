@@ -27,11 +27,11 @@
 ; CHECK:     \$c = mos6502\.clc
 ; CHECK:     \$a = pseudo\.copy \$a
 ; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp17, \$c
-; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$y = pseudo\.copy \$a
 ; CHECK:     \$a = pseudo\.copy \$x
 ; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp16, \$c
 ; CHECK:     \$x = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$a = pseudo\.copy \$y
 ; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x
 ; CHECK: \}

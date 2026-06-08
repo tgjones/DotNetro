@@ -30,7 +30,7 @@
 ; CHECK:     pseudo\.spill 0, \$a
 ; CHECK:     mos6502\.jsr\.abs @use
 ; … and reloaded from those slots after the call, into fresh tiny vregs.
-; CHECK:     \$zp5 = pseudo\.reload 1
+; CHECK:     \$zp4 = pseudo\.reload 1
 ; CHECK:     \$zp4 = pseudo\.reload 0
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x
 

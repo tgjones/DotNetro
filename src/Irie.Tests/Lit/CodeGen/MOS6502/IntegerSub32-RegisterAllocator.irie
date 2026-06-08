@@ -18,7 +18,7 @@
 ; CHECK:     \$c = mos6502\.sec
 ; CHECK:     \$a = pseudo\.copy \$a
 ; CHECK:     \$a, \$c = mos6502\.sbc \$a, \$zp4, \$c
-; CHECK:     \$zp4 = pseudo\.copy \$a
+; CHECK:     \$y = pseudo\.copy \$a
 ; CHECK:     \$a = pseudo\.copy \$x
 ; CHECK:     \$a, \$c = mos6502\.sbc \$a, \$zp5, \$c
 ; CHECK:     \$x = pseudo\.copy \$a
@@ -28,7 +28,7 @@
 ; CHECK:     \$a = pseudo\.copy \$zp3
 ; CHECK:     \$a, \$c = mos6502\.sbc \$a, \$zp7, \$c
 ; CHECK:     \$zp3 = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$zp4
+; CHECK:     \$a = pseudo\.copy \$y
 ; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     \$zp2 = pseudo\.copy \$zp2
 ; CHECK:     \$zp3 = pseudo\.copy \$zp3

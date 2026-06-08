@@ -7,7 +7,7 @@
 ; CHECK: TestFunction:
 ; CHECK:     SEC
 ; CHECK:     SBC \$04
-; CHECK:     STA \$04
+; CHECK:     TAY
 ; CHECK:     TXA
 ; CHECK:     SBC \$05
 ; CHECK:     TAX
@@ -17,7 +17,7 @@
 ; CHECK:     LDA \$03
 ; CHECK:     SBC \$07
 ; CHECK:     STA \$03
-; CHECK:     LDA \$04
+; CHECK:     TYA
 ; CHECK:     RTS
 
 func @TestFunction : (i32, i32) -> i32 {

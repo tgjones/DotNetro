@@ -9,7 +9,7 @@
 ; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
 ; CHECK:     \$c = mos6502\.sec
 ; CHECK:     \$a, \$c = mos6502\.sbc\.zp \$a, \$zp4, \$c
-; CHECK:     \$zp4 = mos6502\.sta\.zp \$a
+; CHECK:     \$y = mos6502\.tay \$a
 ; CHECK:     \$a = mos6502\.txa \$x
 ; CHECK:     \$a, \$c = mos6502\.sbc\.zp \$a, \$zp5, \$c
 ; CHECK:     \$x = mos6502\.tax \$a
@@ -19,7 +19,7 @@
 ; CHECK:     \$a = mos6502\.lda\.zp \$zp3
 ; CHECK:     \$a, \$c = mos6502\.sbc\.zp \$a, \$zp7, \$c
 ; CHECK:     \$zp3 = mos6502\.sta\.zp \$a
-; CHECK:     \$a = mos6502\.lda\.zp \$zp4
+; CHECK:     \$a = mos6502\.tya \$y
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
 ; CHECK: \}
 

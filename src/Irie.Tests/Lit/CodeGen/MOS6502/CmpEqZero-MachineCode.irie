@@ -28,15 +28,15 @@
 ; CHECK:     RTS
 ; CHECK: CmpEqZeroI16:
 ; CHECK:     LDY #\$00
-; CHECK:     STY \$04
-; CHECK:     LDY #\$00
 ; CHECK:     STY \$03
-; CHECK:     STA \$02
+; CHECK:     LDY #\$00
+; CHECK:     STY \$02
+; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     CMP \$03
+; CHECK:     CMP \$02
 ; CHECK:     BNE \.bb2
-; CHECK:     LDA \$02
-; CHECK:     CMP \$04
+; CHECK:     TYA
+; CHECK:     CMP \$03
 ; CHECK:     BNE \.bb2
 ; CHECK:     JMP \.bb1
 ; CHECK: \.bb1:
@@ -45,25 +45,25 @@
 ; CHECK:     RTS
 ; CHECK: CmpEqZeroI32:
 ; CHECK:     LDY #\$00
-; CHECK:     STY \$08
-; CHECK:     LDY #\$00
 ; CHECK:     STY \$07
 ; CHECK:     LDY #\$00
 ; CHECK:     STY \$06
 ; CHECK:     LDY #\$00
 ; CHECK:     STY \$05
-; CHECK:     STA \$04
+; CHECK:     LDY #\$00
+; CHECK:     STY \$04
+; CHECK:     TAY
 ; CHECK:     LDA \$03
-; CHECK:     CMP \$05
+; CHECK:     CMP \$04
 ; CHECK:     BNE \.bb2
 ; CHECK:     LDA \$02
-; CHECK:     CMP \$06
+; CHECK:     CMP \$05
 ; CHECK:     BNE \.bb2
 ; CHECK:     TXA
-; CHECK:     CMP \$07
+; CHECK:     CMP \$06
 ; CHECK:     BNE \.bb2
-; CHECK:     LDA \$04
-; CHECK:     CMP \$08
+; CHECK:     TYA
+; CHECK:     CMP \$07
 ; CHECK:     BNE \.bb2
 ; CHECK:     JMP \.bb1
 ; CHECK: \.bb1:

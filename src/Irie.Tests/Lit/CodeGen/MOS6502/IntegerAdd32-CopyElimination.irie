@@ -11,7 +11,7 @@
 ; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
 ; CHECK:     \$c = mos6502\.clc
 ; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp4, \$c
-; CHECK:     \$zp4 = pseudo\.copy \$a
+; CHECK:     \$y = pseudo\.copy \$a
 ; CHECK:     \$a = pseudo\.copy \$x
 ; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp5, \$c
 ; CHECK:     \$x = pseudo\.copy \$a
@@ -21,7 +21,7 @@
 ; CHECK:     \$a = pseudo\.copy \$zp3
 ; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp7, \$c
 ; CHECK:     \$zp3 = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$zp4
+; CHECK:     \$a = pseudo\.copy \$y
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
 ; CHECK: \}
 

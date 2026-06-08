@@ -45,4 +45,20 @@ public abstract class TargetRegisterInfo
     // MOSPostRAScavenging). The benefit: scratch can be $x/$y when those are
     // dead, instead of forcing $a free for every copy.
     public virtual ReadOnlySpan<int> GetScratchGprCandidates() => default;
+
+    // The scarce architectural general-purpose registers, in the order to PREFER
+    // them for SHORT-lived flexible values (register-allocator-redesign Phase 5;
+    // plan §3.5). These are the cheap real registers ($a/$x/$y on the MOS6502)
+    // that the abundant memory/zero-page pool surrounds. The allocator's
+    // cost-driven colour selection promotes these ahead of the memory pool for a
+    // value whose live range is short (does not span the arithmetic chain), and
+    // keeps the memory pool first for long-lived values so the GPRs stay free for
+    // arithmetic. Empty by default (a target with no such distinction, where the
+    // class's default allocatable order is used unchanged).
+    //
+    // This is preference POLICY only — it never changes which registers are
+    // *legal* for a vreg (that is the class intersection). It only reorders the
+    // legal set so allocation converges toward the llvm-mos references, which use
+    // $a/$x/$y for data where Irie used to park everything in zero page.
+    public virtual ReadOnlySpan<int> GetShortRangeGprPreference() => default;
 }

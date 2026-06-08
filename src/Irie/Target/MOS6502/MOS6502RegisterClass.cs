@@ -4,8 +4,11 @@ namespace Irie.Target.MOS6502;
 //
 // - Ac, Xc, Yc, Cc, Vc, Nc, Zc, Ic, Dc, Bc: single architectural registers
 // - Imag8: imaginary 8-bit zero-page registers (RC0..RCn)
-// - Anyi8: any 8-bit register (A, X, or Imag8). Used for values that can be stored
-//   in any 8-bit location but aren't constrained to a specific one.
+// - Anyi8: any 8-bit register (A, X, Y, or Imag8). Used for values that can be
+//   stored in any 8-bit location but aren't constrained to a specific one. $y was
+//   added to this class in register-allocator-redesign Phase 5 (plan §3.5): the
+//   llvm-mos references use $a/$x/$y freely for data, whereas Irie previously
+//   parked everything in the zero-page pool and never touched $y.
 public static class MOS6502RegisterClass
 {
     public const int None  = 0;
@@ -15,7 +18,7 @@ public static class MOS6502RegisterClass
     public const int Cc    = 4; // C flag (single bit)
     public const int Vc    = 5; // V flag (single bit)
     public const int Imag8 = 6; // imaginary 8-bit zero-page registers (RC0..RCn)
-    public const int Anyi8 = 7; // any 8-bit register (A, X, or Imag8)
+    public const int Anyi8 = 7; // any 8-bit register (A, X, Y, or Imag8)
     // Status-flag classes for the new MIR dialect (one class per flag is the
     // first-cut layout per unified-IR plan §6 / open question #2; can be unified
     // later if RA freedom is never needed).

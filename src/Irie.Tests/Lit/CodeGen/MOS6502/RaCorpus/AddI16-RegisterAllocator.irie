@@ -2,9 +2,11 @@
 
 ; Derived from reference-register-allocator/basics/add-i16.
 ; i16 add = a 2-byte carry chain (mos6502.adc x2 threading $c).
-; Divergence worth studying: llvm-mos parks the low result byte in the real
-; register $y while computing the high byte; Irie parks it in $zp2 and never
-; uses $y -- i.e. it does not exploit the spare real register.
+; Convergence (register-allocator-redesign Phase 5, the "$y gap" closure): like
+; the llvm-mos reference, Irie now parks the low result byte in the real register
+; $y while the high byte is computed in $a — the cost-driven colour preference
+; promotes a scarce GPR for this short cross-instruction value. Before Phase 5
+; Irie parked it in $zp2 and never touched $y.
 
 ; CHECK: func @add_i16 : \(i16, i16\) -> i16 \{
 ; CHECK: bb0\(\):
@@ -16,11 +18,11 @@
 ; CHECK:     \$c = mos6502\.clc
 ; CHECK:     \$a = pseudo\.copy \$a
 ; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp2, \$c
-; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$y = pseudo\.copy \$a
 ; CHECK:     \$a = pseudo\.copy \$x
 ; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp3, \$c
 ; CHECK:     \$x = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$a = pseudo\.copy \$y
 ; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x
 ; CHECK: \}

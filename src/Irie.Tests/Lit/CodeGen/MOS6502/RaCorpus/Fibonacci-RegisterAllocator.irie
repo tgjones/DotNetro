@@ -20,74 +20,74 @@
 ; CHECK: func @fibonacci : \(i16\) -> i16 \{
 ; CHECK: bb0\(\):
 ; CHECK:     \[liveins: \$a, \$x\]
-; CHECK:     \$zp10 = pseudo\.copy \$a
-; CHECK:     \$zp11 = pseudo\.copy \$x
+; CHECK:     \$zp11 = pseudo\.copy \$a
+; CHECK:     \$zp10 = pseudo\.copy \$x
 ; CHECK:     \$zp7 = pseudo\.copy 0
-; CHECK:     \$x = pseudo\.copy 0
+; CHECK:     \$zp6 = pseudo\.copy 0
 ; CHECK:     \$zp9 = pseudo\.copy 1
 ; CHECK:     \$zp8 = pseudo\.copy 0
-; CHECK:     \$zp6 = pseudo\.copy 0
 ; CHECK:     \$zp5 = pseudo\.copy 0
+; CHECK:     \$zp4 = pseudo\.copy 0
 ; CHECK:     \$zp7 = pseudo\.copy \$zp7
-; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$zp6 = pseudo\.copy \$zp6
 ; CHECK:     \$zp9 = pseudo\.copy \$zp9
 ; CHECK:     \$zp8 = pseudo\.copy \$zp8
-; CHECK:     \$zp6 = pseudo\.copy \$zp6
 ; CHECK:     \$zp5 = pseudo\.copy \$zp5
+; CHECK:     \$zp4 = pseudo\.copy \$zp4
 ; CHECK:     mos6502\.jmp\.abs bb1
 ; CHECK: bb1\(\):
-; CHECK:     \[liveins: \$zp10, \$zp11, \$zp7, \$x, \$zp9, \$zp8, \$zp6, \$zp5\]
-; CHECK:     \$zp4 = pseudo\.copy \$zp6
-; CHECK:     \$a = pseudo\.copy \$zp5
-; CHECK:     \$zp12 = pseudo\.copy \$zp10
-; CHECK:     \$zp2 = pseudo\.copy \$zp11
+; CHECK:     \[liveins: \$zp11, \$zp10, \$zp7, \$zp6, \$zp9, \$zp8, \$zp5, \$zp4\]
+; CHECK:     \$zp3 = pseudo\.copy \$zp5
+; CHECK:     \$a = pseudo\.copy \$zp4
+; CHECK:     \$zp12 = pseudo\.copy \$zp11
+; CHECK:     \$x = pseudo\.copy \$zp10
 ; CHECK:     \$a = pseudo\.copy \$a
 ; CHECK:     \$a = pseudo\.copy \$a
 ; CHECK:     \$a = mos6502\.eor\.imm \$a, 128
-; CHECK:     \$zp3 = pseudo\.copy \$a
-; CHECK:     \$zp3 = pseudo\.copy \$zp3
-; CHECK:     \$zp2 = pseudo\.copy \$zp2
-; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$y = pseudo\.copy \$a
+; CHECK:     \$y = pseudo\.copy \$y
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$a = pseudo\.copy \$x
 ; CHECK:     \$a = mos6502\.eor\.imm \$a, 128
 ; CHECK:     \$zp2 = pseudo\.copy \$a
 ; CHECK:     \$zp2 = pseudo\.copy \$zp2
-; CHECK:     \$a = pseudo\.copy \$zp3
+; CHECK:     \$a = pseudo\.copy \$y
 ; CHECK:     mos6502\.cmp \$a, \$zp2, implicit-def \$n, implicit-def \$z, implicit-def \$c
 ; CHECK:     mos6502\.bcc bb2, implicit \$c
 ; CHECK:     mos6502\.bne bb3, implicit \$z
-; CHECK:     \$a = pseudo\.copy \$zp4
+; CHECK:     \$a = pseudo\.copy \$zp3
 ; CHECK:     mos6502\.cmp \$a, \$zp12, implicit-def \$n, implicit-def \$z, implicit-def \$c
 ; CHECK:     mos6502\.bcc bb2, implicit \$c
 ; CHECK:     mos6502\.jmp\.abs bb3
 ; CHECK: bb2\(\):
-; CHECK:     \[liveins: \$zp10, \$zp11, \$zp7, \$x, \$zp9, \$zp8, \$zp6, \$zp5\]
+; CHECK:     \[liveins: \$zp11, \$zp10, \$zp7, \$zp6, \$zp9, \$zp8, \$zp5, \$zp4\]
 ; CHECK:     \$c = mos6502\.clc
 ; CHECK:     \$a = pseudo\.copy \$zp7
 ; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp9, \$c
-; CHECK:     \$zp3 = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$x
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp8, \$c
-; CHECK:     \$zp2 = pseudo\.copy \$a
-; CHECK:     \$zp7 = pseudo\.copy 1
-; CHECK:     \$zp4 = pseudo\.copy 0
-; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$y = pseudo\.copy \$a
 ; CHECK:     \$a = pseudo\.copy \$zp6
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp7, \$c
-; CHECK:     \$zp6 = pseudo\.copy \$a
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp8, \$c
+; CHECK:     \$x = pseudo\.copy \$a
+; CHECK:     \$zp3 = pseudo\.copy 1
+; CHECK:     \$zp2 = pseudo\.copy 0
+; CHECK:     \$c = mos6502\.clc
 ; CHECK:     \$a = pseudo\.copy \$zp5
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp4, \$c
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp3, \$c
 ; CHECK:     \$zp5 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp4
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp2, \$c
+; CHECK:     \$zp4 = pseudo\.copy \$a
 ; CHECK:     \$zp7 = pseudo\.copy \$zp9
-; CHECK:     \$x = pseudo\.copy \$zp8
-; CHECK:     \$zp9 = pseudo\.copy \$zp3
-; CHECK:     \$zp8 = pseudo\.copy \$zp2
-; CHECK:     \$zp6 = pseudo\.copy \$zp6
+; CHECK:     \$zp6 = pseudo\.copy \$zp8
+; CHECK:     \$zp9 = pseudo\.copy \$y
+; CHECK:     \$zp8 = pseudo\.copy \$x
 ; CHECK:     \$zp5 = pseudo\.copy \$zp5
+; CHECK:     \$zp4 = pseudo\.copy \$zp4
 ; CHECK:     mos6502\.jmp\.abs bb1
 ; CHECK: bb3\(\):
-; CHECK:     \[liveins: \$zp7, \$x\]
+; CHECK:     \[liveins: \$zp7, \$zp6\]
 ; CHECK:     \$a = pseudo\.copy \$zp7
-; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$x = pseudo\.copy \$zp6
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x
 ; CHECK: \}
 
