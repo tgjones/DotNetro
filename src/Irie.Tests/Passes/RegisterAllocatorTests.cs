@@ -208,4 +208,54 @@ public sealed class RegisterAllocatorTests
         foreach (var instr in bb0.Instructions)
             await Assert.That(instr.Operands.OfType<VirtualReg>().Any()).IsFalse();
     }
+
+    // Regression: a DEAD livein copy (`%v = pseudo.copy $a`, with %v never
+    // used — the shape AbiLowering emits for an ignored calling-convention
+    // argument byte) must be assigned its OWN source register so it becomes an
+    // identity copy CopyElimination deletes. It must NOT be given a fresh
+    // register, because a copy still *writes* its destination: parking the dead
+    // copy on $zp2 would clobber whatever live value occupies $zp2 (the bug seen
+    // in the runtime WriteLineInt32, whose i32 parameter is unused — the dead
+    // param-byte copies landed on $zp4 and overwrote the real working bytes).
+    //
+    //   %dead = pseudo.copy $a       ; %dead never used
+    //   %home = arith.constant 7     ; a real value RA parks in $zp2
+    //   ... use %home ...
+    // The dead copy must resolve to `$a = pseudo.copy $a` (identity), leaving
+    // $zp2 untouched for %home.
+    [Test]
+    public async Task DeadLiveinCopy_AssignedSourceReg_DoesNotClobber()
+    {
+        var fn = NewFunction("dead_livein");
+        var bb0 = fn.CreateBlock();
+
+        var dead = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var home = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+
+        // Dead livein copy: defines `dead` from $a; `dead` is never used.
+        var deadCopy = bb0.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(dead, IsDefinition: true),
+            new PhysicalReg(MOS6502Registers.A, IsDefinition: false));
+
+        // A real value that RA must keep in a distinct register, used after.
+        var homeDef = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(home, IsDefinition: true),
+            new Immediate(7));
+        var homeUse = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8"), IsDefinition: true),
+            new VirtualReg(home, IsDefinition: false),
+            new VirtualReg(home, IsDefinition: false));
+
+        Pass.Run(fn);
+
+        // The dead copy resolved to an identity ($a = pseudo.copy $a): its def
+        // physreg equals its source physreg ($a).
+        await Assert.That(DefPhysReg(deadCopy)).IsEqualTo(MOS6502Registers.A);
+        await Assert.That(UsePhysRegAt(deadCopy, 1)).IsEqualTo(MOS6502Registers.A);
+
+        // The real value got its own (non-$a) register, NOT clobbered by the
+        // dead copy.
+        await Assert.That(DefPhysReg(homeDef)).IsNotEqualTo(MOS6502Registers.A);
+        await Assert.That(UsePhysRegAt(homeUse, 1)).IsEqualTo(DefPhysReg(homeDef));
+    }
 }

@@ -31,24 +31,18 @@ public abstract class TargetRegisterInfo
     // Return 0 (no class) on targets where no widening is desired.
     public virtual int FlexibleI8ClassId => 0;
 
-    // Physical registers a `pseudo.copy` destroys as hidden scratch when the
-    // target lowers it, beyond the copy's own dst def and src use. On the
-    // MOS6502 a copy that materialises an immediate into — or moves between —
-    // zero-page slots expands to `LDA;STA`, clobbering $A even though $A is
-    // neither the copy's source nor destination. The register allocator records
-    // a clobber of each returned physreg at the copy's slot so it won't keep an
-    // unrelated live value there across the copy.
+    // Scratch general-purpose registers the post-RA RegisterScavengingPass may
+    // hand to a `pseudo.copy` that needs a temporary register to lower (e.g. on
+    // the MOS6502 an immediate-into-zero-page copy needs a GPR for `LD? #imm ;
+    // ST? $zp`). Returned in preference order; the scavenger picks the first one
+    // that is DEAD at the copy's program point. Empty by default (a target whose
+    // copies never need scratch).
     //
-    // Called during clobber analysis, *before* vregs are assigned to physregs,
-    // so the only information available is the copy's source operand and the
-    // (already-resolved) source and destination register classes. `srcClassId`
-    // is 0 (None) when the source is an Immediate. A returned physreg must be a
-    // clobber that is *certain* given only this much information: implementations
-    // should report the forms that unconditionally route through scratch (an
-    // immediate has no register choice and the copy can never be coalesced away)
-    // and leave the may-coalesce register/zp moves to the allocator's physreg
-    // reservation model rather than over-approximating scarce scratch out of
-    // reach. Returns an empty span by default (no hidden-scratch copies).
-    public virtual ReadOnlySpan<int> GetPseudoCopyScratchClobbers(
-        MirOperand source, int srcClassId, int destClassId) => default;
+    // This REPLACES the old GetPseudoCopyScratchClobbers hook (deleted): copy
+    // scratch is no longer modelled during register allocation at all. The
+    // allocator allocates as if copies were free; the scavenger picks scratch
+    // afterwards with exact post-RA liveness (plan §3.6, mirroring llvm-mos's
+    // MOSPostRAScavenging). The benefit: scratch can be $x/$y when those are
+    // dead, instead of forcing $a free for every copy.
+    public virtual ReadOnlySpan<int> GetScratchGprCandidates() => default;
 }

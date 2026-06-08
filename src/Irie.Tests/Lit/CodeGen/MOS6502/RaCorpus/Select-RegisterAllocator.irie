@@ -8,23 +8,23 @@
 ; CHECK: func @select_val : \(i16, i16, i16\) -> i16 \{
 ; CHECK: bb0\(\):
 ; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5\]
-; CHECK:     \$zp6 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$a
 ; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     \$zp2 = pseudo\.copy \$zp2
 ; CHECK:     \$zp3 = pseudo\.copy \$zp3
 ; CHECK:     \$zp4 = pseudo\.copy \$zp4
 ; CHECK:     \$zp5 = pseudo\.copy \$zp5
+; CHECK:     \$zp6 = pseudo\.copy 0
 ; CHECK:     \$zp7 = pseudo\.copy 0
-; CHECK:     \$zp8 = pseudo\.copy 0
-; CHECK:     \$zp6 = pseudo\.copy \$zp6
+; CHECK:     \$zp8 = pseudo\.copy \$a
 ; CHECK:     \$zp9 = pseudo\.copy \$x
+; CHECK:     \$zp6 = pseudo\.copy \$zp6
 ; CHECK:     \$zp7 = pseudo\.copy \$zp7
-; CHECK:     \$zp8 = pseudo\.copy \$zp8
 ; CHECK:     \$a = pseudo\.copy \$zp9
-; CHECK:     mos6502\.cmp \$a, \$zp8, implicit-def \$n, implicit-def \$z, implicit-def \$c
-; CHECK:     mos6502\.bne bb1, implicit \$z
-; CHECK:     \$a = pseudo\.copy \$zp6
 ; CHECK:     mos6502\.cmp \$a, \$zp7, implicit-def \$n, implicit-def \$z, implicit-def \$c
+; CHECK:     mos6502\.bne bb1, implicit \$z
+; CHECK:     \$a = pseudo\.copy \$zp8
+; CHECK:     mos6502\.cmp \$a, \$zp6, implicit-def \$n, implicit-def \$z, implicit-def \$c
 ; CHECK:     mos6502\.bne bb1, implicit \$z
 ; CHECK:     mos6502\.jmp\.abs bb2
 ; CHECK: bb1\(\):

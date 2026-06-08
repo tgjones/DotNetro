@@ -1,33 +1,50 @@
 ; RUN: @iriec --target mos6502 --emit=asm @file
 
-; Regression guard for the $a-scratch clobber of zero-page-routed pseudo.copies.
+; Regression guard for copy scratch on immediate-into-zero-page copies, now
+; chosen post-RA by RegisterScavengingPass (plan §3.6) instead of reserving $a.
 ;
 ; The i32 parameter arrives LSB-first in $a, $x, $zp2, $zp3 (CC_MOS live-ins).
-; Adding a constant 1 to it materializes the four constant bytes with
-; `LDA #imm ; STA $zp`, and each `LDA #imm` clobbers $a. Byte 0 of the
-; parameter lives in $a on entry, so RA must evict it to a zero-page slot
-; *before* the first const-materialization clobbers $a, then reload it for the
-; ADC. Before this fix RA kept the live-in in $a across the const setup, so the
-; `LDA #$01` destroyed the parameter byte and the function returned 1 + 0
-; instead of param + 1.
+; Adding a constant 1 materializes the four constant bytes with `LD? #imm ;
+; ST? $zp` — each of which needs a scratch GPR. RA no longer models that scratch
+; (the old GetPseudoCopyScratchClobbers $a-reservation is deleted): it allocates
+; as if copies were free, so byte 0 of the parameter STAYS in $a. The scavenger
+; then picks the scratch for each const-materialization with exact post-RA
+; liveness: $a and $x hold live parameter bytes, so it picks the dead $y —
+; emitting `LDY #imm ; STY $zp`. No eviction, no reload: the first ADC reads the
+; parameter's byte 0 straight out of $a (`CLC ; ADC $04`).
 ;
-; The load-bearing lines: $a (the param's byte 0) is stashed with `STA $04`
-; ahead of the first `LDA #$01`, and the per-byte ADC reads it back with
-; `LDA $04` — never adding into a clobbered accumulator.
+; This is strictly better than the old code, which evicted $a's parameter byte
+; to a zp slot (`STA $04`) before the const setup and reloaded it (`LDA $04`)
+; for the ADC. Both compute param + 1 correctly; the new code is tighter.
+;
+; The load-bearing lines: const bytes materialize via `LDY #imm ; STY $zp` (the
+; dead $y as scratch, not $a), and the first per-byte add is `CLC ; ADC $04` —
+; reading the parameter byte still resident in $a.
 
 ; CHECK: M:
-; CHECK:     STA \$04
-; CHECK:     LDA #\$01
-; CHECK:     STA \$05
-; CHECK:     LDA #\$00
-; CHECK:     STA \$06
-; CHECK:     LDA #\$00
-; CHECK:     STA \$07
-; CHECK:     LDA #\$00
-; CHECK:     STA \$08
+; CHECK:     LDY #\$01
+; CHECK:     STY \$04
+; CHECK:     LDY #\$00
+; CHECK:     STY \$05
+; CHECK:     LDY #\$00
+; CHECK:     STY \$06
+; CHECK:     LDY #\$00
+; CHECK:     STY \$07
 ; CHECK:     CLC
-; CHECK:     LDA \$04
+; CHECK:     ADC \$04
+; CHECK:     STA \$04
+; CHECK:     TXA
 ; CHECK:     ADC \$05
+; CHECK:     STA \$05
+; CHECK:     LDA \$02
+; CHECK:     ADC \$06
+; CHECK:     STA \$02
+; CHECK:     LDA \$03
+; CHECK:     ADC \$07
+; CHECK:     STA \$03
+; CHECK:     LDA \$04
+; CHECK:     LDX \$05
+; CHECK:     RTS
 
 func @M : (i32) -> i32 {
 bb0(%0 : i32):

@@ -45,7 +45,7 @@
 ; CHECK:     \$x = pseudo\.copy \$zp8
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x
 ; CHECK: bb2\(\):
-; CHECK:     \[liveins: \$zp2, \$zp4, \$zp3, \$zp5, \$zp6, \$x\]
+; CHECK:     \[liveins: \$zp6, \$x, \$zp2, \$zp3, \$zp4, \$zp5\]
 ; CHECK:     \$c = mos6502\.clc
 ; CHECK:     \$a = pseudo\.copy \$zp2
 ; CHECK:     \$zp2 = pseudo\.copy \$zp4

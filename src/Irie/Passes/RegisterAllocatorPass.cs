@@ -24,16 +24,36 @@ namespace Irie.Passes;
 //      not match the class the dialect's instruction info requires.
 //   3. Insert result-preservation copies after tied-operand defs whose
 //      result is live beyond the instruction.
-//   4. Compute liveness on the now-final shape.
+//   4. Compute physreg-aware live intervals (LiveIntervals) on the now-final
+//      shape. This single analysis gives EXACT interference — including the
+//      busy windows of every physical register (call clobbers, flag defs, CC
+//      live-ins, relocation reads). It subsumes the four ad-hoc reconstructions
+//      the old pass needed (ComputeClobberSlots / ComputePhysRegReservations /
+//      IsClobberFree / IsReservationFree), all of which were re-deriving physreg
+//      liveness the analysis now tracks natively (plan §3.1).
 //   5. Linear-scan physreg allocation with copy hints. A single
-//      `physregActive` dictionary tracks which physregs are currently in
-//      use; expiry uses `endpoint ≤ currentStart` so tied def/use that
-//      meet at the same slot can share a physreg.
+//      `physregActive` dictionary tracks which physregs are currently held by a
+//      not-yet-expired vreg; expiry uses `endpoint ≤ currentStart` so a tied
+//      def/use that meet at the same slot can share a physreg. A candidate
+//      physreg is rejected when it is already held by a live vreg, OR when the
+//      vreg's interval overlaps that physreg's precolored busy interval
+//      (LiveIntervals.Overlaps).
 //   6. Rewrite VirtualReg operands to PhysicalReg.
-//   7. Recompute block live-ins from the final assignment.
+//   7. Recompute block live-ins from the final assignment + the vreg intervals.
 //
 // Spilling is not implemented; a NotImplementedException is thrown if no
 // physical register is available in a class.
+//
+// NOTE (Phase 2 of the register-allocator redesign — see
+// notes/register-allocator-redesign-plan.md). This pass was re-cored onto the
+// physreg-aware LiveIntervals analysis, deleting ~250 lines of ad-hoc physreg-
+// liveness reconstruction. Coalescing is still NOT done here (Phase 3): the
+// widen pre-passes, InsertConstraintFixupCopies, InsertResultPreservationCopies,
+// and the single-direction copy hint all STAY for now so output is ~unchanged.
+// The copy-SCRATCH clobber concept was removed entirely: a copy that needs a
+// scratch register is no longer a register-allocation concern — the post-RA
+// RegisterScavengingPass picks copy scratch with exact post-RA liveness
+// (plan §3.6).
 public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : MirFunctionPass
 {
     public override string Name => "RegisterAllocator";
@@ -51,14 +71,18 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
         InsertConstraintFixupCopies(function);
         InsertResultPreservationCopies(function, flexibleI8);
 
-        var liveness = PassManager != null
-            ? GetAnalysis<LivenessAnalysis, Liveness>(function)
-            : new LivenessAnalysis().Compute(function);
+        // Physreg-aware live intervals (with holes) are the single source of
+        // interference truth. LiveIntervals.Overlaps(vreg, physReg) answers
+        // "is this physreg busy anywhere the vreg is live?" — which is what the
+        // deleted IsClobberFree / IsReservationFree used to answer by hand.
+        var intervals = PassManager != null
+            ? GetAnalysis<LiveIntervalsAnalysis, LiveIntervals>(function)
+            : new LiveIntervalsAnalysis().Compute(function);
 
-        var assignment = LinearScanAllocate(function, liveness);
+        var assignment = LinearScanAllocate(function, intervals);
         ApplyAssignment(function, assignment);
         function.ClearVRegAnnotations();
-        RecomputeBlockLiveIns(function, liveness, assignment);
+        RecomputeBlockLiveIns(function, intervals, assignment);
     }
 
     // Step 1 — widen each entry-block livein pseudo.copy result vreg's class
@@ -333,34 +357,52 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
         }
     }
 
-    // Step 5 — linear scan with copy hints and clobber-aware physreg selection.
+    // Step 5 — linear scan with copy hints over the physreg-aware LiveIntervals.
     // Returns vreg → physreg.
     //
-    // Clobber awareness: instructions whose operand array includes implicit-def
-    // PhysicalReg operands (e.g. mos6502.jsr.abs implicit-def $a, …) destroy
-    // the named physreg's value. A vreg V can be placed on physreg P only if
-    // no clobber of P falls strictly between V's def slot and V's last-use
-    // slot. Without this check, a value parked in P during a call site would
-    // silently get overwritten by the callee.
-    private Dictionary<int, int> LinearScanAllocate(MirFunction function, Liveness liveness)
+    // Interference comes in two forms, both answered by LiveIntervals:
+    //   (a) vreg ↔ vreg — two vregs assigned the same physreg must not be live
+    //       at the same time. This is the classic linear-scan active set:
+    //       physregActive[P] = the vreg currently parked in P. A holder expires
+    //       once its interval ends on or before the current vreg's start (≤, so
+    //       a tied def/use that meet at one slot can share a physreg).
+    //   (b) vreg ↔ physreg — a vreg cannot live on a physreg that is busy (with
+    //       a precolored value) anywhere the vreg is live. LiveIntervals tracks
+    //       every physreg's busy windows directly — call clobbers
+    //       (mos6502.jsr.abs implicit-defs), flag defs (mos6502.cmp's $n/$v/$z),
+    //       CC live-ins, and the [def, relocation-read] window of a result
+    //       physreg read back by a `pseudo.copy %v = $P`. So a single
+    //       `intervals.Overlaps(vreg, P)` replaces BOTH the old
+    //       IsClobberFree (implicit-def clobbers) and IsReservationFree
+    //       (relocation reservations). The half-open sub-slot numbering makes
+    //       "the relocation copy reads $P exactly where its consumer is born"
+    //       a non-overlap automatically — no special consumer-exception needed.
+    private Dictionary<int, int> LinearScanAllocate(MirFunction function, LiveIntervals intervals)
     {
-        var intervals = liveness.RangeOf
-            .Select(kv => (vreg: kv.Key, range: kv.Value))
-            .OrderBy(x => x.range.Start)
+        // Order vregs by interval start, then id, for a deterministic scan.
+        var ordered = function.VirtualRegisterIds
+            .Where(v => !intervals.IntervalOf(v).IsEmpty)
+            .Select(v => (vreg: v, interval: intervals.IntervalOf(v)))
+            .OrderBy(x => x.interval.Start)
             .ThenBy(x => x.vreg)
             .ToList();
 
-        var clobberSlots = ComputeClobberSlots(function, liveness);
-        var physRegReservations = ComputePhysRegReservations(function, liveness);
+        // Per single-physreg class P-only-register, the vregs constrained to it.
+        // Used by the copy-hint starvation guard below.
+        var singlePhysClassDemand = ComputeSinglePhysClassDemand(function);
 
         var assignment = new Dictionary<int, int>();
         var physregActive = new Dictionary<int, int>();
 
-        foreach (var (vreg, range) in intervals)
+        foreach (var (vreg, interval) in ordered)
         {
-            // Expire physregs whose holder's interval ended on or before this start.
+            var start = interval.Start;
+
+            // Expire physregs whose holder's interval ended on or before this
+            // start. (≤, not <, so a value that dies exactly where the next is
+            // born can reuse the register — the tied def/use sharing case.)
             foreach (var (physReg, activeVreg) in physregActive.ToList())
-                if (liveness.RangeOf[activeVreg].End <= range.Start)
+                if (intervals.IntervalOf(activeVreg).End <= start)
                     physregActive.Remove(physReg);
 
             if (function.GetVRegAnnotation(vreg) is not ClassedVReg classed)
@@ -372,12 +414,48 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
                 throw new InvalidOperationException(
                     $"RegisterAllocator: no allocatable registers in class {classed.Name}.");
 
+            // Dead copy from a physreg: `%v = pseudo.copy $src` where %v is never
+            // used. This is the canonical shape of an unused calling-convention
+            // argument byte — AbiLowering emits a livein copy + pseudo.merge for
+            // every parameter byte, and when the callee ignores the parameter the
+            // merge (and hence these copies) are dead. They survive to RA because
+            // nothing earlier DCE's them.
+            //
+            // Such a copy MUST NOT be given a fresh register: it still *writes*
+            // its destination, so parking it on, say, $zp4 clobbers whatever live
+            // value occupies $zp4 at that point (a real miscompile observed in the
+            // runtime WriteLineInt32, whose i32 parameter is unused). Assign the
+            // copy its OWN source register instead: that turns it into an identity
+            // `$src = pseudo.copy $src`, which CopyEliminationPass then deletes —
+            // emitting no instruction and clobbering nothing. This is exactly what
+            // the old vreg-only allocator did incidentally via its copy hint; here
+            // we make it explicit and independent of interference, because a dead
+            // identity copy is always safe regardless of what else is live.
+            // (Coalescing — Phase 3 — will subsume this as the trivial case of a
+            // copy whose two ends can share a register.)
+            if (TryGetDeadCopySourcePhysReg(function, vreg, allocatable) is int deadSrc)
+            {
+                // Deliberately NOT recorded in physregActive: the copy is an
+                // identity that will be deleted, so it reserves nothing.
+                assignment[vreg] = deadSrc;
+                continue;
+            }
+
             var hint = TryGetCopyHintPhysReg(function, vreg, allocatable);
 
+            // Starvation guard for the copy hint (see HintStarvesConstrainedClass).
+            // Honour the hint only when steering this (flexible) vreg onto the
+            // hinted physreg would not leave a class-constrained vreg with
+            // nowhere to go.
+            if (hint.HasValue
+                && HintStarvesConstrainedClass(vreg, hint.Value, classed.ClassId, singlePhysClassDemand, intervals))
+                hint = null;
+
+            // P is available for this vreg iff no live vreg already holds it AND
+            // the vreg's interval does not overlap P's precolored busy interval.
             bool Available(int candidate) =>
                 !physregActive.ContainsKey(candidate)
-                && IsClobberFree(candidate, range, clobberSlots)
-                && IsReservationFree(candidate, vreg, range, physRegReservations);
+                && !intervals.Overlaps(vreg, candidate);
 
             int? chosen = null;
             if (hint.HasValue && Available(hint.Value))
@@ -408,169 +486,73 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
         return assignment;
     }
 
-    // For each physreg, the set of instruction slots where it is implicitly
-    // defined (clobbered) by some non-copy instruction. pseudo.copy explicit
-    // physreg defs are NOT clobbers — RA places them on purpose.
+    // For each single-physreg register class (a class with exactly one
+    // allocatable physreg, e.g. `ac`→$a, `xc`→$x), the list of vregs constrained
+    // to it, keyed by that physreg. These vregs have *no choice* of register —
+    // they MUST live on that one physreg — so they are the values most easily
+    // starved. Built once per function for the hint starvation guard.
+    private Dictionary<int, List<int>> ComputeSinglePhysClassDemand(MirFunction function)
+    {
+        var demand = new Dictionary<int, List<int>>();
+        foreach (var vreg in function.VirtualRegisterIds)
+        {
+            if (function.GetVRegAnnotation(vreg) is not ClassedVReg classed) continue;
+            var regs = registerInfo.GetAllocatableRegisters(classed.ClassId);
+            if (regs.Length != 1) continue; // not a single-physreg class
+            var p = regs[0];
+            if (!demand.TryGetValue(p, out var list))
+                demand[p] = list = [];
+            list.Add(vreg);
+        }
+        return demand;
+    }
+
+    // Starvation guard for the single-direction copy hint.
     //
-    // A pseudo.copy can still clobber a physreg the target uses as hidden
-    // scratch when it lowers the copy (e.g. MOS6502 routes an immediate-into-zp
-    // copy through $A). Those clobbers are queried from the target via
-    // GetPseudoCopyScratchClobbers and recorded at the copy's slot, so RA won't
-    // keep an unrelated live value in that scratch register across the copy.
-    private Dictionary<int, List<int>> ComputeClobberSlots(MirFunction function, Liveness liveness)
-    {
-        var clobbers = new Dictionary<int, List<int>>();
-
-        void Record(int physReg, int slot)
-        {
-            if (!clobbers.TryGetValue(physReg, out var slots))
-                clobbers[physReg] = slots = new List<int>();
-            slots.Add(slot);
-        }
-
-        foreach (var block in function.Blocks)
-        {
-            foreach (var instr in block.Instructions)
-            {
-                if (!liveness.SlotOf.TryGetValue(instr, out var slot)) continue;
-
-                foreach (var op in instr.Operands)
-                {
-                    if (op is PhysicalReg { IsDefinition: true, IsImplicit: true } p)
-                        Record(p.Id, slot);
-                }
-
-                if (IsCopy(instr) && instr.Operands.Length == 2
-                    && instr.Operands[0] is VirtualReg { IsDefinition: true } dstVreg
-                    && function.GetVRegAnnotation(dstVreg.Id) is ClassedVReg dstClass)
-                {
-                    var src = instr.Operands[1];
-                    var srcClass = ResolveOperandClass(function, src);
-                    foreach (var scratch in registerInfo.GetPseudoCopyScratchClobbers(
-                                 src, srcClass, dstClass.ClassId))
-                        Record(scratch, slot);
-                }
-            }
-        }
-        return clobbers;
-    }
-
-    // Live ranges of physical registers that hold a value across instructions
-    // without that value being represented by a vreg. The motivating case: a
-    // call (mos6502.jsr.abs) implicit-defs its result physregs ($a, $x, $zp2,
-    // $zp3 for an i32), and the caller reads each back with a `pseudo.copy
-    // %save = $P` to relocate it. Between the call and that copy the physreg is
-    // live, yet liveness (vreg-only) never sees it. Without reserving it, RA
-    // may park an unrelated vreg's eviction on $zp2 *before* the copy reads
-    // $zp2, destroying the result — the same kind of physreg-liveness gap as
-    // the $A-scratch clobber, but on the *source* side of a copy.
+    // The hint says "%v was copied from $P, so prefer giving %v the register $P
+    // to collapse the copy." That is a pure win when $P is a register %v could
+    // freely use anyway. But when %v is a *flexible* value (it could live in the
+    // abundant zero-page pool) and $P is a *scarce single-physreg* register that
+    // another value is FORCED onto, honouring the hint parks the flexible value
+    // on the scarce register for its whole (often long) live range and leaves
+    // the forced value with nowhere to go — RA then aborts for lack of a free
+    // physreg. We have no live-range splitting (Phase 6) to recover, so the only
+    // safe move is to decline the hint and let %v take the zp pool instead.
     //
-    // For each physreg P we walk the function in slot order, tracking the slot
-    // of the most recent instruction that defines P (explicit or implicit). A
-    // `pseudo.copy %v = $P` reading P closes a reservation interval
-    // [defSlot, readSlot] owned by the consumer vreg %v. A redefinition of P
-    // resets the tracked def slot. The consumer is recorded so it is not
-    // excluded from using P itself (it legitimately reads P at the interval's
-    // end).
-    private Dictionary<int, List<(int Start, int End, int Consumer)>> ComputePhysRegReservations(
-        MirFunction function, Liveness liveness)
+    // Concretely: decline the hint to $P iff (a) the vreg's own class offers
+    // more than just $P (it is flexible, so declining costs only the copy, not
+    // correctness), and (b) some *other* vreg that is constrained to the
+    // single-physreg class of $P interferes with this vreg's interval — i.e.
+    // would be starved if we took $P across it.
+    //
+    // This is exact-interval reasoning, not a heuristic: it fires precisely when
+    // taking the hinted register would make a class-constrained neighbour
+    // uncolourable. It reproduces the effect the now-deleted imm→zp $a-scratch
+    // clobber used to have incidentally (it kept long-lived flexible vregs off
+    // $a because their ranges crossed the const-materialisation clobbers), but
+    // does so from real interference instead of a scratch-clobber side effect.
+    // (Conservative coalescing — Phase 3 — will subsume this with a principled
+    // Briggs/George test; for Phase 2 this targeted guard keeps output stable.)
+    private bool HintStarvesConstrainedClass(
+        int vreg, int hintPhysReg, int vregClassId,
+        Dictionary<int, List<int>> singlePhysClassDemand,
+        LiveIntervals intervals)
     {
-        var reservations = new Dictionary<int, List<(int, int, int)>>();
-        // Most recent def slot per physreg; -1 = no live value to protect.
-        var lastDefSlot = new Dictionary<int, int>();
+        // (a) Is the vreg flexible (its class offers a register other than the
+        // hinted one)? If the vreg is itself constrained to $P, the hint is the
+        // only option and must stand.
+        var ownRegs = registerInfo.GetAllocatableRegisters(vregClassId);
+        if (ownRegs.Length <= 1) return false;
 
-        void Reserve(int physReg, int start, int end, int consumer)
+        // (b) Does any vreg forced onto $P's single-physreg class interfere with
+        // this vreg's interval? If so, taking $P here would starve it.
+        if (!singlePhysClassDemand.TryGetValue(hintPhysReg, out var forced)) return false;
+        foreach (var other in forced)
         {
-            if (!reservations.TryGetValue(physReg, out var list))
-                reservations[physReg] = list = new List<(int, int, int)>();
-            list.Add((start, end, consumer));
+            if (other == vreg) continue;
+            if (intervals.Interfere(vreg, other)) return true;
         }
-
-        foreach (var block in function.Blocks)
-        {
-            // Physregs live on entry to the block (call-convention params for the
-            // entry block, cross-block live values elsewhere) are defined "before"
-            // the block, so seed their def slot at the block's first instruction.
-            // A relocation copy reading such a live-in must keep the physreg
-            // reserved up to that read, exactly as for an instruction-produced def.
-            var firstSlot = block.Instructions.Count > 0
-                && liveness.SlotOf.TryGetValue(block.Instructions[0], out var fs)
-                ? fs
-                : -1;
-            if (firstSlot >= 0)
-                foreach (var liveIn in block.LiveIns)
-                    lastDefSlot[liveIn] = firstSlot;
-
-            foreach (var instr in block.Instructions)
-            {
-                if (!liveness.SlotOf.TryGetValue(instr, out var slot)) continue;
-
-                // A `pseudo.copy %v = $P` reads physreg P: close P's reservation.
-                if (IsCopy(instr) && instr.Operands.Length == 2
-                    && instr.Operands[0] is VirtualReg { IsDefinition: true } dst
-                    && instr.Operands[1] is PhysicalReg { IsDefinition: false } srcReg
-                    && lastDefSlot.TryGetValue(srcReg.Id, out var defSlot)
-                    && defSlot >= 0)
-                {
-                    Reserve(srcReg.Id, defSlot, slot, dst.Id);
-                }
-
-                // Record physreg defs (explicit or implicit) as the new live point.
-                foreach (var op in instr.Operands)
-                    if (op is PhysicalReg { IsDefinition: true } d)
-                        lastDefSlot[d.Id] = slot;
-            }
-        }
-        return reservations;
-    }
-
-    // Vreg V (range Vr) may use physreg P unless a reservation interval of P —
-    // owned by a different consumer — overlaps Vr. Overlap is the half-open
-    // test `Vr.Start < resEnd && Vr.End > resStart`: a vreg born exactly at the
-    // reservation's end (the consumer reading P) does not conflict, and a vreg
-    // dying exactly at the reservation's start does not conflict either.
-    private static bool IsReservationFree(
-        int physReg, int vreg, LiveRange range,
-        Dictionary<int, List<(int Start, int End, int Consumer)>> reservations)
-    {
-        if (!reservations.TryGetValue(physReg, out var list)) return true;
-        foreach (var (start, end, consumer) in list)
-        {
-            if (vreg == consumer) continue;
-            if (range.Start < end && range.End > start) return false;
-        }
-        return true;
-    }
-
-    // Register class of a copy operand as known during clobber analysis: a vreg
-    // carries its ClassedVReg annotation; a physreg's class is derived from the
-    // target's class membership; an Immediate (or anything else) has no class.
-    private int ResolveOperandClass(MirFunction function, MirOperand operand)
-    {
-        switch (operand)
-        {
-            case VirtualReg v
-                when function.GetVRegAnnotation(v.Id) is ClassedVReg classed:
-                return classed.ClassId;
-            case PhysicalReg p:
-                return registerInfo.ClassOfPhysicalRegister(p.Id);
-            default:
-                return 0;
-        }
-    }
-
-    // V at P safely iff no clobber slot K of P satisfies Vs < K < Ve.
-    // A clobber at V's def slot (K == Vs) is fine (V is "born" at or after
-    // the clobber). A clobber at V's last-use slot (K == Ve) is fine too
-    // because the use reads V's value before the clobber takes effect within
-    // the same instruction.
-    private static bool IsClobberFree(int physReg, LiveRange range, Dictionary<int, List<int>> clobberSlots)
-    {
-        if (!clobberSlots.TryGetValue(physReg, out var slots)) return true;
-        foreach (var k in slots)
-            if (k > range.Start && k < range.End)
-                return false;
-        return true;
+        return false;
     }
 
     // Hint rule — only the livein form: `%v = pseudo.copy $P` hints `%v` to
@@ -603,6 +585,33 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
         return null;
     }
 
+    // If `vreg` is the dead destination of a `pseudo.copy %vreg = $src` (two
+    // operands, physreg source, and `%vreg` has no remaining uses), return the
+    // source physreg so the caller can assign it and make the copy an identity.
+    // Returns null otherwise. The source must lie in `allocatable` so the
+    // identity assignment is legal for the vreg's class (always true in practice
+    // — a livein copy's source is the CC register, which is in the flexible
+    // class the widen pass gave the destination).
+    private static int? TryGetDeadCopySourcePhysReg(
+        MirFunction function, int vreg, ReadOnlySpan<int> allocatable)
+    {
+        // A used vreg is not a dead copy; bail before the (more expensive)
+        // def-site search.
+        if (function.GetUseCount(vreg) > 0) return null;
+
+        var def = function.GetDefinition(vreg);
+        if (def == null) return null;
+        if (def.Opcode.Dialect != PseudoDialect.Id) return null;
+        if ((PseudoOp)def.Opcode.Code != PseudoOp.Copy) return null;
+        if (def.Operands.Length != 2) return null;
+
+        if (def.Operands[0] is not VirtualReg { IsDefinition: true } d || d.Id != vreg) return null;
+        if (def.Operands[1] is not PhysicalReg { IsDefinition: false } src) return null;
+        if (!Contains(allocatable, src.Id)) return null;
+
+        return src.Id;
+    }
+
     // Step 6 — rewrite every VirtualReg operand to PhysicalReg.
     private static void ApplyAssignment(MirFunction function, IReadOnlyDictionary<int, int> assignment)
     {
@@ -625,20 +634,32 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
 
     // Step 7 — block live-ins = physregs that are live on entry. The entry
     // block's call-convention live-ins are already populated by AbiLowering;
-    // for every other block, replace whatever was there with the physregs
-    // whose vregs are in `liveIn[block]` per the assignment computed above.
+    // for every other block, replace whatever was there with the physregs whose
+    // vregs are live on entry to the block, per the final assignment.
+    //
+    // "Live on entry to block B" is read straight off the intervals: a vreg is
+    // live-in iff its interval covers B's first use point. (LiveIntervals
+    // anchors a value live across the B-1→B boundary so its segment reaches B's
+    // entry point — see LiveIntervalsAnalysis step 3.) This replaces the old
+    // per-block LiveIn vreg-set the coarse analysis exposed.
     private static void RecomputeBlockLiveIns(
-        MirFunction function, Liveness liveness, IReadOnlyDictionary<int, int> assignment)
+        MirFunction function, LiveIntervals intervals, IReadOnlyDictionary<int, int> assignment)
     {
         for (var i = 0; i < function.Blocks.Count; i++)
         {
             var block = function.Blocks[i];
             if (i == 0) continue;
+            if (block.Instructions.Count == 0) { block.LiveIns.Clear(); continue; }
+
+            var entryPoint = LiveIntervals.UseSlot(intervals.BaseSlotOf[block.Instructions[0]]);
 
             block.LiveIns.Clear();
-            if (!liveness.LiveIn.TryGetValue(block, out var liveVregs)) continue;
-            foreach (var vreg in liveVregs)
-                if (assignment.TryGetValue(vreg, out var physReg) && !block.LiveIns.Contains(physReg))
+            // Deterministic order (by vreg id) so the printed live-in list is
+            // stable across runs — the characterization lit tests depend on it.
+            foreach (var vreg in assignment.Keys.OrderBy(v => v))
+                if (intervals.IntervalOf(vreg).Covers(entryPoint)
+                    && assignment.TryGetValue(vreg, out var physReg)
+                    && !block.LiveIns.Contains(physReg))
                     block.LiveIns.Add(physReg);
         }
     }

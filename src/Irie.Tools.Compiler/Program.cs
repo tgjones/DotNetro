@@ -70,6 +70,11 @@ rootCommand.SetAction(parseResult =>
     passMgr.AddPass(new CopyEliminationPass());
     target.AddPostRegisterAllocationPasses(passMgr);
     passMgr.AddPass(new PseudoExpansionPass(target.PseudoExpander));
+    // Register scavenging runs LAST: PseudoExpansion mints copy-scratch vregs
+    // (e.g. for immediate→zp moves), and this pass assigns each the cheapest GPR
+    // dead at that point and drives the final lowering, leaving no vregs behind
+    // (plan §3.6, llvm-mos order: RA → pseudo expansion → scavenging).
+    passMgr.AddPass(new RegisterScavengingPass(target.RegisterInfo, target.PseudoExpander));
     passMgr.Run(context);
 
     switch (emit)

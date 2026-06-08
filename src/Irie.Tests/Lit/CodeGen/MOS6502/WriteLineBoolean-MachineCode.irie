@@ -10,22 +10,35 @@
 ; A stub @WriteLineString stands in for the real runtime helper so the call
 ; links; only @WriteLineBoolean's lowering is checked.
 
+; CHECK: WriteLineString:
+; CHECK:     RTS
+; CHECK:
 ; CHECK: WriteLineBoolean:
-; CHECK:     STA \$02
-; CHECK:     LDA #\$00
-; CHECK:     STA \$03
-; CHECK:     LDA \$02
-; CHECK:     CMP \$03
+; CHECK:     LDX #\$00
+; CHECK:     STX \$02
+; CHECK:     CMP \$02
 ; CHECK:     BNE \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK: \.bb1:
 ; CHECK:     LDA #<True_String
+; CHECK:     STA \$02
 ; CHECK:     LDA #>True_String
+; CHECK:     STA \$04
+; CHECK:     LDA \$04
+; CHECK:     STA \$03
+; CHECK:     LDX \$04
+; CHECK:     LDA \$02
 ; CHECK:     JSR WriteLineString
 ; CHECK:     RTS
 ; CHECK: \.bb2:
 ; CHECK:     LDA #<False_String
+; CHECK:     STA \$02
 ; CHECK:     LDA #>False_String
+; CHECK:     STA \$04
+; CHECK:     LDA \$04
+; CHECK:     STA \$03
+; CHECK:     LDX \$04
+; CHECK:     LDA \$02
 ; CHECK:     JSR WriteLineString
 ; CHECK:     RTS
 

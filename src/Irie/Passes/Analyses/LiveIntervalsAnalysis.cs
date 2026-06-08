@@ -349,20 +349,43 @@ public sealed class LiveIntervalsAnalysis : MirFunctionAnalysis<LiveIntervals>
         }
 
         // Flush anything still open at block end. There is no physreg dataflow:
-        // cross-block liveness is carried by the successor's MirBlock.LiveIns. A
-        // physreg listed in THIS block's LiveIns and still open at the exit is
-        // held across the whole block, so we extend it to the block's last def
-        // point (the conservative, sound choice for interference within block).
+        // cross-block liveness is carried by the successor's MirBlock.LiveIns.
+        //
+        // A live-in physreg is extended to the block's exclusive end slot ONLY
+        // when it is genuinely LIVE-OUT — i.e. some successor lists it as a
+        // live-in — so its segment abuts the successor's entry segment with no
+        // boundary hole. A live-in physreg that is *consumed* within the block
+        // (e.g. a CC-argument register read by an entry `pseudo.copy $a` and
+        // then dead) must NOT be extended: its busy window ends at its last use.
+        //
+        // This distinction matters because closeAt cannot by itself tell "held
+        // through" from "consumed and dead" — a use sets closeAt but the physreg
+        // stays in openAt (openAt is only cleared on re-definition). Extending
+        // every live-in to block end was over-conservative: it kept a CC arg
+        // register ($a/$x) busy across the whole entry block, so a vreg pinned
+        // to $a (e.g. a cmp's $a operand) could never be allocated even though
+        // $a was free the instant after the argument copy. The live-out test
+        // fixes that without re-introducing a boundary hole for true pass-through
+        // physregs.
         foreach (var (p, open) in openAt)
         {
             var close = closeAt[p];
-            // A physreg held across the whole block (a block live-in still open
-            // at the exit) extends to the block's exclusive end slot so it abuts
-            // a successor that also lists it as a live-in.
-            if (block.LiveIns.Contains(p) && endSlot > close)
+            if (IsLiveOut(block, p) && endSlot > close)
                 close = endSlot;
             builder(p).Add(open, close);
         }
+    }
+
+    // A physreg is live-out of a block iff some successor lists it as a live-in
+    // (the post-RA cross-block liveness convention; MirBlock.LiveIns is set by
+    // AbiLowering for the entry block and by RA for the rest). A physreg merely
+    // live-IN to the current block but read and dropped here is not live-out.
+    private static bool IsLiveOut(MirBlock block, int physReg)
+    {
+        foreach (var succ in block.Successors)
+            if (succ.LiveIns.Contains(physReg))
+                return true;
+        return false;
     }
 
     // Vreg uses, recursing into BlockTarget.Args (same helper shape as

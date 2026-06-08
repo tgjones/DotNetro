@@ -1,3 +1,4 @@
+using Irie.Dialects.Pseudo;
 using Irie.Mir;
 
 namespace Irie.Target.MOS6502;
@@ -10,20 +11,40 @@ namespace Irie.Target.MOS6502;
 //
 // Direct moves cover the common cases (transfer instructions for A↔X/Y, load/
 // store-zp for A/X/Y ↔ RC, immediate loads for A/X/Y). Pairs the 6502 can't do
-// in one instruction ("impossible pairs" in unified-IR plan §5.6) go through
-// $A using two instructions — `tya;tax` for $X = pseudo.copy $Y, and
-// `lda.zp;sta.zp` for RC → RC. The latter clobbers $A whether $A is live or
-// not; the v2 register allocator currently doesn't avoid emitting RC → RC
-// copies in live-$A windows, so the resulting code can be semantically wrong.
-// That's a known RA quality bug to be addressed in a later step — this
-// expander faithfully implements what the plan calls for.
+// in one instruction ("impossible pairs" in unified-IR plan §5.6) go through a
+// scratch register.
+//
+// Copy scratch (plan §3.6): a copy that needs a temporary register to lower —
+// an immediate materialised into a zero-page slot needs a GPR for `LD? #imm ;
+// ST? $zp` — is NOT lowered eagerly through a hardcoded $a. Instead it is
+// re-emitted as a 3-operand "scratch form" `pseudo.copy %dst, %src, %scratch`
+// whose third operand is a FRESH virtual register. The post-RA
+// RegisterScavengingPass then assigns that scratch vreg the cheapest GPR dead
+// at the copy's point and calls this expander back on the now-physreg-only
+// 3-operand form, which lowers it to the final two machine instructions. This
+// lets scratch be $x/$y when those are free, instead of forcing $a free for
+// every such copy (the old GetPseudoCopyScratchClobbers approach, now deleted).
+//
+// (Other scratch-needing copies — zp→zp, $x↔$y — are physreg→physreg copies
+// handled earlier by MOS6502ParallelCopyPass, which evacuates $a before they
+// reach this expander; so the only scratch form minted here is immediate→zp.)
 public sealed class MOS6502PseudoExpander : Irie.Target.PseudoExpander
 {
     public override void Expand(MirInstruction copy, MirBuilder builder)
     {
+        // 3-operand scratch form: %dst = pseudo.copy %src using %scratch.
+        // Emitted by this same expander for a scratch-needing copy and filled
+        // in by RegisterScavengingPass, which calls us back to do the final
+        // lowering. By now operand[2] is a concrete scratch physreg.
+        if (copy.Operands.Length == 3)
+        {
+            ExpandWithScratch(copy, builder);
+            return;
+        }
+
         if (copy.Operands.Length != 2)
             throw new InvalidOperationException(
-                $"MOS6502PseudoExpander: pseudo.copy must have 2 operands, got {copy.Operands.Length}.");
+                $"MOS6502PseudoExpander: pseudo.copy must have 2 or 3 operands, got {copy.Operands.Length}.");
 
         if (copy.Operands[0] is not PhysicalReg dst || !dst.IsDefinition)
             throw new InvalidOperationException(
@@ -114,14 +135,17 @@ public sealed class MOS6502PseudoExpander : Irie.Target.PseudoExpander
 
         if (IsZeroPage(dst))
         {
-            // No direct "store immediate to zp" on the 6502 — route through
-            // $a: LDA #N ; STA $zpN. Plan §4.1 calls this out explicitly.
-            builder.BuildInstruction(MOS6502Dialect.OpRef(MOS6502Op.LdaImm),
-                new PhysicalReg(MOS6502Registers.A, IsDefinition: true),
-                new Immediate(value));
-            builder.BuildInstruction(MOS6502Dialect.OpRef(MOS6502Op.StaZp),
+            // No direct "store immediate to zp" on the 6502 — it needs a GPR
+            // scratch: `LD? #N ; ST? $zp`. We do NOT pick that GPR here; which
+            // one is free depends on the surrounding physreg liveness, which is
+            // a post-RA fact. Re-emit the copy as a 3-operand scratch form whose
+            // third operand is a fresh vreg; RegisterScavengingPass fills it and
+            // calls ExpandWithScratch to finish the lowering (plan §3.6).
+            var scratch = builder.Function.CreateVirtualRegister(IRType.I8);
+            builder.BuildInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
                 new PhysicalReg(dst, IsDefinition: true),
-                new PhysicalReg(MOS6502Registers.A, IsDefinition: false));
+                new Immediate(value),
+                new VirtualReg(scratch, IsDefinition: true));
             return;
         }
 
@@ -129,6 +153,59 @@ public sealed class MOS6502PseudoExpander : Irie.Target.PseudoExpander
             $"MOS6502PseudoExpander: cannot materialise immediate {value} directly into " +
             $"${MOS6502Registers.NameOf(dst)}.");
     }
+
+    // Lower a 3-operand scratch form `%dst = pseudo.copy %src using $scratch`
+    // (operand[2]) into its final machine instructions. By the time the
+    // scavenger calls us back, operand[2] is a concrete GPR physreg. Today the
+    // only scratch form minted is immediate→zp; the switch is structured to
+    // extend cleanly if other forms ever route through here.
+    private static void ExpandWithScratch(MirInstruction copy, MirBuilder builder)
+    {
+        if (copy.Operands[0] is not PhysicalReg { IsDefinition: true } dst)
+            throw new InvalidOperationException(
+                "MOS6502PseudoExpander: scratch-form copy destination must be a physical register def.");
+        if (copy.Operands[2] is not PhysicalReg scratch)
+            throw new InvalidOperationException(
+                "MOS6502PseudoExpander: scratch-form copy scratch operand was not assigned a " +
+                "physical register (RegisterScavengingPass must run before final expansion).");
+
+        switch (copy.Operands[1])
+        {
+            case Immediate imm when IsZeroPage(dst.Id):
+                // immediate → zp, via the scavenged GPR: LD{scratch} #imm ; ST{scratch} $zp.
+                builder.BuildInstruction(MOS6502Dialect.OpRef(ImmLoadOp(scratch.Id)),
+                    new PhysicalReg(scratch.Id, IsDefinition: true),
+                    new Immediate(imm.Value));
+                builder.BuildInstruction(MOS6502Dialect.OpRef(StoreZpOp(scratch.Id)),
+                    new PhysicalReg(dst.Id, IsDefinition: true),
+                    new PhysicalReg(scratch.Id, IsDefinition: false));
+                return;
+            default:
+                throw new InvalidOperationException(
+                    $"MOS6502PseudoExpander: unsupported scratch-form pseudo.copy " +
+                    $"(${MOS6502Registers.NameOf(dst.Id)} = copy {copy.Operands[1].GetType().Name}).");
+        }
+    }
+
+    // The load-immediate opcode for a given GPR scratch register.
+    private static MOS6502Op ImmLoadOp(int gpr) => gpr switch
+    {
+        MOS6502Registers.A => MOS6502Op.LdaImm,
+        MOS6502Registers.X => MOS6502Op.LdxImm,
+        MOS6502Registers.Y => MOS6502Op.LdyImm,
+        _ => throw new InvalidOperationException(
+            $"MOS6502PseudoExpander: ${MOS6502Registers.NameOf(gpr)} cannot load an immediate."),
+    };
+
+    // The store-to-zero-page opcode for a given GPR scratch register.
+    private static MOS6502Op StoreZpOp(int gpr) => gpr switch
+    {
+        MOS6502Registers.A => MOS6502Op.StaZp,
+        MOS6502Registers.X => MOS6502Op.StxZp,
+        MOS6502Registers.Y => MOS6502Op.StyZp,
+        _ => throw new InvalidOperationException(
+            $"MOS6502PseudoExpander: ${MOS6502Registers.NameOf(gpr)} cannot store to zero page."),
+    };
 
     private static void Emit(MirBuilder builder, MOS6502Op op, int dst, int src)
     {
