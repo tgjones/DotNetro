@@ -1,0 +1,99 @@
+; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file
+
+; Derived from reference-register-allocator/control-flow/if-else. A diamond
+; whose two arms each compute an i16 value that merges via a phi at the join
+; block; the allocator must agree on one register for the merged value across
+; both predecessors (cross-block liveness + phi coalescing). This is the
+; canonical control-flow case the register-allocator redesign Phase 4 unblocked:
+; the old allocator aborted with "no free physical register" on any if/else
+; diamond because it could not relieve cross-block pressure. The new allocator
+; allocates it with NO spill -- the large zero-page register file absorbs the
+; pressure, exactly as the plan predicts for this target.
+;
+; The corpus source is the asymmetric `a > b ? a - b : b - a`. Irie cannot
+; express that shape today: the same arg value feeds one subtract as the A
+; operand and the other as the zero-page operand, so isel's class assignment
+; produces an empty class intersection (an isel/class-assignment gap, NOT an RA
+; limitation). This test uses the equivalent diamond `a < b ? a + b : a - b`,
+; which keeps each arm's operand roles consistent and so survives isel; it still
+; exercises the diamond + merge-phi cross-block allocation the corpus case is
+; about.
+;
+; Reference (llvm-mos if-else.mir): the merged result lives in $a/$x at the join,
+; with the two arms feeding it. Irie parks the merged value in $zp2/$x (it favours
+; the zp pool over $y, which it never uses) -- the known register-preference
+; divergence tracked for Phase 5, not a correctness issue.
+
+; CHECK: func @if_else : \(i16, i16\) -> i16 \{
+; CHECK: bb0\(\):
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3\]
+; CHECK:     \$zp5 = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$zp4 = pseudo\.copy \$zp2
+; CHECK:     \$zp3 = pseudo\.copy \$zp3
+; CHECK:     \$zp2 = pseudo\.copy \$zp5
+; CHECK:     \$a = pseudo\.copy \$x
+; CHECK:     \$zp7 = pseudo\.copy \$zp4
+; CHECK:     \$zp6 = pseudo\.copy \$zp3
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$a = mos6502\.eor\.imm \$a, 128
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$zp6 = pseudo\.copy \$zp6
+; CHECK:     \$zp6 = pseudo\.copy \$zp6
+; CHECK:     \$zp6 = mos6502\.eor\.imm \$zp6, 128
+; CHECK:     \$zp6 = pseudo\.copy \$zp6
+; CHECK:     \$zp6 = pseudo\.copy \$zp6
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     mos6502\.cmp \$a, \$zp6, implicit-def \$n, implicit-def \$z, implicit-def \$c
+; CHECK:     mos6502\.bcc bb1, implicit \$c
+; CHECK:     mos6502\.bne bb2, implicit \$z
+; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     mos6502\.cmp \$a, \$zp7, implicit-def \$n, implicit-def \$z, implicit-def \$c
+; CHECK:     mos6502\.bcc bb1, implicit \$c
+; CHECK:     mos6502\.jmp\.abs bb2
+; CHECK: bb1\(\):
+; CHECK:     \[liveins: \$zp5, \$x, \$zp4, \$zp3\]
+; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$a = pseudo\.copy \$zp5
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp4, \$c
+; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$x
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp3, \$c
+; CHECK:     \$x = pseudo\.copy \$a
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     mos6502\.jmp\.abs bb3
+; CHECK: bb2\(\):
+; CHECK:     \[liveins: \$zp5, \$x, \$zp4, \$zp3\]
+; CHECK:     \$c = mos6502\.sec
+; CHECK:     \$a = pseudo\.copy \$zp5
+; CHECK:     \$a, \$c = mos6502\.sbc \$a, \$zp4, \$c
+; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$x
+; CHECK:     \$a, \$c = mos6502\.sbc \$a, \$zp3, \$c
+; CHECK:     \$x = pseudo\.copy \$a
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     mos6502\.jmp\.abs bb3
+; CHECK: bb3\(\):
+; CHECK:     \[liveins: \$zp2, \$x\]
+; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x
+; CHECK: \}
+
+func @if_else : (i16, i16) -> i16 {
+bb0(%0 : i16, %1 : i16):
+    %2 : i1 = arith.cmpi slt, %0, %1
+    cf.cond_br %2, bb1(), bb2()
+bb1():
+    %3 : i16 = arith.addi %0, %1
+    cf.br bb3(%3)
+bb2():
+    %4 : i16 = arith.subi %0, %1
+    cf.br bb3(%4)
+bb3(%5 : i16):
+    core.return %5
+}
