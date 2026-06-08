@@ -23,50 +23,44 @@
 ; CHECK:     RTS
 ; CHECK: \.bb2:
 ; CHECK:     RTS
-; CHECK:
 ; CHECK: CmpNeZeroI16:
 ; CHECK:     LDY #\$00
-; CHECK:     STY \$02
+; CHECK:     STY \$04
 ; CHECK:     LDY #\$00
 ; CHECK:     STY \$03
-; CHECK:     STA \$06
-; CHECK:     LDA \$06
-; CHECK:     STA \$04
-; CHECK:     STX \$05
+; CHECK:     STA \$02
 ; CHECK:     TXA
 ; CHECK:     CMP \$03
 ; CHECK:     BNE \.bb1
-; CHECK:     LDA \$04
-; CHECK:     CMP \$02
+; CHECK:     LDA \$02
+; CHECK:     CMP \$04
 ; CHECK:     BNE \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK: \.bb1:
 ; CHECK:     RTS
 ; CHECK: \.bb2:
 ; CHECK:     RTS
-; CHECK:
 ; CHECK: CmpNeZeroI32:
 ; CHECK:     LDY #\$00
-; CHECK:     STY \$04
+; CHECK:     STY \$08
 ; CHECK:     LDY #\$00
-; CHECK:     STY \$05
+; CHECK:     STY \$07
 ; CHECK:     LDY #\$00
 ; CHECK:     STY \$06
 ; CHECK:     LDY #\$00
-; CHECK:     STY \$07
-; CHECK:     STA \$08
-; CHECK:     STX \$09
+; CHECK:     STY \$05
+; CHECK:     STA \$04
 ; CHECK:     LDA \$03
-; CHECK:     CMP \$07
+; CHECK:     CMP \$05
 ; CHECK:     BNE \.bb1
 ; CHECK:     LDA \$02
 ; CHECK:     CMP \$06
 ; CHECK:     BNE \.bb1
-; CHECK:     LDA \$09
-; CHECK:     CMP \$05
+; CHECK:     TXA
+; CHECK:     CMP \$07
 ; CHECK:     BNE \.bb1
-; CHECK:     LDA \$08
-; CHECK:     CMP \$04
+; CHECK:     LDA \$04
+; CHECK:     CMP \$08
 ; CHECK:     BNE \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK: \.bb1:

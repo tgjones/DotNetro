@@ -5,14 +5,13 @@
 ; so the emitted order is already correct and MOS6502ParallelCopyPass leaves it
 ; untouched — no scratch slot, no evacuation, $a loaded directly.
 
+; CHECK: SinkI16:
+; CHECK:     RTS
 ; CHECK: CallI16:
 ; CHECK:     LDA #\$34
-; CHECK:     STA \$02
-; CHECK:     LDA #\$12
-; CHECK:     STA \$03
-; CHECK:     LDA \$02
-; CHECK:     LDX \$03
+; CHECK:     LDX #\$12
 ; CHECK:     JSR SinkI16
+; CHECK:     RTS
 
 func @SinkI16 : (i16) -> void {
 bb0(%0 : i16):

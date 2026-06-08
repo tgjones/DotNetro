@@ -163,8 +163,14 @@ public static class MOS6502MachineCodeEmitTable
         // $zpN = mos6502.sty.zp $y — same shape as StaZp.
         [MOS6502Op.StyZp] = new EmitRule(MOS6502Opcode.STY_ZeroPage, EmitOperandKind.ZeroPageAddress, 0),
 
-        // $a = mos6502.txa $x — both operands implicit in the encoding.
+        // Register-transfer ops — both operands implicit in the encoding. The
+        // register allocator's coalescer now routes copies through whichever
+        // architectural register is free, so all four GPR transfers (not just
+        // TXA) can reach the emitter; each is a single implied-mode byte.
         [MOS6502Op.Txa]   = new EmitRule(MOS6502Opcode.TXA,          EmitOperandKind.Implied,         null),
+        [MOS6502Op.Tax]   = new EmitRule(MOS6502Opcode.TAX,          EmitOperandKind.Implied,         null),
+        [MOS6502Op.Tay]   = new EmitRule(MOS6502Opcode.TAY,          EmitOperandKind.Implied,         null),
+        [MOS6502Op.Tya]   = new EmitRule(MOS6502Opcode.TYA,          EmitOperandKind.Implied,         null),
 
         // mos6502.rts implicit $a, implicit $x, … — all operands implicit.
         [MOS6502Op.Rts]   = new EmitRule(MOS6502Opcode.RTS,          EmitOperandKind.Implied,         null),

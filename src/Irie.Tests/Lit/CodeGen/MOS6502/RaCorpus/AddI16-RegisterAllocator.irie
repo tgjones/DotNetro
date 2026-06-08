@@ -15,15 +15,13 @@
 ; CHECK:     \$zp3 = pseudo\.copy \$zp3
 ; CHECK:     \$c = mos6502\.clc
 ; CHECK:     \$a = pseudo\.copy \$a
-; CHECK:     \$zp2 = pseudo\.copy \$zp2
 ; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp2, \$c
 ; CHECK:     \$zp2 = pseudo\.copy \$a
 ; CHECK:     \$a = pseudo\.copy \$x
-; CHECK:     \$zp3 = pseudo\.copy \$zp3
 ; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp3, \$c
-; CHECK:     \$zp3 = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$a
 ; CHECK:     \$a = pseudo\.copy \$zp2
-; CHECK:     \$x = pseudo\.copy \$zp3
+; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x
 ; CHECK: \}
 

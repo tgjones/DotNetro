@@ -18,33 +18,33 @@
 ; live in $zp2..$zp9 with $a reused per chained ADC.
 
 ; CHECK: func @F : \(\) -> i32 \{
-; CHECK:   bb0\(\):
-; CHECK:     \$zp2 = pseudo.copy 1
-; CHECK:     \$zp3 = pseudo.copy 0
-; CHECK:     \$zp4 = pseudo.copy 0
-; CHECK:     \$zp5 = pseudo.copy 0
-; CHECK:     \$zp6 = pseudo.copy 1
-; CHECK:     \$zp7 = pseudo.copy 0
-; CHECK:     \$zp8 = pseudo.copy 0
-; CHECK:     \$zp9 = pseudo.copy 0
-; CHECK:     \$c = mos6502.clc
-; CHECK:     \$a = pseudo.copy \$zp2
-; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp6, \$c
-; CHECK:     \$zp2 = pseudo.copy \$a
-; CHECK:     \$a = pseudo.copy \$zp3
-; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp7, \$c
-; CHECK:     \$zp3 = pseudo.copy \$a
-; CHECK:     \$a = pseudo.copy \$zp4
-; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp8, \$c
-; CHECK:     \$zp4 = pseudo.copy \$a
-; CHECK:     \$a = pseudo.copy \$zp5
-; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp9, \$c
-; CHECK:     \$zp5 = pseudo.copy \$a
-; CHECK:     \$a = pseudo.copy \$zp2
-; CHECK:     \$x = pseudo.copy \$zp3
-; CHECK:     \$zp2 = pseudo.copy \$zp4
-; CHECK:     \$zp3 = pseudo.copy \$zp5
-; CHECK:     mos6502.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
+; CHECK: bb0\(\):
+; CHECK:     \$a = pseudo\.copy 1
+; CHECK:     \$zp5 = pseudo\.copy 0
+; CHECK:     \$zp2 = pseudo\.copy 0
+; CHECK:     \$zp3 = pseudo\.copy 0
+; CHECK:     \$zp4 = pseudo\.copy 1
+; CHECK:     \$zp8 = pseudo\.copy 0
+; CHECK:     \$zp7 = pseudo\.copy 0
+; CHECK:     \$zp6 = pseudo\.copy 0
+; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp4, \$c
+; CHECK:     \$zp4 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp5
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp8, \$c
+; CHECK:     \$x = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp7, \$c
+; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp3
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp6, \$c
+; CHECK:     \$zp3 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp4
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$zp3 = pseudo\.copy \$zp3
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
 ; CHECK: \}
 
 func @F : () -> i32 {

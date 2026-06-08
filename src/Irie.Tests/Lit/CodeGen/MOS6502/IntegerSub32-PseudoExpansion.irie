@@ -5,35 +5,22 @@
 ; sec/sbc.zp instead of clc/adc.zp.
 
 ; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
-; CHECK:     bb0\(\):
+; CHECK: bb0\(\):
 ; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
-; CHECK:     \$c = mos6502.sec
-; CHECK:     \$a, \$c = mos6502.sbc.zp \$a, \$zp4, \$c
-; CHECK:     \$zp4 = mos6502.sta.zp \$a
-; CHECK:     \$a = mos6502.txa \$x
-; CHECK:     \$a, \$c = mos6502.sbc.zp \$a, \$zp5, \$c
-; CHECK:     \$zp8 = mos6502.sta.zp \$a
-; CHECK:     \$a = mos6502.lda.zp \$zp2
-; CHECK:     \$zp9 = mos6502.sta.zp \$a
-; CHECK:     \$a = mos6502.lda.zp \$zp8
-; CHECK:     \$zp5 = mos6502.sta.zp \$a
-; CHECK:     \$a = mos6502.lda.zp \$zp6
-; CHECK:     \$zp2 = mos6502.sta.zp \$a
-; CHECK:     \$a = mos6502.lda.zp \$zp9
-; CHECK:     \$a, \$c = mos6502.sbc.zp \$a, \$zp2, \$c
-; CHECK:     \$zp6 = mos6502.sta.zp \$a
-; CHECK:     \$a = mos6502.lda.zp \$zp3
-; CHECK:     \$zp8 = mos6502.sta.zp \$a
-; CHECK:     \$a = mos6502.lda.zp \$zp6
-; CHECK:     \$zp2 = mos6502.sta.zp \$a
-; CHECK:     \$a = mos6502.lda.zp \$zp7
-; CHECK:     \$zp3 = mos6502.sta.zp \$a
-; CHECK:     \$a = mos6502.lda.zp \$zp8
-; CHECK:     \$a, \$c = mos6502.sbc.zp \$a, \$zp3, \$c
-; CHECK:     \$zp3 = mos6502.sta.zp \$a
-; CHECK:     \$a = mos6502.lda.zp \$zp4
-; CHECK:     \$x = mos6502.ldx.zp \$zp5
-; CHECK:     mos6502.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
+; CHECK:     \$c = mos6502\.sec
+; CHECK:     \$a, \$c = mos6502\.sbc\.zp \$a, \$zp4, \$c
+; CHECK:     \$zp4 = mos6502\.sta\.zp \$a
+; CHECK:     \$a = mos6502\.txa \$x
+; CHECK:     \$a, \$c = mos6502\.sbc\.zp \$a, \$zp5, \$c
+; CHECK:     \$x = mos6502\.tax \$a
+; CHECK:     \$a = mos6502\.lda\.zp \$zp2
+; CHECK:     \$a, \$c = mos6502\.sbc\.zp \$a, \$zp6, \$c
+; CHECK:     \$zp2 = mos6502\.sta\.zp \$a
+; CHECK:     \$a = mos6502\.lda\.zp \$zp3
+; CHECK:     \$a, \$c = mos6502\.sbc\.zp \$a, \$zp7, \$c
+; CHECK:     \$zp3 = mos6502\.sta\.zp \$a
+; CHECK:     \$a = mos6502\.lda\.zp \$zp4
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
 ; CHECK: \}
 
 func @TestFunction : (i32, i32) -> i32 {

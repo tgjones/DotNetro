@@ -22,27 +22,27 @@
 ; CHECK:     \$y = pseudo\.copy \$y
 ; CHECK:     \$a = mos6502\.lda\.indy \$zp0, implicit \$zp1, implicit \$y
 ; CHECK:     \$zp3 = pseudo\.copy \$a
-; CHECK:     \$zp4 = pseudo\.copy 1
-; CHECK:     \$zp5 = pseudo\.copy 0
+; CHECK:     \$zp5 = pseudo\.copy 1
+; CHECK:     \$zp4 = pseudo\.copy 0
 ; CHECK:     \$c = mos6502\.clc
 ; CHECK:     \$a = pseudo\.copy \$zp2
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp4, \$c
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp5, \$c
 ; CHECK:     \$zp2 = pseudo\.copy \$a
 ; CHECK:     \$a = pseudo\.copy \$zp3
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp5, \$c
-; CHECK:     \$zp3 = pseudo\.copy \$a
-; CHECK:     \$zp4 = pseudo\.copy \$zp2
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp4, \$c
+; CHECK:     \$x = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp2
 ; CHECK:     \$y = mos6502\.ldy\.imm 0
 ; CHECK:     \$y = pseudo\.copy \$y
-; CHECK:     \$a = pseudo\.copy \$zp4
+; CHECK:     \$a = pseudo\.copy \$a
 ; CHECK:     mos6502\.sta\.indy \$zp0, \$a, implicit \$zp1, implicit \$y
-; CHECK:     \$zp4 = pseudo\.copy \$zp3
+; CHECK:     \$a = pseudo\.copy \$x
 ; CHECK:     \$y = mos6502\.ldy\.imm 1
 ; CHECK:     \$y = pseudo\.copy \$y
-; CHECK:     \$a = pseudo\.copy \$zp4
+; CHECK:     \$a = pseudo\.copy \$a
 ; CHECK:     mos6502\.sta\.indy \$zp0, \$a, implicit \$zp1, implicit \$y
 ; CHECK:     \$a = pseudo\.copy \$zp2
-; CHECK:     \$x = pseudo\.copy \$zp3
+; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x
 ; CHECK: \}
 

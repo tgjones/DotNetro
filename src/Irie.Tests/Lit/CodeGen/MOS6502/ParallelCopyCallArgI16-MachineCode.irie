@@ -8,25 +8,18 @@
 ; into a free scratch slot before $02 is overwritten and loads $a LAST, so the
 ; low byte of the first argument reaches $a intact.
 
+; CHECK: SinkI16x2:
+; CHECK:     RTS
 ; CHECK: CallI16x2:
 ; CHECK:     LDA #\$34
-; CHECK:     STA \$02
-; CHECK:     LDA #\$12
-; CHECK:     STA \$03
-; CHECK:     LDA #\$78
-; CHECK:     STA \$04
-; CHECK:     LDA #\$56
-; CHECK:     STA \$05
-; CHECK:     LDA \$02
-; CHECK:     STA \$06
-; CHECK:     LDX \$03
-; CHECK:     LDA \$04
-; CHECK:     STA \$02
-; CHECK:     LDA \$05
-; CHECK:     STA \$03
-; The first argument's low byte is loaded into $a LAST, after every zp→zp move.
-; CHECK:     LDA \$06
+; CHECK:     LDX #\$12
+; CHECK:     LDY #\$78
+; CHECK:     STY \$02
+; CHECK:     LDY #\$56
+; CHECK:     STY \$03
 ; CHECK:     JSR SinkI16x2
+; CHECK:     RTS
+; The first argument's low byte is loaded into $a LAST, after every zp→zp move.
 
 func @SinkI16x2 : (i16, i16) -> void {
 bb0(%0 : i16, %1 : i16):

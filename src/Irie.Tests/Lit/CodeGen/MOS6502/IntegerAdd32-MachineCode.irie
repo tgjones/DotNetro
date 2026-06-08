@@ -16,27 +16,14 @@
 ; CHECK:     STA \$04
 ; CHECK:     TXA
 ; CHECK:     ADC \$05
-; CHECK:     STA \$08
+; CHECK:     TAX
 ; CHECK:     LDA \$02
-; CHECK:     STA \$09
-; CHECK:     LDA \$08
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
+; CHECK:     ADC \$06
 ; CHECK:     STA \$02
-; CHECK:     LDA \$09
-; CHECK:     ADC \$02
-; CHECK:     STA \$06
 ; CHECK:     LDA \$03
-; CHECK:     STA \$08
-; CHECK:     LDA \$06
-; CHECK:     STA \$02
-; CHECK:     LDA \$07
-; CHECK:     STA \$03
-; CHECK:     LDA \$08
-; CHECK:     ADC \$03
+; CHECK:     ADC \$07
 ; CHECK:     STA \$03
 ; CHECK:     LDA \$04
-; CHECK:     LDX \$05
 ; CHECK:     RTS
 
 func @TestFunction : (i32, i32) -> i32 {

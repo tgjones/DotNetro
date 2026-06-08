@@ -5,10 +5,10 @@
 
 ; CHECK: func @ret_const : \(\) -> i16 \{
 ; CHECK: bb0\(\):
-; CHECK:     \$zp2 = pseudo\.copy 210
-; CHECK:     \$zp3 = pseudo\.copy 4
-; CHECK:     \$a = pseudo\.copy \$zp2
-; CHECK:     \$x = pseudo\.copy \$zp3
+; CHECK:     \$a = pseudo\.copy 210
+; CHECK:     \$x = pseudo\.copy 4
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x
 ; CHECK: \}
 

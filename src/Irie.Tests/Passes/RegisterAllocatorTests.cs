@@ -36,9 +36,10 @@ public sealed class RegisterAllocatorTests
     // Tests
     // -------------------------------------------------------------------------
 
-    // Copy hint — `%v = pseudo.copy $physreg` hints `%v` to `$physreg`. With
-    // a single livein the vreg's class gets widened to the flexible `any8`
-    // class first; the hint then picks `$a` since `$a` is in `any8`.
+    // Coalescing a vreg with its source physreg — `%v = pseudo.copy $a`
+    // coalesces %v onto $a (George's test trivially passes: %v has no other
+    // interference), turning the copy into an identity `$a = pseudo.copy $a`.
+    // This is the graph-colouring coalescer subsuming the old "copy hint".
     //
     //   %0:ac = pseudo.copy $a    →  $a = pseudo.copy $a
     [Test]
@@ -80,19 +81,19 @@ public sealed class RegisterAllocatorTests
         await Assert.That(DefPhysReg(i0)).IsEqualTo(MOS6502Registers.RC(2));
     }
 
-    // Expiry rule: endpoint ≤ currentStart (not <). When %0 ends at the same
-    // slot %1 starts, %1 may reuse %0's physreg.
+    // Def/use boundary sharing: a value that DIES exactly where the next is
+    // BORN does not interfere with it (the half-open sub-slot numbering makes
+    // the producer's segment end at the def point where the consumer's begins),
+    // so both can take the same single physreg.
     //
-    //   %0:ac = pseudo.copy $a    ; slot 0 → %0 range [0, 1]
-    //   %1:ac = arith.addi %0, %0 ; slot 1 → %0 used (end=1), %1 defined (start=1)
+    //   %0:ac = pseudo.copy $a    ; %0 range [.., defslot0]
+    //   %1:ac = arith.addi %0, %0 ; %0 last use, %1 defined here
     //
-    // %0 is widened to `any8` by the livein widening (its def is a livein-form
-    // pseudo.copy in the entry block) and lands in $a via its copy hint. %1
-    // stays in `ac` because it is touched by the non-copy `arith.addi`, so the
-    // copy-only widening leaves it alone — exercising the single-physreg
-    // expiry path. When allocating %1 (start=1): %0 has end=1 ≤ 1, so $a is
-    // freed and %1 falls back to $a (the only allocatable in `ac`). With <
-    // instead of ≤ the pass would throw — no other physreg is available.
+    // %0 coalesces onto $a (copy from $a). %1 is `ac` (touched by the non-copy
+    // arith.addi, so NOT widened — it keeps its single-physreg class) and must
+    // also take $a, the only allocatable in `ac`. Because %0 and %1 do not
+    // interfere at the boundary, the colourer can give both $a; if they DID
+    // interfere there would be no second `ac` register and the pass would throw.
     [Test]
     public async Task ExpiryAtSameSlot_FreesPhysregForNextInterval()
     {
@@ -116,14 +117,14 @@ public sealed class RegisterAllocatorTests
         await Assert.That(DefPhysReg(i1)).IsEqualTo(MOS6502Registers.A);
     }
 
-    // Two overlapping vregs in a single-register class (`yc`, which contains
-    // only $y) → second interval cannot be allocated → NotImplementedException.
+    // Two interfering vregs in a single-register class (`yc`, which contains
+    // only $y) → optimistic select finds no free colour for the second →
+    // NotImplementedException (Phase 4 turns this into a real spill).
     //
-    // `yc` is used here rather than `ac` because the livein-form pseudo.copy
-    // widening only applies to vregs already in `ClassedVReg` and only in the
-    // entry block; the simplest way to force overlap is to use a class that
-    // is not the flexible-i8 default (`any8` for MOS6502) and has only one
-    // physreg.
+    // `yc` is used rather than `ac` because `yc` is not a subset of the flexible
+    // class, so the colourer cannot widen it: both vregs are hard-pinned to $y,
+    // and since they interfere one is uncolourable — exercising the genuine
+    // out-of-registers select failure.
     [Test]
     public async Task TwoOverlappingIntervalsInSingleRegClass_ThrowsNotImplemented()
     {
@@ -147,15 +148,16 @@ public sealed class RegisterAllocatorTests
         await Assert.That(() => Pass.Run(fn)).Throws<NotImplementedException>();
     }
 
-    // Hint suppressed when the hinted physreg is already in use — fall back
-    // to the next free allocatable in the class.
+    // Two values that both copy from $a but interfere cannot both take $a; the
+    // second falls back to the next allocatable in its class.
     //
-    //   %0:any8 = pseudo.copy $a    ; slot 0 — hint $a, range [0, 2]
-    //   %1:any8 = pseudo.copy $a    ; slot 1 — hint $a, but $a busy → next
-    //   %2:ac   = arith.addi %0, %1 ; slot 2 — keeps %0 and %1 live
+    //   %0:any8 = pseudo.copy $a    ; both copied from $a, but…
+    //   %1:any8 = pseudo.copy $a    ; …%0 and %1 are both live at the addi,
+    //   %2:ac   = arith.addi %0, %1 ; …so they interfere.
     //
-    // %0 gets $a (free, hinted); %1's hint is $a too, but $a is held by %0,
-    // so %1 falls back to the next allocatable in `any8` — `$zp2`.
+    // %0 coalesces onto $a. %1 also prefers $a (copy bias) but interferes with
+    // %0 (now $a), so the colourer skips $a and picks the next allowed colour.
+    // `any8`'s allocatable order puts zp2..zp31 ahead of $a/$x, so %1 → $zp2.
     [Test]
     public async Task HintSuppressedWhenPhysregBusy_FallsBackToNextAllocatable()
     {
@@ -257,5 +259,46 @@ public sealed class RegisterAllocatorTests
         // dead copy.
         await Assert.That(DefPhysReg(homeDef)).IsNotEqualTo(MOS6502Registers.A);
         await Assert.That(UsePhysRegAt(homeUse, 1)).IsEqualTo(DefPhysReg(homeDef));
+    }
+
+    // Move-self-interference suppression (Phase 3): a dead copy `%dead = copy $a`
+    // whose SOURCE $a is STILL LIVE afterwards (read by a later instruction) was
+    // the exact WriteLineInt32 miscompile. The raw LiveIntervals graph reports
+    // %dead and $a as interfering (%dead's one-slot range sits inside $a's live
+    // range), which would stop the coalescer from merging them and force %dead
+    // onto a FRESH register — and `$fresh = copy $a` would then clobber whatever
+    // live value sat in $fresh. The coalescer must recognise that this overlap is
+    // attributable solely to the copy itself and merge %dead onto $a, making the
+    // copy an identity. Here $a is read again by the trailing arith.addi, so $a
+    // is genuinely live across the dead copy.
+    //
+    //   %dead = pseudo.copy $a       ; %dead never used; $a still live below
+    //   %r    = arith.addi $a, $a    ; reads $a (so $a is live across the copy)
+    // The dead copy must resolve to `$a = pseudo.copy $a`.
+    [Test]
+    public async Task DeadCopy_SourcePhysregStillLive_CoalescesToIdentity()
+    {
+        var fn = NewFunction("dead_live_src");
+        var bb0 = fn.CreateBlock();
+
+        var dead = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var result = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+
+        var deadCopy = bb0.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(dead, IsDefinition: true),
+            new PhysicalReg(MOS6502Registers.A, IsDefinition: false));
+
+        // Reads $a directly AFTER the dead copy, keeping $a live across it.
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(result, IsDefinition: true),
+            new PhysicalReg(MOS6502Registers.A, IsDefinition: false),
+            new PhysicalReg(MOS6502Registers.A, IsDefinition: false));
+
+        Pass.Run(fn);
+
+        // The dead copy is an identity ($a = pseudo.copy $a), NOT a fresh-reg
+        // write that would clobber a live value.
+        await Assert.That(DefPhysReg(deadCopy)).IsEqualTo(MOS6502Registers.A);
+        await Assert.That(UsePhysRegAt(deadCopy, 1)).IsEqualTo(MOS6502Registers.A);
     }
 }

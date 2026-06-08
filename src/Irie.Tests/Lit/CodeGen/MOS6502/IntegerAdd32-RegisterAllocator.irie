@@ -1,50 +1,48 @@
 ; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file
 
-; Checks the unified-MIR register allocator's output on the IntegerAdd32
-; chain. After this pass:
+; Checks the graph-colouring register allocator (iterated register coalescing)
+; on the IntegerAdd32 carry chain. After this pass:
 ;  - Every operand is a physical register; no vregs remain.
-;  - Live-in `ac`-class vregs (the four byte-level a-arguments) were widened
-;    to the flexible `any8` class and got placed in the abundant RC* slots
-;    so the single $a can be reused by each chained ADC in turn.
-;  - Result-preservation copies after each `mos6502.adc` redirect later uses
-;    of the tied-def vreg to a fresh `any8` vreg, keeping $a free for the
-;    next link in the chain.
+;  - The livein `ac`-class a-argument bytes are copy-only, so the colourer's
+;    class-intersection lets them live in the abundant RC* pool; coalescing
+;    folds their livein copies away. The single $a is reused by each chained
+;    ADC in turn.
+;  - A relocation copy after each `mos6502.adc` moves the tied-def result off
+;    $a into a flexible vreg the colourer parks in the zp pool, keeping $a free
+;    for the next link. (RA inserts this copy because the result is genuinely
+;    $a-only at the ADC; the coalescer chooses where the relocated value lands.)
 ;  - Identity copies (e.g. `$zp2 = pseudo.copy $zp2`) survive here and are
-;    cleaned up by CopyEliminationPass.
+;    cleaned up by CopyEliminationPass (the safety net behind the coalescer).
 
 ; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
-; CHECK:   bb0\(\):
+; CHECK: bb0\(\):
 ; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
-; CHECK:     \$a = pseudo.copy \$a
-; CHECK:     \$x = pseudo.copy \$x
-; CHECK:     \$zp2 = pseudo.copy \$zp2
-; CHECK:     \$zp3 = pseudo.copy \$zp3
-; CHECK:     \$zp4 = pseudo.copy \$zp4
-; CHECK:     \$zp5 = pseudo.copy \$zp5
-; CHECK:     \$zp6 = pseudo.copy \$zp6
-; CHECK:     \$zp7 = pseudo.copy \$zp7
-; CHECK:     \$c = mos6502.clc
-; CHECK:     \$a = pseudo.copy \$a
-; CHECK:     \$zp4 = pseudo.copy \$zp4
-; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp4, \$c
-; CHECK:     \$zp4 = pseudo.copy \$a
-; CHECK:     \$a = pseudo.copy \$x
-; CHECK:     \$zp5 = pseudo.copy \$zp5
-; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp5, \$c
-; CHECK:     \$zp5 = pseudo.copy \$a
-; CHECK:     \$a = pseudo.copy \$zp2
-; CHECK:     \$zp2 = pseudo.copy \$zp6
-; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp2, \$c
-; CHECK:     \$zp2 = pseudo.copy \$a
-; CHECK:     \$a = pseudo.copy \$zp3
-; CHECK:     \$zp3 = pseudo.copy \$zp7
-; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp3, \$c
-; CHECK:     \$zp3 = pseudo.copy \$a
-; CHECK:     \$a = pseudo.copy \$zp4
-; CHECK:     \$x = pseudo.copy \$zp5
-; CHECK:     \$zp2 = pseudo.copy \$zp2
-; CHECK:     \$zp3 = pseudo.copy \$zp3
-; CHECK:     mos6502.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$zp3 = pseudo\.copy \$zp3
+; CHECK:     \$zp4 = pseudo\.copy \$zp4
+; CHECK:     \$zp5 = pseudo\.copy \$zp5
+; CHECK:     \$zp6 = pseudo\.copy \$zp6
+; CHECK:     \$zp7 = pseudo\.copy \$zp7
+; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp4, \$c
+; CHECK:     \$zp4 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$x
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp5, \$c
+; CHECK:     \$x = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp6, \$c
+; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp3
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp7, \$c
+; CHECK:     \$zp3 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp4
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$zp3 = pseudo\.copy \$zp3
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
 ; CHECK: \}
 
 func @TestFunction : (i32, i32) -> i32 {
