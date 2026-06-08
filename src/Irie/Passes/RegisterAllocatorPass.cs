@@ -1,3 +1,4 @@
+using Irie.Dialects.Pseudo;
 using Irie.Mir;
 using Irie.Passes.Analyses;
 using Irie.Target;
@@ -86,20 +87,320 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
         if (flexibleI8 != 0)
             InsertRelocationCopiesForConstrainedDefs(function, flexibleI8);
 
-        // Physreg-aware live intervals (with holes) are the single source of
-        // interference truth. LiveIntervals.Interfere(a,b) is the vreg↔vreg
-        // edge test; LiveIntervals.Overlaps(vreg, physReg) is the vreg↔precolour
-        // edge test. Computed AFTER relocation-copy insertion so it sees the
-        // final IR shape (we mutate the function, so the cached analysis cannot
-        // be reused).
-        var intervals = new LiveIntervalsAnalysis().Compute(function);
+        // ---------------------------------------------------------------------
+        // The spilling loop (Appel §11.4 "main"): build intervals → colour. If
+        // colouring produces actual spills, rewrite each spilled vreg to memory
+        // traffic (rematerialize cheap defs, else store-after-def / reload-
+        // before-use) and go round again with fresh intervals. The loop
+        // terminates because every rewrite either rematerializes the value
+        // (removing the long live range entirely) or replaces it with tiny
+        // reload/spill temporaries that are marked UNSPILLABLE — so the set of
+        // spillable long ranges strictly shrinks each round.
+        // ---------------------------------------------------------------------
+        var unspillable = new HashSet<int>();
+        LiveIntervals intervals;
+        Dictionary<int, int>? assignment;
 
-        var allocator = new GraphColouringAllocator(function, registerInfo, intervals);
-        var assignment = allocator.Run();
+        // Safety bound: the number of spill rounds is bounded by the number of
+        // distinct vregs (each round removes at least one from the spillable
+        // pool). The cap turns a hypothetical non-termination bug into a clear
+        // failure rather than a hang.
+        var maxRounds = function.VirtualRegisterIds.Count + 1;
+        var round = 0;
+        while (true)
+        {
+            if (round++ > maxRounds)
+                throw new InvalidOperationException(
+                    $"RegisterAllocator: spilling did not converge for @{function.Name} " +
+                    $"after {maxRounds} rounds — likely an unspillable interference cycle.");
 
-        ApplyAssignment(function, assignment);
+            // Physreg-aware live intervals (with holes) are the single source of
+            // interference truth. Recomputed each round because spill rewriting
+            // mutates the IR.
+            intervals = new LiveIntervalsAnalysis().Compute(function);
+
+            var allocator = new GraphColouringAllocator(function, registerInfo, intervals, unspillable);
+            assignment = allocator.Run();
+            if (assignment != null)
+                break; // coloured successfully — no actual spills this round.
+
+            // Colouring failed: rewrite every actual spill to memory traffic.
+            // The fresh reload/spill temps are unspillable next round.
+            SpillVregs(function, allocator.SpilledVregs, unspillable);
+        }
+
+        // assignment is non-null here: the loop only `break`s when colouring
+        // succeeded (Run returned a non-null map).
+        ApplyAssignment(function, assignment!);
         function.ClearVRegAnnotations();
-        RecomputeBlockLiveIns(function, intervals, assignment);
+        RecomputeBlockLiveIns(function, intervals, assignment!);
+    }
+
+    // =========================================================================
+    // Spilling (register-allocator redesign Phase 4; plan §3.4)
+    // =========================================================================
+    //
+    // For each vreg the colourer could not place, we lower it to memory: the
+    // value lives in an abstract frame slot, with a store after its definition
+    // and a reload before each use. Before falling back to that store/reload we
+    // try REMATERIALIZATION — if the value is trivially recomputable (its
+    // defining instruction reads no registers, only immediates/symbols), we
+    // simply clone that instruction in front of each use, which is cheaper than
+    // any memory round-trip and removes the long live range entirely.
+    //
+    // Both rewrites shatter the spilled value's single long live range into many
+    // tiny ones (one per use), dropping register pressure so the next colouring
+    // round succeeds. The fresh per-use vregs are recorded as UNSPILLABLE so a
+    // pathological program cannot spill them again forever (Appel §11.4).
+    private static void SpillVregs(MirFunction function, IReadOnlyList<int> spills, HashSet<int> unspillable)
+    {
+        foreach (var spilled in spills)
+        {
+            var def = function.GetDefinition(spilled);
+
+            if (def != null && IsRematerializable(def))
+                Rematerialize(function, spilled, def, unspillable);
+            else
+                StoreReloadSpill(function, spilled, def, unspillable);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Rematerialization: the value's def reads no registers (constant / symbol
+    // address byte), so it can be recomputed anywhere. Clone the def instruction
+    // immediately before each use, into a fresh vreg of the spilled vreg's class,
+    // and redirect that use. Finally delete the original def (now dead).
+    //
+    // Rematerializable instructions on this target after isel are exactly the
+    // ones whose only operands are the def plus Immediate / Symbol operands —
+    // e.g. a selected i8 constant `%v = pseudo.copy <imm>`, or a symbol-byte
+    // load `%v = mos6502.lda.imm.symlo @g`. See IsRematerializable.
+    // -------------------------------------------------------------------------
+    private static void Rematerialize(
+        MirFunction function, int spilled, MirInstruction def, HashSet<int> unspillable)
+    {
+        var (classId, className) = ClassOf(function, spilled);
+        var builder = new MirBuilder(function);
+
+        foreach (var block in function.Blocks)
+        {
+            for (var i = 0; i < block.Instructions.Count; i++)
+            {
+                var instr = block.Instructions[i];
+                if (!UsesVreg(instr, spilled)) continue;
+
+                // A fresh copy of the def, producing a fresh vreg, placed right
+                // before this use. Each use gets its own recomputation.
+                var fresh = function.CreateVirtualRegisterInClass(classId, className);
+                unspillable.Add(fresh);
+
+                builder.SetInsertionPointBefore(instr);
+                builder.BuildInstruction(def.Opcode, CloneDefOperands(def, fresh));
+
+                // The reload/remat we just inserted shifted indices by one.
+                i++;
+                ReplaceUseInInstruction(instr, spilled, fresh);
+            }
+        }
+
+        // The original def is now dead (all uses recompute their own value).
+        def.Parent?.Instructions.Remove(def);
+    }
+
+    // -------------------------------------------------------------------------
+    // Store/reload spill: park the value in an abstract frame slot. Store the
+    // def's result into the slot right after the def; reload it into a fresh
+    // tiny vreg before each use.
+    //
+    // ---- The abstract spill-slot SHAPE (the contract; plan §3.4 & §8) --------
+    // A spill slot is a `MirFunction.FrameSlot(Index, Type, SymbolName)` — the
+    // SAME representation FrameLoweringPass and the future static-stack pass
+    // already consume (notes/static-stack-alloc-plan.md: "MirFunction.FrameSlots
+    // … FrameLoweringPass materialises each slot as a zero-init MirGlobal and
+    // rewrites mem.frame_addr <i> → mem.symbol @<slot_name>"). RA mints the slot
+    // (index + i8 type + unique symbol name) but assigns it NO physical address.
+    // The store/reload are emitted as the post-RA pseudo ops `pseudo.spill
+    // <slot>, $reg` and `$reg = pseudo.reload <slot>`, which carry only the
+    // abstract slot INDEX. A future MOS6502 static-stack pass lowers each to a
+    // concrete `sta.zp`/`lda.zp` (zero-page frame, RC20..RC29 budget) or a `.bss`
+    // store/load once it has coloured the call graph — exactly Layer 3 of the
+    // static-stack plan ("Rewrite slot accesses to lda.zp/sta.zp at the assigned
+    // address"). This decoupling — RA mints abstract slots, static-stack places
+    // them — is what lets RA run before static-stack (plan §8).
+    //
+    // We emit dedicated `pseudo.spill`/`pseudo.reload` ops rather than generic
+    // `mem.store`/`mem.load` because RA runs AFTER legalization and instruction
+    // selection: a generic memory op minted here would never be legalized or
+    // selected, whereas a dedicated post-RA spill op is the thing the future
+    // static-stack pass pattern-matches directly. The frame-slot type is i8
+    // because every value reaching RA is a post-legalization byte.
+    // -------------------------------------------------------------------------
+    private static void StoreReloadSpill(
+        MirFunction function, int spilled, MirInstruction? def, HashSet<int> unspillable)
+    {
+        var (classId, className) = ClassOf(function, spilled);
+        var slot = PickSpillSlot(function, spilled);
+        var builder = new MirBuilder(function);
+
+        // Store after the def (if there is one — a livein/param vreg may have no
+        // in-function def, in which case its value is already where the reloads
+        // expect, and only reloads are needed... but such a value cannot be
+        // spilled meaningfully, so we require a def here).
+        if (def != null)
+        {
+            var defBlock = def.Parent!;
+            var defIdx = defBlock.Instructions.IndexOf(def);
+            defBlock.InsertInstruction(
+                defIdx + 1,
+                PseudoDialect.OpRef(PseudoOp.Spill),
+                new Immediate(slot.Index),
+                new VirtualReg(spilled, IsDefinition: false));
+        }
+
+        // Reload before each use into a fresh tiny vreg, and redirect that use.
+        foreach (var block in function.Blocks)
+        {
+            for (var i = 0; i < block.Instructions.Count; i++)
+            {
+                var instr = block.Instructions[i];
+                // Skip the store we may have just inserted (it USES `spilled` by
+                // design and must keep doing so).
+                if (IsSpillStoreOf(instr, slot.Index)) continue;
+                if (!UsesVreg(instr, spilled)) continue;
+
+                var fresh = function.CreateVirtualRegisterInClass(classId, className);
+                unspillable.Add(fresh);
+
+                builder.SetInsertionPointBefore(instr);
+                builder.BuildInstruction(
+                    PseudoDialect.OpRef(PseudoOp.Reload),
+                    new VirtualReg(fresh, IsDefinition: true),
+                    new Immediate(slot.Index));
+
+                i++; // account for the inserted reload.
+                ReplaceUseInInstruction(instr, spilled, fresh);
+            }
+        }
+    }
+
+    // A vreg is rematerializable iff its def is side-effect-free and reads no
+    // registers — every non-def operand is an Immediate or Symbol, so the value
+    // can be recomputed at any program point with no dependencies. This catches
+    // selected constants (`pseudo.copy <imm>`) and symbol-address bytes
+    // (`mos6502.lda.imm.sym* @g`). (Appel §11.4 "rematerialization".)
+    private static bool IsRematerializable(MirInstruction def)
+    {
+        var dialect = DialectRegistry.ById(def.Opcode.Dialect);
+        if (!dialect.IsSideEffectFree(def.Opcode.Code)) return false;
+
+        var sawDef = false;
+        foreach (var op in def.Operands)
+        {
+            switch (op)
+            {
+                case VirtualReg v when v.IsDefinition:
+                    sawDef = true;
+                    break;
+                case PhysicalReg { IsDefinition: true }:
+                    sawDef = true;
+                    break;
+                case VirtualReg:   // a register USE — not rematerializable.
+                case PhysicalReg:
+                    return false;
+                case Immediate:
+                case Symbol:
+                    break;        // safe: always available.
+                default:
+                    return false; // BlockTarget etc. — be conservative.
+            }
+        }
+        return sawDef;
+    }
+
+    // Clone a rematerializable def's operands, swapping the def vreg for `fresh`.
+    private static MirOperand[] CloneDefOperands(MirInstruction def, int fresh)
+    {
+        var clone = new MirOperand[def.Operands.Length];
+        for (var i = 0; i < def.Operands.Length; i++)
+            clone[i] = def.Operands[i] is VirtualReg { IsDefinition: true }
+                ? new VirtualReg(fresh, IsDefinition: true)
+                : def.Operands[i];
+        return clone;
+    }
+
+    // The class of an existing vreg (so reload/remat temps share its class).
+    private static (int ClassId, string Name) ClassOf(MirFunction function, int vreg) =>
+        function.GetVRegAnnotation(vreg) is ClassedVReg c
+            ? (c.ClassId, c.Name)
+            : throw new InvalidOperationException(
+                $"RegisterAllocator: cannot spill vreg %{vreg} — it has no register class.");
+
+    // Mint a fresh abstract frame slot for a spilled vreg. The slot is i8 (every
+    // RA-time value is a byte), uniquely named per function+vreg so distinct
+    // spills never alias, and registered on the function so the future
+    // static-stack pass can enumerate and place it. RA assigns NO address.
+    private static FrameSlot PickSpillSlot(MirFunction function, int vreg)
+    {
+        var index = function.FrameSlots.Count;
+        var slot = new FrameSlot(index, IRType.I8, $"{function.Name}_spill{vreg}");
+        function.FrameSlots.Add(slot);
+        return slot;
+    }
+
+    private static bool IsSpillStoreOf(MirInstruction instr, int slotIndex) =>
+        instr.Opcode.Dialect == PseudoDialect.Id
+        && (PseudoOp)instr.Opcode.Code == PseudoOp.Spill
+        && instr.Operands.Length >= 1
+        && instr.Operands[0] is Immediate imm
+        && imm.Value == slotIndex;
+
+    private static bool UsesVreg(MirInstruction instr, int vreg)
+    {
+        foreach (var op in instr.Operands)
+            if (OperandUsesVreg(op, vreg))
+                return true;
+        return false;
+    }
+
+    private static bool OperandUsesVreg(MirOperand op, int vreg)
+    {
+        switch (op)
+        {
+            case VirtualReg v when !v.IsDefinition && v.Id == vreg:
+                return true;
+            case BlockTarget bt:
+                foreach (var arg in bt.Args)
+                    if (OperandUsesVreg(arg, vreg))
+                        return true;
+                return false;
+            default:
+                return false;
+        }
+    }
+
+    // Redirect uses of `oldVreg` to `newVreg` within a single instruction only
+    // (each use site gets its own reload/remat temp, so we cannot use the
+    // function-wide ReplaceAllUsesOfRegister).
+    private static void ReplaceUseInInstruction(MirInstruction instr, int oldVreg, int newVreg)
+    {
+        var operands = instr.Operands;
+        for (var i = 0; i < operands.Length; i++)
+            operands[i] = ReplaceUseInOperand(operands[i], oldVreg, newVreg);
+    }
+
+    private static MirOperand ReplaceUseInOperand(MirOperand op, int oldVreg, int newVreg) => op switch
+    {
+        VirtualReg v when !v.IsDefinition && v.Id == oldVreg => v with { Id = newVreg },
+        BlockTarget bt => bt with { Args = ReplaceUsesInArgs(bt.Args, oldVreg, newVreg) },
+        _ => op,
+    };
+
+    private static MirOperand[] ReplaceUsesInArgs(MirOperand[] args, int oldVreg, int newVreg)
+    {
+        var rewritten = new MirOperand[args.Length];
+        for (var i = 0; i < args.Length; i++)
+            rewritten[i] = ReplaceUseInOperand(args[i], oldVreg, newVreg);
+        return rewritten;
     }
 
     // -------------------------------------------------------------------------

@@ -39,9 +39,14 @@ namespace Irie.Passes;
 //   freeze            give up coalescing a move whose ends are stuck, so its
 //                     (now non-move-related) nodes can be simplified.
 //   optimistic spill  (Briggs) when no node is trivially simplifiable, push the
-//                     highest-degree node anyway and hope a colour is free at
-//                     select. We do NOT spill to memory yet (Phase 4): a true
-//                     select failure throws NotImplementedException.
+//                     CHEAPEST-to-spill node anyway and hope a colour is free at
+//                     select. If a colour IS free at select (the common case on
+//                     this target — the zero-page file absorbs most pressure) the
+//                     node is coloured normally and nothing spills. Only a true
+//                     select failure (a popped node with no free colour) makes the
+//                     node an ACTUAL spill, reported back to RegisterAllocatorPass
+//                     which then rewrites it to memory traffic and re-runs the
+//                     whole colouring (Phase 4; Appel §11.4 "the spilling loop").
 //
 // ----------------------------------------------------------------------------
 // Determinism
@@ -56,6 +61,22 @@ internal sealed class GraphColouringAllocator
     private readonly MirFunction _function;
     private readonly TargetRegisterInfo _registerInfo;
     private readonly LiveIntervals _intervals;
+
+    // Vregs that must NOT be chosen as spill candidates (spill cost = ∞). These
+    // are the tiny reload/spill temporaries a previous spill round already
+    // introduced: re-spilling them would loop forever (Appel §11.4 marks the
+    // freshly-created reload temps as "do not spill again"). The pass passes this
+    // set in on each re-run.
+    private readonly IReadOnlySet<int> _unspillable;
+
+    // The vregs whose optimistic-spill bet FAILED at select time — there was no
+    // free colour for them. These are the ACTUAL spills. RegisterAllocatorPass
+    // reads this (via SpilledVregs) and, if it is non-empty, rewrites each to
+    // memory traffic (remat or store/reload) and re-runs the allocator. An empty
+    // set means colouring succeeded and Assignment is final.
+    private readonly List<int> _actualSpills = [];
+
+    public IReadOnlyList<int> SpilledVregs => _actualSpills;
 
     // ---- Node identity --------------------------------------------------
     // Nodes are addressed by a single integer "node id". Vregs keep their own
@@ -117,18 +138,23 @@ internal sealed class GraphColouringAllocator
     private List<int> _vregNodes = [];
 
     public GraphColouringAllocator(
-        MirFunction function, TargetRegisterInfo registerInfo, LiveIntervals intervals)
+        MirFunction function, TargetRegisterInfo registerInfo, LiveIntervals intervals,
+        IReadOnlySet<int>? unspillable = null)
     {
         _function = function;
         _registerInfo = registerInfo;
         _intervals = intervals;
+        _unspillable = unspillable ?? new HashSet<int>();
     }
 
     // A move edge between two nodes (the two operands of a pseudo.copy). Stored
     // with the source instruction so we can debug; equality is by endpoints.
     private readonly record struct MoveEdge(int A, int B, MirInstruction Instr);
 
-    public Dictionary<int, int> Run()
+    // Returns the final vreg→physreg colouring, or null if colouring failed and
+    // produced actual spills (read them from SpilledVregs and re-run after the
+    // pass has rewritten them).
+    public Dictionary<int, int>? Run()
     {
         _vregNodes = CollectReferencedVregs();
         ComputeAllowedColours();
@@ -150,6 +176,15 @@ internal sealed class GraphColouringAllocator
         }
 
         AssignColours();
+
+        // If any node's optimistic-spill bet failed at select, we have ACTUAL
+        // spills. Return null: RegisterAllocatorPass will rewrite the spilled
+        // vregs to memory traffic (remat or store/reload) and re-run a fresh
+        // allocator. A partial assignment is meaningless when we are about to
+        // change the IR, so we do not build one.
+        if (_actualSpills.Count > 0)
+            return null;
+
         return BuildAssignment();
     }
 
@@ -834,22 +869,42 @@ internal sealed class GraphColouringAllocator
     }
 
     // =========================================================================
-    // SelectSpill — Briggs optimistic spill (Appel §11.4).
+    // SelectSpill — Briggs optimistic spill with spill-cost heuristic (Appel
+    // §11.4 "SelectSpill").
     // =========================================================================
-    // No node is trivially colourable; pick one to push onto the select stack
-    // anyway and HOPE a colour is free at assign time. We do not spill to memory
-    // (Phase 4). Heuristic: highest degree (most constrained), ties by id, so
-    // the choice is deterministic.
+    // No node is trivially colourable, so we must pick one to push onto the
+    // select stack optimistically. The classic choice is the CHEAPEST node to
+    // spill, NOT the highest-degree one: if the optimistic bet later fails, this
+    // is the node we will actually move to memory, so we want it to be the one
+    // whose spill costs the program the least.
+    //
+    // Spill cost (Appel §11.4, Chaitin's metric): a node's cost is the number of
+    // its definitions and uses, each weighted by loop nesting depth (a use inside
+    // a loop is executed far more often, so spilling it is far more expensive).
+    // The allocator's "priority" for spilling is cost / degree — spill the node
+    // that relieves the most interference per unit of runtime cost. We use that
+    // ratio; lower ratio = better spill candidate.
+    //
+    // Some nodes are effectively unspillable (cost = ∞) and must never be chosen:
+    //   * reload/spill temporaries from a previous spill round (in _unspillable)
+    //     — re-spilling them loops forever;
+    //   * a node whose live range is a single tiny segment (a def with its uses
+    //     all at one program point) — there is nothing to gain by spilling it and
+    //     the store/reload would be longer than the value's whole life.
+    // If EVERY spill-worklist node is unspillable we still have to push one (the
+    // optimistic bet may yet succeed at select); we pick the lowest id so the
+    // choice stays deterministic and a genuine select failure surfaces clearly.
     private void SelectSpill()
     {
         var chosen = -1;
-        var bestDegree = -1;
+        var bestPriority = double.PositiveInfinity;
         foreach (var node in _spillWorklist)
         {
-            var d = _degree[node];
-            if (d > bestDegree || (d == bestDegree && node < chosen))
+            var priority = SpillPriority(node);
+            // Strictly-less wins; ties broken by ascending id (determinism).
+            if (priority < bestPriority || (priority == bestPriority && (chosen == -1 || node < chosen)))
             {
-                bestDegree = d;
+                bestPriority = priority;
                 chosen = node;
             }
         }
@@ -857,6 +912,72 @@ internal sealed class GraphColouringAllocator
         _spillWorklist.Remove(chosen);
         _simplifyWorklist.Add(chosen);
         FreezeMoves(chosen);
+    }
+
+    // Spill priority = weighted spill cost / current degree. Lower is a better
+    // (cheaper, higher-relief) spill candidate. Unspillable nodes return +∞ so
+    // they sort last and are never preferred. (Appel §11.4.)
+    private double SpillPriority(int node)
+    {
+        if (IsUnspillable(node)) return double.PositiveInfinity;
+        var degree = _degree[node];
+        if (degree <= 0) return double.PositiveInfinity;
+        return (double)SpillCost(node) / degree;
+    }
+
+    // True if this node must not be spilled: a previously-introduced reload/spill
+    // temporary, or a value whose entire live range is a single sub-slot window
+    // (too short to be worth spilling — nothing else can be packed into its hole).
+    private bool IsUnspillable(int node)
+    {
+        if (IsPhysNode(node)) return true;
+        if (_unspillable.Contains(node)) return true;
+
+        var segs = _intervals.IntervalOf(node).Segments;
+        // A single, unit-width segment is a dead/immediately-consumed def: there
+        // is no live range to break up, so spilling cannot help (and would only
+        // add traffic). Treat it as unspillable.
+        if (segs.Count == 1 && segs[0].End - segs[0].Start <= 1) return true;
+        return false;
+    }
+
+    // Weighted spill cost: count of def + use occurrences, each weighted by loop
+    // nesting depth (Chaitin). We do not have a loop-nesting analysis yet, so the
+    // weight is currently 1 per occurrence — i.e. raw def+use count. The hook is
+    // here (LoopDepthWeight) so Phase 5 can plug a real loop-depth analysis in
+    // without touching the selection logic. Cost is at least 1.
+    private long SpillCost(int node)
+    {
+        long cost = 0;
+        foreach (var block in _function.Blocks)
+        {
+            var weight = LoopDepthWeight(block);
+            foreach (var instr in block.Instructions)
+                foreach (var op in instr.Operands)
+                    cost += CountVregOccurrences(op, node) * weight;
+        }
+        return Math.Max(cost, 1);
+    }
+
+    // Loop-depth weight for a block. Placeholder (always 1) until a loop-nesting
+    // analysis lands (Phase 5); kept as a named seam so the spill-cost formula
+    // already reads "weighted by loop depth" as the plan specifies (§3.4).
+    private static long LoopDepthWeight(MirBlock block) => 1;
+
+    private static long CountVregOccurrences(MirOperand op, int vreg)
+    {
+        switch (op)
+        {
+            case VirtualReg v when v.Id == vreg:
+                return 1;
+            case BlockTarget bt:
+                long n = 0;
+                foreach (var arg in bt.Args)
+                    n += CountVregOccurrences(arg, vreg);
+                return n;
+            default:
+                return 0;
+        }
     }
 
     // =========================================================================
@@ -893,20 +1014,26 @@ internal sealed class GraphColouringAllocator
             }
 
             if (picked is null)
-                // Optimistic select failed: no free colour. Phase 4 turns this
-                // into a real spill (mint an abstract frame slot, store after the
-                // def / reload before each use, rebuild, re-run). For now it is
-                // unimplemented.
-                throw new NotImplementedException(
-                    $"register spilling not yet implemented (no free colour for " +
-                    $"vreg %{node}; live range too constrained).");
+            {
+                // Optimistic select failed: no free colour for this node. It
+                // becomes an ACTUAL spill (Appel §11.4: "actualSpills"). We do
+                // NOT colour it; RegisterAllocatorPass will rewrite it to memory
+                // traffic and re-run a fresh allocator. We keep popping the rest
+                // of the stack so we collect every spill in one round (fewer
+                // re-runs), but the returned assignment is discarded by Run when
+                // _actualSpills is non-empty.
+                _actualSpills.Add(node);
+                continue;
+            }
 
             _colour[node] = picked.Value;
         }
 
-        // Coalesced nodes take their representative's colour.
-        foreach (var v in _coalescedNodes)
-            _colour[v] = _colour[GetAlias(v)];
+        // Coalesced nodes take their representative's colour (only meaningful
+        // when there were no actual spills; otherwise the assignment is discarded).
+        if (_actualSpills.Count == 0)
+            foreach (var v in _coalescedNodes)
+                _colour[v] = _colour[GetAlias(v)];
     }
 
     // The order in which to try colours for a node: first any colour suggested by

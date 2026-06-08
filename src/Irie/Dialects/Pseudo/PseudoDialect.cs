@@ -18,6 +18,8 @@ public sealed class PseudoDialect : Dialect
         PseudoOp.Extract => "extract",
         PseudoOp.Insert  => "insert",
         PseudoOp.Return  => "return",
+        PseudoOp.Spill   => "spill",
+        PseudoOp.Reload  => "reload",
         _ => throw new ArgumentOutOfRangeException(nameof(code), code, $"Unknown pseudo opcode {code}."),
     };
 
@@ -31,6 +33,8 @@ public sealed class PseudoDialect : Dialect
             case "extract": code = (ushort)PseudoOp.Extract; return true;
             case "insert":  code = (ushort)PseudoOp.Insert;  return true;
             case "return":  code = (ushort)PseudoOp.Return;  return true;
+            case "spill":   code = (ushort)PseudoOp.Spill;   return true;
+            case "reload":  code = (ushort)PseudoOp.Reload;  return true;
         }
         code = 0;
         return false;
@@ -47,6 +51,11 @@ public sealed class PseudoDialect : Dialect
         PseudoOp.Extract => true,
         PseudoOp.Insert  => true,
         PseudoOp.Return  => false,
+        // A reload only writes a register; if that register is unused the reload
+        // is dead and may be removed. A spill writes the frame slot (memory) and
+        // is therefore observable — never dead.
+        PseudoOp.Reload  => true,
+        PseudoOp.Spill   => false,
         _ => false,
     };
 

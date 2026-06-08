@@ -117,18 +117,20 @@ public sealed class RegisterAllocatorTests
         await Assert.That(DefPhysReg(i1)).IsEqualTo(MOS6502Registers.A);
     }
 
-    // Two interfering vregs in a single-register class (`yc`, which contains
-    // only $y) → optimistic select finds no free colour for the second →
-    // NotImplementedException (Phase 4 turns this into a real spill).
+    // Two DISTINCT values that must both occupy the single $y register at the
+    // SAME instruction is genuinely infeasible — no allocation exists (you
+    // cannot hold two live values in one register simultaneously), and not even
+    // spilling can fix it (rematerializing one still leaves both live at the
+    // shared use). Phase 4's spilling loop detects non-convergence and surfaces
+    // a clear InvalidOperationException rather than the old NotImplementedException
+    // or an infinite loop.
     //
     // `yc` is used rather than `ac` because `yc` is not a subset of the flexible
-    // class, so the colourer cannot widen it: both vregs are hard-pinned to $y,
-    // and since they interfere one is uncolourable — exercising the genuine
-    // out-of-registers select failure.
+    // class, so the colourer cannot widen it: both vregs are hard-pinned to $y.
     [Test]
-    public async Task TwoOverlappingIntervalsInSingleRegClass_ThrowsNotImplemented()
+    public async Task TwoValuesNeedingSameSingleRegSimultaneously_FailsToConverge()
     {
-        var fn = NewFunction("spill");
+        var fn = NewFunction("infeasible");
         var bb0 = fn.CreateBlock();
         var v0 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc");
         var v1 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc");
@@ -139,13 +141,115 @@ public sealed class RegisterAllocatorTests
         bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
             new VirtualReg(v1, IsDefinition: true),
             new Immediate(1));
-        // Use both so their ranges overlap.
+        // Both operands of one instruction → both must be live in $y at once.
         bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
             new VirtualReg(v0, IsDefinition: false),
             new VirtualReg(v0, IsDefinition: false),
             new VirtualReg(v1, IsDefinition: false));
 
-        await Assert.That(() => Pass.Run(fn)).Throws<NotImplementedException>();
+        await Assert.That(() => Pass.Run(fn)).Throws<InvalidOperationException>();
+    }
+
+    // -------------------------------------------------------------------------
+    // Spilling (Phase 4)
+    // -------------------------------------------------------------------------
+
+    // Forced store/reload spill: two NON-rematerializable values pinned to the
+    // single-$y class `yc`, live across each other at two SEPARATE use points,
+    // so the colourer cannot place both. The cheaper one is spilled. Because the
+    // values are produced by register-reading ops (arith.addi, not a constant)
+    // they are NOT rematerializable, so the spill takes the store/reload path:
+    // a `pseudo.spill` after the def and a `pseudo.reload` before the use, and a
+    // fresh abstract FrameSlot is minted on the function.
+    [Test]
+    public async Task ForcedSpill_NonRematValue_EmitsStoreReloadAndFrameSlot()
+    {
+        var fn = NewFunction("forced_spill");
+        var bb0 = fn.CreateBlock();
+
+        // Two source values in flexible class so they can live anywhere.
+        var s0 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var s1 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(s0, IsDefinition: true), new Immediate(3));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(s1, IsDefinition: true), new Immediate(4));
+
+        // Two yc values, each defined by a register-reading op (so non-remat),
+        // and kept live across one another.
+        var a = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc");
+        var b = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc");
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(a, IsDefinition: true),
+            new VirtualReg(s0, IsDefinition: false),
+            new VirtualReg(s1, IsDefinition: false));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(b, IsDefinition: true),
+            new VirtualReg(s0, IsDefinition: false),
+            new VirtualReg(s1, IsDefinition: false));
+        // Use a, then b — both live across the gap (a defined first, used last).
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc"), IsDefinition: true),
+            new VirtualReg(b, IsDefinition: false),
+            new VirtualReg(b, IsDefinition: false));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc"), IsDefinition: true),
+            new VirtualReg(a, IsDefinition: false),
+            new VirtualReg(a, IsDefinition: false));
+
+        Pass.Run(fn);
+
+        // A spill slot was minted, and store/reload ops were emitted.
+        await Assert.That(fn.FrameSlots.Count).IsGreaterThanOrEqualTo(1);
+
+        var ops = bb0.Instructions
+            .Where(i => i.Opcode.Dialect == PseudoDialect.Id)
+            .Select(i => (PseudoOp)i.Opcode.Code)
+            .ToList();
+        await Assert.That(ops).Contains(PseudoOp.Spill);
+        await Assert.That(ops).Contains(PseudoOp.Reload);
+    }
+
+    // Rematerialization beats store/reload: a spilled value whose def reads no
+    // registers (a constant) is recomputed at its use rather than stored and
+    // reloaded. No pseudo.reload / pseudo.spill and no FrameSlot is emitted; the
+    // constant's defining op is cloned before each use instead.
+    [Test]
+    public async Task Spill_RematerializableConstant_RecomputesWithoutReload()
+    {
+        var fn = NewFunction("remat");
+        var bb0 = fn.CreateBlock();
+
+        // One $a value (so $a is occupied across the region) plus several yc
+        // constants kept simultaneously live at distinct points to force a spill
+        // of a constant. We arrange two yc constants live across one another.
+        var c0 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc");
+        var c1 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc");
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(c0, IsDefinition: true), new Immediate(5));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(c1, IsDefinition: true), new Immediate(6));
+        // Use c0 (keeps it live past c1's def), then use c1 — they interfere but
+        // at separate use points, so spilling ONE of them (remat) makes it fit.
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc"), IsDefinition: true),
+            new VirtualReg(c1, IsDefinition: false),
+            new VirtualReg(c1, IsDefinition: false));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc"), IsDefinition: true),
+            new VirtualReg(c0, IsDefinition: false),
+            new VirtualReg(c0, IsDefinition: false));
+
+        Pass.Run(fn);
+
+        // Rematerialized: no store/reload, no frame slot.
+        await Assert.That(fn.FrameSlots.Count).IsEqualTo(0);
+        var pseudoOps = bb0.Instructions
+            .Where(i => i.Opcode.Dialect == PseudoDialect.Id)
+            .Select(i => (PseudoOp)i.Opcode.Code)
+            .ToList();
+        await Assert.That(pseudoOps).DoesNotContain(PseudoOp.Reload);
+        await Assert.That(pseudoOps).DoesNotContain(PseudoOp.Spill);
     }
 
     // Two values that both copy from $a but interfere cannot both take $a; the
@@ -185,6 +289,60 @@ public sealed class RegisterAllocatorTests
         // first free physreg after $a is busy is $zp2.
         await Assert.That(DefPhysReg(i0)).IsEqualTo(MOS6502Registers.A);
         await Assert.That(DefPhysReg(i1)).IsEqualTo(MOS6502Registers.RC(2));
+    }
+
+    // Spill-cost chooses the CHEAPEST node. Two non-rematerializable values
+    // compete for the single $y register across a region; one is used ONCE, the
+    // other is used MANY times. The spill-cost heuristic (def+use count weighted
+    // by loop depth, here flat) must spill the cheap (used-once) value, leaving
+    // the heavily-used value in the register. The minted frame slot's name
+    // encodes the spilled vreg id, so we assert it is the cheap one.
+    [Test]
+    public async Task SpillCost_SpillsTheCheapestValue()
+    {
+        var fn = NewFunction("cheapest");
+        var bb0 = fn.CreateBlock();
+
+        var s0 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var s1 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(s0, IsDefinition: true), new Immediate(1));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(s1, IsDefinition: true), new Immediate(2));
+
+        // cheap: defined by a register-reading op (non-remat), used exactly once.
+        var cheap = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc");
+        // heavy: same, but used several times.
+        var heavy = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc");
+
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(cheap, IsDefinition: true),
+            new VirtualReg(s0, IsDefinition: false),
+            new VirtualReg(s1, IsDefinition: false));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(heavy, IsDefinition: true),
+            new VirtualReg(s0, IsDefinition: false),
+            new VirtualReg(s1, IsDefinition: false));
+
+        // heavy used many times (keeps it live and expensive to spill). Its
+        // result vregs are in the flexible class so they add no $y pressure —
+        // only `cheap` and `heavy` contend for the single $y register.
+        for (var k = 0; k < 4; k++)
+            bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+                new VirtualReg(fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8"), IsDefinition: true),
+                new VirtualReg(heavy, IsDefinition: false),
+                new VirtualReg(s0, IsDefinition: false));
+        // …then cheap used once, at the very end (so cheap and heavy interfere).
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8"), IsDefinition: true),
+            new VirtualReg(cheap, IsDefinition: false),
+            new VirtualReg(s0, IsDefinition: false));
+
+        Pass.Run(fn);
+
+        // Exactly the cheap value was spilled to a frame slot.
+        await Assert.That(fn.FrameSlots.Any(s => s.SymbolName.EndsWith($"_spill{cheap}"))).IsTrue();
+        await Assert.That(fn.FrameSlots.Any(s => s.SymbolName.EndsWith($"_spill{heavy}"))).IsFalse();
     }
 
     // After RA: vreg-annotation table is cleared and every operand is a

@@ -29,4 +29,30 @@ public enum PseudoOp : ushort
     // results into return physregs. Survives until instruction selection
     // lowers it to the target return op (e.g. mos6502.rts).
     Return,
+
+    // ---- Spill / reload (register-allocator Phase 4) --------------------------
+    //
+    // These are the ABSTRACT spill-slot store/reload the register allocator
+    // mints when it runs out of registers (notes/register-allocator-redesign-
+    // plan.md §3.4). They are emitted POST register allocation, so both operands
+    // are concrete physical registers; the only abstract thing is the frame-slot
+    // index, which references a MirFunction.FrameSlot. RA does NOT assign that
+    // slot a physical address — a future static-stack pass
+    // (notes/static-stack-alloc-plan.md, Layer 3 "MOS6502StaticFrameAllocPass")
+    // lowers each `pseudo.spill`/`pseudo.reload` to a concrete `sta.zp`/`lda.zp`
+    // (zero-page frame) or a `.bss` store/load once it has coloured the call
+    // graph and placed every function's frame. The slot shape (FrameSlot:
+    // index + i8 type + symbol name) is exactly the one FrameLoweringPass and
+    // that future pass already consume — see the comment on PickSpillSlot in
+    // RegisterAllocatorPass for the full contract.
+    //
+    // pseudo.spill <slot_index>, $reg
+    //   Store $reg (a USE) into the function's frame slot <slot_index>. No def.
+    //   Operand shape: [Immediate(slotIndex), reg-use].
+    Spill,
+
+    // %dst = pseudo.reload <slot_index>
+    //   Reload the function's frame slot <slot_index> into $dst (a DEF).
+    //   Operand shape: [reg-def, Immediate(slotIndex)].
+    Reload,
 }
