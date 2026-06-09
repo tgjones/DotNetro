@@ -46,6 +46,15 @@ public abstract class TargetRegisterInfo
     // dead, instead of forcing $a free for every copy.
     public virtual ReadOnlySpan<int> GetScratchGprCandidates() => default;
 
+    // The scratch locations acceptable for a SPECIFIC scratch-form copy, in
+    // preference order. Some copy shapes admit more than a GPR — e.g. on the
+    // MOS6502 an $x↔$y copy can bounce through a dead zero-page slot
+    // (`STX $tmp ; LDY $tmp`) as well as through $a — so the candidate set is
+    // shape-dependent. The scavenger picks the first candidate DEAD at the copy's
+    // point. Defaults to GetScratchGprCandidates() (shape-independent GPR scratch).
+    public virtual ReadOnlySpan<int> GetScratchCandidates(MirInstruction scratchCopy)
+        => GetScratchGprCandidates();
+
     // The scarce architectural general-purpose registers, in the order to PREFER
     // them for SHORT-lived flexible values (register-allocator-redesign Phase 5;
     // plan §3.5). These are the cheap real registers ($a/$x/$y on the MOS6502)

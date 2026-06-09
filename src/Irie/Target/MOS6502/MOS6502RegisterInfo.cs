@@ -74,6 +74,27 @@ public sealed class MOS6502RegisterInfo : TargetRegisterInfo
     private static readonly int[] ScratchGprs =
         [MOS6502Registers.A, MOS6502Registers.X, MOS6502Registers.Y];
 
+    // An $x↔$y copy can use $a (T-transfers) OR any free zero-page slot
+    // (`STX $tmp ; LDY $tmp`); $x/$y themselves are the copy's ends. Prefer $a
+    // (cheap T-transfers, no memory traffic) then the zp pool — a free zp slot
+    // essentially always exists, so $x↔$y never needs to spill.
+    private static readonly int[] XyScratch =
+        [MOS6502Registers.A, .. Imag8Regs];
+
+    // Per-shape scratch candidates: $x↔$y admits a zp bounce; every other
+    // scratch-needing copy (zp→zp, immediate→zp) needs a GPR.
+    public override ReadOnlySpan<int> GetScratchCandidates(MirInstruction scratchCopy)
+    {
+        if (scratchCopy.Operands is [PhysicalReg dst, PhysicalReg src, _]
+            && IsXyPair(dst.Id, src.Id))
+            return XyScratch;
+        return ScratchGprs;
+    }
+
+    private static bool IsXyPair(int a, int b) =>
+        (a == MOS6502Registers.X && b == MOS6502Registers.Y) ||
+        (a == MOS6502Registers.Y && b == MOS6502Registers.X);
+
     // The scarce architectural GPRs to prefer for SHORT-lived flexible values
     // (plan §3.5). Ordered $x, $y, $a:
     //   * $x / $y first because they are the natural home for a brief value that

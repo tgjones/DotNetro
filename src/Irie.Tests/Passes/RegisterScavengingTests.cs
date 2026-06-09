@@ -36,6 +36,17 @@ public sealed class RegisterScavengingTests
             new VirtualReg(scratch, IsDefinition: true));
     }
 
+    // Build a physreg→physreg scratch-form copy: $dst = pseudo.copy $src using a
+    // fresh scratch vreg. Used for the $x↔$y and zp→zp shapes.
+    private static MirInstruction AddRegScratchCopy(MirFunction fn, MirBlock block, int dst, int src)
+    {
+        var scratch = fn.CreateVirtualRegister(IRType.I8);
+        return block.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new PhysicalReg(dst, IsDefinition: true),
+            new PhysicalReg(src, IsDefinition: false),
+            new VirtualReg(scratch, IsDefinition: true));
+    }
+
     // The opcode of the (first) load the scratch form lowered to.
     private static MOS6502Op LoweredLoadOp(MirBlock block, int instrIndex) =>
         (MOS6502Op)block.Instructions[instrIndex].Opcode.Code;
@@ -151,6 +162,73 @@ public sealed class RegisterScavengingTests
             new PhysicalReg(MOS6502Registers.Y, IsDefinition: false));
 
         await Assert.That(() => Pass.Run(fn)).Throws<NotImplementedException>();
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. An $x↔$y copy with $a dead routes through $a: TXA ; TAY. ($a is the first
+    //    candidate and the cheap path — T-transfers, no memory traffic.)
+    // -------------------------------------------------------------------------
+    [Test]
+    public async Task XyCopy_ADead_RoutesThroughA()
+    {
+        var fn = NewFunction("xy_a_dead");
+        var bb0 = fn.CreateBlock();
+        // $x := #0 so $x is live into the copy.
+        bb0.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.LdxImm),
+            new PhysicalReg(MOS6502Registers.X, IsDefinition: true), new Immediate(0));
+        AddRegScratchCopy(fn, bb0, MOS6502Registers.Y, MOS6502Registers.X);
+
+        Pass.Run(fn);
+
+        // $y = copy $x lowered to TXA ; TAY (scratch = $a, which is dead here).
+        await Assert.That(LoweredLoadOp(bb0, 1)).IsEqualTo(MOS6502Op.Txa);
+        await Assert.That(LoweredLoadOp(bb0, 2)).IsEqualTo(MOS6502Op.Tay);
+    }
+
+    // -------------------------------------------------------------------------
+    // 7. An $x↔$y copy with $a LIVE across it bounces through a dead zero-page
+    //    slot — STX $zp ; LDY $zp — touching no GPR, so the live $a survives.
+    //    This is the field-access hazard: the low pointer byte stays in $a.
+    // -------------------------------------------------------------------------
+    [Test]
+    public async Task XyCopy_ALive_BouncesThroughZp()
+    {
+        var fn = NewFunction("xy_a_live");
+        var bb0 = fn.CreateBlock();
+        // $a and $x both defined before the copy.
+        bb0.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.LdaImm),
+            new PhysicalReg(MOS6502Registers.A, IsDefinition: true), new Immediate(0));
+        bb0.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.LdxImm),
+            new PhysicalReg(MOS6502Registers.X, IsDefinition: true), new Immediate(0));
+        AddRegScratchCopy(fn, bb0, MOS6502Registers.Y, MOS6502Registers.X);
+        // Use $a after the copy, holding it live across it.
+        bb0.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.StaZp),
+            new PhysicalReg(MOS6502Registers.RC(2), IsDefinition: true),
+            new PhysicalReg(MOS6502Registers.A, IsDefinition: false));
+
+        Pass.Run(fn);
+
+        // $y = copy $x lowered to STX $zp ; LDY $zp (scratch = a dead zp slot).
+        await Assert.That(LoweredLoadOp(bb0, 2)).IsEqualTo(MOS6502Op.StxZp);
+        await Assert.That(LoweredLoadOp(bb0, 3)).IsEqualTo(MOS6502Op.LdyZp);
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. A zp→zp copy needs a GPR (no zp-to-zp move on the 6502); with all GPRs
+    //    free it picks $a: LDA $src ; STA $dst.
+    // -------------------------------------------------------------------------
+    [Test]
+    public async Task ZpToZpCopy_PicksGpr()
+    {
+        var fn = NewFunction("zp_to_zp");
+        var bb0 = fn.CreateBlock();
+        AddRegScratchCopy(fn, bb0, MOS6502Registers.RC(3), MOS6502Registers.RC(2));
+
+        Pass.Run(fn);
+
+        // $zp3 = copy $zp2 lowered to LDA $zp2 ; STA $zp3 (scratch = $a).
+        await Assert.That(LoweredLoadOp(bb0, 0)).IsEqualTo(MOS6502Op.LdaZp);
+        await Assert.That(LoweredLoadOp(bb0, 1)).IsEqualTo(MOS6502Op.StaZp);
     }
 
     // -------------------------------------------------------------------------

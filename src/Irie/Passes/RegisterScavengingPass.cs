@@ -73,16 +73,18 @@ public sealed class RegisterScavengingPass(
             ? GetAnalysis<LiveIntervalsAnalysis, LiveIntervals>(function)
             : new LiveIntervalsAnalysis().Compute(function);
 
-        var candidates = registerInfo.GetScratchGprCandidates();
-        if (candidates.Length == 0)
-            throw new InvalidOperationException(
-                $"RegisterScavenging: target advertises no scratch GPR candidates, " +
-                $"but {scratchCopies.Count} scratch-form copies need one.");
-
         var builder = new MirBuilder(function);
 
         foreach (var copy in scratchCopies)
         {
+            // Candidate scratch locations depend on the copy's shape (e.g. an
+            // $x↔$y copy may bounce through a dead zero-page slot, not just a GPR).
+            var candidates = registerInfo.GetScratchCandidates(copy);
+            if (candidates.Length == 0)
+                throw new InvalidOperationException(
+                    "RegisterScavenging: target advertises no scratch candidates for a " +
+                    "scratch-form copy that needs one.");
+
             var scratchOperandIndex = FindScratchOperandIndex(copy);
             var physReg = PickScratch(copy, intervals, candidates);
 
@@ -101,11 +103,13 @@ public sealed class RegisterScavengingPass(
         function.ClearVRegAnnotations();
     }
 
-    // Choose the cheapest scratch GPR that is dead across the copy's whole
-    // program point. "Dead across the copy" = the candidate's precolored busy
-    // interval does not overlap the [use point, def point] span of the copy
-    // instruction, and the candidate is not itself the copy's source or
-    // destination physreg (it must be free to scribble in).
+    // Choose the cheapest scratch location dead across the copy's whole program
+    // point, from the target-supplied candidate list (GPRs, and for shapes that
+    // allow it — e.g. an $x↔$y copy — zero-page bounce slots). "Dead across the
+    // copy" = the candidate's precolored busy interval does not overlap the
+    // [use point, def point] span of the copy instruction, and the candidate is
+    // not itself the copy's source or destination physreg (it must be free to
+    // scribble in).
     //
     // We test the full instruction span (use point through def point) rather
     // than a single point so a register whose value is live INTO the copy (read
@@ -134,10 +138,12 @@ public sealed class RegisterScavengingPass(
             return candidate;
         }
 
-        // No scratch GPR is dead here. Real spilling (an emergency save/restore
-        // through an abstract frame slot) is Phase 4; surface the gap clearly.
+        // No candidate scratch location is dead here. Real spilling (an emergency
+        // save/restore through an abstract frame slot) is Phase 4; surface the gap
+        // clearly. Only the GPR-only shapes (zp→zp, immediate→zp) can reach this —
+        // $x↔$y also admits the abundant zero-page pool, so it never starves.
         throw new NotImplementedException(
-            "RegisterScavenging: no scratch GPR is free for a copy that needs one — " +
+            "RegisterScavenging: no scratch location is free for a copy that needs one — " +
             "emergency save/restore via an abstract spill slot is Phase 4 (plan §3.4/§3.6). " +
             "No case in the current corpus reaches this path.");
     }

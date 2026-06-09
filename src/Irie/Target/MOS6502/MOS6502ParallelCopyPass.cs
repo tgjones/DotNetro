@@ -4,39 +4,31 @@ using Irie.Passes;
 
 namespace Irie.Target.MOS6502;
 
-// Target-private post-RA pass that schedules maximal runs of physreg→physreg
-// `pseudo.copy` instructions as a *parallel copy*.
+// Target-private post-RA pass that sequentializes maximal runs of
+// physreg→physreg `pseudo.copy` instructions as a *parallel copy*.
 //
 // Why this is needed: the call-argument setup emitted by MOS6502CallLowering is
 // a straight-line sequence of `pseudo.copy $physreg <- %argByteVreg`. After RA
-// assigns homes these become physreg→physreg copies that run sequentially, but
-// on the 6502 several of those moves clobber $a as a hidden scratch:
-//   * a zero-page → zero-page move expands to `LDA src ; STA dst`  (clobbers $a)
-//   * an $x ↔ $y move routes through $a                            (clobbers $a)
-// If the copy whose *destination* is $a is emitted before a later zp→zp copy,
-// that later copy overwrites $a and the argument is lost. CC_MOS passes a wide
-// value LSB-first in $a, $x, RC2, RC3, …, so a 32-bit argument always hits this.
+// assigns homes, a destination can collide with a *later* copy's source (RA
+// parked that source in a register this copy overwrites), so executing the run
+// top-to-bottom would read an already-clobbered value. This pass treats each
+// maximal run as a parallel copy {dst_i <- src_i} and re-orders it so every
+// source is read before it is overwritten, breaking genuine permutation cycles
+// with a fresh zero-page temp (mirrors PhiEliminationPass).
 //
-// This pass treats each maximal contiguous run of physreg→physreg `pseudo.copy`
-// as a parallel copy {dst_i <- src_i} and, when the emitted order is wrong under
-// the $a-scratch hazard, re-orders it into a correct schedule that:
-//   1. preserves read-before-overwrite ordering;
-//   2. emits the copy that establishes $a's final value (dst == $a) LAST, after
-//      every copy that clobbers $a (zp→zp, $x↔$y); and
-//   3. evacuates any live $a value, or a $a-destined copy's about-to-be-overwritten
-//      source, into a free scratch zero-page slot first.
+// This pass is PURELY about that value-ordering. It does NOT reason about $a as a
+// hidden scratch register: copies that need scratch to lower (zp→zp, $x↔$y) are
+// re-emitted as scratch forms by MOS6502PseudoExpander and resolved by the
+// post-expansion RegisterScavengingPass, which picks a location DEAD at the
+// copy's point — so a live $a (or any live value) is never trashed. Keeping the
+// two concerns separate (value sequencing here, scratch scavenging there) is the
+// single-mechanism design; the old $a-evacuation logic that used to live here is
+// gone.
 //
-// Scope: only *acyclic* parallel copies are rescheduled (see IsAcyclicParallelCopy
-// for why permutation cycles are deliberately left untouched — they are
-// indistinguishable from sequential save/restore idioms). The reported call-arg
-// clobber is always acyclic, so this covers it. (The generic cycle-break in
-// Sequentialize is kept as defensive code but is unreachable given that scope.)
-//
-// $a-evacuation temporaries are drawn from zero-page slots that are dead at the
-// run's program point: any slot live *out* of the run (read by a later
-// instruction — e.g. a jsr's implicit arg uses — before being redefined, or live
-// into a successor block) is excluded, so a temp never clobbers a value still in
-// flight.
+// Cycle-break temporaries are drawn from zero-page slots dead at the run's
+// program point: any slot live *out* of the run (read by a later instruction —
+// e.g. a jsr's implicit arg uses — before being redefined, or live into a
+// successor block) is excluded, so a temp never clobbers a value still in flight.
 //
 // Runs between RA/CopyElimination and PseudoExpansion (the operands are physregs
 // only by now). Order relative to MOS6502AddressingModeSelectorPass is
@@ -69,42 +61,28 @@ public sealed class MOS6502ParallelCopyPass : MirFunctionPass
                     i++;
                 }
 
-                if (copies.Count == 0) continue;
+                // A lone copy is trivially in order; only multi-copy runs can have
+                // a read-after-overwrite hazard.
+                if (copies.Count <= 1) continue;
 
-                // A lone copy never needs *reordering*, but a single zp→zp / $x↔$y
-                // copy still trashes $a as a hidden scratch — a hazard when $a is
-                // live across it (case (d)). Keep the fast path for the common
-                // lone non-clobbering copy; everything else falls through to the
-                // liveness-aware safety check below.
-                if (copies.Count == 1 && !ClobbersAccumulator(copies[0].dst, copies[0].src))
-                    continue;
+                // If executing the run top-to-bottom already reads every source
+                // before it is overwritten, leave it untouched (avoids pessimizing
+                // the many already-correct copy runs RA emits).
+                if (NaturalOrderIsSafe(copies)) continue;
 
-                // Physregs live just after the run — needed both to detect the
-                // "$a live past the run" hazard and (later) so a cycle-break /
-                // $a-save never clobbers a value still needed.
-                var liveOut = LiveOutAfterRun(block, runEnd: i);
-
-                // If the emitted order already executes correctly under the 6502
-                // $a-scratch hazard, leave it untouched — no need to reschedule
-                // (avoids pessimizing the many already-correct copy runs RA emits).
-                if (NaturalOrderIsSafe(copies, liveOut)) continue;
-
-                // A post-RA contiguous copy run is a *sequential* copy list: each
-                // copy reads the current register state, so a source that equals an
-                // earlier destination is an ordinary forward data dependence, not a
-                // permutation cycle. (PhiElimination has already broken any real
-                // value cycle with a temp; a contiguous `$zpN<-$a ; $a<-$zpN` save/
-                // restore pair without an intervening clobber is simply a no-op on
-                // $a.) Resolve the run's net effect into a parallel copy
-                // {dst <- originalSource} by symbolically simulating it, then let the
-                // classic parallel-copy scheduler reschedule that — correctly
-                // dodging the $a-scratch hazard while preserving every register's
-                // final value. Chains collapse, genuine value cycles (if any survive)
-                // are broken by Schedule's scratch-temp path.
+                // Resolve the run's net effect into a parallel copy
+                // {dst <- originalSource} by symbolically simulating it, then
+                // re-sequentialize that so every source is read before it is
+                // overwritten. Chains collapse; genuine value cycles are broken by
+                // Sequentialize's scratch-temp path.
                 var parallel = ResolveToParallelCopy(copies);
                 if (parallel.Count == 0) continue; // run was a net no-op
 
-                var scheduled = Schedule(parallel, liveOut);
+                // Zero-page slots dead after the run, so a cycle-break temp never
+                // clobbers a value still needed.
+                var liveOut = LiveOutAfterRun(block, runEnd: i);
+                var scheduled = new List<(int dst, int src)>();
+                Sequentialize(parallel, scheduled, new ScratchAllocator(parallel, liveOut));
 
                 // Replace the run in-place with the scheduled copies.
                 block.Instructions.RemoveRange(runStart, copies.Count);
@@ -124,84 +102,22 @@ public sealed class MOS6502ParallelCopyPass : MirFunctionPass
     }
 
     // True if executing the copies in their emitted order already realises the
-    // parallel-copy semantics under the 6502 $a-scratch hazard. Three ways the
-    // emitted order can be wrong:
-    //   (a) a copy reads a register whose value was already overwritten (its home
-    //       was reused by an earlier copy);
-    //   (b) a copy reads $a after $a's entry value was displaced (written, or
-    //       trashed as scratch by an earlier zp→zp / $x↔$y move);
-    //   (c) the value a copy writes into $a is clobbered before the run ends — the
-    //       run's $a output is consumed *after* the run (by the following jsr/rts),
-    //       so any clobbering copy after a `dst == $a` write corrupts it.
-    //   (d) $a's *entry* value is live past the run (some later instruction reads
-    //       $a) but no copy re-establishes it, and a copy trashes $a as a hidden
-    //       scratch (zp→zp / $x↔$y). The later read then sees a corrupted $a.
-    //       This is the case RA itself can't see: it routes an i16 high byte
-    //       through $x↔$y while the low byte still lives in $a, not knowing the
-    //       copy clobbers $a. Rescheduling save/restores $a around the run.
-    // When none occur the run needs no rescheduling.
-    private static bool NaturalOrderIsSafe(List<(int dst, int src)> copies, HashSet<int> liveOut)
+    // parallel-copy semantics: a copy must not read a register whose value was
+    // already overwritten by an earlier copy in the run (its home reused as some
+    // earlier copy's destination). When none does, the run executes correctly in
+    // its emitted order and needs no rescheduling. (Hidden-$a-scratch hazards are
+    // NOT considered here — they are handled downstream by the scavenger.)
+    private static bool NaturalOrderIsSafe(List<(int dst, int src)> copies)
     {
-        var a = MOS6502Registers.A;
-
-        // (d): $a's entry value outlives the run, no copy redefines $a, yet a copy
-        // trashes $a as scratch. Unsafe regardless of intra-run ordering.
-        var aWrittenByCopy = copies.Any(c => c.dst != c.src && c.dst == a);
-        var aTrashedAsScratch = copies.Any(c => c.dst != c.src && ClobbersAccumulator(c.dst, c.src));
-        if (liveOut.Contains(a) && !aWrittenByCopy && aTrashedAsScratch)
-            return false;
-
         var written = new HashSet<int>(); // registers whose entry value is gone
-        var aEntryGone = false;           // $a no longer holds its entry value
-        var aHoldsOutput = false;         // $a currently holds a run-output value
-
         foreach (var (dst, src) in copies)
         {
             if (dst == src) continue;
-
-            // (a)/(b): the copy reads `src`; its entry value must still be intact.
-            if (src == a)
-            {
-                if (aEntryGone) return false;
-            }
-            else if (written.Contains(src))
-            {
-                return false;
-            }
-
-            var clobbersA = ClobbersAccumulator(dst, src);
-
-            // (c): a clobber after $a was given its final run-output value.
-            if (aHoldsOutput && (clobbersA || dst == a)) return false;
-
+            if (written.Contains(src)) return false; // reads an already-overwritten reg
             written.Add(dst);
-            if (dst == a)
-            {
-                aEntryGone = true;
-                aHoldsOutput = true;
-            }
-            else if (clobbersA)
-            {
-                aEntryGone = true;
-                aHoldsOutput = false; // $a now holds scratch, not a run output
-            }
         }
         return true;
     }
-
-    // True if expanding `dst <- src` (per MOS6502PseudoExpander) clobbers $a as a
-    // hidden scratch register, in addition to writing dst.
-    private static bool ClobbersAccumulator(int dst, int src)
-    {
-        if (dst == src) return false;
-        if (IsZeroPage(dst) && IsZeroPage(src)) return true;           // zp→zp: LDA;STA
-        if ((dst == MOS6502Registers.X && src == MOS6502Registers.Y) ||
-            (dst == MOS6502Registers.Y && src == MOS6502Registers.X))  // $x↔$y via $a
-            return true;
-        return false;
-    }
-
-    private static bool IsZeroPage(int physReg) => physReg >= MOS6502Registers.RC(0);
 
     // Computes the set of physical registers live immediately after the run
     // (i.e. at instruction index `runEnd`), via backward liveness over the tail
@@ -280,105 +196,11 @@ public sealed class MOS6502ParallelCopyPass : MirFunctionPass
         return true;
     }
 
-    // Converts a list of parallel physreg copies {dst_i <- src_i} into an ordered
-    // sequence of sequential copies with identical effect under the 6502
-    // $a-scratch hazard.
-    //
-    // Strategy: decouple every interaction with $a so the rest of the run is an
-    // ordinary parallel copy that the classic sequentializer handles, then emit
-    // the single $a-establishing write last (after all $a-clobbering moves).
-    //
-    //   Phase A — preamble (emitted in this order):
-    //     A1. If $a is *read* by any copy (src == $a), save $a into a fresh
-    //         scratch slot via a store (STA — never clobbers $a) and rewrite
-    //         those reads to read the scratch slot. Done first so $a's live value
-    //         is preserved before any later clobbering load.
-    //     A2. Set aside the (unique) copy whose dst == $a as `deferredA`. If its
-    //         source is overwritten by another copy, capture that source into a
-    //         fresh scratch slot now (a load that may clobber $a — harmless,
-    //         since A1 already preserved $a) and rewrite deferredA to read it.
-    //   Phase B — sequentialize the remaining copies over {zp, $x, $y} with the
-    //     classic ordered-emit + cycle-break-via-temp algorithm. No copy now
-    //     reads $a, so every move that clobbers $a as scratch (zp→zp, $x↔$y) is
-    //     harmless and cycle-break temps may live freely in zp.
-    //   Phase C — emit deferredA. All $a-clobberers ran in phase B and its source
-    //     was preserved, so $a receives its final value undisturbed.
-    private static List<(int dst, int src)> Schedule(
-        List<(int dst, int src)> copies, HashSet<int> liveOut)
-    {
-        var a = MOS6502Registers.A;
-        var result = new List<(int dst, int src)>();
-        var scratch = new ScratchAllocator(copies, liveOut);
-
-        var working = copies.Where(c => c.dst != c.src).ToList(); // drop identities
-
-        // A1: evacuate $a when its entry value is at risk of being disturbed and
-        // is still needed — either read by a copy in the run, or live past the
-        // run (some later instruction reads $a) while no copy re-establishes it.
-        // $a's value is at risk when some copy writes $a (dst == $a) or trashes
-        // it as a hidden scratch (zp→zp / $x↔$y). If $a is merely read and never
-        // disturbed (e.g. a collapsed save/restore where $a keeps its entry
-        // value), the reads can stay direct — saving would only emit a pointless
-        // STA/LDA round-trip.
-        var aReadByCopy = working.Any(c => c.src == a);
-        var aWrittenByCopy = working.Any(c => c.dst == a);
-        var aValueAtRisk = aWrittenByCopy || working.Any(c => ClobbersAccumulator(c.dst, c.src));
-        // $a's entry value must survive the whole run when it's live afterwards
-        // and no copy gives $a a new final value (a dst==$a copy would, handled
-        // by deferredA below). Case (d) in NaturalOrderIsSafe.
-        var aEntryLiveOut = liveOut.Contains(a) && !aWrittenByCopy;
-
-        int? restoreAFrom = null;
-        if ((aReadByCopy || aEntryLiveOut) && aValueAtRisk)
-        {
-            var savedA = scratch.Next();
-            result.Add((savedA, a));   // STA $savedA — does not clobber $a.
-            for (var i = 0; i < working.Count; i++)
-                if (working[i].src == a)
-                    working[i] = (working[i].dst, savedA);
-            // Restore $a after every clobberer if a later consumer needs it.
-            if (aEntryLiveOut) restoreAFrom = savedA;
-        }
-
-        // A2: set aside the deferred dst == $a copy (at most one) and preserve
-        // its source if another copy overwrites it.
-        (int dst, int src)? deferredA = null;
-        var deferredIdx = working.FindIndex(c => c.dst == a);
-        if (deferredIdx >= 0)
-        {
-            var (dDst, dSrc) = working[deferredIdx];
-            working.RemoveAt(deferredIdx);
-
-            if (working.Any(c => c.dst == dSrc))
-            {
-                var savedSrc = scratch.Next();
-                result.Add((savedSrc, dSrc)); // capture before any copy overwrites dSrc.
-                dSrc = savedSrc;
-            }
-            deferredA = (dDst, dSrc);
-        }
-
-        // Phase B: standard ordered-emit + cycle-break over the remaining copies.
-        Sequentialize(working, result, scratch);
-
-        // Phase C: the final $a-establishing write, after every clobberer.
-        if (deferredA is { } d)
-            result.Add(d);
-
-        // Phase C (cont.): restore $a's entry value for a later consumer when no
-        // copy redefined $a. Mutually exclusive with deferredA (which only exists
-        // when a copy writes $a, i.e. aEntryLiveOut is false).
-        if (restoreAFrom is int saved)
-            result.Add((a, saved));   // LDA $saved — re-establish $a after clobberers.
-
-        return result;
-    }
-
     // Classic parallel-copy sequentializer: repeatedly emit any copy whose
     // destination is not still needed as a source; when none qualifies a cycle
     // remains, broken by routing one element's source through a fresh scratch zp
-    // slot (mirrors PhiEliminationPass). Operates over locations that never
-    // include a read of $a, so $a-clobbering expansions are safe here.
+    // slot (mirrors PhiEliminationPass). Scratch needs of the resulting
+    // physreg→physreg copies (zp→zp, $x↔$y) are resolved later by the scavenger.
     private static void Sequentialize(
         List<(int dst, int src)> copies,
         List<(int dst, int src)> result,
