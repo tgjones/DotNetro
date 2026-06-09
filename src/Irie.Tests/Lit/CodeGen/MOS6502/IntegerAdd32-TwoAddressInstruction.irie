@@ -16,29 +16,33 @@
 ; (class ac in this case, supplied by mos6502.adc's OperandClasses).
 
 ; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
-; CHECK:   bb0\(\):
+; CHECK: bb0\(\):
 ; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
-; CHECK:     %3 : ac = pseudo.copy \$a
-; CHECK:     %4 : ac = pseudo.copy \$x
-; CHECK:     %5 : ac = pseudo.copy \$zp2
-; CHECK:     %6 : ac = pseudo.copy \$zp3
-; CHECK:     %7 : zp = pseudo.copy \$zp4
-; CHECK:     %8 : zp = pseudo.copy \$zp5
-; CHECK:     %9 : zp = pseudo.copy \$zp6
-; CHECK:     %10 : zp = pseudo.copy \$zp7
+; CHECK:     %3 : any8 = pseudo.copy \$a
+; CHECK:     %4 : any8 = pseudo.copy \$x
+; CHECK:     %5 : any8 = pseudo.copy \$zp2
+; CHECK:     %6 : any8 = pseudo.copy \$zp3
+; CHECK:     %7 : i8 = pseudo.copy \$zp4
+; CHECK:     %8 : i8 = pseudo.copy \$zp5
+; CHECK:     %9 : i8 = pseudo.copy \$zp6
+; CHECK:     %10 : i8 = pseudo.copy \$zp7
 ; CHECK:     %32 : cc = mos6502.clc
-; CHECK:     %33 : ac = pseudo.copy %3
-; CHECK:     %33 : ac, %34 : cc = mos6502.adc %33\(tied-def 0\), %7, %32
-; CHECK:     %35 : ac = pseudo.copy %4
-; CHECK:     %35 : ac, %36 : cc = mos6502.adc %35\(tied-def 0\), %8, %34
-; CHECK:     %37 : ac = pseudo.copy %5
-; CHECK:     %37 : ac, %38 : cc = mos6502.adc %37\(tied-def 0\), %9, %36
-; CHECK:     %39 : ac = pseudo.copy %6
-; CHECK:     %39 : ac, %40 : cc = mos6502.adc %39\(tied-def 0\), %10, %38
-; CHECK:     \$a = pseudo.copy %33
-; CHECK:     \$x = pseudo.copy %35
-; CHECK:     \$zp2 = pseudo.copy %37
-; CHECK:     \$zp3 = pseudo.copy %39
+; CHECK:     %33 : any8 = pseudo.copy %3
+; CHECK:     %33 : any8, %34 : cc = mos6502.adc %33\(tied-def 0\), %7, %32
+; CHECK:     %35 : any8 = pseudo.copy %33
+; CHECK:     %36 : any8 = pseudo.copy %4
+; CHECK:     %36 : any8, %37 : cc = mos6502.adc %36\(tied-def 0\), %8, %34
+; CHECK:     %38 : any8 = pseudo.copy %36
+; CHECK:     %39 : any8 = pseudo.copy %5
+; CHECK:     %39 : any8, %40 : cc = mos6502.adc %39\(tied-def 0\), %9, %37
+; CHECK:     %41 : any8 = pseudo.copy %39
+; CHECK:     %42 : any8 = pseudo.copy %6
+; CHECK:     %42 : any8, %43 : cc = mos6502.adc %42\(tied-def 0\), %10, %40
+; CHECK:     %44 : any8 = pseudo.copy %42
+; CHECK:     \$a = pseudo.copy %35
+; CHECK:     \$x = pseudo.copy %38
+; CHECK:     \$zp2 = pseudo.copy %41
+; CHECK:     \$zp3 = pseudo.copy %44
 ; CHECK:     mos6502.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
 ; CHECK: \}
 

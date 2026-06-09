@@ -203,8 +203,22 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         var bVreg          = ((VirtualReg)instr.Operands[3]).Id;
         var flagInVreg     = ((VirtualReg)instr.Operands[4]).Id;
 
-        ReclassifyTo(function, aVreg,      MOS6502RegisterClass.Ac);
-        ReclassifyTo(function, bVreg,      MOS6502RegisterClass.Imag8);
+        // Do NOT pin aVreg/bVreg to a *single-physreg* class. The class-
+        // intersection gap (plan §3.1) arises when a single value is pinned `Ac`
+        // here and used as a zero-page (`Imag8`) operand elsewhere: Ac ∩ Imag8 =
+        // ∅ in RA. Keep both operands broad instead:
+        //   - use[0] (a) is *tied* to def[0], so TwoAddressInstructionPass
+        //     materialises it as a fresh copy that picks up the `Ac` operand
+        //     constraint from AdcInfo/SbcInfo. It reads the tied use's class to
+        //     classify that copy, so aVreg must carry *a* class — but the broad
+        //     flexible class (`Anyi8`), not `Ac`. That keeps aVreg free to live
+        //     in zero page too while still satisfying the pass.
+        //   - use[1] (b) keeps the `Imag8` operand constraint from the dialect
+        //     info directly; a broad bVreg intersects to zero page in RA, which
+        //     is correct. With no `Ac` pin reaching bVreg, Ac ∩ Imag8 can't arise.
+        // The carry-in genuinely must live in the carry register and has no
+        // multi-role conflict, so it keeps its in-place class.
+        ReclassifyTo(function, aVreg,      MOS6502RegisterClass.Anyi8);
         ReclassifyTo(function, flagInVreg, MOS6502RegisterClass.Cc);
 
         var newResult = function.CreateVirtualRegisterInClass(
@@ -223,7 +237,21 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             new VirtualReg(bVreg,      IsDefinition: false),
             new VirtualReg(flagInVreg, IsDefinition: false));
 
-        function.ReplaceAllUsesOfRegister(resultVreg,  newResult);
+        // Funnel the result out of $a into a flexible Anyi8 vreg (mirrors the
+        // EOR path's out-funnel). The adc/sbc architecturally produces its
+        // result in $a (def[0] = Ac, tied to use[0]), but a result later used as
+        // a zero-page operand would otherwise intersect Ac ∩ Imag8 = ∅. Routing
+        // downstream uses through `resOut : any8` keeps the value flexible; the
+        // coalescer collapses this copy whenever $a is free for the chain.
+        var resOut = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Anyi8,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(resOut,    IsDefinition: true),
+            new VirtualReg(newResult, IsDefinition: false));
+
+        function.ReplaceAllUsesOfRegister(resultVreg,  resOut);
         function.ReplaceAllUsesOfRegister(flagOutVreg, newFlag);
         builder.Remove(instr);
         return true;
@@ -353,15 +381,29 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
                 "Coverage so far: eq, ne, ult, uge. Signed and ugt/ule predicates land later."),
         };
 
-        ReclassifyTo(function, aVreg, MOS6502RegisterClass.Ac);
-        ReclassifyTo(function, bVreg, MOS6502RegisterClass.Imag8);
-
         builder.SetInsertionPointBefore(cmpi);
 
-        // mos6502.cmp %a, %b implicit-def $n, implicit-def $z, implicit-def $c
+        // Funnel %a through a fresh `Ac` vreg instead of pinning aVreg in place.
+        // cmp's use[0] is *not* tied, so an in-place `Ac` reclassify would be a
+        // direct pin — and if the same value is also used as a zero-page operand
+        // elsewhere, Ac ∩ Imag8 = ∅ in RA (plan §3.2). Routing the `Ac`
+        // requirement through a copy leaves aVreg broad; the coalescer collapses
+        // the copy whenever $a is free. Modelled on the multi-byte compare path.
+        // bVreg stays broad as use[1]; the `Imag8` operand constraint from
+        // CmpInfo applies to it directly and, with no `Ac` pin reaching it,
+        // cannot conflict.
+        var aCmpVreg = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Ac,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(aCmpVreg, IsDefinition: true),
+            new VirtualReg(aVreg,    IsDefinition: false));
+
+        // mos6502.cmp %a_cmp, %b implicit-def $n, implicit-def $z, implicit-def $c
         builder.BuildInstruction(
             MOS6502Dialect.OpRef(MOS6502Op.Cmp),
-            new VirtualReg(aVreg, IsDefinition: false),
+            new VirtualReg(aCmpVreg, IsDefinition: false),
             new VirtualReg(bVreg, IsDefinition: false),
             new PhysicalReg(MOS6502Registers.N, IsDefinition: true, IsImplicit: true),
             new PhysicalReg(MOS6502Registers.Z, IsDefinition: true, IsImplicit: true),

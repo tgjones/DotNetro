@@ -10,14 +10,14 @@
 ; allocates it with NO spill -- the large zero-page register file absorbs the
 ; pressure, exactly as the plan predicts for this target.
 ;
-; The corpus source is the asymmetric `a > b ? a - b : b - a`. Irie cannot
-; express that shape today: the same arg value feeds one subtract as the A
-; operand and the other as the zero-page operand, so isel's class assignment
-; produces an empty class intersection (an isel/class-assignment gap, NOT an RA
-; limitation). This test uses the equivalent diamond `a < b ? a + b : a - b`,
-; which keeps each arm's operand roles consistent and so survives isel; it still
-; exercises the diamond + merge-phi cross-block allocation the corpus case is
-; about.
+; The corpus source is the asymmetric `a > b ? a - b : b - a`. This test uses
+; the equivalent diamond `a < b ? a + b : a - b`, which keeps each arm's operand
+; roles consistent; it exercises the diamond + merge-phi cross-block allocation
+; the corpus case is about. The *exact* asymmetric abs-diff shape (where the same
+; byte is an A operand in one arm and a zero-page operand in the other) is now
+; covered by the sibling `IfElseAbsDiff-RegisterAllocator` test — it used to hit
+; an isel class-intersection gap (empty `ac` ∩ `imag8` set in RA), since closed
+; by funnelling the pinned operands through copies in instruction selection.
 ;
 ; Reference (llvm-mos if-else.mir): the merged result lives in $a/$x at the join,
 ; with the two arms feeding it. Irie parks the merged value in $zp2/$x (it favours

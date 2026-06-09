@@ -32,7 +32,7 @@ generic MIR *and* survive the pipeline. The blockers below are not corpus
 problems — they are **Irie's current limitations**, and this table doubles as a
 punch-list for the RA redesign (and the surrounding isel/legalizer work).
 
-### Converted (16 test files, covering ~18 corpus cases)
+### Converted (17 test files, covering ~19 corpus cases)
 
 | Corpus case | Test |
 |-------------|------|
@@ -48,6 +48,7 @@ punch-list for the RA redesign (and the surrounding isel/legalizer work).
 | pressure/many-calls *(simplified to 2 calls)* | `ChainedCalls-RegisterAllocator` |
 | pressure/many-calls *(genuine spill: 10 i16 live across a call)* | `CrossCallSpill-RegisterAllocator` |
 | control-flow/if-else *(`a<b ? a+b : a-b` — see note)* | `IfElse-RegisterAllocator` |
+| control-flow/if-else *(exact abs-diff `a>b ? a-b : b-a`)* | `IfElseAbsDiff-RegisterAllocator` |
 | control-flow/loop-counter *(constant-delta loop — see note)* | `LoopCounter-RegisterAllocator` |
 | realistic/fibonacci | `Fibonacci-RegisterAllocator` |
 | memory/global-rw *(simplified: constant delta)* | `GlobalIncr-RegisterAllocator` |
@@ -73,7 +74,7 @@ punch-list for the RA redesign (and the surrounding isel/legalizer work).
 | **i8 arithmetic not selectable** (only i16/i32 legalize to byte carry chains; bare `arith.addi i8` has no selection rule) | basics/add-i8, constraints/inc-dec |
 | **`cast.zext`/`cast.sext` to i32 not legalized** | widths/zero-extend, widths/sign-extend, widths/mixed-widths (also i8 arith) |
 | **`mem.load`/`mem.store` only accept `mem.symbol` addresses** (no arbitrary i16 pointers / frame slots) | memory/ptr-deref, memory/array-index, control-flow/loop-sum-array, realistic/strlen, memory/two-pointer-copy |
-| **isel class-assignment gap** — a single value used as *both* the A operand of one arithmetic op and the zero-page operand of another forces an empty operand-class intersection in RA (e.g. the corpus `a-b`/`b-a` if-else, or a loop induction var both added-into and incremented). This is an **isel** limitation, not an RA one; the converted `IfElse`/`LoopCounter` tests sidestep it by keeping operand roles consistent. | control-flow/if-else *(exact `a-b`/`b-a` form)*, control-flow/switch *(also multi-way)* |
+| **multi-way control flow (switch)** — the cmpi+cond_br fusion handles a single two-way branch; an N-way switch lowering is not yet implemented. | control-flow/switch *(multi-way)* |
 | **aggregate / sret ABI not modelled** | basics/stack-args (also stack-arg ABI), memory/struct-return, memory/struct-return-sret |
 
 **Phase 4 of the register-allocator redesign (spilling + rematerialization)

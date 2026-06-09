@@ -20,19 +20,202 @@
 ; CHECK lines are an ordered subsequence (DotLit matches each after the previous),
 ; pinning the spill mechanics rather than every line of the long adc chain.
 
+; CHECK: func @use : \(i16\) -> i16 \{
+; CHECK: bb0\(\):
+; CHECK:     \[liveins: \$a, \$x\]
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     mos6502.rts implicit \$a, implicit \$x
+; CHECK: \}
+; CHECK: 
 ; CHECK: func @pressure : \(i16, i16\) -> i16 \{
-; CHECK:   frame_slot 0 : i8 @pressure_spill300
-; CHECK:   frame_slot 1 : i8 @pressure_spill299
+; CHECK:   frame_slot 0 : i8 @pressure_spill255
+; CHECK:   frame_slot 1 : i8 @pressure_spill252
 ; CHECK: bb0\(\):
 ; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3\]
+; CHECK:     \$zp4 = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$zp2 = pseudo.copy \$zp2
+; CHECK:     \$zp3 = pseudo.copy \$zp3
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$zp4
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp2, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp31 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$x
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp3, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp30 = pseudo.copy \$a
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$zp31
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp2, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp29 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp30
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp3, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp22 = pseudo.copy \$a
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$zp29
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp2, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp28 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp22
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp3, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp21 = pseudo.copy \$a
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$zp28
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp2, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp27 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp21
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp3, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp20 = pseudo.copy \$a
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$zp27
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp2, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp26 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp20
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp3, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp19 = pseudo.copy \$a
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$zp26
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp2, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp25 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp19
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp3, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp18 = pseudo.copy \$a
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$zp25
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp2, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp24 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp18
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp3, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp17 = pseudo.copy \$a
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$zp24
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp2, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp23 = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$zp17
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp3, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$zp16 = pseudo.copy \$a
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$zp23
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp2, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$a
 ; The two cross-call bytes are stored to their abstract slots before the call …
-; CHECK:     pseudo\.spill 1, \$a
-; CHECK:     pseudo\.spill 0, \$a
-; CHECK:     mos6502\.jsr\.abs @use
+; CHECK:     pseudo.spill 1, \$a
+; CHECK:     \$a = pseudo.copy \$zp16
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp3, \$c
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     pseudo.spill 0, \$a
+; CHECK:     \$a = pseudo.copy \$zp4
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     mos6502.jsr.abs @use, implicit \$a, implicit \$x, implicit-def \$a, implicit-def \$x, implicit-def \$y, implicit-def \$c, implicit-def \$n, implicit-def \$v, implicit-def \$z, implicit-def \$i, implicit-def \$d, implicit-def \$b, implicit-def \$zp2, implicit-def \$zp3, implicit-def \$zp4, implicit-def \$zp5, implicit-def \$zp6, implicit-def \$zp7, implicit-def \$zp8, implicit-def \$zp9, implicit-def \$zp10, implicit-def \$zp11, implicit-def \$zp12, implicit-def \$zp13, implicit-def \$zp14, implicit-def \$zp15
+; CHECK:     \$zp2 = pseudo.copy \$a
+; CHECK:     \$zp3 = pseudo.copy \$x
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$zp31
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp29, \$c
+; CHECK:     \$y = pseudo.copy \$a
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$a = pseudo.copy \$zp30
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp22, \$c
+; CHECK:     \$x = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$y
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp28, \$c
+; CHECK:     \$y = pseudo.copy \$a
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$a = pseudo.copy \$x
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp21, \$c
+; CHECK:     \$x = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$y
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp27, \$c
+; CHECK:     \$y = pseudo.copy \$a
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$a = pseudo.copy \$x
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp20, \$c
+; CHECK:     \$x = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$y
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp26, \$c
+; CHECK:     \$y = pseudo.copy \$a
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$a = pseudo.copy \$x
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp19, \$c
+; CHECK:     \$x = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$y
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp25, \$c
+; CHECK:     \$y = pseudo.copy \$a
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$a = pseudo.copy \$x
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp18, \$c
+; CHECK:     \$x = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$y
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp24, \$c
+; CHECK:     \$y = pseudo.copy \$a
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$a = pseudo.copy \$x
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp17, \$c
+; CHECK:     \$x = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$y
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp23, \$c
+; CHECK:     \$y = pseudo.copy \$a
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$a = pseudo.copy \$x
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp16, \$c
+; CHECK:     \$x = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$y
 ; … and reloaded from those slots after the call, into fresh tiny vregs.
-; CHECK:     \$zp4 = pseudo\.reload 1
-; CHECK:     \$zp4 = pseudo\.reload 0
-; CHECK:     mos6502\.rts implicit \$a, implicit \$x
+; CHECK:     \$zp4 = pseudo.reload 1
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp4, \$c
+; CHECK:     \$y = pseudo.copy \$a
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$a = pseudo.copy \$x
+; CHECK:     \$zp4 = pseudo.reload 0
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp4, \$c
+; CHECK:     \$x = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$c = mos6502.clc
+; CHECK:     \$a = pseudo.copy \$y
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp2, \$c
+; CHECK:     \$y = pseudo.copy \$a
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$a = pseudo.copy \$x
+; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp3, \$c
+; CHECK:     \$x = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$a = pseudo.copy \$y
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     mos6502.rts implicit \$a, implicit \$x
+; CHECK: \}
 
 func @use : (i16) -> i16 {
 bb0(%0 : i16):

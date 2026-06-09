@@ -15,9 +15,11 @@
 ; strength-reduces that whole loop to a closed-form multiply via __mulsi3 -- a
 ; high-level optimisation Irie's pipeline does not perform and which is unrelated
 ; to register allocation. This test keeps a genuine loop (the carried values are
-; advanced by constant deltas so the induction var is never reused in conflicting
-; operand roles -- which would otherwise hit the same isel class-assignment gap
-; noted in IfElse), pinning what the redesigned RA does for loop-carried liveness.
+; advanced by constant deltas), pinning what the redesigned RA does for
+; loop-carried liveness. (The conflicting-operand-role shape an induction var
+; reused as both an A and a zero-page operand would take is no longer an isel
+; blocker — see IfElseAbsDiff — but the constant-delta form is retained here as
+; the cleaner loop-liveness characterization.)
 
 ; CHECK: func @loop_sum : \(i16\) -> i16 \{
 ; CHECK: bb0\(\):
