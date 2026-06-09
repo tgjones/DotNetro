@@ -64,7 +64,7 @@ rootCommand.SetAction(parseResult =>
     passMgr.AddPass(new AbiLoweringPass(target.CallLowering));
     passMgr.AddPass(new LegalizerPass(target.LegalizerInfo));
     passMgr.AddPass(new InstructionSelectorPass(target.InstructionSelector));
-    passMgr.AddPass(new PhiEliminationPass());
+    passMgr.AddPass(new PhiEliminationPass(target.BranchLowering));
     passMgr.AddPass(new TwoAddressInstructionPass());
     passMgr.AddPass(new RegisterAllocatorPass(target.RegisterInfo));
     passMgr.AddPass(new CopyEliminationPass());

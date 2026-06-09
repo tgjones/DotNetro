@@ -1,6 +1,7 @@
 using Irie.Dialects.Cf;
 using Irie.Dialects.Pseudo;
 using Irie.Mir;
+using Irie.Target;
 
 namespace Irie.Passes;
 
@@ -38,6 +39,17 @@ namespace Irie.Passes;
 // harmless.)
 public sealed class PhiEliminationPass : MirFunctionPass
 {
+    // When phi-elim runs after instruction selection, a generic `cf.br` placed
+    // in a split block would never be lowered and would crash machine-code
+    // emission. This supplies the target's real unconditional jump for those
+    // blocks. Null (or a still-generic source terminator) keeps `cf.br`.
+    private readonly BranchLowering? _branchLowering;
+
+    public PhiEliminationPass(BranchLowering? branchLowering = null)
+    {
+        _branchLowering = branchLowering;
+    }
+
     public override string Name => "PhiElimination";
 
     public override void Run(MirFunction function)
@@ -48,7 +60,7 @@ public sealed class PhiEliminationPass : MirFunctionPass
         // parameters, so each such edge owns a single-successor block into which
         // its phi-copies can be placed. This rewrites BlockTarget operands, so it
         // must run (and the CFG be rebuilt) before we insert any copies.
-        SplitMultiSuccessorEdgesIntoParamBlocks(function);
+        SplitMultiSuccessorEdgesIntoParamBlocks(function, _branchLowering);
         function.RebuildCfg();
 
         // Phase 2: replace each block's parameters with copies in its
@@ -103,8 +115,11 @@ public sealed class PhiEliminationPass : MirFunctionPass
     // redirected from `target(args)` to `splitBlock()` (no args). The args travel
     // with the unconditional branch into the new single-successor block, where
     // phase 2 can lower them to copies safely.
-    private static void SplitMultiSuccessorEdgesIntoParamBlocks(MirFunction function)
+    private static void SplitMultiSuccessorEdgesIntoParamBlocks(
+        MirFunction function, BranchLowering? branchLowering)
     {
+        var builder = new MirBuilder(function);
+
         foreach (var block in function.Blocks.ToList())
         {
             // A block's terminator may carry several BlockTarget operands (e.g.
@@ -130,11 +145,21 @@ public sealed class PhiEliminationPass : MirFunctionPass
                     if (target.Block.Parameters.Count == 0) continue;
 
                     // Create the intermediate block carrying the unconditional
-                    // branch (with the original args) into the real target.
+                    // branch (with the original args) into the real target. If
+                    // the source terminator has already been instruction-selected
+                    // (it is no longer a generic `cf.*` op) a generic `cf.br`
+                    // here would never be lowered, so ask the target for its jump.
+                    var edge = new BlockTarget(target.Block, target.Args);
                     var splitBlock = function.CreateBlock();
-                    splitBlock.AddInstruction(
-                        CfDialect.OpRef(CfOp.Br),
-                        new BlockTarget(target.Block, target.Args));
+                    builder.SetInsertionPointAtEnd(splitBlock);
+                    if (branchLowering != null && instr.Opcode.Dialect != CfDialect.Id)
+                    {
+                        branchLowering.InsertUnconditionalBranch(builder, edge);
+                    }
+                    else
+                    {
+                        builder.BuildInstruction(CfDialect.OpRef(CfOp.Br), edge);
+                    }
 
                     // Redirect the source's branch to the split block; the args
                     // now live on the cf.br inside it, not on this edge.

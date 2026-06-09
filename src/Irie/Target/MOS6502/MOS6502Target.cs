@@ -18,6 +18,7 @@ public class MOS6502Target : Irie.Target.Target
     public override Irie.Target.LegalizerInfo LegalizerInfo { get; } = new MOS6502LegalizerInfo();
     public override Irie.Target.InstructionSelector InstructionSelector { get; } = new MOS6502InstructionSelector();
     public override Irie.Target.PseudoExpander PseudoExpander { get; } = new MOS6502PseudoExpander();
+    public override Irie.Target.BranchLowering BranchLowering { get; } = new MOS6502BranchLowering();
     public override TargetRegisterInfo RegisterInfo { get; } = new MOS6502RegisterInfo();
     public override Irie.Target.MachineCodeEmitter MachineCodeEmitter { get; } = new MOS6502MachineCodeEmitter();
 
