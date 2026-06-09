@@ -69,12 +69,25 @@ public sealed class MOS6502ParallelCopyPass : MirFunctionPass
                     i++;
                 }
 
-                if (copies.Count <= 1) continue; // nothing to reorder
+                if (copies.Count == 0) continue;
+
+                // A lone copy never needs *reordering*, but a single zp→zp / $x↔$y
+                // copy still trashes $a as a hidden scratch — a hazard when $a is
+                // live across it (case (d)). Keep the fast path for the common
+                // lone non-clobbering copy; everything else falls through to the
+                // liveness-aware safety check below.
+                if (copies.Count == 1 && !ClobbersAccumulator(copies[0].dst, copies[0].src))
+                    continue;
+
+                // Physregs live just after the run — needed both to detect the
+                // "$a live past the run" hazard and (later) so a cycle-break /
+                // $a-save never clobbers a value still needed.
+                var liveOut = LiveOutAfterRun(block, runEnd: i);
 
                 // If the emitted order already executes correctly under the 6502
                 // $a-scratch hazard, leave it untouched — no need to reschedule
                 // (avoids pessimizing the many already-correct copy runs RA emits).
-                if (NaturalOrderIsSafe(copies)) continue;
+                if (NaturalOrderIsSafe(copies, liveOut)) continue;
 
                 // A post-RA contiguous copy run is a *sequential* copy list: each
                 // copy reads the current register state, so a source that equals an
@@ -91,9 +104,6 @@ public sealed class MOS6502ParallelCopyPass : MirFunctionPass
                 var parallel = ResolveToParallelCopy(copies);
                 if (parallel.Count == 0) continue; // run was a net no-op
 
-                // Physregs live just after the run — temps must avoid these so a
-                // cycle-break / $a-save never clobbers a value still needed.
-                var liveOut = LiveOutAfterRun(block, runEnd: i);
                 var scheduled = Schedule(parallel, liveOut);
 
                 // Replace the run in-place with the scheduled copies.
@@ -123,10 +133,24 @@ public sealed class MOS6502ParallelCopyPass : MirFunctionPass
     //   (c) the value a copy writes into $a is clobbered before the run ends — the
     //       run's $a output is consumed *after* the run (by the following jsr/rts),
     //       so any clobbering copy after a `dst == $a` write corrupts it.
+    //   (d) $a's *entry* value is live past the run (some later instruction reads
+    //       $a) but no copy re-establishes it, and a copy trashes $a as a hidden
+    //       scratch (zp→zp / $x↔$y). The later read then sees a corrupted $a.
+    //       This is the case RA itself can't see: it routes an i16 high byte
+    //       through $x↔$y while the low byte still lives in $a, not knowing the
+    //       copy clobbers $a. Rescheduling save/restores $a around the run.
     // When none occur the run needs no rescheduling.
-    private static bool NaturalOrderIsSafe(List<(int dst, int src)> copies)
+    private static bool NaturalOrderIsSafe(List<(int dst, int src)> copies, HashSet<int> liveOut)
     {
         var a = MOS6502Registers.A;
+
+        // (d): $a's entry value outlives the run, no copy redefines $a, yet a copy
+        // trashes $a as scratch. Unsafe regardless of intra-run ordering.
+        var aWrittenByCopy = copies.Any(c => c.dst != c.src && c.dst == a);
+        var aTrashedAsScratch = copies.Any(c => c.dst != c.src && ClobbersAccumulator(c.dst, c.src));
+        if (liveOut.Contains(a) && !aWrittenByCopy && aTrashedAsScratch)
+            return false;
+
         var written = new HashSet<int>(); // registers whose entry value is gone
         var aEntryGone = false;           // $a no longer holds its entry value
         var aHoldsOutput = false;         // $a currently holds a run-output value
@@ -288,21 +312,32 @@ public sealed class MOS6502ParallelCopyPass : MirFunctionPass
 
         var working = copies.Where(c => c.dst != c.src).ToList(); // drop identities
 
-        // A1: evacuate $a only when its entry value is *both* read and at risk of
-        // being disturbed before those reads complete. $a's value is at risk when
-        // some copy writes $a (dst == $a) or trashes it as a hidden scratch
-        // (zp→zp / $x↔$y). If $a is merely read and never disturbed (e.g. a
-        // collapsed save/restore where $a keeps its entry value), the reads can
-        // stay direct — saving would only emit a pointless STA/LDA round-trip.
+        // A1: evacuate $a when its entry value is at risk of being disturbed and
+        // is still needed — either read by a copy in the run, or live past the
+        // run (some later instruction reads $a) while no copy re-establishes it.
+        // $a's value is at risk when some copy writes $a (dst == $a) or trashes
+        // it as a hidden scratch (zp→zp / $x↔$y). If $a is merely read and never
+        // disturbed (e.g. a collapsed save/restore where $a keeps its entry
+        // value), the reads can stay direct — saving would only emit a pointless
+        // STA/LDA round-trip.
         var aReadByCopy = working.Any(c => c.src == a);
-        var aValueAtRisk = working.Any(c => c.dst == a || ClobbersAccumulator(c.dst, c.src));
-        if (aReadByCopy && aValueAtRisk)
+        var aWrittenByCopy = working.Any(c => c.dst == a);
+        var aValueAtRisk = aWrittenByCopy || working.Any(c => ClobbersAccumulator(c.dst, c.src));
+        // $a's entry value must survive the whole run when it's live afterwards
+        // and no copy gives $a a new final value (a dst==$a copy would, handled
+        // by deferredA below). Case (d) in NaturalOrderIsSafe.
+        var aEntryLiveOut = liveOut.Contains(a) && !aWrittenByCopy;
+
+        int? restoreAFrom = null;
+        if ((aReadByCopy || aEntryLiveOut) && aValueAtRisk)
         {
             var savedA = scratch.Next();
             result.Add((savedA, a));   // STA $savedA — does not clobber $a.
             for (var i = 0; i < working.Count; i++)
                 if (working[i].src == a)
                     working[i] = (working[i].dst, savedA);
+            // Restore $a after every clobberer if a later consumer needs it.
+            if (aEntryLiveOut) restoreAFrom = savedA;
         }
 
         // A2: set aside the deferred dst == $a copy (at most one) and preserve
@@ -329,6 +364,12 @@ public sealed class MOS6502ParallelCopyPass : MirFunctionPass
         // Phase C: the final $a-establishing write, after every clobberer.
         if (deferredA is { } d)
             result.Add(d);
+
+        // Phase C (cont.): restore $a's entry value for a later consumer when no
+        // copy redefined $a. Mutually exclusive with deferredA (which only exists
+        // when a copy writes $a, i.e. aEntryLiveOut is false).
+        if (restoreAFrom is int saved)
+            result.Add((a, saved));   // LDA $saved — re-establish $a after clobberers.
 
         return result;
     }

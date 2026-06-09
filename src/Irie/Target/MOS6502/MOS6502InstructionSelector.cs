@@ -35,22 +35,24 @@ namespace Irie.Target.MOS6502;
 //   - reclassifying existing typed vreg uses via ReclassifyVirtualRegister.
 public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
 {
-    // Per-function tracker: the symbol whose pointer bytes are *currently*
-    // materialised in PointerZpLo / PointerZpHi. The scratch pair is a single
-    // pair shared by every symbolic mem op, so the pointer setup can only be
-    // elided when the next access targets the *same* symbol that is already in
-    // the pair (e.g. bytes 1..3 of one multi-byte load/store). Switching to a
-    // different symbol must re-materialise the pair, otherwise the second
-    // symbol's access would dereference the first symbol's pointer. Isel
-    // visits instructions in program order, so tracking the last-loaded symbol
+    // Per-function tracker: a key identifying the pointer whose low/high bytes
+    // are *currently* materialised in PointerZpLo / PointerZpHi. The scratch
+    // pair is a single pair shared by every mem op, so the pointer setup can
+    // only be elided when the next access targets the *same* pointer that is
+    // already in the pair (e.g. bytes 1..3 of one multi-byte load/store).
+    // Switching to a different pointer must re-materialise the pair, otherwise
+    // the second access would dereference the first pointer. The key is
+    // "@name" for a mem.symbol address and "%<vreg>" for a runtime i16 pointer
+    // (an address vreg defined by a pseudo.merge of two byte vregs). Isel
+    // visits instructions in program order, so tracking the last-loaded pointer
     // is sufficient. Cleared per function; calls don't yet appear between mem
     // ops in the same function (leaf-only lit corpus) — when they do, a call
-    // must invalidate this just like a symbol switch.
-    private string? _currentPointerSymbol;
+    // must invalidate this just like a pointer switch.
+    private string? _currentPointerKey;
 
     public override void BeginFunction(MirFunction function)
     {
-        _currentPointerSymbol = null;
+        _currentPointerKey = null;
     }
 
     public override bool Select(MirInstruction instruction, MirBuilder builder)
@@ -768,10 +770,8 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             throw new InvalidOperationException(
                 "MOS6502InstructionSelector: mem.load.byte_at must have shape `%def : i8 = mem.load.byte_at %addr, <offset>`.");
 
-        var calleeSymbol = ResolveSymbolAddressOrThrow(function, addrReg.Id, "mem.load.byte_at");
-
         builder.SetInsertionPointBefore(instr);
-        EmitPointerSetup(builder, calleeSymbol, offset.Value);
+        EmitPointerSetup(builder, addrReg, offset.Value);
 
         // %a3 : ac = mos6502.lda.indy $rc2, implicit-use $rc3, implicit-use $y
         // Then copy the result out of $a into a flexible Anyi8 vreg so it can
@@ -817,8 +817,6 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             throw new InvalidOperationException(
                 "MOS6502InstructionSelector: mem.store.byte_at must have shape `mem.store.byte_at %addr, <offset>, %val`.");
 
-        var calleeSymbol = ResolveSymbolAddressOrThrow(function, addrReg.Id, "mem.store.byte_at");
-
         builder.SetInsertionPointBefore(instr);
 
         // Park the value in an Anyi8 vreg *before* pointer setup so its live
@@ -833,7 +831,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             new VirtualReg(parkedVreg, IsDefinition: true),
             new VirtualReg(valReg.Id,  IsDefinition: false));
 
-        EmitPointerSetup(builder, calleeSymbol, offset.Value);
+        EmitPointerSetup(builder, addrReg, offset.Value);
 
         // sta.indy emits `STA ($rc2),Y`. The source byte must be in $a (Ac
         // class). Insert a pseudo.copy to an Ac vreg so the value flows
@@ -935,52 +933,44 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         return anyVreg;
     }
 
-    // Emits the pointer-setup sequence that puts @name's low/high bytes into
-    // PointerZpLo / PointerZpHi and zeroes Y:
+    // Emits the pointer-setup sequence that puts an address's low/high bytes
+    // into PointerZpLo / PointerZpHi and sets Y to the byte offset. The address
+    // is either a mem.symbol global or a runtime i16 pointer (a vreg defined by
+    // a pseudo.merge of two byte vregs):
     //
+    //   ; mem.symbol @name path
     //   %lo : ac = mos6502.lda.imm.symlo @name
-    //   $rc2     = pseudo.copy %lo
+    //   $rc0     = pseudo.copy %lo
     //   %hi : ac = mos6502.lda.imm.symhi @name
-    //   $rc3     = pseudo.copy %hi
-    //   $y       = mos6502.ldy.imm 0       (def constrained to Yc)
+    //   $rc1     = pseudo.copy %hi
+    //
+    //   ; runtime-pointer path (address = pseudo.merge %plo, %phi)
+    //   $rc0     = pseudo.copy %plo
+    //   $rc1     = pseudo.copy %phi
+    //
+    //   $y       = mos6502.ldy.imm <offset>   (both paths; def constrained to Yc)
     //
     // Run before the indirect-Y load/store at the current insertion point.
-    // Skipped only when the scratch pair already holds this exact symbol's
-    // pointer (see _currentPointerSymbol) — i.e. consecutive byte accesses to
-    // the same global. A different symbol forces a re-materialisation.
-    private void EmitPointerSetup(MirBuilder builder, string symbolName, long byteOffset)
+    // The pointer-byte setup is skipped only when the scratch pair already
+    // holds this exact pointer (see _currentPointerKey) — i.e. consecutive byte
+    // accesses to the same global / runtime pointer. A different pointer forces
+    // a re-materialisation. The ldy.imm is always re-emitted: even on a cache
+    // hit the offset differs per byte of a multi-byte load/store.
+    private void EmitPointerSetup(MirBuilder builder, VirtualReg addrReg, long byteOffset)
     {
         var function = builder.Function;
-        var needsSetup = _currentPointerSymbol != symbolName;
-        _currentPointerSymbol = symbolName;
+
+        var symbolName = TryResolveSymbolAddress(function, addrReg.Id);
+        var key = symbolName is not null ? "@" + symbolName : "%" + addrReg.Id;
+        var needsSetup = _currentPointerKey != key;
+        _currentPointerKey = key;
 
         if (needsSetup)
         {
-            // lda.imm.symlo @name → fresh Ac vreg, then pin to $rc2.
-            var loVreg = function.CreateVirtualRegisterInClass(
-                MOS6502RegisterClass.Ac,
-                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
-            builder.BuildInstruction(
-                MOS6502Dialect.OpRef(MOS6502Op.LdaImmSymLo),
-                new VirtualReg(loVreg, IsDefinition: true),
-                new Symbol(symbolName));
-            builder.BuildInstruction(
-                PseudoDialect.OpRef(PseudoOp.Copy),
-                new PhysicalReg(PointerZpLo, IsDefinition: true),
-                new VirtualReg(loVreg, IsDefinition: false));
-
-            // lda.imm.symhi @name → fresh Ac vreg, then pin to $rc3.
-            var hiVreg = function.CreateVirtualRegisterInClass(
-                MOS6502RegisterClass.Ac,
-                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
-            builder.BuildInstruction(
-                MOS6502Dialect.OpRef(MOS6502Op.LdaImmSymHi),
-                new VirtualReg(hiVreg, IsDefinition: true),
-                new Symbol(symbolName));
-            builder.BuildInstruction(
-                PseudoDialect.OpRef(PseudoOp.Copy),
-                new PhysicalReg(PointerZpHi, IsDefinition: true),
-                new VirtualReg(hiVreg, IsDefinition: false));
+            if (symbolName is not null)
+                EmitSymbolPointerBytes(builder, symbolName);
+            else
+                EmitRuntimePointerBytes(builder, addrReg.Id);
         }
 
         // ldy.imm <offset> → fresh Yc vreg, then pin to $y. Re-emitted on
@@ -1000,23 +990,103 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             new VirtualReg(yVreg, IsDefinition: false));
     }
 
-    // Find the symbol name backing an address vreg. Throws if the vreg is not
-    // defined by a `mem.symbol @name` instruction — other address sources are
-    // not yet supported (frame slots / runtime pointers come in step 11+).
-    private static string ResolveSymbolAddressOrThrow(MirFunction function, int addrVreg, string opLabel)
+    // Materialise a global's low/high address bytes into PointerZpLo / PointerZpHi
+    // via lda.imm.symlo / .symhi. Each LDA-immediate writes $a, so it is pinned
+    // straight into the scratch pair through a pseudo.copy.
+    private static void EmitSymbolPointerBytes(MirBuilder builder, string symbolName)
+    {
+        var function = builder.Function;
+
+        // lda.imm.symlo @name → fresh Ac vreg, then pin to $rc0.
+        var loVreg = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Ac,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+        builder.BuildInstruction(
+            MOS6502Dialect.OpRef(MOS6502Op.LdaImmSymLo),
+            new VirtualReg(loVreg, IsDefinition: true),
+            new Symbol(symbolName));
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new PhysicalReg(PointerZpLo, IsDefinition: true),
+            new VirtualReg(loVreg, IsDefinition: false));
+
+        // lda.imm.symhi @name → fresh Ac vreg, then pin to $rc1.
+        var hiVreg = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Ac,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+        builder.BuildInstruction(
+            MOS6502Dialect.OpRef(MOS6502Op.LdaImmSymHi),
+            new VirtualReg(hiVreg, IsDefinition: true),
+            new Symbol(symbolName));
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new PhysicalReg(PointerZpHi, IsDefinition: true),
+            new VirtualReg(hiVreg, IsDefinition: false));
+    }
+
+    // Copy a runtime i16 pointer's low/high byte vregs into PointerZpLo /
+    // PointerZpHi. The address vreg must be defined by a pseudo.merge of exactly
+    // two byte vregs — the post-legalization form of every wide value (an
+    // arith.addi pointer arithmetic chain, a loaded i16 pointer, an i16 block /
+    // ABI parameter, …). The byte vregs are reclassified to the flexible Anyi8
+    // pool so they can live in zero page regardless of where they were defined.
+    private static void EmitRuntimePointerBytes(MirBuilder builder, int addrVreg)
+    {
+        var function = builder.Function;
+        var (loVreg, hiVreg) = ResolveRuntimePointerBytesOrThrow(function, addrVreg);
+
+        ReclassifyTo(function, loVreg, MOS6502RegisterClass.Anyi8);
+        ReclassifyTo(function, hiVreg, MOS6502RegisterClass.Anyi8);
+
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new PhysicalReg(PointerZpLo, IsDefinition: true),
+            new VirtualReg(loVreg, IsDefinition: false));
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new PhysicalReg(PointerZpHi, IsDefinition: true),
+            new VirtualReg(hiVreg, IsDefinition: false));
+    }
+
+    // The symbol name backing an address vreg, or null if the vreg is not
+    // defined by a `mem.symbol @name` instruction (i.e. it's a runtime pointer).
+    private static string? TryResolveSymbolAddress(MirFunction function, int addrVreg)
     {
         var def = function.GetDefinition(addrVreg);
-        if (def is null
-            || def.Opcode.Dialect != MemDialect.Id
-            || (MemOp)def.Opcode.Code != MemOp.Symbol
-            || def.Operands.Length < 2
-            || def.Operands[1] is not Symbol symbolOperand)
+        if (def is not null
+            && def.Opcode.Dialect == MemDialect.Id
+            && (MemOp)def.Opcode.Code == MemOp.Symbol
+            && def.Operands.Length >= 2
+            && def.Operands[1] is Symbol symbolOperand)
         {
-            throw new NotSupportedException(
-                $"MOS6502InstructionSelector: {opLabel} currently only supports addresses produced by " +
-                "`mem.symbol @name`. Non-symbolic i16 addresses (frame slots, heap pointers) land later.");
+            return symbolOperand.Name;
         }
-        return symbolOperand.Name;
+        return null;
+    }
+
+    // The two byte vregs (low, high) of a runtime i16 pointer. Throws if the
+    // address vreg is not defined by a pseudo.merge of exactly two byte vregs —
+    // other pointer shapes (frame slots, scalar i16 vregs that never went
+    // through a merge) are not yet supported, so the gap stays visible.
+    private static (int Lo, int Hi) ResolveRuntimePointerBytesOrThrow(MirFunction function, int addrVreg)
+    {
+        var def = function.GetDefinition(addrVreg);
+        if (def is not null
+            && def.Opcode.Dialect == PseudoDialect.Id
+            && (PseudoOp)def.Opcode.Code == PseudoOp.Merge)
+        {
+            var bytes = new List<int>();
+            foreach (var op in def.Operands)
+                if (op is VirtualReg v && !v.IsDefinition)
+                    bytes.Add(v.Id);
+            if (bytes.Count == 2)
+                return (bytes[0], bytes[1]);
+        }
+
+        throw new NotSupportedException(
+            "MOS6502InstructionSelector: runtime mem.load/store currently only supports " +
+            "addresses produced by `mem.symbol @name` or a two-byte pseudo.merge (i16 " +
+            "pointer). Other address sources (frame slots, scalar i16 vregs) land later.");
     }
 
     // After lowering a mem.load/store whose address came from a mem.symbol,

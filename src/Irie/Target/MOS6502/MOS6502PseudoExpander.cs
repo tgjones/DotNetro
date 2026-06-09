@@ -86,8 +86,9 @@ public sealed class MOS6502PseudoExpander : Irie.Target.PseudoExpander
         if (src == MOS6502Registers.X && dstIsZp) { Emit(builder, MOS6502Op.StxZp, dst, src); return; }
         if (src == MOS6502Registers.Y && dstIsZp) { Emit(builder, MOS6502Op.StyZp, dst, src); return; }
 
-        // Impossible pairs — go through $A. See class comment about the latent
-        // RA bug that lets these reach us with $A live.
+        // Impossible pairs — go through $A. MOS6502ParallelCopyPass runs before
+        // this expander and brackets any such copy that has $A live across it
+        // with a save/restore, so $A is free to be trashed as scratch here.
         if (src == MOS6502Registers.X && dst == MOS6502Registers.Y)
         {
             Emit(builder, MOS6502Op.Txa, MOS6502Registers.A, src);

@@ -5,6 +5,70 @@ codegen to translating IL → Irie MIR, then reusing the Irie pipeline
 (AbiLowering → Legalizer → InstructionSelector → … → BinaryEncoder → PackageImage)
 as-is.
 
+---
+
+## STATUS — last updated 2026-06-09 (branch `irie-close-gap`)
+
+**To resume: this is a partially-executed plan. Steps 1–8 are done; step 9 is
+~57% done (12 of 21 lit tests ported); step 10 is not started. Read this
+section, then continue at "What's left" below.**
+
+### Done
+
+- **Steps 1–8 (gaps G1–G5, runtime skeleton, translator skeleton, smoke
+  tests): complete.** All five Irie gaps closed, `runtime.irie` exists with
+  OS-call wrappers + `WriteLineInt32/String/Boolean` + `ReadLine`/`Beep`,
+  `IlToMirTranslator` + `--mir` flag landed on `CompilerDriver.Compile`.
+- **Step 9 — TRACTABLE groups: done.** 12 lit tests ported to
+  `src/DotNetro.Compiler.Tests/Lit/Mir/<name>.cs` (copies whose RUN line adds
+  `--mir`); legacy `Lit/*.cs` left untouched. Ported & green end-to-end:
+  AddInt32, Print42, PrintMinus1, CallMethodWith{Parameter,
+  ParameterAndReturnValue, ReturnValue, TwoParametersAndReturnValue},
+  HelloWorld, UseStaticFields, ForLoop, CompareLessThanInt32, ReadAndWriteLine.
+  Translator gained: BB discovery + liveness-based block params, branches,
+  string/static-field globals, bare-cmpi materialization via a cond_br diamond.
+  isel gained signed multi-byte compare (slt/sge via sign-flip→unsigned
+  ladder); encoder gained branch relaxation (Bxx_inverse;JMP); legalizer
+  narrows wide block params.
+- **Detour — register-allocator redesign: complete (Phases 0–5).** The old
+  block-local RA couldn't handle the control-flow / cross-call pressure the
+  deferred test groups create, so we executed
+  [register-allocator-redesign-plan.md](register-allocator-redesign-plan.md):
+  physreg-aware `LiveIntervals` → graph-colouring RA → coalescer → spilling +
+  rematerialization (abstract frame slots) → register-preference cost tuning,
+  plus class-constraint gap closers (commits `0529e22`…`f0d566d`). Phase 6
+  (live-range splitting) is optional and was skipped.
+
+### What's left
+
+**Step 9 — DEFERRED groups (9 tests still legacy-only).** Each remaining test
+is blocked on a backend capability; tackle the blockers in roughly this order
+(earlier ones unblock more tests):
+
+| Blocker | Gates |
+|---|---|
+| ~~**Runtime-pointer-load isel**~~ — **DONE (2026-06-09).** `mem.load.byte_at` / `mem.store.byte_at` now lower runtime i16 pointers (address vreg defined by a 2-byte `pseudo.merge`) by copying the byte vregs straight into the `$zp0/$zp1` indirect-Y scratch pair, alongside the existing `mem.symbol` path. `MOS6502InstructionSelector.EmitPointerSetup` dispatches on `TryResolveSymbolAddress`; cache key generalised from symbol name to `@name`/`%vreg`. Also fixed a latent RA/expander correctness bug this exposed: a lone `$x↔$y` (or `zp↔zp`) `pseudo.copy` clobbers `$a` as hidden scratch, corrupting a low pointer byte left live in `$a` across it — `MOS6502ParallelCopyPass` now detects `$a` live past such a copy (case (d)) and brackets it with a save/restore. Lit tests: `RuntimePointerLoad-InstructionSelector.irie`, `RuntimePointerLoadStore-MachineCode.irie`. | fields, structs, callvirt |
+| **FrameSlot locals** — address-taken locals (`ldloca`) → zero-init `MirGlobal` via a frame-lowering step | UseStruct, UseStructWithConstructor, CallInstanceMethodOnStruct |
+| **Cross-call value preservation** — locals live across a call get clobbered (`CallerSavedScratch` covers RC2..RC15, callees reuse RC16+). Separate workstream: [static-stack-alloc-plan.md](static-stack-alloc-plan.md) | CallNestedMethods (HELD), and all heap/class groups |
+| **ManagedHeap_Alloc + vtables + callvirt / indirect dispatch** | UseClass, UseNestedClass, UseNestedClassWithConstructors, CallInstanceMethodOnClass, CallOverriddenMethodOnClass |
+
+The 9 deferred tests: CallNestedMethods, UseStruct, UseStructWithConstructor,
+CallInstanceMethodOnStruct, UseClass, UseNestedClass,
+UseNestedClassWithConstructors, CallInstanceMethodOnClass,
+CallOverriddenMethodOnClass. Port each to `Lit/Mir/` (add `--mir` to the RUN
+line) and verify the full suite stays green (Debug + Release).
+
+**Step 10 — flip the default + delete the old path.** Only after all 21 lit
+tests are green on `--mir`: make `--mir` the default in `CompilerDriver.Compile`,
+then delete `src/DotNetro.Compiler/CodeGen/` and the eval-stack machinery
+(`_stack`, `PushStackEntry`, `PopStackEntry`, per-op `Write*` calls) in
+`DotNetCompiler`. `EcmaMethod.FrameSize` / `ParametersSize` likely go too.
+
+The numbered "Migration steps" and op-by-op tables below are the original
+reference; they remain accurate for the work that's left.
+
+---
+
 ## Goal
 
 Replace the [CodeGenerator](../src/DotNetro.Compiler/CodeGen/CodeGenerator.cs)
