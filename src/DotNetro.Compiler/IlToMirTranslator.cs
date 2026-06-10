@@ -317,6 +317,17 @@ internal sealed class IlToMirTranslator : IDisposable
         private TypeDescription[] _localClrTypes = [];
         private bool[] _localIsFrameSlot = [];
 
+        // Per-parameter FrameSlot classification. A parameter is FrameSlot-bound
+        // (spilled to a .bss-style MirGlobal at function entry, read back via
+        // mem.load on every ldarg) when its value is live across a call — a call
+        // clobbers the caller-saved registers, so a register-held parameter would
+        // not survive it. This is the caller-side ".bss" interim for cross-call
+        // value preservation (notes/static-stack-alloc-plan.md, Layer 1). The
+        // parameter's FrameSlot Index is _paramSlotBase + paramIndex, kept
+        // disjoint from the local slots (indices 0..localCount-1).
+        private bool[] _paramIsFrameSlot = [];
+        private int _paramSlotBase;
+
         // Non-entry blocks carry one parameter vreg per local (in local-index
         // order) so the loop variable flows across edges as a block argument
         // (MIR's PHI substitute). Maps a block → its local parameter vregs.
@@ -337,17 +348,21 @@ internal sealed class IlToMirTranslator : IDisposable
             _localClrTypes = new TypeDescription[locals.Length];
             _localIsFrameSlot = new bool[locals.Length];
 
-            // Address-taken locals (those with an `ldloca`) and value-type
-            // (struct) locals are FrameSlot-bound; everything else is a pure
-            // SSA vreg. Decide upfront so ldloc/stloc know which path to take.
+            // Address-taken locals (those with an `ldloca`), value-type (struct)
+            // locals, and locals/parameters live across a call are FrameSlot-
+            // bound; everything else is a pure SSA vreg. Decide upfront so
+            // ldloc/stloc/ldarg know which path to take. Cross-call values must
+            // live in memory because a call clobbers the caller-saved registers
+            // (notes/static-stack-alloc-plan.md, Layer 1 caller-side spill).
             var addressTaken = ScanAddressTakenLocals();
+            var (crossCallLocals, crossCallParams) = ComputeCrossCallLive(locals.Length);
             for (var i = 0; i < locals.Length; i++)
             {
                 var clr = locals[i].Type;
                 _localClrTypes[i] = clr;
 
                 var isStruct = clr is EcmaType { IsValueType: true };
-                if (isStruct || addressTaken.Contains(i))
+                if (isStruct || addressTaken.Contains(i) || crossCallLocals.Contains(i))
                 {
                     _localIsFrameSlot[i] = true;
                     // A struct doesn't fit a single primitive IRType; size the
@@ -367,6 +382,27 @@ internal sealed class IlToMirTranslator : IDisposable
                 {
                     _localTypes[i] = ToIRType(clr);
                 }
+            }
+
+            // Parameters live across a call are FrameSlot-bound too: spill the
+            // incoming register value to a slot at entry and read it back from
+            // memory on every ldarg (see the _paramIsFrameSlot comment). The
+            // slot index lives above the local slots so the two never collide.
+            _paramIsFrameSlot = new bool[_method.Parameters.Length];
+            _paramSlotBase = locals.Length;
+            for (var j = 0; j < _method.Parameters.Length; j++)
+            {
+                if (!crossCallParams.Contains(j)) continue;
+                var paramClr = _method.Parameters[j].Type;
+                if (paramClr is EcmaType { IsValueType: true })
+                    throw new NotSupportedException(
+                        $"IL→MIR: value-type parameter {j} live across a call is not " +
+                        $"supported yet (method {_method.UniqueName}).");
+                _paramIsFrameSlot[j] = true;
+                _function.FrameSlots.Add(new FrameSlot(
+                    Index:      _paramSlotBase + j,
+                    Type:       ToIRType(paramClr),
+                    SymbolName: $"{_function.Name}_param{j}"));
             }
 
             DiscoverBlocks();
@@ -400,6 +436,19 @@ internal sealed class IlToMirTranslator : IDisposable
                 if (_localIsFrameSlot[i]) continue;
                 var zero = _builder.BuildConstant(_localTypes[i], 0);
                 _locals[i] = new StackValue(zero, _localTypes[i]);
+            }
+
+            // Spill each cross-call parameter from its incoming register vreg
+            // into its FrameSlot at function entry, so later ldarg reads observe
+            // a value that survives intervening calls.
+            for (var j = 0; j < _paramIsFrameSlot.Length; j++)
+            {
+                if (!_paramIsFrameSlot[j]) continue;
+                var type = ToIRType(_method.Parameters[j].Type);
+                var addr = _builder.BuildFrameAddr(_paramSlotBase + j);
+                _builder.BuildInstruction(MemDialect.OpRef(StoreOpFor(type)),
+                    new VirtualReg(addr, IsDefinition: false),
+                    new VirtualReg(paramVregs[j], IsDefinition: false));
             }
 
             var ilReader = _method.MethodBody!.MethodBodyBlock!.GetILReader();
@@ -530,6 +579,20 @@ internal sealed class IlToMirTranslator : IDisposable
         // map lets branch ops resolve targets, including forward references.
         private void DiscoverBlocks()
         {
+            _blockStartOffsets = ComputeBlockLeaders();
+            foreach (var offset in _blockStartOffsets)
+                _ilOffsetToBlock[offset] = _function.CreateBlock();
+
+            DiscoverBlocksLocalParams();
+        }
+
+        // The set of basic-block leader IL offsets (offset 0, every branch
+        // target, and every instruction immediately after a branch), ascending.
+        // Used both by DiscoverBlocks (to create MirBlocks) and by the cross-call
+        // liveness analysis, which runs before classification (hence before the
+        // MirBlocks exist).
+        private int[] ComputeBlockLeaders()
+        {
             var leaders = new SortedSet<int> { 0 };
 
             var scan = _method.MethodBody!.MethodBodyBlock!.GetILReader();
@@ -565,10 +628,14 @@ internal sealed class IlToMirTranslator : IDisposable
                 }
             }
 
-            _blockStartOffsets = [.. leaders];
-            foreach (var offset in _blockStartOffsets)
-                _ilOffsetToBlock[offset] = _function.CreateBlock();
+            return [.. leaders];
+        }
 
+        // Wire up the per-block local parameter vregs (the SSA/PHI substitute),
+        // computed from local liveness. Split out of DiscoverBlocks so the
+        // leader/block creation can be read on its own.
+        private void DiscoverBlocksLocalParams()
+        {
             // Compute which locals are live-in to each block; only those become
             // block parameters (and thus block arguments on the incoming edges).
             // Threading *all* locals everywhere would make a transient bool temp
@@ -720,6 +787,213 @@ internal sealed class IlToMirTranslator : IDisposable
         {
             if (!defined.Contains(local))
                 useBeforeDef.Add(local);
+        }
+
+        // Determine which locals and parameters are live across a call, so the
+        // classifier can force them into FrameSlots (caller-side .bss spill for
+        // cross-call value preservation). Runs before block discovery, hence it
+        // computes block leaders itself.
+        //
+        // Variables are encoded into one liveness lattice: local index i maps to
+        // id `i`; parameter index j maps to id `localCount + j`. A standard
+        // backward liveness fixpoint yields each block's live-out set, then a
+        // per-block backward instruction scan flags every variable that is live
+        // at the program point immediately *after* a call instruction.
+        private (HashSet<int> Locals, HashSet<int> Parameters) ComputeCrossCallLive(int localCount)
+        {
+            var leaders = ComputeBlockLeaders();
+            int ParamVar(int j) => localCount + j;
+
+            var useBeforeDef = new Dictionary<int, HashSet<int>>();
+            var defined = new Dictionary<int, HashSet<int>>();
+            var successors = new Dictionary<int, List<int>>();
+
+            for (var bi = 0; bi < leaders.Length; bi++)
+            {
+                var start = leaders[bi];
+                var end = bi + 1 < leaders.Length ? leaders[bi + 1] : int.MaxValue;
+
+                var ube = new HashSet<int>();
+                var def = new HashSet<int>();
+                var succ = new List<int>();
+                var endsWithUncondBranch = false;
+                var endsWithReturn = false;
+
+                var scan = _method.MethodBody!.MethodBodyBlock!.GetILReader();
+                AdvanceTo(ref scan, start);
+                while (scan.RemainingBytes > 0 && scan.Offset < end)
+                {
+                    var opCode = ReadOpCode(ref scan);
+                    switch (opCode)
+                    {
+                        case ILOpCode.Ldloc_0: RecordUse(0, ube, def); break;
+                        case ILOpCode.Ldloc_1: RecordUse(1, ube, def); break;
+                        case ILOpCode.Ldloc_2: RecordUse(2, ube, def); break;
+                        case ILOpCode.Ldloc_3: RecordUse(3, ube, def); break;
+                        case ILOpCode.Ldloc_s: RecordUse(scan.ReadByte(), ube, def); break;
+                        case ILOpCode.Ldloca_s: RecordUse(scan.ReadByte(), ube, def); break;
+
+                        case ILOpCode.Stloc_0: def.Add(0); break;
+                        case ILOpCode.Stloc_1: def.Add(1); break;
+                        case ILOpCode.Stloc_2: def.Add(2); break;
+                        case ILOpCode.Stloc_3: def.Add(3); break;
+                        case ILOpCode.Stloc_s: def.Add(scan.ReadByte()); break;
+
+                        case ILOpCode.Ldarg_0: RecordUse(ParamVar(0), ube, def); break;
+                        case ILOpCode.Ldarg_1: RecordUse(ParamVar(1), ube, def); break;
+                        case ILOpCode.Ldarg_2: RecordUse(ParamVar(2), ube, def); break;
+                        case ILOpCode.Ldarg_3: RecordUse(ParamVar(3), ube, def); break;
+                        case ILOpCode.Ldarg_s: RecordUse(ParamVar(scan.ReadByte()), ube, def); break;
+                        case ILOpCode.Ldarga_s: RecordUse(ParamVar(scan.ReadByte()), ube, def); break;
+                        case ILOpCode.Starg_s: def.Add(ParamVar(scan.ReadByte())); break;
+
+                        case ILOpCode.Br_s:
+                            succ.Add(scan.ReadSByte() + scan.Offset);
+                            endsWithUncondBranch = true;
+                            break;
+                        case ILOpCode.Br:
+                            succ.Add(scan.ReadInt32() + scan.Offset);
+                            endsWithUncondBranch = true;
+                            break;
+                        case ILOpCode.Brtrue_s:
+                        case ILOpCode.Brfalse_s:
+                            succ.Add(scan.ReadSByte() + scan.Offset);
+                            break;
+                        case ILOpCode.Brtrue:
+                        case ILOpCode.Brfalse:
+                            succ.Add(scan.ReadInt32() + scan.Offset);
+                            break;
+                        case ILOpCode.Ret:
+                            endsWithReturn = true;
+                            break;
+                        default:
+                            SkipOperand(ref scan, opCode);
+                            break;
+                    }
+                }
+
+                if (!endsWithUncondBranch && !endsWithReturn && end != int.MaxValue)
+                    succ.Add(end);
+
+                useBeforeDef[start] = ube;
+                defined[start] = def;
+                successors[start] = succ;
+            }
+
+            var liveIn = new Dictionary<int, HashSet<int>>();
+            var liveOut = new Dictionary<int, HashSet<int>>();
+            foreach (var start in leaders)
+            {
+                liveIn[start] = [];
+                liveOut[start] = [];
+            }
+
+            bool changed;
+            do
+            {
+                changed = false;
+                for (var bi = leaders.Length - 1; bi >= 0; bi--)
+                {
+                    var start = leaders[bi];
+
+                    var outSet = liveOut[start];
+                    var beforeOut = outSet.Count;
+                    foreach (var s in successors[start])
+                        if (liveIn.TryGetValue(s, out var sIn))
+                            foreach (var v in sIn) outSet.Add(v);
+
+                    var inSet = new HashSet<int>(useBeforeDef[start]);
+                    foreach (var v in outSet)
+                        if (!defined[start].Contains(v)) inSet.Add(v);
+
+                    if (outSet.Count != beforeOut || !inSet.SetEquals(liveIn[start]))
+                    {
+                        liveIn[start] = inSet;
+                        changed = true;
+                    }
+                }
+            } while (changed);
+
+            // Phase 2 — per block, walk backward from live-out. Whenever a call
+            // instruction is reached, every variable live at that point (i.e.
+            // live immediately after the call) is cross-call-live.
+            var crossCall = new HashSet<int>();
+            for (var bi = 0; bi < leaders.Length; bi++)
+            {
+                var start = leaders[bi];
+                var end = bi + 1 < leaders.Length ? leaders[bi + 1] : int.MaxValue;
+
+                // Collect (kind, var) effects in program order: 0=use, 1=def,
+                // 2=call (var unused).
+                var effects = new List<(int Kind, int Var)>();
+                var scan = _method.MethodBody!.MethodBodyBlock!.GetILReader();
+                AdvanceTo(ref scan, start);
+                while (scan.RemainingBytes > 0 && scan.Offset < end)
+                {
+                    var opCode = ReadOpCode(ref scan);
+                    switch (opCode)
+                    {
+                        case ILOpCode.Ldloc_0: effects.Add((0, 0)); break;
+                        case ILOpCode.Ldloc_1: effects.Add((0, 1)); break;
+                        case ILOpCode.Ldloc_2: effects.Add((0, 2)); break;
+                        case ILOpCode.Ldloc_3: effects.Add((0, 3)); break;
+                        case ILOpCode.Ldloc_s: effects.Add((0, scan.ReadByte())); break;
+                        case ILOpCode.Ldloca_s: effects.Add((0, scan.ReadByte())); break;
+
+                        case ILOpCode.Stloc_0: effects.Add((1, 0)); break;
+                        case ILOpCode.Stloc_1: effects.Add((1, 1)); break;
+                        case ILOpCode.Stloc_2: effects.Add((1, 2)); break;
+                        case ILOpCode.Stloc_3: effects.Add((1, 3)); break;
+                        case ILOpCode.Stloc_s: effects.Add((1, scan.ReadByte())); break;
+
+                        case ILOpCode.Ldarg_0: effects.Add((0, ParamVar(0))); break;
+                        case ILOpCode.Ldarg_1: effects.Add((0, ParamVar(1))); break;
+                        case ILOpCode.Ldarg_2: effects.Add((0, ParamVar(2))); break;
+                        case ILOpCode.Ldarg_3: effects.Add((0, ParamVar(3))); break;
+                        case ILOpCode.Ldarg_s: effects.Add((0, ParamVar(scan.ReadByte()))); break;
+                        case ILOpCode.Ldarga_s: effects.Add((0, ParamVar(scan.ReadByte()))); break;
+                        case ILOpCode.Starg_s: effects.Add((1, ParamVar(scan.ReadByte()))); break;
+
+                        case ILOpCode.Call:
+                        case ILOpCode.Callvirt:
+                        case ILOpCode.Newobj:
+                            effects.Add((2, -1));
+                            scan.ReadInt32(); // consume the method/ctor token
+                            break;
+
+                        default:
+                            SkipOperand(ref scan, opCode);
+                            break;
+                    }
+                }
+
+                var live = new HashSet<int>(liveOut[start]);
+                for (var k = effects.Count - 1; k >= 0; k--)
+                {
+                    var (kind, var) = effects[k];
+                    switch (kind)
+                    {
+                        case 2: // call — snapshot the live-after-call set
+                            foreach (var v in live) crossCall.Add(v);
+                            break;
+                        case 0: // use
+                            live.Add(var);
+                            break;
+                        case 1: // def
+                            live.Remove(var);
+                            break;
+                    }
+                }
+            }
+
+            var localsResult = new HashSet<int>();
+            var parametersResult = new HashSet<int>();
+            foreach (var v in crossCall)
+            {
+                if (v < localCount) localsResult.Add(v);
+                else parametersResult.Add(v - localCount);
+            }
+            return (localsResult, parametersResult);
         }
 
         // Advance an IL reader to a given offset (block discovery helper).
@@ -892,7 +1166,10 @@ internal sealed class IlToMirTranslator : IDisposable
             }
             else
             {
-                var type = _localTypes[index];
+                // Use the local's natural CLR width, not _localTypes[index]
+                // (which holds an I16 placeholder for FrameSlot locals — see the
+                // classification loop). This mirrors TranslateLdloc's load width.
+                var type = ToIRType(_localClrTypes[index]);
                 _builder.BuildInstruction(MemDialect.OpRef(StoreOpFor(type)),
                     new VirtualReg(destAddr, IsDefinition: false),
                     new VirtualReg(value.Vreg, IsDefinition: false));
@@ -945,6 +1222,20 @@ internal sealed class IlToMirTranslator : IDisposable
                 throw new NotSupportedException(
                     $"IL→MIR: ldarg {index} out of range (method {_method.UniqueName}).");
             var type = ToIRType(_method.Parameters[index].Type);
+
+            // Cross-call parameters live in a FrameSlot: load the value back out
+            // of memory rather than reusing the (clobbered) incoming register.
+            if (_paramIsFrameSlot[index])
+            {
+                var addr = _builder.BuildFrameAddr(_paramSlotBase + index);
+                var value = _function.CreateVirtualRegister(type);
+                _builder.BuildInstruction(MemDialect.OpRef(LoadOpFor(type)),
+                    new VirtualReg(value, IsDefinition: true),
+                    new VirtualReg(addr, IsDefinition: false));
+                _stack.Push(new StackValue(value, type));
+                return;
+            }
+
             _stack.Push(new StackValue(_parameterVregs[index], type));
         }
 

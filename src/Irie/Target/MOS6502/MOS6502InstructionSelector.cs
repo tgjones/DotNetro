@@ -45,9 +45,9 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // "@name" for a mem.symbol address and "%<vreg>" for a runtime i16 pointer
     // (an address vreg defined by a pseudo.merge of two byte vregs). Isel
     // visits instructions in program order, so tracking the last-loaded pointer
-    // is sufficient. Cleared per function; calls don't yet appear between mem
-    // ops in the same function (leaf-only lit corpus) — when they do, a call
-    // must invalidate this just like a pointer switch.
+    // is sufficient. Cleared per function and invalidated at each call (jsr) —
+    // a call clobbers the shared pointer pair, so a cached setup cannot be
+    // reused across it (see the JsrAbs case in Select).
     private string? _currentPointerKey;
 
     public override void BeginFunction(MirFunction function)
@@ -111,8 +111,17 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             };
         }
 
-        // Already-selected target ops pass through.
-        if (opcode.Dialect == MOS6502Dialect.Id) return true;
+        // Already-selected target ops pass through. A call (jsr) clobbers the
+        // shared zero-page pointer pair the mem-indirect lowering parks addresses
+        // in (the runtime helpers use it as scratch), so any cached pointer setup
+        // is stale afterwards: invalidate it so the next mem access re-materialises
+        // the pair instead of dereferencing a clobbered pointer.
+        if (opcode.Dialect == MOS6502Dialect.Id)
+        {
+            if ((MOS6502Op)opcode.Code == MOS6502Op.JsrAbs)
+                _currentPointerKey = null;
+            return true;
+        }
 
         return false;
     }

@@ -225,18 +225,37 @@ non-overlapping call paths:
 
 ## Implementation order
 
-1. **Layer 1 (caller-side `.bss` interim) + Layer 0** — `CallCrossingSpillPass`
-   (after AbiLowering, before Legalizer) splitting call-crossing ranges to
-   `.bss` FrameSlots via generic `mem.*`; extend `CallerSavedScratch` to
-   `RC2..RC19` and drop `D`/`I`. Bar: `CallNestedMethods` green end-to-end, full
-   suite green. Un-hold `CallNestedMethods`.
+1. **Layer 1 (caller-side `.bss` interim) — DONE 2026-06-10. Layer 0 NOT done
+   (not needed by the interim).** Implemented **in the translator, not as the
+   originally-envisioned `CallCrossingSpillPass`**: `IlToMirTranslator`
+   (`ComputeCrossCallLive` + parameter entry-spill) classifies every local and
+   parameter live across a `call`/`callvirt`/`newobj` as a FrameSlot, so those
+   values live in `.bss` and never occupy a register across the call. Because no
+   cross-call value is ever register-resident at a call, `CallerSavedScratch`
+   was left as-is (the `RC2..RC19` / drop-`D`/`I` Layer-0 alignment was
+   unnecessary) and the RA-level spill path is untouched. Bar met:
+   `CallNestedMethods` green end-to-end, full suite green, un-held. See
+   [il-to-mir-plan.md](il-to-mir-plan.md) STATUS for the two incidental bug
+   fixes (FrameSlot-primitive store width; isel pointer-cache invalidation
+   across `jsr`).
 2. **Layer 2** — `ReentrancyAnalysis` + `MirFunction.IsNonReentrant`; gate the
    static-frame path on non-reentrant, error clearly otherwise. (No corpus
    behavior change; makes the scheme correct-by-construction.)
 3. **Migrate Layer 1 to the callee-saved-register model** — RA uses `RC20..RC31`
-   for cross-call ranges + a post-RA `CalleeSavedSpillPass` prologue/epilogue.
-   Make the runtime helpers convention-clean (don't clobber callee-saved regs,
-   or save/restore them). Validate efficiency improves and suite stays green.
+   for cross-call ranges + a post-RA `CalleeSavedSpillPass` prologue/epilogue;
+   apply the Layer 0 `CallerSavedScratch` alignment (`RC2..RC19`, drop `D`/`I`)
+   that the interim skipped. Make the runtime helpers convention-clean (don't
+   clobber callee-saved regs, or save/restore them). **Remove the translator-side
+   interim first** (`IlToMirTranslator.ComputeCrossCallLive`, the cross-call
+   branches of local/param classification, and the parameter entry-spill +
+   memory-backed `ldarg` path) — otherwise cross-call locals/params stay forced
+   into `.bss` and never reach the RA as live-across-call vregs, so the
+   callee-saved model has nothing to place in `RC20..RC31` and the migration buys
+   no efficiency. After removal, those values flow as ordinary SSA vregs and the
+   RA + `CalleeSavedSpillPass` keep them in callee-saved registers. (Address-taken
+   `ldloca` locals and struct locals must STAY FrameSlot-bound — only the
+   cross-call-driven classification is removed.) Validate efficiency improves and
+   suite stays green.
 4. **Layer 3** — `MOS6502StaticFrameAllocPass`: zp frames with call-graph
    coloring, `.bss` overflow fallback.
 
