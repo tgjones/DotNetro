@@ -768,13 +768,21 @@ internal sealed class GraphColouringAllocator
             return true;
         }
 
+        // The merged node must satisfy BOTH ends' class constraints, so its
+        // colours are the INTERSECTION of the two allowed sets. If that is
+        // empty the merge is illegal (e.g. an `ac`-pinned lda.indy def coalesced
+        // with a value that may not live in $a) — never coalesce it.
+        var mergedAllowed = AllowedIntersectionCount(u, v);
+        if (mergedAllowed == 0) return false;
+
         // Briggs — the merged node's neighbours of significant degree must
-        // number < min(K(u), K(v)). Using the smaller K is conservative for a
-        // merged node whose colours are the intersection of the two ends'.
+        // number < the merged node's colour count (the intersection size, which
+        // is ≤ min(K(u), K(v))). A node with fewer significant neighbours than
+        // available colours is guaranteed colourable by the simplify argument.
         var significant = new HashSet<int>();
         foreach (var t in Adjacent(u)) if (IsSignificant(t)) significant.Add(t);
         foreach (var t in Adjacent(v)) if (IsSignificant(t)) significant.Add(t);
-        return significant.Count < Math.Min(KOf(u), KOf(v));
+        return significant.Count < mergedAllowed;
     }
 
     private bool GeorgeOk(int t, int u) =>
@@ -787,6 +795,18 @@ internal sealed class GraphColouringAllocator
     private bool VregMayTakeColour(int vreg, int colour) =>
         Contains(_allowedColours[vreg], colour);
 
+    // Size of the intersection of two ordinary nodes' allowed-colour sets — the
+    // colour count the node would have if u and v were coalesced. Both nodes are
+    // ordinary vregs here (the precoloured case is George's, handled separately).
+    private int AllowedIntersectionCount(int u, int v)
+    {
+        var au = _allowedColours[u];
+        var av = _allowedColours[v];
+        var count = 0;
+        foreach (var r in au) if (Contains(av, r)) count++;
+        return count;
+    }
+
     // Merge v into u: u absorbs v's edges and moves. After this v is gone.
     private void Combine(int u, int v)
     {
@@ -794,6 +814,20 @@ internal sealed class GraphColouringAllocator
             _spillWorklist.Remove(v);
         _coalescedNodes.Add(v);
         _alias[v] = u;
+
+        // The merged value must satisfy both ends' class constraints. Restrict
+        // u's allowed colours to the intersection with v's, preserving u's
+        // preference order. Without this, a broad-class u (e.g. any8) coalesced
+        // with a single-physreg-pinned v (e.g. an `ac` lda.indy def) would keep
+        // u's broad set and could colour to a register v's op cannot target —
+        // a miscompile (CoalesceIsSafe already guaranteed the intersection is
+        // non-empty for ordinary-ordinary merges).
+        if (!IsPhysNode(u)
+            && _allowedColours.TryGetValue(u, out var au)
+            && _allowedColours.TryGetValue(v, out var av))
+        {
+            _allowedColours[u] = au.Where(r => Contains(av, r)).ToArray();
+        }
 
         // u inherits v's moves so it stays move-related where v was.
         if (_moveList.TryGetValue(v, out var vMoves))

@@ -305,8 +305,17 @@ internal sealed class IlToMirTranslator : IDisposable
         private int[] _blockStartOffsets = [];
 
         // Per-local IRType (local index → type), used to size the per-block
-        // local parameters and the entry zero-init constants.
+        // local parameters and the entry zero-init constants. Only meaningful
+        // for SSA (non-FrameSlot) locals; FrameSlot locals carry a placeholder.
         private IRType[] _localTypes = [];
+
+        // Per-local CLR type and FrameSlot classification. A local is FrameSlot-
+        // bound (lives in a .bss-style MirGlobal rather than an SSA vreg) when it
+        // is a value-type struct or is address-taken via ldloca. Its FrameSlot's
+        // Index equals the local index; ldloc/stloc/ldloca on it go through
+        // memory (mem.frame_addr + mem.load/store, or a struct byte copy).
+        private TypeDescription[] _localClrTypes = [];
+        private bool[] _localIsFrameSlot = [];
 
         // Non-entry blocks carry one parameter vreg per local (in local-index
         // order) so the loop variable flows across edges as a block argument
@@ -325,8 +334,40 @@ internal sealed class IlToMirTranslator : IDisposable
         {
             var locals = _method.MethodBody?.LocalVariables ?? [];
             _localTypes = new IRType[locals.Length];
+            _localClrTypes = new TypeDescription[locals.Length];
+            _localIsFrameSlot = new bool[locals.Length];
+
+            // Address-taken locals (those with an `ldloca`) and value-type
+            // (struct) locals are FrameSlot-bound; everything else is a pure
+            // SSA vreg. Decide upfront so ldloc/stloc know which path to take.
+            var addressTaken = ScanAddressTakenLocals();
             for (var i = 0; i < locals.Length; i++)
-                _localTypes[i] = ToIRType(locals[i].Type);
+            {
+                var clr = locals[i].Type;
+                _localClrTypes[i] = clr;
+
+                var isStruct = clr is EcmaType { IsValueType: true };
+                if (isStruct || addressTaken.Contains(i))
+                {
+                    _localIsFrameSlot[i] = true;
+                    // A struct doesn't fit a single primitive IRType; size the
+                    // slot in bytes via a wide IntegerType (FrameLoweringPass
+                    // only reads SizeInBits/8). Address-taken primitives keep
+                    // their natural width.
+                    var slotType = isStruct
+                        ? new IntegerType(clr.InstanceSize * 8)
+                        : ToIRType(clr);
+                    _function.FrameSlots.Add(new FrameSlot(
+                        Index:      i,
+                        Type:       slotType,
+                        SymbolName: $"{_function.Name}_local{i}"));
+                    _localTypes[i] = IRType.I16; // placeholder; unused for slots
+                }
+                else
+                {
+                    _localTypes[i] = ToIRType(clr);
+                }
+            }
 
             DiscoverBlocks();
 
@@ -353,6 +394,10 @@ internal sealed class IlToMirTranslator : IDisposable
             // parameter for every local, and every edge can supply a value.
             for (var i = 0; i < _localTypes.Length; i++)
             {
+                // FrameSlot locals live in memory (a zero-init .bss global), not
+                // an SSA vreg — they are seeded by the program's own initobj /
+                // stores, so skip the SSA zero-init for them.
+                if (_localIsFrameSlot[i]) continue;
                 var zero = _builder.BuildConstant(_localTypes[i], 0);
                 _locals[i] = new StackValue(zero, _localTypes[i]);
             }
@@ -413,6 +458,18 @@ internal sealed class IlToMirTranslator : IDisposable
                     case ILOpCode.Ldloc_2: TranslateLdloc(2); break;
                     case ILOpCode.Ldloc_3: TranslateLdloc(3); break;
                     case ILOpCode.Ldloc_s: TranslateLdloc(ilReader.ReadByte()); break;
+
+                    case ILOpCode.Ldloca_s: TranslateLdloca(ilReader.ReadByte()); break;
+
+                    case ILOpCode.Ldfld:
+                        TranslateLdfld(MetadataTokens.EntityHandle(ilReader.ReadInt32()));
+                        break;
+                    case ILOpCode.Stfld:
+                        TranslateStfld(MetadataTokens.EntityHandle(ilReader.ReadInt32()));
+                        break;
+                    case ILOpCode.Initobj:
+                        TranslateInitobj(MetadataTokens.EntityHandle(ilReader.ReadInt32()));
+                        break;
 
                     case ILOpCode.Ldarg_0: TranslateLdarg(0); break;
                     case ILOpCode.Ldarg_1: TranslateLdarg(1); break;
@@ -531,6 +588,9 @@ internal sealed class IlToMirTranslator : IDisposable
 
                 foreach (var localIndex in live)
                 {
+                    // FrameSlot locals live in memory, not SSA, so they are
+                    // never threaded across edges as block parameters.
+                    if (_localIsFrameSlot[localIndex]) continue;
                     var vreg = _function.CreateVirtualRegister(_localTypes[localIndex]);
                     block.Parameters.Add(vreg);
                     localParams[localIndex] = vreg;
@@ -813,14 +873,70 @@ internal sealed class IlToMirTranslator : IDisposable
             _stack.Push(new StackValue(result, left.Type));
         }
 
-        private void TranslateStloc(int index) => _locals[index] = _stack.Pop();
+        private void TranslateStloc(int index)
+        {
+            if (!_localIsFrameSlot[index])
+            {
+                _locals[index] = _stack.Pop();
+                return;
+            }
+
+            // FrameSlot local: store through memory.
+            var value = _stack.Pop();
+            var destAddr = _builder.BuildFrameAddr(index);
+            if (_localClrTypes[index] is EcmaType { IsValueType: true } structType)
+            {
+                // Struct assignment is a byte-wise copy from the source struct
+                // (value.Vreg holds its address) into this slot.
+                EmitStructCopy(destAddr, value.Vreg, structType.InstanceSize);
+            }
+            else
+            {
+                var type = _localTypes[index];
+                _builder.BuildInstruction(MemDialect.OpRef(StoreOpFor(type)),
+                    new VirtualReg(destAddr, IsDefinition: false),
+                    new VirtualReg(value.Vreg, IsDefinition: false));
+            }
+        }
 
         private void TranslateLdloc(int index)
         {
-            if (!_locals.TryGetValue(index, out var value))
+            if (_localIsFrameSlot[index])
+            {
+                var addr = _builder.BuildFrameAddr(index);
+                if (_localClrTypes[index] is EcmaType { IsValueType: true })
+                {
+                    // Loading a struct local pushes its address; the value is
+                    // consumed in place (ldfld) or copied on the next stloc.
+                    _stack.Push(new StackValue(addr, IRType.Pointer));
+                    return;
+                }
+
+                // Address-taken primitive: load the value out of the slot.
+                var type = ToIRType(_localClrTypes[index]);
+                var value = _function.CreateVirtualRegister(type);
+                _builder.BuildInstruction(MemDialect.OpRef(LoadOpFor(type)),
+                    new VirtualReg(value, IsDefinition: true),
+                    new VirtualReg(addr, IsDefinition: false));
+                _stack.Push(new StackValue(value, type));
+                return;
+            }
+
+            if (!_locals.TryGetValue(index, out var ssaValue))
                 throw new NotSupportedException(
                     $"IL→MIR: ldloc of uninitialized local {index} (method {_method.UniqueName}).");
-            _stack.Push(value);
+            _stack.Push(ssaValue);
+        }
+
+        // ldloca.N → push the address of the local's frame slot (a managed
+        // pointer). The local was forced FrameSlot-bound during classification.
+        private void TranslateLdloca(int index)
+        {
+            if (!_localIsFrameSlot[index])
+                throw new InvalidOperationException(
+                    $"IL→MIR: ldloca of non-FrameSlot local {index} (method {_method.UniqueName}).");
+            var addr = _builder.BuildFrameAddr(index);
+            _stack.Push(new StackValue(addr, IRType.Pointer));
         }
 
         private void TranslateLdarg(int index)
@@ -995,6 +1111,103 @@ internal sealed class IlToMirTranslator : IDisposable
             _builder.BuildInstruction(MemDialect.OpRef(StoreOpFor(type)),
                 new VirtualReg(ptr, IsDefinition: false),
                 new VirtualReg(value.Vreg, IsDefinition: false));
+        }
+
+        // ldfld <field> → load the field from base + offset. The base (top of
+        // stack) is a pointer / managed reference / struct address (all i16).
+        private void TranslateLdfld(EntityHandle fieldHandle)
+        {
+            var field = _method.DeclaringType.Assembly.GetField(
+                (FieldDefinitionHandle)fieldHandle);
+            var type = ToIRType(field.Type);
+
+            var obj = _stack.Pop();
+            var addr = EmitFieldAddress(obj.Vreg, field.Offset);
+            var value = _function.CreateVirtualRegister(type);
+            _builder.BuildInstruction(MemDialect.OpRef(LoadOpFor(type)),
+                new VirtualReg(value, IsDefinition: true),
+                new VirtualReg(addr, IsDefinition: false));
+            _stack.Push(new StackValue(value, type));
+        }
+
+        // stfld <field> → store top-of-stack into (base + offset). Stack layout
+        // (top first): value, then the object pointer / struct address.
+        private void TranslateStfld(EntityHandle fieldHandle)
+        {
+            var field = _method.DeclaringType.Assembly.GetField(
+                (FieldDefinitionHandle)fieldHandle);
+            var type = ToIRType(field.Type);
+
+            var value = _stack.Pop();
+            var obj = _stack.Pop();
+            var addr = EmitFieldAddress(obj.Vreg, field.Offset);
+            _builder.BuildInstruction(MemDialect.OpRef(StoreOpFor(type)),
+                new VirtualReg(addr, IsDefinition: false),
+                new VirtualReg(value.Vreg, IsDefinition: false));
+        }
+
+        // initobj <type> → zero the <size> bytes at the pointer on top of stack.
+        private void TranslateInitobj(EntityHandle typeHandle)
+        {
+            var type = _method.DeclaringType.Assembly.ResolveType(typeHandle);
+            var ptr = _stack.Pop();
+            var zero = _builder.BuildConstant(IRType.I8, 0);
+            _builder.BuildInstruction(MemDialect.OpRef(MemOp.Fill),
+                new VirtualReg(ptr.Vreg, IsDefinition: false),
+                new VirtualReg(zero, IsDefinition: false),
+                new Immediate(type.InstanceSize));
+        }
+
+        // Address of a field at `offset` bytes from `baseVreg` (an i16 pointer).
+        // Offset 0 reuses the base directly; otherwise emit a 16-bit add of a
+        // constant offset (the legalizer narrows it to byte-wise arithmetic).
+        private int EmitFieldAddress(int baseVreg, int offset)
+        {
+            if (offset == 0) return baseVreg;
+            var offsetConst = _builder.BuildConstant(IRType.I16, offset);
+            var addr = _function.CreateVirtualRegister(IRType.I16);
+            _builder.BuildInstruction(ArithDialect.OpRef(ArithOp.AddI),
+                new VirtualReg(addr, IsDefinition: true),
+                new VirtualReg(baseVreg, IsDefinition: false),
+                new VirtualReg(offsetConst, IsDefinition: false));
+            return addr;
+        }
+
+        // Copy `size` bytes from the struct at `srcAddr` to the struct at
+        // `destAddr` (both i16 pointers), one byte at a time. Used by stloc of a
+        // value-type local (an IL struct assignment / copy).
+        private void EmitStructCopy(int destAddr, int srcAddr, int size)
+        {
+            for (var offset = 0; offset < size; offset++)
+            {
+                var src = EmitFieldAddress(srcAddr, offset);
+                var dst = EmitFieldAddress(destAddr, offset);
+                var b = _function.CreateVirtualRegister(IRType.I8);
+                _builder.BuildInstruction(MemDialect.OpRef(MemOp.LoadI8),
+                    new VirtualReg(b, IsDefinition: true),
+                    new VirtualReg(src, IsDefinition: false));
+                _builder.BuildInstruction(MemDialect.OpRef(MemOp.StoreI8),
+                    new VirtualReg(dst, IsDefinition: false),
+                    new VirtualReg(b, IsDefinition: false));
+            }
+        }
+
+        // Pre-scan the IL once for the set of locals that are address-taken
+        // (have an `ldloca`). Those are forced FrameSlot-bound regardless of
+        // type, alongside the value-type locals.
+        private HashSet<int> ScanAddressTakenLocals()
+        {
+            var result = new HashSet<int>();
+            var scan = _method.MethodBody!.MethodBodyBlock!.GetILReader();
+            while (scan.RemainingBytes > 0)
+            {
+                var opCode = ReadOpCode(ref scan);
+                if (opCode == ILOpCode.Ldloca_s)
+                    result.Add(scan.ReadByte());
+                else
+                    SkipOperand(ref scan, opCode);
+            }
+            return result;
         }
 
         private static MemOp LoadOpFor(IRType type) => type.SizeInBits switch

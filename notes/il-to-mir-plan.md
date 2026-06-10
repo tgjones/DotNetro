@@ -10,7 +10,7 @@ as-is.
 ## STATUS — last updated 2026-06-09 (branch `irie-close-gap`)
 
 **To resume: this is a partially-executed plan. Steps 1–8 are done; step 9 is
-~57% done (12 of 21 lit tests ported); step 10 is not started. Read this
+~71% done (15 of 21 lit tests ported); step 10 is not started. Read this
 section, then continue at "What's left" below.**
 
 ### Done
@@ -41,19 +41,18 @@ section, then continue at "What's left" below.**
 
 ### What's left
 
-**Step 9 — DEFERRED groups (9 tests still legacy-only).** Each remaining test
+**Step 9 — DEFERRED groups (6 tests still legacy-only).** Each remaining test
 is blocked on a backend capability; tackle the blockers in roughly this order
 (earlier ones unblock more tests):
 
 | Blocker | Gates |
 |---|---|
 | ~~**Runtime-pointer-load isel**~~ — **DONE (2026-06-09).** `mem.load.byte_at` / `mem.store.byte_at` now lower runtime i16 pointers (address vreg defined by a 2-byte `pseudo.merge`) by copying the byte vregs straight into the `$zp0/$zp1` indirect-Y scratch pair, alongside the existing `mem.symbol` path. `MOS6502InstructionSelector.EmitPointerSetup` dispatches on `TryResolveSymbolAddress`; cache key generalised from symbol name to `@name`/`%vreg`. Also fixed a latent RA/expander correctness bug this exposed: a `$x↔$y` (or `zp↔zp`) `pseudo.copy` clobbers `$a` as hidden scratch, corrupting a low pointer byte left live in `$a` across it. Rather than special-case it, **unified all copy-scratch handling into the post-RA `RegisterScavengingPass`**: `MOS6502PseudoExpander` now re-emits `$x↔$y` / `zp→zp` copies as scratch forms (like immediate→zp), and the scavenger picks a location dead at the copy's point — for `$x↔$y` a dead zp bounce slot (`STX $tmp; LDY $tmp`, touching no GPR), for `zp→zp`/imm→zp a dead GPR. `MOS6502ParallelCopyPass` shrank to pure parallel-copy sequentialization (all `$a`-evacuation logic deleted). Per-shape candidates via `TargetRegisterInfo.GetScratchCandidates`. Lit tests: `RuntimePointerLoad-InstructionSelector.irie`, `RuntimePointerLoadStore-MachineCode.irie`. | fields, structs, callvirt |
-| **FrameSlot locals** — address-taken locals (`ldloca`) → zero-init `MirGlobal` via a frame-lowering step | UseStruct, UseStructWithConstructor, CallInstanceMethodOnStruct |
+| ~~**FrameSlot locals**~~ — **DONE (2026-06-10).** `IlToMirTranslator` classifies each local upfront (`ScanAddressTakenLocals` + value-type check): value-type/`ldloca`-taken locals become `FrameSlot`s (slot type a wide `IntegerType(size*8)` so the existing `FrameLoweringPass` sizes the `.bss` global correctly), everything else stays SSA. New IL handlers: `ldloca` (push `mem.frame_addr`), `ldfld`/`stfld` (`EmitFieldAddress` = base `+offset` via `arith.addi i16`, then `mem.load/store.iN`), `initobj` (`mem.fill 0`), and struct `ldloc`/`stloc` (push slot address / byte-wise `EmitStructCopy`). FrameSlot locals are excluded from the SSA zero-init seeding and block-parameter threading. Also fixed a latent **RA coalescer miscompile** this exposed: a byte-copy `mem.load.i8 @symA` → `mem.store.i8 @symB` left the `lda.indy` result (`ac`-pinned) coalesced onto `$x` because `GraphColouringAllocator.Combine` kept the broad node's allowed-colour set instead of intersecting with the `ac` end's `{$a}` — `LDA ($zp),Y` then emitted while MIR claimed `$x`. Fix: `Combine` now intersects `_allowedColours`, and `CoalesceIsSafe`'s Briggs test uses the intersection size (rejecting empty-intersection merges). Lit tests: `Lit/Mir/{UseStruct,UseStructWithConstructor,CallInstanceMethodOnStruct}.cs`. | UseStruct, UseStructWithConstructor, CallInstanceMethodOnStruct |
 | **Cross-call value preservation** — locals live across a call get clobbered (`CallerSavedScratch` covers RC2..RC15, callees reuse RC16+). Separate workstream: [static-stack-alloc-plan.md](static-stack-alloc-plan.md) | CallNestedMethods (HELD), and all heap/class groups |
 | **ManagedHeap_Alloc + vtables + callvirt / indirect dispatch** | UseClass, UseNestedClass, UseNestedClassWithConstructors, CallInstanceMethodOnClass, CallOverriddenMethodOnClass |
 
-The 9 deferred tests: CallNestedMethods, UseStruct, UseStructWithConstructor,
-CallInstanceMethodOnStruct, UseClass, UseNestedClass,
+The 6 deferred tests: CallNestedMethods, UseClass, UseNestedClass,
 UseNestedClassWithConstructors, CallInstanceMethodOnClass,
 CallOverriddenMethodOnClass. Port each to `Lit/Mir/` (add `--mir` to the RUN
 line) and verify the full suite stays green (Debug + Release).
