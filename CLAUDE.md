@@ -17,11 +17,27 @@ dotnet test --project src/DotNetro.Compiler.Tests
 dotnet test --project src/Irie.Tests
 dotnet test --project src/DotLit.Tests
 
-# Run tests in a specific class (TUnit uses --treenode-filter, not --filter)
+# Filtering: TUnit uses --treenode-filter (NOT --filter, which silently runs zero tests).
+# The path is /Assembly/Namespace/Class/Method — escape literal '.' in the displayed
+# name as itself; the renderer shows '·' but you type '.'.
+
+# Run all tests in a unit-test class
 dotnet test --project src/Irie.Tests --treenode-filter "/*/*/RegisterAllocatorTests/*"
 
-# Run tests matching a method name pattern
-dotnet test --project src/Irie.Tests --treenode-filter "*/*/*/LitTest*"
+# Run a single unit-test method by name
+dotnet test --project src/Irie.Tests --treenode-filter "/*/*/*/AAndXLiveAcrossCopy_PicksY"
+```
+
+**You cannot target an individual lit test with --treenode-filter.** Lit tests are
+parameterized as `LitTest(Lit/CodeGen/.../Foo·irie)`, and the path argument contains
+`/` (parsed as tree-node separators) and `()` (parsed as grouping operators), so any
+attempt to narrow by filename either matches all 97 lit tests or zero. Don't fight it —
+just run the whole project. Both lit suites are fast (Irie.Tests ~3–5s,
+DotNetro.Compiler.Tests ~12s):
+
+```bash
+dotnet test --project src/Irie.Tests              # all Irie tests incl. every .irie/.s lit test
+dotnet test --project src/DotNetro.Compiler.Tests # all compiler tests incl. every .cs lit test
 ```
 
 CI runs `dotnet test --solution src` in both Debug and Release configurations.
