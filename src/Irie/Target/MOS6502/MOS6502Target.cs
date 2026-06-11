@@ -9,8 +9,7 @@ public class MOS6502Target : Irie.Target.Target
     public MOS6502Target()
     {
         MirBootstrap.EnsureRegistered();
-        if (!DialectRegistry.TryByPrefix("mos6502", out _))
-            DialectRegistry.Register(new MOS6502Dialect());
+        DialectRegistry.GetOrRegister("mos6502", () => new MOS6502Dialect());
     }
 
     public override Dialect Dialect => DialectRegistry.ByPrefix("mos6502");
