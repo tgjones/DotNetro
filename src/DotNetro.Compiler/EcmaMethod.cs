@@ -48,8 +48,6 @@ internal sealed class EcmaMethod
 
     public ImmutableArray<Parameter> Parameters { get; }
 
-    public int ParametersSize { get; }
-
     public MethodSignature<TypeDescription> MethodSignature { get; }
 
     public EcmaMethodBody? MethodBody { get; }
@@ -60,8 +58,6 @@ internal sealed class EcmaMethod
     public string UniqueName { get; }
 
     public bool IsVirtual => MethodDefinition.Attributes.HasFlag(MethodAttributes.Virtual);
-
-    public int FrameSize { get; }
 
     public EcmaMethod(EcmaType declaringType, in MethodDefinition methodDefinition)
     {
@@ -98,7 +94,6 @@ internal sealed class EcmaMethod
             parameterOffset += parameter.Type.Size;
         }
         Parameters = parametersBuilder.ToImmutable();
-        ParametersSize = parameterOffset;
 
         Name = MetadataReader.GetString(MethodDefinition.Name);
         UniqueName = $"{MakeSafeName(DeclaringType.FullName)}_{MakeSafeName(Name)}";
@@ -107,8 +102,6 @@ internal sealed class EcmaMethod
         {
             UniqueName += $"_{parameterType.EncodedName}";
         }
-
-        FrameSize = ParametersSize + MethodBody?.LocalsSize ?? 0;
     }
 
     private static string MakeSafeName(string name)

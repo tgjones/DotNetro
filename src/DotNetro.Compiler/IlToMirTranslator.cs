@@ -253,11 +253,14 @@ internal sealed class IlToMirTranslator : IDisposable
     // Emit a `Vtable_<type>` global per used type: a packed array of 2-byte
     // little-endian function pointers, one per dispatch slot (plain pointers —
     // no RTS-trick offset; the indirect-call trampoline does JMP (zp)).
+    // Symbol name for a type's vtable global. Plain pointers, no RTS-trick offset.
+    private static string VtableName(EcmaType type) => $"Vtable_{type.EncodedName}";
+
     private void RegisterVtableGlobals()
     {
         foreach (var type in _usedTypes)
         {
-            var name = Vtable.GetName(type);
+            var name = VtableName(type);
             if (_globals.ContainsKey(name))
                 continue;
 
@@ -1855,7 +1858,7 @@ internal sealed class IlToMirTranslator : IDisposable
             }
 
             var size = _builder.BuildConstant(IRType.I16, type.InstanceSize);
-            var vtablePtr = _builder.BuildMemSymbol(Vtable.GetName(type));
+            var vtablePtr = _builder.BuildMemSymbol(IlToMirTranslator.VtableName(type));
             var allocMethod = _parent.GetAllocMethod();
             _parent.EnqueueMethod(allocMethod);
             var ptr = _builder.BuildCall(allocMethod.UniqueName, [IRType.Pointer], size, vtablePtr)[0];

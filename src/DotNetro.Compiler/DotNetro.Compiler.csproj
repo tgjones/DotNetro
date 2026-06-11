@@ -8,13 +8,4 @@
     <ProjectReference Include="..\Irie\Irie.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Antlr4.Runtime.Standard">
-      <HintPath>..\..\lib\Sixty502\Antlr4.Runtime.Standard.dll</HintPath>
-    </Reference>
-    <Reference Include="Sixty502DotNet.Shared">
-      <HintPath>..\..\lib\Sixty502\Sixty502DotNet.Shared.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

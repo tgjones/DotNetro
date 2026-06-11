@@ -6,9 +6,9 @@ bug it must fix, and the correct LLVM-MOS calling convention.
 
 ## Why we need this now
 
-Porting the lit-test corpus to the new IL→MIR pipeline
-([il-to-mir-plan.md](il-to-mir-plan.md), step 9) is blocked on **cross-call
-value preservation**. The first failing test is `CallNestedMethods`:
+Porting the lit-test corpus to the IL→MIR pipeline (the IL→MIR translator
+migration, now complete) surfaced **cross-call value preservation** as a
+blocker. The motivating test is `CallNestedMethods`:
 
 ```csharp
 static void MethodA() {
@@ -93,7 +93,7 @@ Placing cross-call frames in **zero page** instead makes each access a single
 
 ### Pipeline & RA
 
-Pass order (`iriec` / `CompilerDriver.CompileViaMir`): FrameLowering →
+Pass order (`iriec` / `CompilerDriver.Compile`): FrameLowering →
 AbiLowering → Legalizer → InstructionSelector → PhiElimination → TwoAddress →
 **RegisterAllocator** → CopyElimination → post-RA (AddressingModeSelector,
 ParallelCopy) → PseudoExpansion → MachineCodeEmitter.
@@ -234,10 +234,13 @@ non-overlapping call paths:
    cross-call value is ever register-resident at a call, `CallerSavedScratch`
    was left as-is (the `RC2..RC19` / drop-`D`/`I` Layer-0 alignment was
    unnecessary) and the RA-level spill path is untouched. Bar met:
-   `CallNestedMethods` green end-to-end, full suite green, un-held. See
-   [il-to-mir-plan.md](il-to-mir-plan.md) STATUS for the two incidental bug
-   fixes (FrameSlot-primitive store width; isel pointer-cache invalidation
-   across `jsr`).
+   `CallNestedMethods` green end-to-end, full suite green, un-held. Two
+   incidental bugs were fixed en route: (1) `TranslateStloc` for a FrameSlot
+   *primitive* local used an I16 placeholder width → `mem.store.i16` of an i32
+   value (now uses the local's natural CLR width, matching `TranslateLdloc`);
+   (2) `MOS6502InstructionSelector`'s pointer-setup cache (`_currentPointerKey`)
+   was not invalidated across a `jsr`, so a slot pointer set up before a call was
+   reused after the call had clobbered the shared `$zp0/$zp1` indirect pair.
 2. **Layer 2** — `ReentrancyAnalysis` + `MirFunction.IsNonReentrant`; gate the
    static-frame path on non-reentrant, error clearly otherwise. (No corpus
    behavior change; makes the scheme correct-by-construction.)
