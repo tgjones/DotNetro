@@ -134,11 +134,12 @@ public sealed class RegisterScavengingTests
     }
 
     // -------------------------------------------------------------------------
-    // 4. All three GPRs live across the copy → no scratch is free → the
-    //    emergency save/restore path (Phase 4) is reached and throws clearly.
+    // 4. All three GPRs live across the copy → no scratch is free → the emergency
+    //    save/restore path (plan §3.4/§3.6) saves a GPR into a dead zero-page slot
+    //    around the copy: `STA $save ; LDA #imm ; STA $dst ; LDA $save`.
     // -------------------------------------------------------------------------
     [Test]
-    public async Task AllGprsLive_ThrowsNotImplemented()
+    public async Task AllGprsLive_EmergencySavesGprToZeroPage()
     {
         var fn = NewFunction("scratch_none_free");
         var bb0 = fn.CreateBlock();
@@ -161,7 +162,14 @@ public sealed class RegisterScavengingTests
             new PhysicalReg(MOS6502Registers.RC(5), IsDefinition: true),
             new PhysicalReg(MOS6502Registers.Y, IsDefinition: false));
 
-        await Assert.That(() => Pass.Run(fn)).Throws<NotImplementedException>();
+        Pass.Run(fn);
+
+        // The immediate→zp copy at index 3 lowers to a 4-instruction emergency
+        // sequence: save $a to a dead zp slot, LDA #$78, STA $zp2, restore $a.
+        await Assert.That(LoweredLoadOp(bb0, 3)).IsEqualTo(MOS6502Op.StaZp);  // save $a
+        await Assert.That(LoweredLoadOp(bb0, 4)).IsEqualTo(MOS6502Op.LdaImm); // LDA #$78
+        await Assert.That(LoweredLoadOp(bb0, 5)).IsEqualTo(MOS6502Op.StaZp);  // STA $zp2
+        await Assert.That(LoweredLoadOp(bb0, 6)).IsEqualTo(MOS6502Op.LdaZp);  // restore $a
     }
 
     // -------------------------------------------------------------------------

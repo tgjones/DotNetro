@@ -86,16 +86,25 @@ public sealed class RegisterScavengingPass(
                     "scratch-form copy that needs one.");
 
             var scratchOperandIndex = FindScratchOperandIndex(copy);
+            var scratchIsDef = copy.Operands[scratchOperandIndex] is VirtualReg { IsDefinition: true };
             var physReg = PickScratch(copy, intervals, candidates);
 
-            // Bind the scratch vreg to the chosen physreg, then hand the now
-            // physreg-only scratch form to the target to finish lowering.
-            copy.Operands[scratchOperandIndex] =
-                new PhysicalReg(physReg, IsDefinition: copy.Operands[scratchOperandIndex] is VirtualReg { IsDefinition: true });
-
-            builder.SetInsertionPointBefore(copy);
-            expander.Expand(copy, builder);
-            builder.Remove(copy);
+            if (physReg >= 0)
+            {
+                // A scratch register is free here: bind the scratch vreg to it and
+                // hand the now physreg-only scratch form to the target to lower.
+                copy.Operands[scratchOperandIndex] = new PhysicalReg(physReg, IsDefinition: scratchIsDef);
+                builder.SetInsertionPointBefore(copy);
+                expander.Expand(copy, builder);
+                builder.Remove(copy);
+            }
+            else
+            {
+                // No scratch is free across the copy: emergency save/restore. Pick
+                // a scratch GPR anyway, save it into a dead zero-page slot, do the
+                // copy, then restore it (plan §3.4/§3.6 minimal save/restore).
+                EmergencyExpand(copy, scratchOperandIndex, scratchIsDef, candidates, intervals, builder);
+            }
         }
 
         // The scavenger introduced and consumed scratch vregs; clear any stray
@@ -138,14 +147,67 @@ public sealed class RegisterScavengingPass(
             return candidate;
         }
 
-        // No candidate scratch location is dead here. Real spilling (an emergency
-        // save/restore through an abstract frame slot) is Phase 4; surface the gap
-        // clearly. Only the GPR-only shapes (zp→zp, immediate→zp) can reach this —
-        // $x↔$y also admits the abundant zero-page pool, so it never starves.
-        throw new NotImplementedException(
-            "RegisterScavenging: no scratch location is free for a copy that needs one — " +
-            "emergency save/restore via an abstract spill slot is Phase 4 (plan §3.4/§3.6). " +
-            "No case in the current corpus reaches this path.");
+        // No candidate scratch location is dead here — the caller falls back to an
+        // emergency save/restore (only the GPR-only shapes — zp→zp, immediate→zp —
+        // reach this; $x↔$y also admits the abundant zero-page pool, so it never
+        // starves).
+        return -1;
+    }
+
+    // Emergency save/restore: no scratch location is free across the copy, so pick
+    // the first candidate GPR, save it into a zero-page slot that IS dead here, do
+    // the copy using that GPR, then restore it. The save (`ST? $zp`) and restore
+    // (`LD? $zp`) are themselves register↔zero-page copies that need no further
+    // scratch, so they bottom out cleanly (plan §3.4/§3.6 minimal save/restore).
+    private void EmergencyExpand(
+        MirInstruction copy, int scratchOperandIndex, bool scratchIsDef,
+        ReadOnlySpan<int> candidates, LiveIntervals intervals, MirBuilder builder)
+    {
+        if (candidates.Length == 0)
+            throw new InvalidOperationException(
+                "RegisterScavenging: emergency save/restore needs a GPR candidate but none was advertised.");
+        var scratchGpr = candidates[0];
+
+        // Find a zero-page slot dead across the copy to park the GPR in. Exclude
+        // the registers the copy itself touches and the scratch GPR.
+        var baseSlot = intervals.BaseSlotOf[copy];
+        var span = new LiveSegment(
+            LiveIntervals.UseSlot(baseSlot),
+            LiveIntervals.DefSlot(baseSlot) + 1);
+        var touched = TouchedPhysRegs(copy);
+        touched.Add(scratchGpr);
+
+        var saveSlot = -1;
+        foreach (var slot in registerInfo.GetEmergencyScratchSaveSlots())
+        {
+            if (touched.Contains(slot)) continue;
+            if (PhysRegBusyDuring(intervals, slot, span)) continue;
+            saveSlot = slot;
+            break;
+        }
+        if (saveSlot < 0)
+            throw new InvalidOperationException(
+                "RegisterScavenging: no zero-page slot is free to emergency-save a scratch register.");
+
+        builder.SetInsertionPointBefore(copy);
+
+        // save: $saveSlot = pseudo.copy $scratchGpr  (ST? $zp — no scratch needed)
+        var save = new MirInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            [new PhysicalReg(saveSlot, IsDefinition: true),
+             new PhysicalReg(scratchGpr, IsDefinition: false)]);
+        expander.Expand(save, builder);
+
+        // the copy itself, now with the (live) scratch GPR bound.
+        copy.Operands[scratchOperandIndex] = new PhysicalReg(scratchGpr, IsDefinition: scratchIsDef);
+        expander.Expand(copy, builder);
+
+        // restore: $scratchGpr = pseudo.copy $saveSlot  (LD? $zp — no scratch needed)
+        var restore = new MirInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            [new PhysicalReg(scratchGpr, IsDefinition: true),
+             new PhysicalReg(saveSlot, IsDefinition: false)]);
+        expander.Expand(restore, builder);
+
+        builder.Remove(copy);
     }
 
     // True if `physReg`'s precolored busy interval overlaps the given span — i.e.

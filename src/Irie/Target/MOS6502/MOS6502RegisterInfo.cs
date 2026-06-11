@@ -91,6 +91,12 @@ public sealed class MOS6502RegisterInfo : TargetRegisterInfo
         return ScratchGprs;
     }
 
+    // Emergency save slots for the scavenger: the spare zero-page registers.
+    // Saving a GPR to zero page (`ST? $zp`) and restoring it (`LD? $zp`) needs no
+    // further scratch, so whichever zp slot is dead at the copy's point lets the
+    // scavenger free up a GPR even when all three are live.
+    public override ReadOnlySpan<int> GetEmergencyScratchSaveSlots() => Imag8Regs;
+
     private static bool IsXyPair(int a, int b) =>
         (a == MOS6502Registers.X && b == MOS6502Registers.Y) ||
         (a == MOS6502Registers.Y && b == MOS6502Registers.X);

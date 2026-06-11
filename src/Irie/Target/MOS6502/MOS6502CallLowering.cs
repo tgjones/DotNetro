@@ -116,30 +116,7 @@ public sealed class MOS6502CallLowering : Irie.Target.CallLowering
         // multi-byte values), using the same ArgRegs sequence as formal
         // argument lowering. Track which physregs got args so we can mark
         // them as implicit uses on the JSR.
-        var implicitUses = new List<int>();
-        var regIdx = 0;
-        for (var i = 0; i < argVregs.Length; i++)
-        {
-            var byteCount = ByteCount(argTypes[i]);
-            EnsureRegBudget(regIdx + byteCount);
-
-            int[] byteVregs;
-            if (byteCount == 1)
-            {
-                byteVregs = [argVregs[i]];
-            }
-            else
-            {
-                byteVregs = builder.BuildUnmerge(IRType.I8, argVregs[i], byteCount);
-            }
-
-            for (var b = 0; b < byteCount; b++)
-            {
-                var physReg = ArgRegs[regIdx++];
-                builder.BuildCopyToPhysicalRegister(physReg, byteVregs[b]);
-                implicitUses.Add(physReg);
-            }
-        }
+        var implicitUses = EmitArgumentSetup(argTypes, argVregs, builder);
 
         // Build the jsr operand array: Symbol callee first, then implicit-uses
         // for arg physregs, then implicit-defs for return physregs + every
@@ -213,28 +190,21 @@ public sealed class MOS6502CallLowering : Irie.Target.CallLowering
         // step). From the caller's perspective the lowering is otherwise
         // identical to a direct call to the trampoline.
 
-        // Args setup (same as direct call).
+        // Args setup (same as direct call): materialize every byte value first
+        // — including the target pointer's two bytes — then pin them to physregs,
+        // so a constrained-register value (e.g. a mem.symbol's hard-$a lda) is
+        // produced and relocated before the arg physregs are occupied.
+        var argByteVregs = MaterializeArgumentBytes(argTypes, argVregs, builder, out var argPhysRegs);
+        var ptrBytes = builder.BuildUnmerge(IRType.I8, targetPtrVreg, 2);
+
         var implicitUses = new List<int>();
-        var regIdx = 0;
-        for (var i = 0; i < argVregs.Length; i++)
+        for (var k = 0; k < argByteVregs.Count; k++)
         {
-            var byteCount = ByteCount(argTypes[i]);
-            EnsureRegBudget(regIdx + byteCount);
-
-            int[] byteVregs = byteCount == 1
-                ? [argVregs[i]]
-                : builder.BuildUnmerge(IRType.I8, argVregs[i], byteCount);
-
-            for (var b = 0; b < byteCount; b++)
-            {
-                var physReg = ArgRegs[regIdx++];
-                builder.BuildCopyToPhysicalRegister(physReg, byteVregs[b]);
-                implicitUses.Add(physReg);
-            }
+            builder.BuildCopyToPhysicalRegister(argPhysRegs[k], argByteVregs[k]);
+            implicitUses.Add(argPhysRegs[k]);
         }
 
         // Park the pointer bytes in the trampoline's fixed zp slots.
-        var ptrBytes = builder.BuildUnmerge(IRType.I8, targetPtrVreg, 2);
         builder.BuildCopyToPhysicalRegister(CallTargetLo, ptrBytes[0]);
         builder.BuildCopyToPhysicalRegister(CallTargetHi, ptrBytes[1]);
         implicitUses.Add(CallTargetLo);
@@ -285,6 +255,53 @@ public sealed class MOS6502CallLowering : Irie.Target.CallLowering
                 byteVregs[b] = builder.BuildCopyFromPhysicalRegister(ArgRegs[returnRegIdx++], IRType.I8);
             builder.BuildMergeInto(returnVregs[i], byteVregs);
         }
+    }
+
+    // Place the arguments into their CC physregs in two phases: first
+    // materialize every argument byte into a vreg, then copy them all into the
+    // physregs. Splitting the phases is load-bearing — a byte value that must be
+    // computed in a constrained register (e.g. a `mem.symbol` argument lowers to
+    // a hard-$a `lda.imm`) has to be produced and relocated to a flexible
+    // register BEFORE any arg physreg is occupied. The per-arg "materialize then
+    // immediately pin" order would sandwich such a value between two uses of $a
+    // (an earlier arg already pinned to $a and the hard-$a lda), which no
+    // colouring can resolve. Returns the pinned arg physregs (implicit uses).
+    private List<int> EmitArgumentSetup(IRType[] argTypes, int[] argVregs, MirBuilder builder)
+    {
+        var byteVregs = MaterializeArgumentBytes(argTypes, argVregs, builder, out var physRegs);
+        var implicitUses = new List<int>();
+        for (var k = 0; k < byteVregs.Count; k++)
+        {
+            builder.BuildCopyToPhysicalRegister(physRegs[k], byteVregs[k]);
+            implicitUses.Add(physRegs[k]);
+        }
+        return implicitUses;
+    }
+
+    // Phase 1 of argument setup: unmerge each argument into its bytes (LSB-first
+    // for multi-byte values), returning the flat byte-vreg list and, via
+    // `physRegs`, the CC physreg each byte will be pinned to.
+    private List<int> MaterializeArgumentBytes(IRType[] argTypes, int[] argVregs, MirBuilder builder, out List<int> physRegs)
+    {
+        var byteVregs = new List<int>();
+        physRegs = new List<int>();
+        var regIdx = 0;
+        for (var i = 0; i < argVregs.Length; i++)
+        {
+            var byteCount = ByteCount(argTypes[i]);
+            EnsureRegBudget(regIdx + byteCount);
+
+            int[] bytes = byteCount == 1
+                ? [argVregs[i]]
+                : builder.BuildUnmerge(IRType.I8, argVregs[i], byteCount);
+
+            for (var b = 0; b < byteCount; b++)
+            {
+                byteVregs.Add(bytes[b]);
+                physRegs.Add(ArgRegs[regIdx++]);
+            }
+        }
+        return byteVregs;
     }
 
     // Reserved zero-page slots that the indirect-call trampoline reads its

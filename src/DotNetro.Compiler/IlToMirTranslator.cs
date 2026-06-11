@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 
@@ -6,6 +7,7 @@ using System.Text;
 using DotNetro.Compiler.TypeSystem;
 
 using Irie.Dialects.Arith;
+using Irie.Dialects.Cast;
 using Irie.Dialects.Cf;
 using Irie.Dialects.Core;
 using Irie.Dialects.Mem;
@@ -39,6 +41,24 @@ internal sealed class IlToMirTranslator : IDisposable
     // by symbol name so the same string / static field is registered only once.
     private readonly Dictionary<string, MirGlobal> _globals = [];
 
+    // Reference types newobj'd by the program. Each gets a `Vtable_<type>`
+    // global; the object header (at obj-2) points at it.
+    private readonly HashSet<EcmaType> _usedTypes = [];
+
+    // Cached vtable layouts (slot index → method to dispatch). See GetVtableLayout.
+    private readonly Dictionary<EcmaType, List<EcmaMethod>> _vtableLayouts = [];
+
+    // Types whose static fields are touched (ldsfld/stsfld); their `.cctor`
+    // must run at startup so the field has its initial value (e.g. ManagedHeap's
+    // s_heapPtr = 0x1000). Static constructors discovered, in call order.
+    private readonly HashSet<EcmaType> _staticFieldOwners = [];
+    private readonly List<EcmaMethod> _staticConstructors = [];
+
+    // Lazily-resolved ManagedHeap.Alloc(IntPtr size, IntPtr vtablePtr) → IntPtr,
+    // the runtime allocator newobj calls. Kept in C# and translated like any
+    // other method (plan open-question 3 — the translated path).
+    private EcmaMethod? _allocMethod;
+
     // Pointer size is 16-bit on the 6502.
     private const int PointerSize = 2;
 
@@ -67,16 +87,26 @@ internal sealed class IlToMirTranslator : IDisposable
 
         var module = new MirModule();
 
-        // The entry function must lay out first (at `origin`) so the emulator's
-        // `JSR $2000` lands on it. It performs BBC MODE 7 init, calls Main, RTS.
-        module.Functions.Add(BuildEntryFunction(entryPointMethod));
-
+        // Walk every method reachable from the entry point. Translating a method
+        // can mark new types used (newobj) or pull in virtual overrides (the
+        // vtable's slot methods) and static constructors, so iterate to a
+        // fixpoint: drain the queue, then re-seed it from the vtables / static
+        // fields discovered, until nothing new is enqueued.
         EnqueueMethod(entryPointMethod);
-        while (_methodsToVisit.Count > 0)
+        do
         {
-            var method = _methodsToVisit.Dequeue();
-            module.Functions.Add(TranslateMethod(method));
-        }
+            while (_methodsToVisit.Count > 0)
+                module.Functions.Add(TranslateMethod(_methodsToVisit.Dequeue()));
+
+            EnqueueVtableSlotMethods();
+            EnqueueStaticConstructors();
+        } while (_methodsToVisit.Count > 0);
+
+        // The entry function must lay out first (at `origin`) so the emulator's
+        // `JSR $2000` lands on it. It performs BBC MODE 7 init, runs the static
+        // constructors, calls Main, RTS — so it is built after the walk, once the
+        // static-constructor list is known.
+        module.Functions.Insert(0, BuildEntryFunction(entryPointMethod));
 
         // Append the runtime functions (oswrch, osasci, WriteLineInt32, …).
         module.Functions.AddRange(runtimeModule.Functions);
@@ -88,10 +118,160 @@ internal sealed class IlToMirTranslator : IDisposable
         // resolve the symbols.
         EnsureRuntimeGlobals();
 
-        // Append the string constants / static fields collected during the walk.
+        // Vtables for every newobj'd type (registered after the walk, once all
+        // used types and their dispatch targets are known).
+        RegisterVtableGlobals();
+
+        // Append the string constants / static fields / vtables collected.
         module.Globals.AddRange(_globals.Values);
 
         return module;
+    }
+
+    internal void MarkTypeUsed(EcmaType type) => _usedTypes.Add(type);
+
+    // ManagedHeap.Alloc(IntPtr size, IntPtr vtablePtr) → IntPtr. Resolved on
+    // first newobj; kept in C# and translated through the pipeline.
+    internal EcmaMethod GetAllocMethod()
+    {
+        if (_allocMethod != null)
+            return _allocMethod;
+
+        var managedHeapType = _typeSystemContext.RuntimeAssembly.GetType("DotNetro.Runtime", "ManagedHeap");
+        _allocMethod = managedHeapType.GetMethod("Alloc",
+            new MethodSignature<TypeDescription>(
+                new SignatureHeader(), _typeSystemContext.IntPtr, 2, 0,
+                [_typeSystemContext.IntPtr, _typeSystemContext.IntPtr]));
+        return _allocMethod;
+    }
+
+    // The dispatch table for `type`: slot index → the method that index resolves
+    // to for an instance of `type`. Built base-first (so inherited slots keep
+    // their index) then extended with `type`'s own NewSlot virtuals; overrides
+    // replace the inherited slot in place.
+    //
+    // Recursion stops at the root (BaseType == null, i.e. System.Object): the
+    // BCL's virtuals (ToString/Equals/…) are never dispatched by the supported
+    // corpus, so they get no slots. This also makes slot indices a pure function
+    // of metadata — independent of which methods turn out to be "used" — so the
+    // translator can emit the right offset at each callvirt without a whole-
+    // program fixpoint over the used set.
+    private List<EcmaMethod> GetVtableLayout(EcmaType type)
+    {
+        if (_vtableLayouts.TryGetValue(type, out var cached))
+            return cached;
+
+        // The root (System.Object, BaseType == null) contributes no slots: its
+        // virtuals (Equals/GetHashCode/ToString/…) are never dispatched by the
+        // supported corpus, and enumerating them would pull their (unsupported)
+        // bodies into the program. Stopping here also makes slot indices a pure
+        // function of metadata, independent of which methods turn out "used".
+        List<EcmaMethod> slots;
+        if (type.BaseType == null)
+        {
+            slots = [];
+        }
+        else
+        {
+            slots = new List<EcmaMethod>(GetVtableLayout(type.BaseType));
+
+            foreach (var methodDefinitionHandle in type.TypeDefinition.GetMethods())
+            {
+                var methodDefinition = type.Assembly.MetadataReader.GetMethodDefinition(methodDefinitionHandle);
+                if (!methodDefinition.Attributes.HasFlag(MethodAttributes.Virtual))
+                    continue;
+
+                var method = type.Assembly.GetMethod(methodDefinitionHandle);
+                if (methodDefinition.Attributes.HasFlag(MethodAttributes.NewSlot))
+                {
+                    slots.Add(method);
+                }
+                else
+                {
+                    var overridden = FindOverriddenMethod(method);
+                    var index = GetVtableLayout(overridden.DeclaringType).IndexOf(overridden);
+                    if (index < 0)
+                        throw new NotSupportedException(
+                            $"IL→MIR: override {method.UniqueName} has no user vtable slot " +
+                            $"(overriding a BCL virtual method is not supported yet).");
+                    slots[index] = method;
+                }
+            }
+        }
+
+        _vtableLayouts[type] = slots;
+        return slots;
+    }
+
+    // The slot index a callvirt of `callee` reads from the object's vtable.
+    internal int GetVtableSlotIndex(EcmaMethod callee)
+    {
+        var index = GetVtableLayout(callee.DeclaringType).IndexOf(callee);
+        if (index < 0)
+            throw new NotSupportedException(
+                $"IL→MIR: virtual method {callee.UniqueName} has no vtable slot.");
+        return index;
+    }
+
+    private static EcmaMethod FindOverriddenMethod(EcmaMethod method)
+    {
+        var baseType = method.DeclaringType.BaseType;
+        while (baseType != null)
+        {
+            if (baseType.TryGetMethod(method.Name, method.MethodSignature, out var overridden))
+                return overridden;
+            baseType = baseType.BaseType;
+        }
+        throw new InvalidOperationException(
+            $"IL→MIR: could not find the method overridden by {method.UniqueName}.");
+    }
+
+    // Enqueue every dispatch target reachable through a used type's vtable so the
+    // override bodies (e.g. Derived.MyMethod) are translated, not just the
+    // statically-resolved callvirt callee.
+    private void EnqueueVtableSlotMethods()
+    {
+        foreach (var type in _usedTypes.ToArray())
+            foreach (var method in GetVtableLayout(type))
+                EnqueueMethod(method);
+    }
+
+    // Enqueue the `.cctor` of each type whose static fields were touched, and
+    // record it (in discovery order) so __entry can call them before Main.
+    private void EnqueueStaticConstructors()
+    {
+        foreach (var owner in _staticFieldOwners.ToArray())
+        {
+            var cctor = owner.GetStaticConstructor();
+            if (cctor == null || _staticConstructors.Contains(cctor))
+                continue;
+            _staticConstructors.Add(cctor);
+            EnqueueMethod(cctor);
+        }
+    }
+
+    // Emit a `Vtable_<type>` global per used type: a packed array of 2-byte
+    // little-endian function pointers, one per dispatch slot (plain pointers —
+    // no RTS-trick offset; the indirect-call trampoline does JMP (zp)).
+    private void RegisterVtableGlobals()
+    {
+        foreach (var type in _usedTypes)
+        {
+            var name = Vtable.GetName(type);
+            if (_globals.ContainsKey(name))
+                continue;
+
+            var slots = GetVtableLayout(type);
+            var items = slots
+                .Select(method => (MirDataItem)new DataSymbolRef(method.UniqueName))
+                .ToArray();
+
+            _globals[name] = new MirGlobal(
+                SymbolName:  name,
+                Type:        IRType.Pointer,
+                SizeInBytes: slots.Count * PointerSize,
+                Initializer: new MirInitializer(items));
+        }
     }
 
     // Intern a string constant as a module-level MirGlobal and return its
@@ -156,6 +336,9 @@ internal sealed class IlToMirTranslator : IDisposable
     // `{field.Owner.EncodedName}_{field.Name}`.
     private string RegisterStaticFieldGlobal(EcmaField field)
     {
+        // Remember the owner so its static constructor runs at startup.
+        _staticFieldOwners.Add(field.Owner);
+
         var name = $"{field.Owner.EncodedName}_{field.Name}";
         if (!_globals.ContainsKey(name))
         {
@@ -204,6 +387,11 @@ internal sealed class IlToMirTranslator : IDisposable
         builder.SetInsertionPointAtEnd(entryBlock);
 
         EmitModeSeven(function, builder);
+
+        // Run static constructors before Main (e.g. ManagedHeap's s_heapPtr =
+        // 0x1000). They are void and parameterless (.cctor).
+        foreach (var cctor in _staticConstructors)
+            builder.BuildCall(cctor.UniqueName, []);
 
         // Top-level statements compile to `<Main>$(string[] args)`. The args
         // array is unused by the programs we support, but the call's arity must
@@ -257,18 +445,21 @@ internal sealed class IlToMirTranslator : IDisposable
                 PrimitiveTypeCode.Boolean => IRType.I8,
                 PrimitiveTypeCode.Int32 => IRType.I32,
                 PrimitiveTypeCode.IntPtr or PrimitiveTypeCode.UIntPtr => IRType.I16,
-                // A managed string is a heap reference: a 16-bit pointer on the
-                // 6502 (the pointer @ReadLine returns / @WriteLineString consumes).
-                PrimitiveTypeCode.String => IRType.I16,
+                // A managed string / object is a heap reference: a 16-bit pointer
+                // on the 6502 (the pointer @ReadLine returns / @WriteLineString
+                // consumes; the `this` of System.Object::.ctor, base-called by
+                // every user constructor).
+                PrimitiveTypeCode.String or PrimitiveTypeCode.Object => IRType.I16,
                 _ => throw new NotSupportedException(
                     $"IL→MIR: primitive type {primitive.PrimitiveTypeCode} is not supported yet."),
             };
         }
 
         // Reference types (including arrays) are heap pointers: 16-bit on the
-        // 6502. Fuller object-model support lands in plan step 9; for now this
-        // only matters for the unused `string[] args` of the entry method.
-        if (type is SZArrayType or PointerType or ByReferenceType)
+        // 6502. A reference-type EcmaType (class) — `this`, a class-typed field,
+        // a class parameter/return — is likewise a 16-bit heap pointer.
+        if (type is SZArrayType or PointerType or ByReferenceType
+            || type is EcmaType { IsValueType: false })
             return IRType.I16;
 
         throw new NotSupportedException(
@@ -560,6 +751,31 @@ internal sealed class IlToMirTranslator : IDisposable
 
                     case ILOpCode.Call:
                         TranslateCall(MetadataTokens.Handle(ilReader.ReadInt32()));
+                        break;
+
+                    case ILOpCode.Callvirt:
+                        TranslateCallvirt(MetadataTokens.Handle(ilReader.ReadInt32()));
+                        break;
+
+                    case ILOpCode.Newobj:
+                        TranslateNewobj(MetadataTokens.EntityHandle(ilReader.ReadInt32()));
+                        break;
+
+                    case ILOpCode.Dup:
+                        TranslateDup();
+                        break;
+
+                    case ILOpCode.Sizeof:
+                        TranslateSizeof(MetadataTokens.EntityHandle(ilReader.ReadInt32()));
+                        break;
+
+                    case ILOpCode.Conv_i:
+                    case ILOpCode.Conv_u:
+                        TranslateConvi();
+                        break;
+
+                    case ILOpCode.Stind_i:
+                        TranslateStind(IRType.I16);
                         break;
 
                     case ILOpCode.Ret:
@@ -1519,10 +1735,13 @@ internal sealed class IlToMirTranslator : IDisposable
                 $"IL→MIR: mem.store of {type} is not supported yet."),
         };
 
-        private void TranslateCall(Handle methodHandle)
-        {
-            var callee = _method.DeclaringType.Assembly.ResolveMethod(methodHandle);
+        private void TranslateCall(Handle methodHandle) =>
+            TranslateDirectCall(_method.DeclaringType.Assembly.ResolveMethod(methodHandle));
 
+        // A direct (non-virtual) call: pop the args (including `this` for instance
+        // methods), emit call.func, push the return value.
+        private void TranslateDirectCall(EcmaMethod callee)
+        {
             // Special-cased BCL methods map to hand-written runtime functions
             // (their real IL bodies are NOT translated/enqueued — the runtime
             // MIR replaces them).
@@ -1537,6 +1756,24 @@ internal sealed class IlToMirTranslator : IDisposable
             };
             var isSpecialCased = !ReferenceEquals(calleeName, callee.UniqueName);
 
+            var argVregs = PopCallArgs(callee);
+            var returnType = ToIRType(callee.MethodSignature.ReturnType);
+            var returnTypes = returnType is VoidType ? Array.Empty<IRType>() : [returnType];
+
+            // Only enqueue methods we are responsible for translating; runtime
+            // functions (and special-cased BCL methods) are skipped.
+            if (!isSpecialCased)
+                _parent.EnqueueMethod(callee);
+
+            var defs = _builder.BuildCall(calleeName, returnTypes, argVregs);
+            if (returnTypes.Length > 0)
+                _stack.Push(new StackValue(defs[0], returnType));
+        }
+
+        // Pop one vreg per callee parameter (Parameters[0] is `this` for instance
+        // methods), in reverse so the deepest stack entry maps to parameter 0.
+        private int[] PopCallArgs(EcmaMethod callee)
+        {
             var argVregs = new int[callee.Parameters.Length];
             for (var i = callee.Parameters.Length - 1; i >= 0; i--)
             {
@@ -1549,18 +1786,141 @@ internal sealed class IlToMirTranslator : IDisposable
                     ? MaterialiseCompare(arg.Vreg)
                     : arg.Vreg;
             }
+            return argVregs;
+        }
+
+        // callvirt → a direct call when the target is non-virtual (C# emits
+        // callvirt for every instance call, including non-virtual ones, for its
+        // null-check semantics); otherwise a vtable dispatch:
+        //   %vtable : i16 = mem.load.i16 (this - 2)     ; header holds vtable ptr
+        //   %fptr   : i16 = mem.load.i16 (%vtable + slot*2)
+        //   call.indirect %fptr, this, args…
+        private void TranslateCallvirt(Handle methodHandle)
+        {
+            var callee = _method.DeclaringType.Assembly.ResolveMethod(methodHandle);
+
+            if (!callee.IsVirtual)
+            {
+                TranslateDirectCall(callee);
+                return;
+            }
+
+            var argVregs = PopCallArgs(callee);
+            var thisPtr = argVregs[0];
 
             var returnType = ToIRType(callee.MethodSignature.ReturnType);
             var returnTypes = returnType is VoidType ? Array.Empty<IRType>() : [returnType];
 
-            // Only enqueue methods we are responsible for translating; runtime
-            // functions (and special-cased BCL methods) are skipped.
-            if (!isSpecialCased)
-                _parent.EnqueueMethod(callee);
+            // The object header (the vtable pointer) sits PointerSize bytes below
+            // the object reference.
+            var headerAddr = EmitPointerSub(thisPtr, PointerSize);
+            var vtablePtr = _function.CreateVirtualRegister(IRType.I16);
+            _builder.BuildInstruction(MemDialect.OpRef(MemOp.LoadI16),
+                new VirtualReg(vtablePtr, IsDefinition: true),
+                new VirtualReg(headerAddr, IsDefinition: false));
 
-            var defs = _builder.BuildCall(calleeName, returnTypes, argVregs);
+            var slotIndex = _parent.GetVtableSlotIndex(callee);
+            var slotAddr = EmitFieldAddress(vtablePtr, slotIndex * PointerSize);
+            var fptr = _function.CreateVirtualRegister(IRType.I16);
+            _builder.BuildInstruction(MemDialect.OpRef(MemOp.LoadI16),
+                new VirtualReg(fptr, IsDefinition: true),
+                new VirtualReg(slotAddr, IsDefinition: false));
+
+            var defs = _builder.BuildCallIndirect(fptr, returnTypes, argVregs);
             if (returnTypes.Length > 0)
                 _stack.Push(new StackValue(defs[0], returnType));
+        }
+
+        // newobj <ctor> → allocate the object then run its constructor:
+        //   %ptr = call.func @ManagedHeap_Alloc(<instanceSize>, &Vtable_<type>)
+        //   call.func @<ctor>(%ptr, args…)
+        // and push %ptr. ManagedHeap.Alloc reserves a 2-byte header (the vtable
+        // pointer) and returns a pointer to the object contents.
+        private void TranslateNewobj(EntityHandle methodHandle)
+        {
+            var constructor = _method.DeclaringType.Assembly.ResolveMethod(methodHandle);
+            var type = constructor.DeclaringType;
+            _parent.MarkTypeUsed(type);
+
+            // Constructor args, excluding the `this` at Parameters[0] (we supply
+            // the freshly-allocated pointer for that). Popped before the Alloc so
+            // they are evaluated in IL order; the register allocator spills any
+            // that turn out to be live across the Alloc / ctor calls.
+            var userArgCount = constructor.Parameters.Length - 1;
+            var userArgs = new int[userArgCount];
+            for (var i = userArgCount - 1; i >= 0; i--)
+            {
+                var arg = _stack.Pop();
+                userArgs[i] = arg.Type == IRType.I1 ? MaterialiseCompare(arg.Vreg) : arg.Vreg;
+            }
+
+            var size = _builder.BuildConstant(IRType.I16, type.InstanceSize);
+            var vtablePtr = _builder.BuildMemSymbol(Vtable.GetName(type));
+            var allocMethod = _parent.GetAllocMethod();
+            _parent.EnqueueMethod(allocMethod);
+            var ptr = _builder.BuildCall(allocMethod.UniqueName, [IRType.Pointer], size, vtablePtr)[0];
+
+            _parent.EnqueueMethod(constructor);
+            var ctorArgs = new int[userArgCount + 1];
+            ctorArgs[0] = ptr;
+            Array.Copy(userArgs, 0, ctorArgs, 1, userArgCount);
+            _builder.BuildCall(constructor.UniqueName, [], ctorArgs);
+
+            _stack.Push(new StackValue(ptr, IRType.Pointer));
+        }
+
+        // dup → re-push the top stack value (same vreg).
+        private void TranslateDup() => _stack.Push(_stack.Peek());
+
+        // sizeof <type> → push the type's size as an i32 constant (matches the
+        // IL `sizeof` result type). For IntPtr this is the 16-bit pointer size.
+        private void TranslateSizeof(EntityHandle typeHandle)
+        {
+            var type = _method.DeclaringType.Assembly.ResolveType(typeHandle);
+            var vreg = _builder.BuildConstant(IRType.I32, type.Size);
+            _stack.Push(new StackValue(vreg, IRType.I32));
+        }
+
+        // conv.i / conv.u → convert the top value to a native int (i16). A wider
+        // value is truncated via cast.trunc; an already-i16 value is left as-is.
+        private void TranslateConvi()
+        {
+            var value = _stack.Pop();
+            if (value.Type.Equals(IRType.I16))
+            {
+                _stack.Push(value);
+                return;
+            }
+
+            var result = _function.CreateVirtualRegister(IRType.I16);
+            _builder.BuildInstruction(CastDialect.OpRef(CastOp.Trunc),
+                new VirtualReg(result, IsDefinition: true),
+                new VirtualReg(value.Vreg, IsDefinition: false));
+            _stack.Push(new StackValue(result, IRType.I16));
+        }
+
+        // stind.i (and friends) → store the value into the pointer. Stack layout
+        // (top first): value, then the destination pointer.
+        private void TranslateStind(IRType type)
+        {
+            var value = _stack.Pop();
+            var addr = _stack.Pop();
+            _builder.BuildInstruction(MemDialect.OpRef(StoreOpFor(type)),
+                new VirtualReg(addr.Vreg, IsDefinition: false),
+                new VirtualReg(value.Vreg, IsDefinition: false));
+        }
+
+        // Address `offset` bytes *below* an i16 pointer (e.g. the object header
+        // at this-2). Mirrors EmitFieldAddress but subtracts.
+        private int EmitPointerSub(int baseVreg, int offset)
+        {
+            var offsetConst = _builder.BuildConstant(IRType.I16, offset);
+            var addr = _function.CreateVirtualRegister(IRType.I16);
+            _builder.BuildInstruction(ArithDialect.OpRef(ArithOp.SubI),
+                new VirtualReg(addr, IsDefinition: true),
+                new VirtualReg(baseVreg, IsDefinition: false),
+                new VirtualReg(offsetConst, IsDefinition: false));
+            return addr;
         }
 
         private void TranslateRet()
