@@ -42,8 +42,10 @@ public sealed class MOS6502Dialect : Dialect
         [MOS6502Op.Ror] = "ror",
 
         // LDA
-        [MOS6502Op.LdaImm]  = "lda.imm",
-        [MOS6502Op.LdaZp]   = "lda.zp",
+        [MOS6502Op.LdaImm]       = "lda.imm",
+        [MOS6502Op.LdaImmSymLo]  = "lda.imm.symlo",
+        [MOS6502Op.LdaImmSymHi]  = "lda.imm.symhi",
+        [MOS6502Op.LdaZp]        = "lda.zp",
         [MOS6502Op.LdaZpX]  = "lda.zpx",
         [MOS6502Op.LdaAbs]  = "lda.abs",
         [MOS6502Op.LdaAbsX] = "lda.absx",
@@ -249,13 +251,14 @@ public sealed class MOS6502Dialect : Dialect
 
     private static readonly HashSet<MOS6502Op> _terminators =
     [
+        // RTS / RTI: function returns. JMP: unconditional transfer, no
+        // fallthrough. Conditional branches (Beq/Bne/etc.) are NOT terminators
+        // in our model — they may branch to their target, but control falls
+        // through to the next instruction on the not-taken path. JSR returns
+        // to the caller after the called function returns, so it's not a
+        // terminator either.
         MOS6502Op.Rts, MOS6502Op.Rti,
-        MOS6502Op.Beq, MOS6502Op.Bne,
-        MOS6502Op.Bcc, MOS6502Op.Bcs,
-        MOS6502Op.Bmi, MOS6502Op.Bpl,
-        MOS6502Op.Bvc, MOS6502Op.Bvs,
-        MOS6502Op.Bgt,
-        MOS6502Op.JmpAbs, MOS6502Op.JmpInd, MOS6502Op.JsrAbs,
+        MOS6502Op.JmpAbs, MOS6502Op.JmpInd,
     ];
 
     public override string GetOpName(ushort code)
@@ -280,6 +283,13 @@ public sealed class MOS6502Dialect : Dialect
             MOS6502Op.Adc    => AdcInfo,
             MOS6502Op.AdcZp  => AdcInfo,
             MOS6502Op.AdcImm => AdcInfo,
+            MOS6502Op.Sbc    => SbcInfo,
+            MOS6502Op.SbcZp  => SbcInfo,
+            MOS6502Op.SbcImm => SbcInfo,
+            MOS6502Op.Cmp    => CmpInfo,
+            MOS6502Op.CmpZp  => CmpInfo,
+            MOS6502Op.CmpImm => CmpInfo,
+            MOS6502Op.EorImm => EorImmInfo,
             _ => DialectInstructionInfo.Empty,
         };
 
@@ -295,6 +305,46 @@ public sealed class MOS6502Dialect : Dialect
             MOS6502RegisterClass.Cc,    // use[2]: carry_in
         ],
         TiedOperands: [-1, -1, 0, -1, -1]);
+
+    // Pre-AMS `mos6502.sbc` and its AMS-refined variants (`sbc.zp`, `sbc.imm`).
+    // Same shape as Adc: 2 defs + 3 uses; use[0] tied to def[0]. The carry-in
+    // here is the 6502 borrow-inverted carry flag (1 = no borrow).
+    private static readonly DialectInstructionInfo SbcInfo = new(
+        OperandClasses: [
+            MOS6502RegisterClass.Ac,    // def[0]: result
+            MOS6502RegisterClass.Cc,    // def[1]: borrow_out (carry-flag polarity)
+            MOS6502RegisterClass.Ac,    // use[0]: L (tied to def[0])
+            MOS6502RegisterClass.Imag8, // use[1]: R
+            MOS6502RegisterClass.Cc,    // use[2]: borrow_in (carry-flag polarity)
+        ],
+        TiedOperands: [-1, -1, 0, -1, -1]);
+
+    // Pre-AMS `mos6502.cmp` and its AMS-refined variants (`cmp.zp`, `cmp.imm`).
+    // Explicit operands: use[0]=a (in $a), use[1]=b. Sets flags $n, $z, $c as
+    // implicit defs — they live as separate PhysicalReg(IsImplicit=true)
+    // entries in the operand array so RA understands the clobber. No tied
+    // operands (cmp doesn't write back to A).
+    private static readonly DialectInstructionInfo CmpInfo = new(
+        OperandClasses: [
+            MOS6502RegisterClass.Ac,    // use[0]: a
+            MOS6502RegisterClass.Imag8, // use[1]: b
+        ],
+        ImplicitDefs: [
+            MOS6502Registers.N,
+            MOS6502Registers.Z,
+            MOS6502Registers.C,
+        ]);
+
+    // `mos6502.eor.imm` accumulator EOR: def[0]=$a (result), use[0]=$a (tied),
+    // use[1]=immediate. The signed-compare sign-flip emits this with virtual
+    // Ac vregs, so the tied-operand metadata is needed for the two-address pass
+    // and RA to share a single $a across the def/use.
+    private static readonly DialectInstructionInfo EorImmInfo = new(
+        OperandClasses: [
+            MOS6502RegisterClass.Ac,    // def[0]: result
+            MOS6502RegisterClass.Ac,    // use[0]: a (tied to def[0])
+        ],
+        TiedOperands: [-1, 0]);
 
     // Target ops conservatively touch physregs/memory; treat them as having
     // side effects for DCE purposes until a finer-grained model is in place.

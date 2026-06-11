@@ -9,36 +9,87 @@ internal static class LitTestExecutor
 {
     public static LitTestResult Execute(TestFile testFile)
     {
-        var combinedRunOutput = "";
         var errorMessages = new List<string>();
         var successful = true;
+        var allRunOutput = "";
 
-        foreach (var command in testFile.Commands.OfType<RunCommand>())
+        var runsByLabel = testFile.Commands.OfType<RunCommand>()
+            .GroupBy(r => r.Label)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var checksByLabel = testFile.Commands.OfType<CheckCommand>()
+            .GroupBy(c => c.Label)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        foreach (var label in checksByLabel.Keys)
         {
-            var commandOutput = ExecuteRunCommand(command.CommandLine, command.ExpectFailure);
-            combinedRunOutput += commandOutput;
-        }
-
-        var currentCharIndex = 0;
-
-        foreach (var checkCommand in testFile.Commands.OfType<CheckCommand>())
-        {
-            var substring = combinedRunOutput.AsSpan(currentCharIndex);
-
-            var match = Regex.Match(combinedRunOutput, checkCommand.Pattern);
-
-            if (!match.Success)
+            if (!runsByLabel.ContainsKey(label))
             {
-                errorMessages.Add($"CHECK failed; couldn't find `{checkCommand.Pattern}` in command output `{combinedRunOutput}`");
+                var prefix = label == "" ? "CHECK" : $"CHECK-{label}";
+                errorMessages.Add($"No RUN directive for label '{label}' (found {prefix}: lines but no matching RUN{(label == "" ? "" : $"-{label}")}:)");
                 successful = false;
-                break;
             }
-
-            currentCharIndex = match.Index + match.Length;
         }
 
-        return new LitTestResult(successful, [.. errorMessages], combinedRunOutput);
+        var outputsByLabel = new Dictionary<string, string>();
+        foreach (var (label, runs) in runsByLabel)
+        {
+            var labelOutput = "";
+            foreach (var run in runs)
+            {
+                var commandOutput = ExecuteRunCommand(run.CommandLine, run.ExpectFailure);
+                labelOutput += commandOutput;
+            }
+            outputsByLabel[label] = labelOutput;
+            allRunOutput += labelOutput;
+        }
+
+        foreach (var diff in testFile.Commands.OfType<DiffCommand>())
+        {
+            if (!outputsByLabel.TryGetValue(diff.Label1, out var output1))
+            {
+                errorMessages.Add($"DIFF: no RUN-{diff.Label1}: directive found");
+                successful = false;
+                continue;
+            }
+            if (!outputsByLabel.TryGetValue(diff.Label2, out var output2))
+            {
+                errorMessages.Add($"DIFF: no RUN-{diff.Label2}: directive found");
+                successful = false;
+                continue;
+            }
+            if (NormalizeOutput(output1) != NormalizeOutput(output2))
+            {
+                errorMessages.Add($"DIFF failed: output of '{diff.Label1}' does not match '{diff.Label2}'.\n--- {diff.Label1} ---\n{output1}\n--- {diff.Label2} ---\n{output2}");
+                successful = false;
+            }
+        }
+
+        foreach (var (label, checks) in checksByLabel)
+        {
+            if (!outputsByLabel.TryGetValue(label, out var labelOutput))
+                continue;
+
+            var currentCharIndex = 0;
+            foreach (var check in checks)
+            {
+                var match = Regex.Match(labelOutput[currentCharIndex..], check.Pattern);
+                if (!match.Success)
+                {
+                    var prefix = label == "" ? "CHECK" : $"CHECK-{label}";
+                    errorMessages.Add($"{prefix} failed; couldn't find `{check.Pattern}` in command output `{labelOutput}`");
+                    successful = false;
+                    break;
+                }
+                currentCharIndex += match.Index + match.Length;
+            }
+        }
+
+        return new LitTestResult(successful, [.. errorMessages], allRunOutput);
     }
+
+    private static string NormalizeOutput(string output) =>
+        output.Replace("\r\n", "\n");
 
     private static string ExecuteRunCommand(string commandLine, bool expectFailure = false)
     {
@@ -58,16 +109,19 @@ internal static class LitTestExecutor
         process.StartInfo.ArgumentList.Add(shellFlag);
         process.StartInfo.ArgumentList.Add(commandLine);
 
-        var output = "";
+        var outputBuilder = new System.Text.StringBuilder();
+        var outputLock = new object();
 
         process.OutputDataReceived += (sender, e) =>
         {
-            output += e.Data + Environment.NewLine;
+            if (e.Data != null)
+                outputBuilder.Append(e.Data + Environment.NewLine);
         };
 
         process.ErrorDataReceived += (sender, e) =>
         {
-            output += e.Data + Environment.NewLine;
+            if (e.Data != null)
+                outputBuilder.Append(e.Data + Environment.NewLine);
         };
 
         process.Start();
@@ -76,6 +130,8 @@ internal static class LitTestExecutor
         process.BeginErrorReadLine();
 
         process.WaitForExit();
+
+        var output = outputBuilder.ToString();
 
         if (expectFailure)
         {

@@ -28,4 +28,42 @@ public abstract class CallLowering
         IRType returnType,
         int? returnValueVreg,
         MirBuilder builder);
+
+    // Called for each `call.func` instruction. The implementation should
+    // replace the call.func with:
+    //   1. Per-arg-byte `pseudo.copy <argByteVreg> → <argPhysReg>` setup
+    //      (preceded by `pseudo.unmerge` for wide arg types).
+    //   2. A target-specific call instruction (e.g. `mos6502.jsr.abs @callee`)
+    //      with implicit-uses on arg physregs and implicit-defs on return
+    //      physregs + caller-saved scratch physregs.
+    //   3. Per-return-byte `pseudo.copy <returnPhysReg> → <returnByteVreg>`
+    //      teardown (followed by `pseudo.merge` for wide return types).
+    //
+    // The `call.func` is removed by the calling pass after this method
+    // returns. argVregs and returnVregs are the vreg IDs from the call.func
+    // operand list (in MIR text order).
+    public abstract void LowerCall(
+        string calleeName,
+        IRType[] argTypes,
+        int[] argVregs,
+        IRType[] returnTypes,
+        int[] returnVregs,
+        MirBuilder builder);
+
+    // Called for each `call.indirect` instruction. Same shape as LowerCall
+    // but the callee is an i16 function-pointer vreg instead of a Symbol.
+    // The target is responsible for getting control to that pointer — on
+    // MOS6502 by parking the pointer in fixed zero-page slots and jumping
+    // to a runtime trampoline that performs `JMP (zp)`.
+    public virtual void LowerIndirectCall(
+        int targetPtrVreg,
+        IRType[] argTypes,
+        int[] argVregs,
+        IRType[] returnTypes,
+        int[] returnVregs,
+        MirBuilder builder)
+    {
+        throw new NotImplementedException(
+            "CallLowering.LowerIndirectCall must be overridden by the target for call.indirect ops.");
+    }
 }

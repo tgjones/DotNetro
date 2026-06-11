@@ -72,9 +72,14 @@ public static class MOS6502AssemblyWriter
 
     private static string FormatImmediate(MachineCodeOperand operand)
     {
-        if (operand is MachineCodeOperand.Immediate(var value))
-            return $"${value & 0xFF:X2}";
-        throw new InvalidOperationException($"Expected Immediate operand, got {operand.GetType().Name}");
+        return operand switch
+        {
+            MachineCodeOperand.Immediate(var value) => $"${value & 0xFF:X2}",
+            MachineCodeOperand.ExternalRef(var name, SymbolHalf.LowByte)  => $"<{name}",
+            MachineCodeOperand.ExternalRef(var name, SymbolHalf.HighByte) => $">{name}",
+            _ => throw new InvalidOperationException(
+                $"Expected Immediate or symbol-half ExternalRef operand, got {operand.GetType().Name}"),
+        };
     }
 
     private static string FormatAddress(MachineCodeOperand operand, int bytes)
@@ -83,7 +88,7 @@ public static class MOS6502AssemblyWriter
         {
             MachineCodeOperand.Immediate(var value) =>
                 bytes == 1 ? $"${value & 0xFF:X2}" : $"${value & 0xFFFF:X4}",
-            MachineCodeOperand.ExternalRef(var name) => name,
+            MachineCodeOperand.ExternalRef(var name, _) => name,
             MachineCodeOperand.LabelRef(var name) => $".{name}",
             _ => throw new InvalidOperationException($"Unexpected operand type {operand.GetType().Name} for address"),
         };
@@ -93,8 +98,8 @@ public static class MOS6502AssemblyWriter
     {
         return operand switch
         {
-            MachineCodeOperand.LabelRef(var name) => $".{name}",
-            MachineCodeOperand.ExternalRef(var name) => name,
+            MachineCodeOperand.LabelRef(var name)        => $".{name}",
+            MachineCodeOperand.ExternalRef(var name, _)  => name,
             _ => throw new InvalidOperationException($"Unexpected operand type {operand.GetType().Name} for branch"),
         };
     }

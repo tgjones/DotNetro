@@ -1,0 +1,42 @@
+; RUN: @iriec --target mos6502 --emit=bin --origin=0x1900 @file | @irie-mc --hex-dump
+
+; End-to-end: same IntegerAdd32 input as IntegerAdd32-MachineCode.irie, but
+; verified at the byte level via --emit=bin | irie-mc --hex-dump. Each MIR
+; opcode lowers to one 6502 instruction and encodes to the documented byte:
+;
+;   CLC                 ; 18
+;   ADC $04             ; 65 04
+;   STA $04             ; 85 04
+;   TXA                 ; 8A
+;   ADC $05             ; 65 05
+;   STA $08             ; 85 08
+;   LDA $02             ; A5 02
+;   STA $09             ; 85 09
+;   LDA $08             ; A5 08
+;   STA $05             ; 85 05
+;   LDA $06             ; A5 06
+;   STA $02             ; 85 02
+;   LDA $09             ; A5 09
+;   ADC $02             ; 65 02
+;   STA $06             ; 85 06
+;   LDA $03             ; A5 03
+;   STA $08             ; 85 08
+;   LDA $06             ; A5 06
+;   STA $02             ; 85 02
+;   LDA $07             ; A5 07
+;   STA $03             ; 85 03
+;   LDA $08             ; A5 08
+;   ADC $03             ; 65 03
+;   STA $03             ; 85 03
+;   LDA $04             ; A5 04
+;   LDX $05             ; A6 05
+;   RTS                 ; 60
+
+; CHECK: 00000000: 18 65 04 A8 8A 65 05 AA  A5 02 65 06 85 02 A5 03
+; CHECK: 00000010: 65 07 85 03 98 60
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i32 = arith.addi %0, %1
+    core.return %2
+}

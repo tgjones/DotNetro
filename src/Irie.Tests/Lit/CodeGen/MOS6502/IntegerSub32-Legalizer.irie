@@ -1,0 +1,41 @@
+; RUN: @iriec --target mos6502 --stop-after Legalizer @file
+
+; Checks the unified-MIR legalizer pass on subtraction: a wide 32-bit
+; `arith.subi` is split into a chain of four 8-bit `arith.subi_with_borrow`
+; operations (NarrowScalar action), threaded through i1 borrow vregs. The
+; chain head's borrow-in is an explicit `arith.constant 1` (6502 SEC = carry
+; set = no borrow) so every link has a uniform 3-use shape.
+;
+; The pseudo.merge / pseudo.unmerge artifacts inserted by NarrowScalar around
+; the per-byte chain are folded by the LegalizationArtifactCombiner against
+; the surrounding ABI-lowering artifacts, so the chain feeds directly off the
+; parameter-byte copies and into the return-byte copies.
+
+; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
+; CHECK:   bb0\(\):
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
+; CHECK:     %3 : i8 = pseudo.copy \$a
+; CHECK:     %4 : i8 = pseudo.copy \$x
+; CHECK:     %5 : i8 = pseudo.copy \$zp2
+; CHECK:     %6 : i8 = pseudo.copy \$zp3
+; CHECK:     %7 : i8 = pseudo.copy \$zp4
+; CHECK:     %8 : i8 = pseudo.copy \$zp5
+; CHECK:     %9 : i8 = pseudo.copy \$zp6
+; CHECK:     %10 : i8 = pseudo.copy \$zp7
+; CHECK:     %23 : i1 = arith.constant 1
+; CHECK:     %24 : i8, %25 : i1 = arith.subi_with_borrow %3, %7, %23
+; CHECK:     %26 : i8, %27 : i1 = arith.subi_with_borrow %4, %8, %25
+; CHECK:     %28 : i8, %29 : i1 = arith.subi_with_borrow %5, %9, %27
+; CHECK:     %30 : i8, %31 : i1 = arith.subi_with_borrow %6, %10, %29
+; CHECK:     \$a = pseudo.copy %24
+; CHECK:     \$x = pseudo.copy %26
+; CHECK:     \$zp2 = pseudo.copy %28
+; CHECK:     \$zp3 = pseudo.copy %30
+; CHECK:     pseudo.return
+; CHECK: \}
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i32 = arith.subi %0, %1
+    core.return %2
+}

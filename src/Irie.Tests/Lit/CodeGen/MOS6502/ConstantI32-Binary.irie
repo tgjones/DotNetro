@@ -1,0 +1,41 @@
+; RUN: @iriec --target mos6502 --emit=bin --origin=0x1900 @file | @irie-mc --hex-dump
+
+; End-to-end: an i32 constant flows through the full pipeline (legalizer +
+; isel + RA + AMS + pseudo expansion + encoder). The legalizer narrows the
+; wide `arith.constant 42 : i32` into 4 byte-sized constants (42, 0, 0, 0
+; LSB-first) which are loaded into the i32 return ABI registers via
+; immediate loads + zero-page stores, then re-read into the return physregs.
+;
+; The return setup is an acyclic parallel copy {A<-$02, X<-$03, $02<-$04,
+; $03<-$05}. On the 6502 the two zp→zp moves expand to LDA;STA and clobber $a,
+; so MOS6502ParallelCopyPass reschedules the run: it evacuates byte 0 out of $02
+; into a free scratch slot ($06) before $02 is overwritten, and emits the
+; $a-destined load last so the return value reaches $a intact.
+;
+; Each MIR opcode lowers to one 6502 instruction:
+;
+;   LDA #$2A            ; A9 2A       ; constant byte 0 = 42
+;   STA $02             ; 85 02       ; park in zp2
+;   LDA #$00            ; A9 00       ; constant byte 1 = 0
+;   STA $03             ; 85 03       ; park in zp3
+;   LDA #$00            ; A9 00       ; constant byte 2 = 0
+;   STA $04             ; 85 04
+;   LDA #$00            ; A9 00       ; constant byte 3 = 0
+;   STA $05             ; 85 05
+;   LDA $02             ; A5 02       ; evacuate byte 0 ...
+;   STA $06             ; 85 06       ; ... into scratch zp6
+;   LDX $03             ; A6 03       ; return byte 1 -> X
+;   LDA $04             ; A5 04       ; load byte 2 (via A as scratch)
+;   STA $02             ; 85 02       ; into return zp2
+;   LDA $05             ; A5 05       ; load byte 3 (via A as scratch)
+;   STA $03             ; 85 03       ; into return zp3
+;   LDA $06             ; A5 06       ; return byte 0 -> A (emitted last)
+;   RTS                 ; 60
+
+; CHECK: 00000000: A9 2A A2 00 A0 00 84 02  A0 00 84 03 60
+
+func @TestConstant : () -> i32 {
+bb0():
+    %0 : i32 = arith.constant 42
+    core.return %0
+}

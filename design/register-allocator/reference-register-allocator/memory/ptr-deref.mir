@@ -1,0 +1,105 @@
+--- |
+  ; ModuleID = './memory/ptr-deref.ll'
+  source_filename = "./memory/ptr-deref.c"
+  target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+  target triple = "mos-unknown-unknown"
+  
+  ; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(argmem: readwrite)
+  define dso_local i16 @ptr_deref(ptr noundef captures(none) %0) local_unnamed_addr #0 {
+    %2 = load i16, ptr %0, align 1, !tbaa !2
+    %3 = add nsw i16 %2, 1
+    store i16 %3, ptr %0, align 1, !tbaa !2
+    ret i16 %2
+  }
+  
+  attributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(argmem: readwrite) "frame-pointer"="all" "no-trapping-math"="true" "nonreentrant" "stack-protector-buffer-size"="8" }
+  
+  !llvm.module.flags = !{!0}
+  !llvm.ident = !{!1}
+  !llvm.errno.tbaa = !{!2}
+  
+  !0 = !{i32 7, !"frame-pointer", i32 2}
+  !1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+  !2 = !{!3, !3, i64 0}
+  !3 = !{!"int", !4, i64 0}
+  !4 = !{!"omnipotent char", !5, i64 0}
+  !5 = !{!"Simple C/C++ TBAA"}
+...
+---
+name:            ptr_deref
+alignment:       1
+exposesReturnsTwice: false
+legalized:       true
+regBankSelected: true
+selected:        true
+failedISel:      false
+tracksRegLiveness: true
+hasWinCFI:       false
+noPhis:          true
+isSSA:           false
+noVRegs:         true
+hasFakeUses:     false
+callsEHReturn:   false
+callsUnwindInit: false
+hasEHContTarget: false
+hasEHScopes:     false
+hasEHFunclets:   false
+isOutlined:      false
+debugInstrRef:   false
+failsVerification: false
+tracksDebugUserValues: true
+registers:       []
+liveins:         []
+frameInfo:
+  isFrameAddressTaken: false
+  isReturnAddressTaken: false
+  hasStackMap:     false
+  hasPatchPoint:   false
+  stackSize:       0
+  offsetAdjustment: 0
+  maxAlignment:    1
+  adjustsStack:    false
+  hasCalls:        false
+  framePointerPolicy: all
+  stackProtector:  ''
+  functionContext: ''
+  maxCallFrameSize: 4294967295
+  cvBytesOfCalleeSavedRegisters: 0
+  hasOpaqueSPAdjustment: false
+  hasVAStart:      false
+  hasMustTailInVarArgFunc: false
+  hasTailCall:     false
+  isCalleeSavedInfoValid: false
+  localFrameSize:  0
+fixedStack:      []
+stack:           []
+entry_values:    []
+callSites:       []
+debugValueSubstitutions: []
+constants:       []
+machineFunctionInfo: {}
+body:             |
+  bb.0 (%ir-block.1):
+    liveins: $rs1
+  
+    renamable $y = LDImm 0
+    renamable $a = LDIndirIdx renamable $rs1, killed renamable $y :: (load (s8) from %ir.0, !tbaa !2)
+    renamable $x = LDImm 0
+    renamable $rc5 = COPY killed renamable $x
+    renamable $rc4 = COPY killed renamable $a
+    renamable $y = LDImm 1
+    renamable $a = LDIndirIdx renamable $rs1, killed renamable $y :: (load (s8) from %ir.0 + 1, !tbaa !2)
+    renamable $x = LDImm 1
+    renamable $rc6 = COPY killed renamable $x
+    renamable $x = COPY killed renamable $a
+    renamable $a = COPY renamable $rc4
+    renamable $rc7 = COPY renamable $x
+    renamable $a, renamable $rc7 = IncMB killed renamable $a(tied-def 0), killed renamable $rc7(tied-def 1), implicit-def dead $c, implicit-def dead $v
+    renamable $y = COPY killed renamable $rc5
+    STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0, !tbaa !2)
+    renamable $y = COPY killed renamable $rc6
+    renamable $a = COPY killed renamable $rc7
+    STIndirIdx killed renamable $a, killed renamable $rs1, killed renamable $y :: (store (s8) into %ir.0 + 1, !tbaa !2)
+    $a = COPY killed renamable $rc4
+    RTS implicit $a, implicit $x
+...

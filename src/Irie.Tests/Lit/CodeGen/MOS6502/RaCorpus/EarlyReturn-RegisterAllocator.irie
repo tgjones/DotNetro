@@ -1,0 +1,79 @@
+; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file
+
+; Derived from reference-register-allocator/control-flow/early-return.
+; A guard clause: one early exit, plus a fall-through that consumes all three
+; args. (The full corpus version chains three guards; that pressure exceeds the
+; current no-spill RA, so this is the largest early-return shape Irie allocates
+; today.)
+
+; CHECK: func @early_return : \(i16, i16, i16\) -> i16 \{
+; CHECK: bb0\(\):
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5\]
+; CHECK:     \$zp7 = pseudo\.copy \$a
+; CHECK:     \$zp6 = pseudo\.copy \$x
+; CHECK:     \$zp11 = pseudo\.copy \$zp2
+; CHECK:     \$zp10 = pseudo\.copy \$zp3
+; CHECK:     \$zp9 = pseudo\.copy \$zp4
+; CHECK:     \$zp8 = pseudo\.copy \$zp5
+; CHECK:     \$zp5 = pseudo\.copy 0
+; CHECK:     \$zp4 = pseudo\.copy 0
+; CHECK:     \$zp3 = pseudo\.copy \$zp7
+; CHECK:     \$a = pseudo\.copy \$zp6
+; CHECK:     \$zp12 = pseudo\.copy \$zp5
+; CHECK:     \$x = pseudo\.copy \$zp4
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$a = mos6502\.eor\.imm \$a, 128
+; CHECK:     \$y = pseudo\.copy \$a
+; CHECK:     \$y = pseudo\.copy \$y
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$a = pseudo\.copy \$x
+; CHECK:     \$a = mos6502\.eor\.imm \$a, 128
+; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
+; CHECK:     \$a = pseudo\.copy \$y
+; CHECK:     mos6502\.cmp \$a, \$zp2, implicit-def \$n, implicit-def \$z, implicit-def \$c
+; CHECK:     mos6502\.bcc bb1, implicit \$c
+; CHECK:     mos6502\.bne bb2, implicit \$z
+; CHECK:     \$a = pseudo\.copy \$zp3
+; CHECK:     mos6502\.cmp \$a, \$zp12, implicit-def \$n, implicit-def \$z, implicit-def \$c
+; CHECK:     mos6502\.bcc bb1, implicit \$c
+; CHECK:     mos6502\.jmp\.abs bb2
+; CHECK: bb1\(\):
+; CHECK:     \[liveins: \$zp5, \$zp4\]
+; CHECK:     \$a = pseudo\.copy \$zp5
+; CHECK:     \$x = pseudo\.copy \$zp4
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x
+; CHECK: bb2\(\):
+; CHECK:     \[liveins: \$zp7, \$zp6, \$zp11, \$zp10, \$zp9, \$zp8\]
+; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$a = pseudo\.copy \$zp11
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp9, \$c
+; CHECK:     \$y = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp10
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp8, \$c
+; CHECK:     \$x = pseudo\.copy \$a
+; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$a = pseudo\.copy \$y
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp7, \$c
+; CHECK:     \$y = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$x
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp6, \$c
+; CHECK:     \$x = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$y
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x
+; CHECK: \}
+
+func @early_return : (i16, i16, i16) -> i16 {
+bb0(%0 : i16, %1 : i16, %2 : i16):
+    %3 : i16 = arith.constant 0
+    %4 : i1 = arith.cmpi slt, %0, %3
+    cf.cond_br %4, bb1(), bb2()
+bb1():
+    core.return %3
+bb2():
+    %5 : i16 = arith.addi %1, %2
+    %6 : i16 = arith.addi %5, %0
+    core.return %6
+}

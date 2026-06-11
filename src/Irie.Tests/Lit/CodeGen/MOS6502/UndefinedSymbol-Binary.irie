@@ -1,0 +1,11 @@
+; RUN: not @iriec --target mos6502 --emit=bin --origin=0x1000 @file
+
+; A `mos6502.jsr.abs @nonexistent` in a single-function module: there is no
+; @nonexistent in the module, so the encoder cannot resolve the ExternalRef
+; and must throw at Encode() time.
+
+func @Caller : () -> void {
+bb0():
+    mos6502.jsr.abs @nonexistent
+    mos6502.rts
+}

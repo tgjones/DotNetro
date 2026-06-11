@@ -1,0 +1,14 @@
+; RUN: @iriec --target mos6502 --emit=bin --origin=0x1000 @file | @irie-mc --hex-dump
+
+; Exercises the indirect-call trampoline used by callvirt lowering: the
+; target address is parked in zero-page bytes $1E/$1F (RC30/RC31) by
+; MOS6502CallLowering, then this trampoline dispatches via `JMP ($1E)`.
+;
+;   $1000: JMP ($001E)     ; 6C 1E 00
+
+; CHECK: 00000000: 6C 1E 00
+
+func @__call_indirect_trampoline : () -> void {
+bb0():
+    mos6502.jmp.ind 30
+}

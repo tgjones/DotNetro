@@ -1,0 +1,139 @@
+--- |
+  ; ModuleID = './realistic/gcd.ll'
+  source_filename = "./realistic/gcd.c"
+  target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+  target triple = "mos-unknown-unknown"
+  
+  ; Function Attrs: nofree norecurse nosync nounwind memory(none)
+  define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+    %3 = icmp eq i16 %1, 0
+    br i1 %3, label %9, label %.preheader
+  
+  .preheader:                                       ; preds = %2
+    br label %4
+  
+  4:                                                ; preds = %.preheader, %4
+    %5 = phi i16 [ %6, %4 ], [ %0, %.preheader ]
+    %6 = phi i16 [ %7, %4 ], [ %1, %.preheader ]
+    %7 = srem i16 %5, %6
+    %8 = icmp eq i16 %7, 0
+    br i1 %8, label %9, label %4, !llvm.loop !6
+  
+  9:                                                ; preds = %4, %2
+    %10 = phi i16 [ %0, %2 ], [ %6, %4 ]
+    ret i16 %10
+  }
+  
+  attributes #0 = { nofree norecurse nosync nounwind memory(none) "frame-pointer"="all" "no-trapping-math"="true" "nonreentrant" "stack-protector-buffer-size"="8" }
+  
+  !llvm.module.flags = !{!0}
+  !llvm.ident = !{!1}
+  !llvm.errno.tbaa = !{!2}
+  
+  !0 = !{i32 7, !"frame-pointer", i32 2}
+  !1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+  !2 = !{!3, !3, i64 0}
+  !3 = !{!"int", !4, i64 0}
+  !4 = !{!"omnipotent char", !5, i64 0}
+  !5 = !{!"Simple C/C++ TBAA"}
+  !6 = distinct !{!6, !7}
+  !7 = !{!"llvm.loop.mustprogress"}
+...
+---
+name:            gcd
+alignment:       1
+exposesReturnsTwice: false
+legalized:       true
+regBankSelected: true
+selected:        true
+failedISel:      false
+tracksRegLiveness: true
+hasWinCFI:       false
+noPhis:          true
+isSSA:           false
+noVRegs:         true
+hasFakeUses:     false
+callsEHReturn:   false
+callsUnwindInit: false
+hasEHContTarget: false
+hasEHScopes:     false
+hasEHFunclets:   false
+isOutlined:      false
+debugInstrRef:   false
+failsVerification: false
+tracksDebugUserValues: true
+registers:       []
+liveins:         []
+frameInfo:
+  isFrameAddressTaken: false
+  isReturnAddressTaken: false
+  hasStackMap:     false
+  hasPatchPoint:   false
+  stackSize:       0
+  offsetAdjustment: 0
+  maxAlignment:    1
+  adjustsStack:    true
+  hasCalls:        true
+  framePointerPolicy: all
+  stackProtector:  ''
+  functionContext: ''
+  maxCallFrameSize: 4294967295
+  cvBytesOfCalleeSavedRegisters: 0
+  hasOpaqueSPAdjustment: false
+  hasVAStart:      false
+  hasMustTailInVarArgFunc: false
+  hasTailCall:     false
+  isCalleeSavedInfoValid: false
+  localFrameSize:  0
+fixedStack:      []
+stack:           []
+entry_values:    []
+callSites:       []
+debugValueSubstitutions: []
+constants:       []
+machineFunctionInfo: {}
+body:             |
+  bb.0 (%ir-block.2):
+    successors: %bb.4(0x30000000), %bb.1(0x50000000)
+    liveins: $a, $x, $rc2, $rc3
+  
+    renamable $y = COPY $rc2
+    CmpBrZeroMultiByte %bb.1, 0, renamable $y, renamable $rc3, implicit-def $c
+  
+  bb.4:
+    successors: %bb.3(0x80000000)
+    liveins: $a, $x
+  
+    renamable $rc20 = COPY killed renamable $a
+    renamable $rc21 = COPY killed renamable $x
+    JMP %bb.3
+  
+  bb.1..preheader:
+    successors: %bb.2(0x80000000)
+    liveins: $a, $x, $y, $rc3
+  
+  bb.2 (%ir-block.4):
+    successors: %bb.3(0x04000000), %bb.2(0x7c000000)
+    liveins: $a, $x, $y, $rc3
+  
+    renamable $rc21 = COPY killed renamable $rc3
+    renamable $rc20 = COPY killed renamable $y
+    ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+    $rc2 = COPY renamable $rc20
+    $rc3 = COPY renamable $rc21
+    JSR &__modhi3, mos_csr, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+    renamable $y = COPY $a
+    renamable $rc3 = COPY $x
+    ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+    renamable $a = COPY renamable $rc20
+    renamable $x = COPY renamable $rc21
+    CmpBrZeroMultiByte %bb.2, 0, renamable $y, renamable $rc3, implicit-def dead $c
+    JMP %bb.3
+  
+  bb.3 (%ir-block.9):
+    liveins: $rc20, $rc21
+  
+    $x = COPY killed renamable $rc21
+    $a = COPY killed renamable $rc20
+    RTS implicit $a, implicit $x
+...

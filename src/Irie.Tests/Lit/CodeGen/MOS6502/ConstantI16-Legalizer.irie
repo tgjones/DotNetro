@@ -1,0 +1,29 @@
+; RUN: @iriec --target mos6502 --stop-after Legalizer @file
+
+; Checks the unified-MIR legalizer pass: a wide 16-bit `arith.constant` is
+; split into two narrow 8-bit `arith.constant` operations (NarrowScalar
+; action) in LSB-first order, then re-merged with `pseudo.merge` into the
+; original i16 def vreg.
+;
+; The pseudo.merge inserted around the narrowed constants is folded by the
+; LegalizationArtifactCombiner against the surrounding ABI-lowering
+; pseudo.unmerge, so the per-byte constants feed directly into the return
+; byte copies.
+;
+; The value 0x1234 makes the LSB-first ordering obvious: byte 0 is 0x34
+; (52), byte 1 is 0x12 (18).
+
+; CHECK: func @TestConstant : \(\) -> i16 \{
+; CHECK:   bb0\(\):
+; CHECK:     %[0-9]+ : i8 = arith.constant 52
+; CHECK:     %[0-9]+ : i8 = arith.constant 18
+; CHECK:     \$a = pseudo.copy %[0-9]+
+; CHECK:     \$x = pseudo.copy %[0-9]+
+; CHECK:     pseudo.return
+; CHECK: \}
+
+func @TestConstant : () -> i16 {
+bb0():
+    %0 : i16 = arith.constant 4660
+    core.return %0
+}

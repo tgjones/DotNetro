@@ -26,13 +26,89 @@ internal sealed class MirParser
     {
         var module = new MirModule();
         while (_current.Kind != MirTokenKind.Eof)
-            module.Functions.Add(ParseFunction());
+        {
+            // Module-level declarations are distinguished by their opening
+            // identifier: `func` for a function, `global` for a global.
+            if (_current.Kind != MirTokenKind.Identifier)
+                throw Fail(_current, $"Expected 'func' or 'global', got '{_current.Kind}'");
+            switch (_current.Text)
+            {
+                case "func":
+                    module.Functions.Add(ParseFunction());
+                    break;
+                case "global":
+                    module.Globals.Add(ParseGlobal());
+                    break;
+                default:
+                    throw Fail(_current, $"Expected 'func' or 'global', got '{_current.Text}'");
+            }
+        }
         return module;
+    }
+
+    // global @name : <type> [= <initializer>]
+    //   initializer := <data-item> | '[' <data-item> (',' <data-item>)* ']'
+    //   data-item   := 'bytes' STRING | '@' IDENTIFIER
+    private MirGlobal ParseGlobal()
+    {
+        var globalKeyword = Expect(MirTokenKind.Identifier);
+        if (globalKeyword.Text != "global")
+            throw Fail(globalKeyword, $"Expected 'global', got '{globalKeyword.Text}'");
+        Expect(MirTokenKind.At);
+        var name = Expect(MirTokenKind.Identifier).Text!;
+        Expect(MirTokenKind.Colon);
+        var type = ParseType();
+
+        MirInitializer? initializer = null;
+        if (_current.Kind == MirTokenKind.Equals)
+        {
+            Advance(); // consume '='
+            initializer = ParseInitializer();
+        }
+
+        var size = type.SizeInBits / 8;
+        return new MirGlobal(name, type, size, initializer);
+    }
+
+    private MirInitializer ParseInitializer()
+    {
+        if (_current.Kind == MirTokenKind.LBracket)
+        {
+            Advance(); // consume '['
+            var items = new List<MirDataItem> { ParseDataItem() };
+            while (_current.Kind == MirTokenKind.Comma)
+            {
+                Advance();
+                items.Add(ParseDataItem());
+            }
+            Expect(MirTokenKind.RBracket);
+            return new MirInitializer(items.ToArray());
+        }
+        return new MirInitializer([ParseDataItem()]);
+    }
+
+    private MirDataItem ParseDataItem()
+    {
+        if (_current.Kind == MirTokenKind.Identifier && _current.Text == "bytes")
+        {
+            Advance(); // consume 'bytes'
+            var literal = Expect(MirTokenKind.String);
+            return new DataBytes(System.Text.Encoding.UTF8.GetBytes(literal.Text!));
+        }
+        if (_current.Kind == MirTokenKind.At)
+        {
+            Advance(); // consume '@'
+            var nameToken = Expect(MirTokenKind.Identifier);
+            return new DataSymbolRef(nameToken.Text!);
+        }
+        throw Fail(_current, $"Expected data item ('bytes \"…\"' or '@symbol'), got '{_current.Kind}'");
     }
 
     private MirFunction ParseFunction()
     {
-        Expect(MirTokenKind.Func);
+        var funcKeyword = Expect(MirTokenKind.Identifier);
+        if (funcKeyword.Text != "func")
+            throw Fail(funcKeyword, $"Expected 'func', got '{funcKeyword.Text}'");
         Expect(MirTokenKind.At);
         var name = Expect(MirTokenKind.Identifier).Text!;
         Expect(MirTokenKind.Colon);
@@ -41,11 +117,19 @@ internal sealed class MirParser
         var returnType = ParseType();
         Expect(MirTokenKind.LBrace);
 
+        var function = new MirFunction(name, paramTypes, returnType);
+
+        // Optional `frame_slot N : type @name` declarations before the first
+        // block. The frontend reserves one slot per address-taken local; the
+        // FrameLoweringPass materialises each as a module-level MirGlobal.
+        while (_current.Kind == MirTokenKind.Identifier && _current.Text == "frame_slot")
+        {
+            ParseFrameSlot(function);
+        }
+
         // Collect every token in the function body so the inner two-pass
         // block resolution can do its own scan without re-lexing.
         var body = CollectBodyTokens();
-
-        var function = new MirFunction(name, paramTypes, returnType);
 
         // Pass 1: identify block headers (BlockLabel LParen ... RParen Colon).
         // A bare `bbN` or `bbN(args)` without a trailing colon is a block-target
@@ -64,6 +148,21 @@ internal sealed class MirParser
             ParseBlock(tokens, function, blockMap, headerPositions);
 
         return function;
+    }
+
+    private void ParseFrameSlot(MirFunction function)
+    {
+        Advance(); // consume 'frame_slot'
+        var indexToken = Expect(MirTokenKind.Integer);
+        Expect(MirTokenKind.Colon);
+        var typeToken = Expect(MirTokenKind.Identifier);
+        var type = ParseTypeName(typeToken);
+        Expect(MirTokenKind.At);
+        var nameToken = Expect(MirTokenKind.Identifier);
+        function.FrameSlots.Add(new FrameSlot(
+            Index:      (int)indexToken.IntValue!.Value,
+            Type:       type,
+            SymbolName: nameToken.Text!));
     }
 
     // -------------------------------------------------------------------------
@@ -270,7 +369,7 @@ internal sealed class MirParser
         var useOperands = new List<MirOperand>();
         while (IsUseOperandStart(tokens, headerPositions))
         {
-            useOperands.Add(ParseUseOperand(tokens, blockMap, headerPositions));
+            useOperands.Add(ParseUseOperand(tokens, blockMap, headerPositions, opcodeRef, useOperands.Count));
             if (tokens.Current.Kind == MirTokenKind.Comma)
                 tokens.Advance();
             else
@@ -304,6 +403,12 @@ internal sealed class MirParser
 
     private static bool IsUseOperandStart(TokenReader tokens, HashSet<int> headerPositions) => tokens.Current.Kind switch
     {
+        // A PhysRegRef that begins the *next* instruction's def list — `$a = …`
+        // or `$a, $c = …` — must terminate this instruction's use loop rather
+        // than be swallowed as a use operand. Without this guard, a zero-use
+        // instruction (e.g. `$c = mos6502.sec`, `mos6502.inx`) followed by a
+        // physreg-def line mis-parses, because the use loop is newline-blind.
+        MirTokenKind.PhysRegRef when StartsPhysRegDef(tokens) => false,
         MirTokenKind.PhysRegRef => true,
         MirTokenKind.Integer    => true,
         MirTokenKind.At         => true,
@@ -312,14 +417,42 @@ internal sealed class MirParser
         MirTokenKind.BlockLabel when !headerPositions.Contains(tokens.Position) => true,
         // %N not followed by `:` is unambiguously a use; the def form is `%N : annotation`.
         MirTokenKind.ValueRef when tokens.Peek.Kind != MirTokenKind.Colon => true,
-        MirTokenKind.Identifier when tokens.Current.Text is "implicit" or "implicit-def" => true,
+        // An Identifier followed by `.` would be the next instruction's opcode,
+        // so it terminates the use loop. Otherwise it's either `implicit` /
+        // `implicit-def`, or a dialect-specific symbolic immediate (e.g. cmpi's
+        // predicate name `slt`).
+        MirTokenKind.Identifier when tokens.Peek.Kind != MirTokenKind.Dot => true,
         _ => false,
     };
+
+    // True when the token stream at the current position is the start of a
+    // physreg def list — a run of `$reg` separated by commas, terminated by `=`
+    // (e.g. `$a =` or `$a, $c =`). Mirrors the def-parsing logic in
+    // ParseInstruction so the use-operand loop can stop at an instruction
+    // boundary the (newline-insensitive) lexer doesn't otherwise mark.
+    private static bool StartsPhysRegDef(TokenReader tokens)
+    {
+        var offset = 0;
+        while (tokens.PeekAt(offset).Kind == MirTokenKind.PhysRegRef)
+        {
+            if (tokens.PeekAt(offset + 1).Kind == MirTokenKind.Equals)
+                return true;
+            if (tokens.PeekAt(offset + 1).Kind == MirTokenKind.Comma)
+            {
+                offset += 2;
+                continue;
+            }
+            return false;
+        }
+        return false;
+    }
 
     private MirOperand ParseUseOperand(
         TokenReader tokens,
         Dictionary<long, MirBlock> blockMap,
-        HashSet<int> headerPositions)
+        HashSet<int> headerPositions,
+        OpcodeRef opcode,
+        int useIndex)
     {
         switch (tokens.Current.Kind)
         {
@@ -361,11 +494,13 @@ internal sealed class MirParser
                     }
                     else
                     {
-                        var argList = new List<MirOperand> { ParseUseOperand(tokens, blockMap, headerPositions) };
+                        // Block-target args are not dialect-aware (no opcode
+                        // context here); use a sentinel index of -1.
+                        var argList = new List<MirOperand> { ParseUseOperand(tokens, blockMap, headerPositions, opcode, -1) };
                         while (tokens.Current.Kind == MirTokenKind.Comma)
                         {
                             tokens.Advance();
-                            argList.Add(ParseUseOperand(tokens, blockMap, headerPositions));
+                            argList.Add(ParseUseOperand(tokens, blockMap, headerPositions, opcode, -1));
                         }
                         args = argList.ToArray();
                     }
@@ -390,6 +525,18 @@ internal sealed class MirParser
                 var isDef = tokens.Advance().Text == "implicit-def";
                 var physToken = tokens.Expect(MirTokenKind.PhysRegRef);
                 return new PhysicalReg(ResolvePhysReg(physToken), IsDefinition: isDef, IsImplicit: true);
+            }
+
+            case MirTokenKind.Identifier:
+            {
+                // Dialect-specific symbolic immediate (e.g. arith.cmpi's `slt`).
+                var identToken = tokens.Advance();
+                var dialect = DialectRegistry.ById(opcode.Dialect);
+                if (useIndex >= 0
+                    && dialect.TryParseImmediateUse(opcode.Code, useIndex, identToken.Text!, out var value))
+                    return new Immediate(value);
+                throw Fail(identToken,
+                    $"Unexpected identifier '{identToken.Text}' in operand position {useIndex} of opcode {dialect.Prefix}.{dialect.GetOpName(opcode.Code)}");
             }
 
             default:
@@ -453,6 +600,7 @@ internal sealed class MirParser
         public MirToken Current => At(_position);
         public MirToken Peek    => At(_position + 1);
         public MirToken Peek2   => At(_position + 2);
+        public MirToken PeekAt(int offset) => At(_position + offset);
         public bool IsAtEnd     => _position >= tokens.Count;
 
         private MirToken At(int pos) =>

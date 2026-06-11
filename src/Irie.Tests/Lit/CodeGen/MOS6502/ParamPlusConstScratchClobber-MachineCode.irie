@@ -1,0 +1,53 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Regression guard for copy scratch on immediate-into-zero-page copies, now
+; chosen post-RA by RegisterScavengingPass (plan §3.6) instead of reserving $a.
+;
+; The i32 parameter arrives LSB-first in $a, $x, $zp2, $zp3 (CC_MOS live-ins).
+; Adding a constant 1 materializes the four constant bytes with `LD? #imm ;
+; ST? $zp` — each of which needs a scratch GPR. RA no longer models that scratch
+; (the old GetPseudoCopyScratchClobbers $a-reservation is deleted): it allocates
+; as if copies were free, so byte 0 of the parameter STAYS in $a. The scavenger
+; then picks the scratch for each const-materialization with exact post-RA
+; liveness: $a and $x hold live parameter bytes, so it picks the dead $y —
+; emitting `LDY #imm ; STY $zp`. No eviction, no reload: the first ADC reads the
+; parameter's byte 0 straight out of $a (`CLC ; ADC $04`).
+;
+; This is strictly better than the old code, which evicted $a's parameter byte
+; to a zp slot (`STA $04`) before the const setup and reloaded it (`LDA $04`)
+; for the ADC. Both compute param + 1 correctly; the new code is tighter.
+;
+; The load-bearing lines: const bytes materialize via `LDY #imm ; STY $zp` (the
+; dead $y as scratch, not $a), and the first per-byte add is `CLC ; ADC $04` —
+; reading the parameter byte still resident in $a.
+
+; CHECK: M:
+; CHECK:     LDY #\$01
+; CHECK:     STY \$07
+; CHECK:     LDY #\$00
+; CHECK:     STY \$06
+; CHECK:     LDY #\$00
+; CHECK:     STY \$05
+; CHECK:     LDY #\$00
+; CHECK:     STY \$04
+; CHECK:     CLC
+; CHECK:     ADC \$07
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC \$06
+; CHECK:     TAX
+; CHECK:     LDA \$02
+; CHECK:     ADC \$05
+; CHECK:     STA \$02
+; CHECK:     LDA \$03
+; CHECK:     ADC \$04
+; CHECK:     STA \$03
+; CHECK:     TYA
+; CHECK:     RTS
+
+func @M : (i32) -> i32 {
+bb0(%0 : i32):
+    %1 : i32 = arith.constant 1
+    %2 : i32 = arith.addi %0, %1
+    core.return %2
+}

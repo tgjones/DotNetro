@@ -1,0 +1,32 @@
+; RUN: @iriec --target mos6502 --stop-after Legalizer @file
+
+; Checks the legalizer's Custom path for cast.trunc i32 → i16: the wide
+; source vreg is unmerged into 4 byte vregs and re-merged from the low 2
+; bytes into the original i16 def vreg. The store widens via the existing
+; mem.store narrowing into per-byte mem.store.byte_at calls, and the
+; pseudo.unmerge / pseudo.merge artifacts collapse against the upstream
+; ABI-lowering pseudo.merge that reassembled the i32 parameter, so the
+; per-byte stores feed off the parameter bytes directly.
+
+; CHECK: func @TestTrunc : \(i32\) -> void \{
+; CHECK:   bb0\(\):
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3\]
+; CHECK:     %3 : i8 = pseudo.copy \$a
+; CHECK:     %4 : i8 = pseudo.copy \$x
+; CHECK:     %5 : i8 = pseudo.copy \$zp2
+; CHECK:     %6 : i8 = pseudo.copy \$zp3
+; CHECK:     %2 : i16 = mem.symbol @ptr
+; CHECK:     mem.store.byte_at %2, 0, %3
+; CHECK:     mem.store.byte_at %2, 1, %4
+; CHECK:     pseudo.return
+; CHECK: \}
+
+global @ptr : i32
+
+func @TestTrunc : (i32) -> void {
+bb0(%0 : i32):
+    %1 : i16 = cast.trunc %0
+    %2 : i16 = mem.symbol @ptr
+    mem.store.i16 %2, %1
+    core.return
+}

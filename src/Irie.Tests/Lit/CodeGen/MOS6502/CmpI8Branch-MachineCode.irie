@@ -1,0 +1,26 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; End-to-end check for cmp+cond_br fusion: an i8 cmpi.eq + cf.cond_br lowers
+; through the full pipeline to CMP + BEQ + JMP.
+
+; CHECK: CmpEq:
+; CHECK:     STX \$02
+; CHECK:     CMP \$02
+; CHECK:     BEQ \.bb1
+; CHECK:     JMP \.bb2
+; CHECK: \.bb1:
+; CHECK:     RTS
+; CHECK: \.bb2:
+; CHECK:     RTS
+
+func @CmpEq : (i8, i8) -> void {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi eq, %0, %1
+    cf.cond_br %2, bb1, bb2
+
+bb1():
+    core.return
+
+bb2():
+    core.return
+}

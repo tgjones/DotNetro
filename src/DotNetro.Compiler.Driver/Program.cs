@@ -3,7 +3,7 @@ using DotNetro.Compiler;
 
 var assemblyOption = new Option<string?>("--assembly") { Description = "Path to the assembly to compile, or - for stdin" };
 var outputOption = new Option<FileInfo?>("--output") { Description = "Path to the output file, or - for stdout" };
-var emitOption = new Option<EmitFormat?>("--emit") { Description = "The format to emit (Assembly or Executable)", DefaultValueFactory = x => EmitFormat.Executable };
+var emitOption = new Option<EmitFormat?>("--emit") { Description = "The format to emit (Assembly, Program, or Executable)", DefaultValueFactory = x => EmitFormat.Executable };
 
 var rootCommand = new RootCommand();
 rootCommand.Options.Add(assemblyOption);
@@ -45,6 +45,13 @@ rootCommand.SetAction(parseResult =>
             }
             break;
 
+        case EmitFormat.Program:
+            using (var writer = new BinaryWriter(outputStream))
+            {
+                writer.Write(compilationResult.CompiledProgram.ToArray());
+            }
+            break;
+
         case EmitFormat.Executable:
             using (var writer = new BinaryWriter(outputStream))
             {
@@ -72,5 +79,6 @@ return await rootCommand.Parse(args).InvokeAsync();
 enum EmitFormat
 {
     Assembly,
+    Program,
     Executable,
 }

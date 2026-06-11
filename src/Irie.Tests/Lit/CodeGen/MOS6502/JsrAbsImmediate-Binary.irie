@@ -1,0 +1,17 @@
+; RUN: @iriec --target mos6502 --emit=bin --origin=0x1000 @file | @irie-mc --hex-dump
+
+; Confirms that a literal Immediate address on mos6502.jsr.abs (e.g. an OS
+; entry point like the BBC Micro's OSWRCH at $FFEE) passes through to the
+; byte stream unchanged. Mirrors JsrAbsImmediate-MachineCode.irie at the
+; byte level.
+;
+;   JSR $FFEE           ; 20 EE FF
+;   RTS                 ; 60
+
+; CHECK: 00000000: 20 EE FF 60
+
+func @CallOswrch : () -> void {
+bb0():
+    mos6502.jsr.abs 65518
+    mos6502.rts
+}

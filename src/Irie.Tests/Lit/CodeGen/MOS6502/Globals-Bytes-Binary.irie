@@ -1,0 +1,17 @@
+; RUN: @iriec --target mos6502 --emit=bin --origin=0x1000 @file | @irie-mc --hex-dump
+
+; Verifies that a bytes-initialized MirGlobal is laid down verbatim in the
+; final binary, immediately after the last function.
+;
+; Layout starting at $1000:
+;   $1000: RTS              ; 60     — @entry
+;   $1001: 'A' 'B' 'C' 'D'  ; 41 42 43 44 — @msg payload (4 bytes, matches i32 size)
+
+; CHECK: 00000000: 60 41 42 43 44
+
+func @entry : () -> void {
+bb0():
+    mos6502.rts
+}
+
+global @msg : i32 = bytes "ABCD"

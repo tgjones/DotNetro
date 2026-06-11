@@ -1,0 +1,27 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; End-to-end check: IntegerSub32 lowers all the way to MOS6502 assembly text
+; via the MachineCodeEmitter. Same shape as IntegerAdd32-MachineCode.irie,
+; with SEC/SBC instead of CLC/ADC.
+
+; CHECK: TestFunction:
+; CHECK:     SEC
+; CHECK:     SBC \$04
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     SBC \$05
+; CHECK:     TAX
+; CHECK:     LDA \$02
+; CHECK:     SBC \$06
+; CHECK:     STA \$02
+; CHECK:     LDA \$03
+; CHECK:     SBC \$07
+; CHECK:     STA \$03
+; CHECK:     TYA
+; CHECK:     RTS
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i32 = arith.subi %0, %1
+    core.return %2
+}

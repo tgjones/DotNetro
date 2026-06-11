@@ -1,0 +1,5 @@
+// RUN: echo Hello
+// RUN-upper: echo HELLO
+
+// CHECK: Hello
+// CHECK-upper: HELLO

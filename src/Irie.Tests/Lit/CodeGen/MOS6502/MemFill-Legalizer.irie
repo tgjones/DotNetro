@@ -1,0 +1,31 @@
+; RUN: @iriec --target mos6502 --stop-after Legalizer @file
+
+; Checks the legalizer's Custom path for mem.fill: a small known count is
+; unrolled into N consecutive mem.store.byte_at calls, all writing the
+; same byte vreg. Larger counts would lower to a loop (not yet implemented;
+; the active tests use sizes ≤ 8 per plan §4.6).
+;
+; The frame slot lowers via FrameLoweringPass (which runs first), so by
+; the time Legalizer sees the IR the address comes from mem.symbol.
+
+; CHECK: func @TestFill : \(\) -> void \{
+; CHECK:   frame_slot 0 : i32 @TestFill_local0
+; CHECK:   bb0\(\):
+; CHECK:     %0 : i16 = mem.symbol @TestFill_local0
+; CHECK:     %1 : i8 = arith.constant 0
+; CHECK:     mem.store.byte_at %0, 0, %1
+; CHECK:     mem.store.byte_at %0, 1, %1
+; CHECK:     mem.store.byte_at %0, 2, %1
+; CHECK:     mem.store.byte_at %0, 3, %1
+; CHECK:     pseudo.return
+; CHECK: \}
+
+func @TestFill : () -> void {
+  frame_slot 0 : i32 @TestFill_local0
+
+  bb0():
+    %0 : i16 = mem.frame_addr 0
+    %1 : i8  = arith.constant 0
+    mem.fill %0, %1, 4
+    core.return
+}

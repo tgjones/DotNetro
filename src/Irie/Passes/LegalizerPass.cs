@@ -27,6 +27,11 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         var builder = new MirBuilder(function);
         var combiner = new LegalizationArtifactCombiner(function);
 
+        // Narrow any wide (>8-bit) block parameters into per-byte i8 parameters
+        // before the worklist legalization, so the merge/unmerge artifacts it
+        // inserts are picked up by the population loop below.
+        NarrowWideBlockParameters(function, builder);
+
         var instList = new InstructionWorkList();
         var artifactList = new InstructionWorkList();
 
@@ -87,44 +92,186 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         builder.SetObserver(null);
     }
 
-    private void LegalizeInstruction(MirInstruction instr, MirFunction function, MirBuilder builder)
+    // Narrow every wide (>8-bit) block parameter into a run of i8 parameters.
+    // For each narrowed parameter:
+    //   * the block gains N i8 parameter vregs in place of the wide one;
+    //   * a `pseudo.merge` at the top of the block rebinds them into the
+    //     original wide vreg so in-block wide ops keep working (the worklist
+    //     legalizer then narrows those ops and folds the merge);
+    //   * every predecessor edge's matching wide argument is replaced by N i8
+    //     arguments produced by a `pseudo.unmerge` before that terminator (the
+    //     combiner folds unmerge-of-merge round trips away).
+    //
+    // The 8-bit element width matches the rest of the MOS6502 legalization;
+    // a non-byte-multiple parameter width would be a bug upstream.
+    private static void NarrowWideBlockParameters(MirFunction function, MirBuilder builder)
     {
-        // The legality query keys off the type of the first vreg def.
-        VirtualReg? firstDef = null;
-        foreach (var op in instr.Operands)
+        function.RebuildCfg();
+
+        foreach (var block in function.Blocks)
         {
-            if (op is VirtualReg v && v.IsDefinition)
+            if (block.Parameters.Count == 0) continue;
+
+            // Snapshot the current parameter list; build the new one alongside,
+            // recording, per old parameter slot, how many narrow slots it maps
+            // to (1 if unchanged) so we can rewrite predecessor args in lockstep.
+            var oldParams = block.Parameters.ToArray();
+            var newParams = new List<int>();
+            var slotWidths = new int[oldParams.Length];      // narrow-slot count per old slot
+            var mergeFor = new (int wideVreg, int[] parts)?[oldParams.Length];
+
+            for (var p = 0; p < oldParams.Length; p++)
             {
-                firstDef = v;
-                break;
+                var wideVreg = oldParams[p];
+                var width = ParamWidthBits(function, wideVreg);
+                if (width <= 8)
+                {
+                    slotWidths[p] = 1;
+                    newParams.Add(wideVreg);
+                    continue;
+                }
+
+                var count = width / 8;
+                slotWidths[p] = count;
+                var parts = new int[count];
+                for (var i = 0; i < count; i++)
+                {
+                    parts[i] = function.CreateVirtualRegister(IRType.I8);
+                    newParams.Add(parts[i]);
+                }
+                mergeFor[p] = (wideVreg, parts);
+            }
+
+            // Nothing widened? Skip.
+            if (newParams.Count == oldParams.Length) continue;
+
+            block.Parameters.Clear();
+            block.Parameters.AddRange(newParams);
+
+            // Insert merges at the top of the block (in original parameter
+            // order) to reconstruct each wide vreg from its byte params.
+            builder.SetInsertionPointAtStart(block);
+            for (var p = 0; p < oldParams.Length; p++)
+            {
+                if (mergeFor[p] is not (int wideVreg, int[] parts)) continue;
+                builder.BuildMergeInto(wideVreg, parts);
+            }
+
+            // Rewrite every predecessor edge's arguments to this block.
+            foreach (var pred in block.Predecessors)
+            {
+                var terminator = pred.Instructions[^1];
+                for (var oi = 0; oi < terminator.Operands.Length; oi++)
+                {
+                    if (terminator.Operands[oi] is not BlockTarget bt || bt.Block != block)
+                        continue;
+
+                    terminator.Operands[oi] = new BlockTarget(
+                        block,
+                        NarrowArgs(function, builder, pred, bt.Args, slotWidths));
+                }
             }
         }
-        if (firstDef == null) return;
+    }
 
-        var annotation = function.GetVRegAnnotation(firstDef.Id);
+    // Replace each wide argument with the i8 bytes of a pseudo.unmerge emitted
+    // before `pred`'s terminator; narrow args pass through unchanged. slotWidths
+    // gives the narrow-slot count for each original argument position.
+    private static MirOperand[] NarrowArgs(
+        MirFunction function,
+        MirBuilder builder,
+        MirBlock pred,
+        MirOperand[] args,
+        int[] slotWidths)
+    {
+        var result = new List<MirOperand>();
+        builder.SetInsertionPointBefore(pred.Instructions[^1]);
+
+        for (var a = 0; a < args.Length; a++)
+        {
+            var count = a < slotWidths.Length ? slotWidths[a] : 1;
+            if (count <= 1)
+            {
+                result.Add(args[a]);
+                continue;
+            }
+
+            if (args[a] is not VirtualReg v || v.IsDefinition)
+                throw new InvalidOperationException(
+                    "Legalizer: wide block argument must be a virtual-register use.");
+
+            var bytes = builder.BuildUnmerge(IRType.I8, v.Id, count);
+            foreach (var b in bytes)
+                result.Add(new VirtualReg(b, IsDefinition: false));
+        }
+
+        return [.. result];
+    }
+
+    private static int ParamWidthBits(MirFunction function, int vreg)
+    {
+        if (function.TryGetVRegAnnotation(vreg, out var ann) && ann is TypedVReg typed)
+            return typed.Type.SizeInBits;
+        return 8; // already classed / non-typed → treat as narrow
+    }
+
+    private void LegalizeInstruction(MirInstruction instr, MirFunction function, MirBuilder builder)
+    {
+        // The legality query keys off the type of either the first vreg def or
+        // a specific operand designated by the dialect's TypeOperandIndex.
+        var dialect = DialectRegistry.ById(instr.Opcode.Dialect);
+        var info = dialect.GetInstructionInfo(instr.Opcode.Code);
+
+        VirtualReg? queryOperand = null;
+        if (info.TypeOperandIndex is int idx)
+        {
+            if (idx >= 0 && idx < instr.Operands.Length && instr.Operands[idx] is VirtualReg v)
+                queryOperand = v;
+        }
+        else
+        {
+            foreach (var op in instr.Operands)
+            {
+                if (op is VirtualReg vd && vd.IsDefinition)
+                {
+                    queryOperand = vd;
+                    break;
+                }
+            }
+        }
+        if (queryOperand == null) return;
+
+        var annotation = function.GetVRegAnnotation(queryOperand.Id);
         if (annotation is not TypedVReg typed)
             throw new InvalidOperationException(
-                $"Legalizer: vreg %{firstDef.Id} has non-typed annotation {annotation}");
+                $"Legalizer: vreg %{queryOperand.Id} has non-typed annotation {annotation}");
 
         var action = legalizerInfo.GetAction(instr.Opcode, typed.Type);
 
         if (action == LegalityAction.Legal) return;
         if (action == LegalityAction.Unsupported)
         {
-            var dialect = DialectRegistry.ById(instr.Opcode.Dialect);
             throw new InvalidOperationException(
                 $"Legalizer: opcode {dialect.Prefix}.{dialect.GetOpName(instr.Opcode.Code)} " +
                 $"with type {typed.Type.DisplayName} is unsupported on this target.");
+        }
+
+        if (action == LegalityAction.Custom)
+        {
+            builder.SetInsertionPointBefore(instr);
+            legalizerInfo.LegalizeCustom(instr, builder);
+            return;
         }
 
         var narrowType = legalizerInfo.GetNarrowType(instr.Opcode, typed.Type);
         LegalizeNarrowScalar(instr, function, builder, typed.Type, narrowType);
     }
 
-    // Splits a wide arith.addi into a chain of narrow arith.addi_with_carry
-    // instructions. The pseudo.unmerge / pseudo.merge artifacts inserted here
-    // are folded by the artifact combiner whenever they meet matching
-    // upstream / downstream artifacts.
+    // Splits a wide arith.addi / arith.subi into a chain of narrow
+    // arith.addi_with_carry / arith.subi_with_borrow instructions. The
+    // pseudo.unmerge / pseudo.merge artifacts inserted here are folded by the
+    // artifact combiner whenever they meet matching upstream / downstream
+    // artifacts.
     private static void LegalizeNarrowScalar(
         MirInstruction instr,
         MirFunction function,
@@ -132,18 +279,29 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         IRType wideType,
         IRType narrowType)
     {
-        if (instr.Opcode.Dialect != ArithDialect.Id || (ArithOp)instr.Opcode.Code != ArithOp.AddI)
+        if (instr.Opcode.Dialect == ArithDialect.Id
+            && (ArithOp)instr.Opcode.Code == ArithOp.Constant)
+        {
+            LegalizeNarrowConstant(instr, function, builder, wideType, narrowType);
+            return;
+        }
+
+        if (instr.Opcode.Dialect != ArithDialect.Id
+            || ((ArithOp)instr.Opcode.Code != ArithOp.AddI
+                && (ArithOp)instr.Opcode.Code != ArithOp.SubI))
         {
             var dialect = DialectRegistry.ById(instr.Opcode.Dialect);
             throw new NotSupportedException(
                 $"Legalizer: NarrowScalar not implemented for opcode {dialect.Prefix}.{dialect.GetOpName(instr.Opcode.Code)}");
         }
 
+        var op = (ArithOp)instr.Opcode.Code;
+
         VirtualReg? def = null;
         var uses = new List<VirtualReg>(2);
-        foreach (var op in instr.Operands)
+        foreach (var operand in instr.Operands)
         {
-            if (op is VirtualReg v)
+            if (operand is VirtualReg v)
             {
                 if (v.IsDefinition && def == null) def = v;
                 else if (!v.IsDefinition) uses.Add(v);
@@ -151,7 +309,7 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         }
         if (def == null || uses.Count != 2)
             throw new InvalidOperationException(
-                $"Legalizer: arith.addi instruction has unexpected operand shape.");
+                $"Legalizer: arith.{(op == ArithOp.AddI ? "addi" : "subi")} instruction has unexpected operand shape.");
 
         var lhsVreg    = uses[0].Id;
         var rhsVreg    = uses[1].Id;
@@ -164,19 +322,63 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         var lhsParts = builder.BuildUnmerge(narrowType, lhsVreg, count);
         var rhsParts = builder.BuildUnmerge(narrowType, rhsVreg, count);
 
-        // The chain head needs an explicit zero carry-in vreg so every
-        // arith.addi_with_carry has a uniform 3-use shape.
-        var carryIn = builder.BuildConstant(IRType.I1, 0);
+        // Chain head: addi chains start with a 0 carry-in (CLC); subi chains
+        // start with a 1 borrow-in (SEC) since borrow_in uses 6502 C-flag
+        // polarity. Either way, the constant lets every link have a uniform
+        // 3-use shape.
+        var chainHeadIn = op == ArithOp.AddI ? 0L : 1L;
+        var carryOrBorrowIn = builder.BuildConstant(IRType.I1, chainHeadIn);
         var resultParts = new int[count];
 
         for (var i = 0; i < count; i++)
         {
-            var (r, c) = builder.BuildAddCarry(narrowType, lhsParts[i], rhsParts[i], carryIn);
+            int r, cOrB;
+            if (op == ArithOp.AddI)
+                (r, cOrB) = builder.BuildAddCarry(narrowType, lhsParts[i], rhsParts[i], carryOrBorrowIn);
+            else
+                (r, cOrB) = builder.BuildSubBorrow(narrowType, lhsParts[i], rhsParts[i], carryOrBorrowIn);
             resultParts[i] = r;
-            carryIn = c;
+            carryOrBorrowIn = cOrB;
         }
 
         builder.BuildMergeInto(resultVreg, resultParts);
+        builder.Remove(instr);
+    }
+
+    // %v : iN = arith.constant <value>  →  one arith.constant : i8 per byte
+    // (LSB-first) + pseudo.merge of all parts into the original def vreg. The
+    // artifact combiner collapses the merge whenever a downstream
+    // pseudo.unmerge consumes it per-byte.
+    private static void LegalizeNarrowConstant(
+        MirInstruction instr,
+        MirFunction function,
+        MirBuilder builder,
+        IRType wideType,
+        IRType narrowType)
+    {
+        if (instr.Operands.Length != 2
+            || instr.Operands[0] is not VirtualReg defReg || !defReg.IsDefinition
+            || instr.Operands[1] is not Immediate valueImm)
+        {
+            throw new InvalidOperationException(
+                "Legalizer: arith.constant must have shape `%def : iN = arith.constant <imm>`.");
+        }
+
+        var partCount = wideType.SizeInBits / narrowType.SizeInBits;
+        var partWidth = narrowType.SizeInBits;
+        var value = (ulong)valueImm.Value;
+        var mask = partWidth >= 64 ? ulong.MaxValue : ((1UL << partWidth) - 1UL);
+
+        builder.SetInsertionPointBefore(instr);
+
+        var parts = new int[partCount];
+        for (var i = 0; i < partCount; i++)
+        {
+            var byteValue = (long)((value >> (i * partWidth)) & mask);
+            parts[i] = builder.BuildConstant(narrowType, byteValue);
+        }
+
+        builder.BuildMergeInto(defReg.Id, parts);
         builder.Remove(instr);
     }
 
@@ -250,6 +452,7 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
             return (Irie.Dialects.Pseudo.PseudoOp)instr.Opcode.Code switch
             {
                 Irie.Dialects.Pseudo.PseudoOp.Unmerge => TryCombineUnmerge(instr, deadInstrs),
+                Irie.Dialects.Pseudo.PseudoOp.Extract => TryCombineExtract(instr, deadInstrs),
                 _ => false,
             };
         }
@@ -310,6 +513,71 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
             // added to the worklist *after* its consumer (e.g. when
             // legalization inserts a fresh BuildMergeInto whose result feeds an
             // existing unmerge that was popped earlier).
+            if (function.GetUseCount(mergeDef.Id) == 1)
+                deadInstrs.Add(mergeInstr);
+
+            return true;
+        }
+
+        // Pattern: Extract(Merge(p0..pN), bit_offset) → replace extract def with the
+        // matching part vreg when bit_offset aligns to a part boundary and the
+        // extracted width equals the part width.
+        //
+        // Operand layout for pseudo.extract:
+        //   [0] = def (the byte/slice vreg)
+        //   [1] = source wide vreg
+        //   [2] = Immediate bit offset
+        //
+        // Operand layout for pseudo.merge:
+        //   [0]    = def (wide vreg)
+        //   [1..N] = part vregs in low-to-high order
+        private bool TryCombineExtract(MirInstruction extract, List<MirInstruction> deadInstrs)
+        {
+            if (extract.Operands.Length != 3) return false;
+            if (extract.Operands[0] is not VirtualReg defReg || !defReg.IsDefinition) return false;
+            if (extract.Operands[1] is not VirtualReg srcReg || srcReg.IsDefinition) return false;
+            if (extract.Operands[2] is not Immediate bitOffsetImm) return false;
+
+            var defType = AnnotationType(function.GetVRegAnnotation(defReg.Id));
+            if (defType is null) return false;
+            var extractWidth = defType.SizeInBits;
+            var bitOffset = bitOffsetImm.Value;
+
+            var mergeInstr = function.GetDefinition(srcReg.Id);
+            if (mergeInstr is null) return false;
+            if (mergeInstr.Opcode.Dialect != Irie.Dialects.Pseudo.PseudoDialect.Id) return false;
+            if ((Irie.Dialects.Pseudo.PseudoOp)mergeInstr.Opcode.Code != Irie.Dialects.Pseudo.PseudoOp.Merge)
+                return false;
+
+            // Walk the merge's part vregs and find the one whose [offset, offset+width)
+            // range exactly matches the extract.
+            var runningOffset = 0L;
+            VirtualReg? mergeDef = null;
+            VirtualReg? matchingPart = null;
+            foreach (var op in mergeInstr.Operands)
+            {
+                if (op is not VirtualReg v) continue;
+                if (v.IsDefinition && mergeDef is null) { mergeDef = v; continue; }
+                if (v.IsDefinition) continue;
+
+                var partType = AnnotationType(function.GetVRegAnnotation(v.Id));
+                if (partType is null) return false;
+                var partWidth = partType.SizeInBits;
+
+                if (runningOffset == bitOffset && partWidth == extractWidth)
+                {
+                    matchingPart = v;
+                    break;
+                }
+                runningOffset += partWidth;
+            }
+            if (matchingPart is null || mergeDef is null) return false;
+
+            // RAUW: every use of the extract's def becomes a use of the matching part.
+            function.ReplaceAllUsesOfRegister(oldVreg: defReg.Id, newVreg: matchingPart.Id);
+            deadInstrs.Add(extract);
+
+            // If the merge had only this consumer (the extract), it's now dead too.
             if (function.GetUseCount(mergeDef.Id) == 1)
                 deadInstrs.Add(mergeInstr);
 

@@ -4,10 +4,11 @@ namespace Irie.Mir.Parsing;
 
 internal sealed class MirLexer
 {
-    private static readonly Dictionary<string, MirTokenKind> Keywords = new()
-    {
-        ["func"] = MirTokenKind.Func,
-    };
+    // No reserved keywords. Identifiers like `func` are matched by their text
+    // in the parser (e.g. ParseFunction expects Identifier("func")), so that
+    // dialect opcode parts like `call.func` lex as ordinary identifiers and
+    // don't collide with syntactic-looking words.
+    private static readonly Dictionary<string, MirTokenKind> Keywords = new();
 
     private readonly TextReader _reader;
     private int _current;
@@ -70,6 +71,9 @@ internal sealed class MirLexer
                 if (char.IsAsciiLetter((char)_current) || (char)_current == '_')
                     return new MirToken(MirTokenKind.PhysRegRef, line, col, Text: ReadWord());
                 throw Fail(line, col, "Expected register name or number after '$'");
+
+            case '"':
+                return ReadString(line, col);
 
             default:
                 if (char.IsAsciiDigit(ch))
@@ -172,6 +176,52 @@ internal sealed class MirLexer
         }
         return sb.ToString();
     }
+
+    // Reads a double-quoted string with the same escape vocabulary used by
+    // MirWriter.WriteDataItem: \\  \"  \n  \r  \t  \xHH.
+    private MirToken ReadString(int line, int col)
+    {
+        Advance(); // consume opening '"'
+        var sb = new StringBuilder();
+        while (_current != -1 && _current != '"')
+        {
+            if (_current == '\\')
+            {
+                Advance();
+                switch (_current)
+                {
+                    case '\\': sb.Append('\\'); Advance(); break;
+                    case '"':  sb.Append('"');  Advance(); break;
+                    case 'n':  sb.Append('\n'); Advance(); break;
+                    case 'r':  sb.Append('\r'); Advance(); break;
+                    case 't':  sb.Append('\t'); Advance(); break;
+                    case 'x':
+                        Advance();
+                        var hi = HexDigit(_current); Advance();
+                        var lo = HexDigit(_current); Advance();
+                        sb.Append((char)((hi << 4) | lo));
+                        break;
+                    default:
+                        throw Fail(line, col, $"Unknown string escape '\\{(char)_current}'");
+                }
+                continue;
+            }
+            sb.Append((char)_current);
+            Advance();
+        }
+        if (_current != '"')
+            throw Fail(line, col, "Unterminated string literal");
+        Advance(); // consume closing '"'
+        return new MirToken(MirTokenKind.String, line, col, Text: sb.ToString());
+    }
+
+    private static int HexDigit(int ch) => ch switch
+    {
+        >= '0' and <= '9' => ch - '0',
+        >= 'a' and <= 'f' => ch - 'a' + 10,
+        >= 'A' and <= 'F' => ch - 'A' + 10,
+        _ => throw new FormatException($"Invalid hex digit '{(char)ch}'"),
+    };
 
     private static ParseException Fail(int line, int col, string message) =>
         new(new Diagnostic(line, col, message));

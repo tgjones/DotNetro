@@ -1,0 +1,35 @@
+; RUN: @iriec --target mos6502 --stop-after InstructionSelector @file
+
+; Checks instruction selection for a mem.load through a *runtime* pointer — an
+; i16 address vreg that is NOT a mem.symbol global. Here the pointer arrives as
+; an i16 function parameter; ABI lowering + the legalizer leave it as a
+; pseudo.merge of the two parameter bytes ($a = low, $x = high). The legalizer
+; then rewrites mem.load.i8 to `mem.load.byte_at %merge, 0`.
+;
+; Isel must recognise the runtime-pointer case (no mem.symbol backing the
+; address) and copy the two address byte vregs directly into the dedicated
+; indirect-Y scratch pair $zp0/$zp1 — instead of materialising them with
+; lda.imm.symlo / .symhi as it does for globals. The byte vregs are reclassified
+; to the flexible Anyi8 pool so they can live in zero page. Y is zeroed and the
+; load uses indirect-Y; the result is funnelled through an Anyi8 vreg.
+
+; CHECK: func @LoadThroughPtr : \(i16\) -> i8 \{
+; CHECK:   bb0\(\):
+; CHECK:     \[liveins: \$a, \$x\]
+; CHECK:     %2 : any8 = pseudo.copy \$a
+; CHECK:     %3 : any8 = pseudo.copy \$x
+; CHECK:     \$zp0 = pseudo.copy %2
+; CHECK:     \$zp1 = pseudo.copy %3
+; CHECK:     %5 : yc = mos6502.ldy.imm 0
+; CHECK:     \$y = pseudo.copy %5
+; CHECK:     %6 : ac = mos6502.lda.indy \$zp0, implicit \$zp1, implicit \$y
+; CHECK:     %7 : any8 = pseudo.copy %6
+; CHECK:     \$a = pseudo.copy %7
+; CHECK:     mos6502.rts implicit \$a
+; CHECK: \}
+
+func @LoadThroughPtr : (i16) -> i8 {
+bb0(%0 : i16):
+    %1 : i8 = mem.load.i8 %0
+    core.return %1
+}

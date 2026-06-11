@@ -1,0 +1,59 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; End-to-end check for mem.load / mem.store through a *runtime* i16 pointer
+; (an address vreg that is not a mem.symbol global). Two cases:
+;
+;   @LoadThroughPtr — load a byte through an i16 pointer parameter. The two
+;     parameter bytes ($a = low, $x = high) are stored straight into the
+;     indirect-Y scratch pair $00/$01 (no `LDA #<sym` materialisation), Y is
+;     zeroed, and lda.indy dereferences it.
+;
+;   @StoreFieldAtOffset — the field-access shape: compute `ptr + 4` then store a
+;     byte through the result. The 16-bit add narrows to a two-byte adc chain
+;     whose merged result feeds the store's pointer setup. This is the case that
+;     used to mis-compile: RA routes the pointer's high byte through $x → $y, and
+;     the $x→$y copy needs scratch to lower. Because the low byte is live in $a
+;     across it, the scavenger bounces $x→$y through a dead zero-page slot
+;     (STX $03 ; LDY $03) — touching no GPR — so the low byte stays in $a for the
+;     first adc. (No $a save/restore; the single-mechanism scavenger picks the
+;     cheapest dead scratch.)
+
+; CHECK: LoadThroughPtr:
+; CHECK:     STA \$00
+; CHECK:     STX \$01
+; CHECK:     LDY #\$00
+; CHECK:     LDA \(\$00\),Y
+; CHECK:     RTS
+
+; CHECK: StoreFieldAtOffset:
+; CHECK:     STX \$03
+; CHECK:     LDY \$03
+; CHECK:     LDX #\$04
+; CHECK:     STX \$04
+; CHECK:     LDX #\$00
+; CHECK:     STX \$03
+; CHECK:     CLC
+; CHECK:     ADC \$04
+; CHECK:     TAX
+; CHECK:     TYA
+; CHECK:     ADC \$03
+; CHECK:     STX \$00
+; CHECK:     STA \$01
+; CHECK:     LDY #\$00
+; CHECK:     LDA \$02
+; CHECK:     STA \(\$00\),Y
+; CHECK:     RTS
+
+func @LoadThroughPtr : (i16) -> i8 {
+bb0(%0 : i16):
+    %1 : i8 = mem.load.i8 %0
+    core.return %1
+}
+
+func @StoreFieldAtOffset : (i16, i8) -> void {
+bb0(%0 : i16, %1 : i8):
+    %2 : i16 = arith.constant 4
+    %3 : i16 = arith.addi %0, %2
+    mem.store.i8 %3, %1
+    core.return
+}

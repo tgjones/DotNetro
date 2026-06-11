@@ -17,11 +17,27 @@ dotnet test --project src/DotNetro.Compiler.Tests
 dotnet test --project src/Irie.Tests
 dotnet test --project src/DotLit.Tests
 
-# Run tests in a specific class (TUnit uses --treenode-filter, not --filter)
+# Filtering: TUnit uses --treenode-filter (NOT --filter, which silently runs zero tests).
+# The path is /Assembly/Namespace/Class/Method — escape literal '.' in the displayed
+# name as itself; the renderer shows '·' but you type '.'.
+
+# Run all tests in a unit-test class
 dotnet test --project src/Irie.Tests --treenode-filter "/*/*/RegisterAllocatorTests/*"
 
-# Run tests matching a method name pattern
-dotnet test --project src/Irie.Tests --treenode-filter "*/*/*/LitTest*"
+# Run a single unit-test method by name
+dotnet test --project src/Irie.Tests --treenode-filter "/*/*/*/AAndXLiveAcrossCopy_PicksY"
+```
+
+**You cannot target an individual lit test with --treenode-filter.** Lit tests are
+parameterized as `LitTest(Lit/CodeGen/.../Foo·irie)`, and the path argument contains
+`/` (parsed as tree-node separators) and `()` (parsed as grouping operators), so any
+attempt to narrow by filename either matches all 97 lit tests or zero. Don't fight it —
+just run the whole project. Both lit suites are fast (Irie.Tests ~3–5s,
+DotNetro.Compiler.Tests ~12s):
+
+```bash
+dotnet test --project src/Irie.Tests              # all Irie tests incl. every .irie/.s lit test
+dotnet test --project src/DotNetro.Compiler.Tests # all compiler tests incl. every .cs lit test
 ```
 
 CI runs `dotnet test --solution src` in both Debug and Release configurations.
@@ -71,14 +87,14 @@ CI runs `dotnet test --solution src` in both Debug and Release configurations.
     1. `AbiLoweringPass` — drops entry-block parameters; emits per-arg-byte `AddLiveIn(physreg)` + `pseudo.copy` from the physreg into a vreg, plus `pseudo.merge` for wide arg types. Rewrites `core.return %v` to per-byte `pseudo.unmerge` + `pseudo.copy` to return physregs + `pseudo.return`. Delegates the calling-convention details to `Target.CallLowering`.
     2. `LegalizerPass` — worklist-driven legalizer: two worklists (`instList` for non-artifacts, `artifactList` for `pseudo.merge`/`pseudo.unmerge`), bottom-up initial population (LIFO pop), alternating drain — legalize each non-artifact via `Target.LegalizerInfo`, then run the file-private `LegalizationArtifactCombiner` over each artifact, repeating until empty. An `IMirObserver` wired into the builder routes builder-driven insertions to the right worklist; an `IsTriviallyDead` check at the top of each step gives DCE for free. e.g. MOS6502 legalizes `arith.addi i32` → 4× `arith.addi_with_carry i8` with the surrounding `pseudo.merge` / `pseudo.unmerge` collapsed by the combiner.
     3. `InstructionSelectorPass` — selects target opcodes via `Target.InstructionSelector`. Calls `MirFunction.ReclassifyVirtualRegister` when committing a vreg to a class; emits `pseudo.copy` into pinned physregs (e.g. `$a`, `$c`) where the target opcode requires a specific physreg. Lowers `pseudo.return` to the target's return op (e.g. `mos6502.rts`) with the live-out return physregs as implicit uses.
-    4. `PhiEliminationPass` — for each terminator carrying `BlockTarget.Args`, emits per-edge `pseudo.copy` from each arg to the successor's corresponding parameter vreg (breaking cycles with a temp). After this pass: every `BlockTarget.Args` is empty and no `MirBlock.Parameters` remain.
+    4. `PhiEliminationPass` — for each terminator carrying `BlockTarget.Args`, emits per-edge `pseudo.copy` from each arg to the successor's corresponding parameter vreg (breaking cycles with a temp). Splits multi-successor edges feeding parameterized blocks into single-successor split blocks first; because this runs post-isel, a split block's unconditional branch comes from `Target.BranchLowering` (e.g. `mos6502.jmp.abs`) rather than a generic `cf.br`. After this pass: every `BlockTarget.Args` is empty and no `MirBlock.Parameters` remain.
     5. `TwoAddressInstructionPass` — for each instruction whose `DialectInstructionInfo` declares tied def/use operands, emits a `pseudo.copy` to materialize the tied use as a copy of the def-source so RA can pick a single physreg for both ends.
     6. `RegisterAllocatorPass` — absorbs coalescing, linear-scan allocation, and vreg→physreg rewriting in one pass. Widens entry-block livein vreg classes to the target's `FlexibleI8ClassId` so multi-arg live-ins can fit; inserts constraint-fixup copies; inserts result-preservation copies after tied-operand defs; runs linear scan with copy hints (`physregActive` dict; expiry rule is `endpoint ≤ currentStart` so tied def/use sharing the same slot can share a physreg); rewrites operands; clears the vreg annotation table; recomputes block live-ins from the final assignment. Spilling is not implemented.
     7. `CopyEliminationPass` — drops identity `pseudo.copy $r → $r` and chases through trivially redundant chains. Operates on physreg-only MIR.
     8. *Target-supplied post-RA passes* — added by `Target.AddPostRegisterAllocationPasses(pm)`. For MOS6502: `MOS6502AddressingModeSelectorPass` (refines `mos6502.adc` → `mos6502.adc.zp` / `.imm` etc. based on concrete physreg operands).
     9. `PseudoExpansionPass` — replaces every remaining `pseudo.copy` with the target move emitted by `Target.PseudoExpander` (e.g. `$x = pseudo.copy $a` → `mos6502.tax`).
     - `Analyses/LivenessAnalysis` produces a `Liveness` result consumed by RA.
-  - `Target/` — generic target abstractions: `Target` (exposes `Dialect`, `CallLowering`, `LegalizerInfo`, `InstructionSelector`, `PseudoExpander`, `RegisterInfo`, `MachineCodeEmitter`, `GetRegisterName`, `AddPostRegisterAllocationPasses`), `CallLowering`, `LegalizerInfo`, `InstructionSelector`, `PseudoExpander`, `TargetRegisterInfo`, `MachineCodeEmitter` (driver-called hook that lowers a post-PseudoExpansion `MirModule` to a `MachineCodeModule`).
+  - `Target/` — generic target abstractions: `Target` (exposes `Dialect`, `CallLowering`, `LegalizerInfo`, `InstructionSelector`, `PseudoExpander`, `BranchLowering`, `RegisterInfo`, `MachineCodeEmitter`, `GetRegisterName`, `AddPostRegisterAllocationPasses`, `DefaultOrigin`, `PackageImage`), `CallLowering`, `LegalizerInfo`, `InstructionSelector`, `PseudoExpander`, `BranchLowering` (supplies the target's unconditional jump for critical-edge split blocks created post-isel by `PhiEliminationPass`; mirrors LLVM's `TargetInstrInfo::insertUnconditionalBranch`), `TargetRegisterInfo`, `MachineCodeEmitter` (driver-called hook that lowers a post-PseudoExpansion `MirModule` to a `MachineCodeModule`).
   - `MachineCode/` — low-level machine-code layer; sits below MIR, above raw bytes
     - `MachineCodeModule/Function` — structural containers (no basic blocks at this layer; the body is a flat stream)
     - `MachineCodeEntry` — abstract record; two variants: `MachineCodeLabel(string Name)` and `MachineCodeInstruction(int Opcode, MachineCodeOperand[] Operands)`; labels and instructions are peers in the stream
@@ -97,12 +113,15 @@ CI runs `dotnet test --solution src` in both Debug and Release configurations.
     - `MOS6502AssemblyWriter` / `MOS6502AssemblyParser` — traditional `$FF` / `#$FF` assembly syntax for the MachineCode layer; `MOS6502Opcode` constants equal the 6502 byte values.
     - `MOS6502MachineCodeEmitTable` — per-`MOS6502Op` rule: opcode byte, `EmitOperandKind` (`Implied` / `ZeroPageAddress` / `Immediate` / `BranchTarget` / `AbsoluteAddress`), and which MIR operand slot encodes into the byte(s). Throws on unmapped opcodes so the gap is visible the moment isel/AMS grows.
     - `MOS6502MachineCodeEmitter` — drives the table to lower a post-PseudoExpansion `MirFunction` into a `MachineCodeFunction`: emits `bbN:` labels for non-entry blocks, asks the table for each instruction's rule, and produces `MachineCodeInstruction`s with one operand (or none, for `Implied`).
+    - `MOS6502BinaryEncoder` — two-pass encoder that lowers a `MachineCodeModule` to raw 6502 bytes at a given origin: layout pass assigns absolute addresses to functions and local labels, encode pass writes opcode + operand bytes, resolves `ExternalRef` / `LabelRef`, and computes signed-8-bit branch offsets. Throws on out-of-range branches and undefined symbols.
+    - `MOS6502BbcMicroTarget` — subtarget inheriting from `MOS6502Target`; overrides only `DefaultOrigin` ($2000) and `PackageImage` to wrap raw bytes in a single-file Acorn DFS `.ssd` disk image via `BbcMicroDfsImage`.
+    - `BbcMicroDfsImage` — internal DFS catalogue + file packager; emits a single file named `MAIN` starting at sector 2 with the minimum image size (no zero-pad to 200KB).
     - Flag registers are first-class physregs: `mos6502.cmp` defines `$n`, `$v`, `$z`; `mos6502.bgt` reads them. `pseudo.copy` is never used for flag regs.
 
 - **Irie.Tools.Assembler** — console app (`irie-as`); reads MIR text (stdin or file), writes binary MIR
 - **Irie.Tools.Disassembler** — console app (`irie-dis`); reads binary MIR (stdin or file), writes MIR text
-- **Irie.Tools.Compiler** — console app (`iriec`); reads MIR text (stdin or file), runs the full pass pipeline (AbiLowering → Legalizer → InstructionSelector → PhiElimination → TwoAddressInstruction → RegisterAllocator → CopyElimination → target-supplied post-RA passes → PseudoExpansion); `--target mos6502` (only supported target); `--stop-after` / `--start-at` / `--run-pass` for per-pass debugging; `--emit=mir` (default — post-pipeline MIR text) / `--emit=asm` (MOS6502 assembly text via `MachineCodeEmitter`) / `--emit=mc` (structured MachineCode binary to stdout, pipeable into `irie-mc --disassemble`)
-- **Irie.Tools.MachineCode** — console app (`irie-mc`); `--assemble` parses MOS6502 assembly text → structured binary; `--disassemble` reads binary → assembly text
+- **Irie.Tools.Compiler** — console app (`iriec`); reads MIR text (stdin or file), runs the full pass pipeline (AbiLowering → Legalizer → InstructionSelector → PhiElimination → TwoAddressInstruction → RegisterAllocator → CopyElimination → target-supplied post-RA passes → PseudoExpansion); `--target mos6502` / `--target mos6502-bbcmicro` (both share the same chip lowering; the BBC Micro variant only differs in `--origin` default and image packaging); `--stop-after` / `--start-at` / `--run-pass` for per-pass debugging; `--emit=mir` (default — post-pipeline MIR text) / `--emit=asm` (MOS6502 assembly text via `MachineCodeEmitter`) / `--emit=mc` (structured MachineCode binary to stdout, pipeable into `irie-mc --disassemble`) / `--emit=bin` (raw bytes via `MOS6502BinaryEncoder`, then wrapped by `Target.PackageImage` — e.g. an `.ssd` for `mos6502-bbcmicro`); `--origin=<hex|decimal>` (accepts `0x1900`, `0X1900`, `$1900`, or decimal) sets the load address, falling back to `target.DefaultOrigin`.
+- **Irie.Tools.MachineCode** — console app (`irie-mc`); `--assemble` parses MOS6502 assembly text → structured binary; `--disassemble` reads binary → assembly text; `--hex-dump` reads binary → xxd-style hex output (16 bytes per row, 8-digit zero-based hex offset, upper-case hex bytes with a double-space between bytes 7 and 8, forced `\n` line endings)
 
 - **DotNetro.Compiler.Tests.CsCompiler** — helper tool used by `DotNetro.Compiler.Tests` lit tests; compiles a `.cs` source file to a `.dll` via Roslyn, piped into `dnrc`
 

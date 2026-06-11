@@ -1,0 +1,27 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Step 9 (il-to-mir plan): signed i16 arith.cmpi (slt) fused with cf.cond_br.
+; Same sign-flip reduction as the i32 case, here over two bytes: EOR #$80 on the
+; high byte of each operand, then a two-step high-to-low unsigned CMP ladder.
+
+; CHECK: TestSlt16:
+; CHECK:     EOR #\$80
+; CHECK:     EOR #\$80
+; CHECK:     CMP
+; CHECK:     BCC \.bb1
+; CHECK:     BNE \.bb2
+; CHECK:     CMP
+; CHECK:     BCC \.bb1
+; CHECK:     JMP \.bb2
+
+func @TestSlt16 : (i16, i16) -> i8 {
+bb0(%0 : i16, %1 : i16):
+    %2 : i1 = arith.cmpi slt, %0, %1
+    cf.cond_br %2, bb1(), bb2()
+bb1():
+    %3 : i8 = arith.constant 1
+    core.return %3
+bb2():
+    %4 : i8 = arith.constant 0
+    core.return %4
+}

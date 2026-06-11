@@ -39,6 +39,13 @@ public enum MOS6502Op : ushort
 
     // LDA
     LdaImm,
+    // LDA immediate with the low or high byte of a Symbol address. Both encode
+    // as the LDA_Immediate byte (0xA9); the operand is a Symbol that the
+    // assembler resolves to the low (`<sym`) or high (`>sym`) half of the
+    // symbol's final address. Used to materialize the bytes of a `mem.symbol`
+    // result into zero page for indirect-Y addressing.
+    LdaImmSymLo,
+    LdaImmSymHi,
     LdaZp,
     LdaZpX,
     LdaAbs,

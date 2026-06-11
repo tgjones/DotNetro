@@ -12,6 +12,12 @@ public sealed class MirFunction(string name, IRType[] paramTypes, IRType returnT
 
     public List<MirBlock> Blocks { get; } = [];
 
+    // Address-taken / value-type locals that the frontend has reserved as
+    // .bss-style frame slots. The FrameLoweringPass converts each entry to a
+    // MirGlobal (zero-init) on the module, and rewrites each mem.frame_addr
+    // use to a mem.symbol against that global's name.
+    public List<FrameSlot> FrameSlots { get; } = [];
+
     private int _nextVirtualRegister;
     private readonly Dictionary<int, VRegAnnotation> _annotations = [];
 

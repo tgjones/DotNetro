@@ -1,0 +1,38 @@
+; RUN: @iriec --target mos6502 --run-pass PhiElimination @file
+
+; A cf.cond_br carries block-args on BOTH of its edges (the taken edge to bb1
+; and the fall-through edge to bb2). This is the case the pass's old critical-
+; edge guard missed: inserting the phi-copies before the shared terminator
+; would run both edges' copies unconditionally.
+;
+; PhiElimination splits each edge independently. It appends bb3 (the unconditional
+; branch into bb1) and bb4 (into bb2), lowers each edge's block-arg to a
+; pseudo.copy inside its own split block, and redirects the cond_br's two targets
+; to bb3 and bb4. After the pass no cf.cond_br carries block-args and no block
+; has parameters.
+
+; CHECK: func @both : \(i8, i8\) -> i8 \{
+; CHECK:   bb0\(\):
+; CHECK:     %2 : i1 = arith.cmpi eq, %0, %1
+; CHECK:     cf.cond_br %2, bb3, bb4
+; CHECK:   bb1\(\):
+; CHECK:     core.return %3
+; CHECK:   bb2\(\):
+; CHECK:     core.return %4
+; CHECK:   bb3\(\):
+; CHECK:     %3 : i8 = pseudo.copy %0
+; CHECK:     cf.br bb1
+; CHECK:   bb4\(\):
+; CHECK:     %4 : i8 = pseudo.copy %1
+; CHECK:     cf.br bb2
+; CHECK: \}
+
+func @both : (i8, i8) -> i8 {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi eq, %0, %1
+    cf.cond_br %2, bb1(%0), bb2(%1)
+bb1(%3 : i8):
+    core.return %3
+bb2(%4 : i8):
+    core.return %4
+}

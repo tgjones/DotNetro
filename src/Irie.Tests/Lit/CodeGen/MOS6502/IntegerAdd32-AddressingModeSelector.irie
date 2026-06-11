@@ -10,25 +10,22 @@
 ; untouched.
 
 ; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
-; CHECK:   bb0\(\):
+; CHECK: bb0\(\):
 ; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
-; CHECK:     \$c = mos6502.clc
-; CHECK:     \$a, \$c = mos6502.adc.zp \$a, \$zp4, \$c
-; CHECK:     \$zp4 = pseudo.copy \$a
-; CHECK:     \$a = pseudo.copy \$x
-; CHECK:     \$a, \$c = mos6502.adc.zp \$a, \$zp5, \$c
-; CHECK:     \$zp5 = pseudo.copy \$a
-; CHECK:     \$a = pseudo.copy \$zp2
-; CHECK:     \$zp2 = pseudo.copy \$zp6
-; CHECK:     \$a, \$c = mos6502.adc.zp \$a, \$zp2, \$c
-; CHECK:     \$zp2 = pseudo.copy \$a
-; CHECK:     \$a = pseudo.copy \$zp3
-; CHECK:     \$zp3 = pseudo.copy \$zp7
-; CHECK:     \$a, \$c = mos6502.adc.zp \$a, \$zp3, \$c
-; CHECK:     \$zp3 = pseudo.copy \$a
-; CHECK:     \$a = pseudo.copy \$zp4
-; CHECK:     \$x = pseudo.copy \$zp5
-; CHECK:     mos6502.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
+; CHECK:     \$c = mos6502\.clc
+; CHECK:     \$a, \$c = mos6502\.adc\.zp \$a, \$zp4, \$c
+; CHECK:     \$y = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$x
+; CHECK:     \$a, \$c = mos6502\.adc\.zp \$a, \$zp5, \$c
+; CHECK:     \$x = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp2
+; CHECK:     \$a, \$c = mos6502\.adc\.zp \$a, \$zp6, \$c
+; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$zp3
+; CHECK:     \$a, \$c = mos6502\.adc\.zp \$a, \$zp7, \$c
+; CHECK:     \$zp3 = pseudo\.copy \$a
+; CHECK:     \$a = pseudo\.copy \$y
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
 ; CHECK: \}
 
 func @TestFunction : (i32, i32) -> i32 {

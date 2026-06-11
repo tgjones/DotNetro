@@ -1,0 +1,29 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; End-to-end check for mem.load.i8 / mem.store.i8 through a mem.symbol
+; address: the symbol's low/high bytes are materialised into the dedicated
+; scratch pair ($00 / $01 — RC0/RC1, reserved outside the Imag8 pool) via
+; `LDA #<sym` / `LDA #>sym` and STA. Y is zeroed and the load / store use
+; indirect-Y. The loaded byte is parked in $02 (an in-pool Imag8 slot) so
+; the pointer setup for the store doesn't clobber it.
+
+; CHECK: TestMemByte:
+; CHECK:     LDA #<hello
+; CHECK:     STA \$00
+; CHECK:     LDA #>hello
+; CHECK:     STA \$01
+; CHECK:     LDY #\$00
+; CHECK:     LDA \(\$00\),Y
+; CHECK:     LDY #\$00
+; CHECK:     STA \(\$00\),Y
+; CHECK:     RTS
+
+global @hello : i32 = bytes "Hi!"
+
+func @TestMemByte : () -> void {
+bb0():
+    %0 : i16 = mem.symbol @hello
+    %1 : i8  = mem.load.i8 %0
+    mem.store.i8 %0, %1
+    core.return
+}

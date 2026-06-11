@@ -1,0 +1,931 @@
+; MOS6502 runtime — hand-written MIR loaded as an embedded resource by
+; MOS6502Target.GetRuntime(). Functions here are appended to the MirModule
+; produced by IL→MIR translation so the resulting program links.
+
+; Indirect-call trampoline. MOS6502CallLowering.LowerIndirectCall parks the
+; target address in RC30/RC31 (zero-page bytes $1E/$1F) and emits
+; `jsr.abs @__call_indirect_trampoline`. The trampoline then dispatches via
+; `JMP ($1E)`, which reads the 16-bit target from $001E/$001F.
+func @__call_indirect_trampoline : () -> void {
+bb0():
+    mos6502.jmp.ind 30
+}
+
+; ---------------------------------------------------------------------------
+; BBC Micro OS-call wrappers.
+;
+; These are inherently target-specific: they JSR a fixed ROM vector. There is
+; no generic "call ROM address" op, so the bodies are written directly in
+; mos6502 MIR (jsr.abs to a numeric absolute address + rts). The char/args
+; arrive in $a/$x/$y per CC_MOS; AbiLowering records them as block live-ins
+; and, because nothing between the live-in and the JSR clobbers those
+; registers, they are preserved into the ROM call unchanged.
+
+; @oswrch — write the char in the first i8 arg ($a) to output. JSR $FFEE.
+func @oswrch : (i8) -> void {
+bb0(%0 : i8):
+    mos6502.jsr.abs 65518
+    mos6502.rts
+}
+
+; @osasci — like @oswrch but expands CR to CR/LF. JSR $FFE3.
+func @osasci : (i8) -> void {
+bb0(%0 : i8):
+    mos6502.jsr.abs 65507
+    mos6502.rts
+}
+
+; @osword — OS call dispatcher. JSR $FFF1. Callers set up A (call number),
+; X (control-block low byte) and Y (control-block high byte) before calling;
+; CC_MOS only assigns A/X here, so the Y argument is the caller's concern.
+func @osword : (i8) -> void {
+bb0(%0 : i8):
+    mos6502.jsr.abs 65521
+    mos6502.rts
+}
+
+; ---------------------------------------------------------------------------
+; @ReadLine : () -> i16
+;
+; Reads a line of input via OSWORD 0 into the BBC Micro's default input buffer
+; at $0600, and returns that buffer pointer ($0600) as an i16. Ported from
+; DotNetro.Compiler.CodeGen.BbcMicroCodeGenerator.CompileSystemConsoleReadLine.
+;
+; Target MIR (an OSWORD call): builds the control block in zero page $37-$3B
+;   $37/$38 : $0600 = address to place the input string
+;   $39     : $EE   = maximum input line length
+;   $3A     : $20   = minimum acceptable ASCII code
+;   $3B     : $FF   = maximum acceptable ASCII code
+; then LDX #$37 / LDA #0 / JSR osword. The returned i16 pointer is $0600, placed
+; LSB-first into the CC_MOS return registers ($a = $00 low, $x = $06 high).
+;
+; Zero-page physregs: $67..$71 address $37..$71-12 = $37..$3B (RC(n) = 12 + n,
+; and the sta.zp emitter encodes the byte as physreg_id - RC(0)).
+func @ReadLine : () -> i16 {
+bb0():
+    $0 = mos6502.lda.imm 0
+    $67 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 6
+    $68 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 238
+    $69 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 32
+    $70 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 255
+    $71 = mos6502.sta.zp $0
+    $2 = mos6502.ldy.imm 0
+    $1 = mos6502.ldx.imm 55
+    $0 = mos6502.lda.imm 0
+    mos6502.jsr.abs 65521, implicit $1, implicit $2
+    ; Return the buffer pointer $0600: low byte $00 in $a, high byte $06 in $x.
+    $0 = mos6502.lda.imm 0
+    $1 = mos6502.ldx.imm 6
+    mos6502.rts implicit $0, implicit $1
+}
+
+; ---------------------------------------------------------------------------
+; @Beep : () -> void
+;
+; Makes a short beep via OSWORD 7 (SOUND). Ported from
+; DotNetro.Compiler.CodeGen.BbcMicroCodeGenerator.CompileSystemConsoleBeep.
+;
+; Target MIR: points X/Y at the @Sound control block then LDA #7 / JSR osword.
+; The 8-byte control block (channel=1, amplitude=-15, pitch=0, duration=4, each
+; a little-endian 16-bit field) is the @Sound global, registered by the
+; translator. X / Y are loaded via $a (there is no ldx/ldy-immediate-symbol op),
+; parked through the zero-page scratch slot $12 (RC0).
+func @Beep : () -> void {
+bb0():
+    $0 = mos6502.lda.imm.symlo @Sound
+    $12 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.zp $12
+    $0 = mos6502.lda.imm.symhi @Sound
+    $12 = mos6502.sta.zp $0
+    $2 = mos6502.ldy.zp $12
+    $0 = mos6502.lda.imm 7
+    mos6502.jsr.abs 65521, implicit $0, implicit $1, implicit $2
+    mos6502.rts
+}
+
+; ---------------------------------------------------------------------------
+; @WriteLineBoolean : (i8) -> void
+;
+; Prints "True" or "False" (each followed by CR, expanded to CR/LF by osasci)
+; depending on whether the argument is non-zero. Mirrors
+; DotNetro.Runtime.ConsoleHelper.WriteLineBoolean.
+;
+; Written in generic MIR: an `arith.cmpi ne` against 0 fused with `cf.cond_br`
+; picks the leg, and each leg loads the address of the matching string global
+; (@True_String / @False_String, registered by the translator in the same
+; CR+NUL format @WriteLineString consumes) and tail-calls @WriteLineString.
+func @WriteLineBoolean : (i8) -> void {
+bb0(%0 : i8):
+    %1 : i8 = arith.constant 0
+    %2 : i1 = arith.cmpi ne, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    %3 : i16 = mem.symbol @True_String
+    call.func @WriteLineString, %3
+    core.return
+bb2():
+    %4 : i16 = mem.symbol @False_String
+    call.func @WriteLineString, %4
+    core.return
+}
+
+; ---------------------------------------------------------------------------
+; @WriteLineInt32 : (i32) -> void
+;
+; Prints a signed 32-bit integer in decimal followed by CR (which osasci
+; expands to CR/LF). Ported from
+; DotNetro.Compiler.CodeGen.BbcMicroCodeGenerator.CompileSystemConsoleWriteLineInt32.
+;
+; WHY TARGET MIR (not generic dialects): the magnitude loop needs an i32 value
+; that is simultaneously loaded from / stored to memory AND run through a
+; multi-byte subtract inside a loop. Expressed generically, that overruns the
+; (spill-free) linear-scan register allocator — four live accumulator bytes
+; exceed the single $a register, and a loop-carried i32 can't be threaded as a
+; wide block argument either. So this is hand-written, fully-lowered MOS6502
+; MIR; the pipeline passes it through unchanged (isel passes mos6502.* ops
+; through; AMS only refines pre-AMS forms; pseudo-expansion sees no copies).
+;
+; Algorithm (no division): keep the working value in zero-page slots zp4..zp7
+; (lo..hi). If the MSB's sign bit is set, print '-' and two's-complement
+; negate. Then, for each power of ten 1e9 down to 1 (unrolled, the constant
+; loaded into zp9..zp12), repeatedly subtract the power while the value is
+; >= it (32-bit SEC/SBC, BCS to keep + INX the digit counter, else ADC the
+; power back). The pad flag (zp8) suppresses leading zeros; the
+; printed-something flag (zp13) forces a final '0' when the value was zero.
+;
+; The i32 argument arrives LSB-first in $a, $x, $zp2, $zp3 per CC_MOS.
+func @WriteLineInt32 : (i32) -> void {
+bb0(%0 : i32):
+    ; Copy the incoming value bytes into working zero-page slots zp4..zp7.
+    $16 = mos6502.sta.zp $0
+    $17 = mos6502.stx.zp $1
+    $0 = mos6502.lda.zp $14
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $15
+    $19 = mos6502.sta.zp $0
+    ; Zero the pad flag and the printed-something flag.
+    $0 = mos6502.lda.imm 0
+    $20 = mos6502.sta.zp $0
+    $25 = mos6502.sta.zp $0
+    ; Sign test: CMP #0 sets N = bit7 of the MSB.
+    $0 = mos6502.lda.zp $19
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.bpl bb2, implicit $6
+    mos6502.jmp.abs bb1
+bb1():
+    ; Negative: print '-' then two's-complement negate the value.
+    $0 = mos6502.lda.imm 45
+    mos6502.jsr.abs @osasci, implicit $0
+    $5 = mos6502.clc
+    $0 = mos6502.lda.zp $16
+    $0 = mos6502.eor.imm $0, 255
+    $0, $5 = mos6502.adc.imm $0, 1, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0 = mos6502.eor.imm $0, 255
+    $0, $5 = mos6502.adc.imm $0, 0, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0 = mos6502.eor.imm $0, 255
+    $0, $5 = mos6502.adc.imm $0, 0, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0 = mos6502.eor.imm $0, 255
+    $0, $5 = mos6502.adc.imm $0, 0, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.jmp.abs bb2
+bb2():
+    mos6502.jmp.abs bb3
+bb3():
+    ; --- power 1000000000 ---
+    $0 = mos6502.lda.imm 0
+    $21 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 202
+    $22 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 154
+    $23 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 59
+    $24 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.imm 0
+    mos6502.jmp.abs bb4
+bb4():
+    $5 = mos6502.sec
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.sbc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.sbc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.sbc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.sbc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.bcs bb5, implicit $5
+    mos6502.jmp.abs bb6
+bb5():
+    $1 = mos6502.inx
+    mos6502.jmp.abs bb4
+bb6():
+    ; value < power: restore by adding power back, emit digit
+    $5 = mos6502.clc
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.adc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.adc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.adc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.adc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.jmp.abs bb7
+bb7():
+    $0 = mos6502.txa
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.bne bb9, implicit $8
+    mos6502.jmp.abs bb8
+bb8():
+    $0 = mos6502.lda.zp $20
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb10, implicit $8
+    $0 = mos6502.lda.imm 0
+    mos6502.jmp.abs bb9
+bb9():
+    $0 = mos6502.ora.imm $0, 48
+    $25 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 48
+    $20 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $25
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.jmp.abs bb10
+bb10():
+    mos6502.jmp.abs bb11
+bb11():
+    ; --- power 100000000 ---
+    $0 = mos6502.lda.imm 0
+    $21 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 225
+    $22 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 245
+    $23 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 5
+    $24 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.imm 0
+    mos6502.jmp.abs bb12
+bb12():
+    $5 = mos6502.sec
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.sbc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.sbc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.sbc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.sbc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.bcs bb13, implicit $5
+    mos6502.jmp.abs bb14
+bb13():
+    $1 = mos6502.inx
+    mos6502.jmp.abs bb12
+bb14():
+    ; value < power: restore by adding power back, emit digit
+    $5 = mos6502.clc
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.adc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.adc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.adc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.adc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.jmp.abs bb15
+bb15():
+    $0 = mos6502.txa
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.bne bb17, implicit $8
+    mos6502.jmp.abs bb16
+bb16():
+    $0 = mos6502.lda.zp $20
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb18, implicit $8
+    $0 = mos6502.lda.imm 0
+    mos6502.jmp.abs bb17
+bb17():
+    $0 = mos6502.ora.imm $0, 48
+    $25 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 48
+    $20 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $25
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.jmp.abs bb18
+bb18():
+    mos6502.jmp.abs bb19
+bb19():
+    ; --- power 10000000 ---
+    $0 = mos6502.lda.imm 128
+    $21 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 150
+    $22 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 152
+    $23 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $24 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.imm 0
+    mos6502.jmp.abs bb20
+bb20():
+    $5 = mos6502.sec
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.sbc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.sbc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.sbc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.sbc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.bcs bb21, implicit $5
+    mos6502.jmp.abs bb22
+bb21():
+    $1 = mos6502.inx
+    mos6502.jmp.abs bb20
+bb22():
+    ; value < power: restore by adding power back, emit digit
+    $5 = mos6502.clc
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.adc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.adc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.adc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.adc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.jmp.abs bb23
+bb23():
+    $0 = mos6502.txa
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.bne bb25, implicit $8
+    mos6502.jmp.abs bb24
+bb24():
+    $0 = mos6502.lda.zp $20
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb26, implicit $8
+    $0 = mos6502.lda.imm 0
+    mos6502.jmp.abs bb25
+bb25():
+    $0 = mos6502.ora.imm $0, 48
+    $25 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 48
+    $20 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $25
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.jmp.abs bb26
+bb26():
+    mos6502.jmp.abs bb27
+bb27():
+    ; --- power 1000000 ---
+    $0 = mos6502.lda.imm 64
+    $21 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 66
+    $22 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 15
+    $23 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $24 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.imm 0
+    mos6502.jmp.abs bb28
+bb28():
+    $5 = mos6502.sec
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.sbc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.sbc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.sbc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.sbc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.bcs bb29, implicit $5
+    mos6502.jmp.abs bb30
+bb29():
+    $1 = mos6502.inx
+    mos6502.jmp.abs bb28
+bb30():
+    ; value < power: restore by adding power back, emit digit
+    $5 = mos6502.clc
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.adc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.adc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.adc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.adc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.jmp.abs bb31
+bb31():
+    $0 = mos6502.txa
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.bne bb33, implicit $8
+    mos6502.jmp.abs bb32
+bb32():
+    $0 = mos6502.lda.zp $20
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb34, implicit $8
+    $0 = mos6502.lda.imm 0
+    mos6502.jmp.abs bb33
+bb33():
+    $0 = mos6502.ora.imm $0, 48
+    $25 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 48
+    $20 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $25
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.jmp.abs bb34
+bb34():
+    mos6502.jmp.abs bb35
+bb35():
+    ; --- power 100000 ---
+    $0 = mos6502.lda.imm 160
+    $21 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 134
+    $22 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 1
+    $23 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $24 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.imm 0
+    mos6502.jmp.abs bb36
+bb36():
+    $5 = mos6502.sec
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.sbc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.sbc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.sbc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.sbc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.bcs bb37, implicit $5
+    mos6502.jmp.abs bb38
+bb37():
+    $1 = mos6502.inx
+    mos6502.jmp.abs bb36
+bb38():
+    ; value < power: restore by adding power back, emit digit
+    $5 = mos6502.clc
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.adc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.adc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.adc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.adc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.jmp.abs bb39
+bb39():
+    $0 = mos6502.txa
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.bne bb41, implicit $8
+    mos6502.jmp.abs bb40
+bb40():
+    $0 = mos6502.lda.zp $20
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb42, implicit $8
+    $0 = mos6502.lda.imm 0
+    mos6502.jmp.abs bb41
+bb41():
+    $0 = mos6502.ora.imm $0, 48
+    $25 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 48
+    $20 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $25
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.jmp.abs bb42
+bb42():
+    mos6502.jmp.abs bb43
+bb43():
+    ; --- power 10000 ---
+    $0 = mos6502.lda.imm 16
+    $21 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 39
+    $22 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $23 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $24 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.imm 0
+    mos6502.jmp.abs bb44
+bb44():
+    $5 = mos6502.sec
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.sbc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.sbc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.sbc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.sbc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.bcs bb45, implicit $5
+    mos6502.jmp.abs bb46
+bb45():
+    $1 = mos6502.inx
+    mos6502.jmp.abs bb44
+bb46():
+    ; value < power: restore by adding power back, emit digit
+    $5 = mos6502.clc
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.adc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.adc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.adc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.adc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.jmp.abs bb47
+bb47():
+    $0 = mos6502.txa
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.bne bb49, implicit $8
+    mos6502.jmp.abs bb48
+bb48():
+    $0 = mos6502.lda.zp $20
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb50, implicit $8
+    $0 = mos6502.lda.imm 0
+    mos6502.jmp.abs bb49
+bb49():
+    $0 = mos6502.ora.imm $0, 48
+    $25 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 48
+    $20 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $25
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.jmp.abs bb50
+bb50():
+    mos6502.jmp.abs bb51
+bb51():
+    ; --- power 1000 ---
+    $0 = mos6502.lda.imm 232
+    $21 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 3
+    $22 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $23 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $24 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.imm 0
+    mos6502.jmp.abs bb52
+bb52():
+    $5 = mos6502.sec
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.sbc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.sbc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.sbc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.sbc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.bcs bb53, implicit $5
+    mos6502.jmp.abs bb54
+bb53():
+    $1 = mos6502.inx
+    mos6502.jmp.abs bb52
+bb54():
+    ; value < power: restore by adding power back, emit digit
+    $5 = mos6502.clc
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.adc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.adc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.adc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.adc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.jmp.abs bb55
+bb55():
+    $0 = mos6502.txa
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.bne bb57, implicit $8
+    mos6502.jmp.abs bb56
+bb56():
+    $0 = mos6502.lda.zp $20
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb58, implicit $8
+    $0 = mos6502.lda.imm 0
+    mos6502.jmp.abs bb57
+bb57():
+    $0 = mos6502.ora.imm $0, 48
+    $25 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 48
+    $20 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $25
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.jmp.abs bb58
+bb58():
+    mos6502.jmp.abs bb59
+bb59():
+    ; --- power 100 ---
+    $0 = mos6502.lda.imm 100
+    $21 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $22 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $23 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $24 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.imm 0
+    mos6502.jmp.abs bb60
+bb60():
+    $5 = mos6502.sec
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.sbc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.sbc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.sbc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.sbc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.bcs bb61, implicit $5
+    mos6502.jmp.abs bb62
+bb61():
+    $1 = mos6502.inx
+    mos6502.jmp.abs bb60
+bb62():
+    ; value < power: restore by adding power back, emit digit
+    $5 = mos6502.clc
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.adc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.adc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.adc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.adc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.jmp.abs bb63
+bb63():
+    $0 = mos6502.txa
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.bne bb65, implicit $8
+    mos6502.jmp.abs bb64
+bb64():
+    $0 = mos6502.lda.zp $20
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb66, implicit $8
+    $0 = mos6502.lda.imm 0
+    mos6502.jmp.abs bb65
+bb65():
+    $0 = mos6502.ora.imm $0, 48
+    $25 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 48
+    $20 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $25
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.jmp.abs bb66
+bb66():
+    mos6502.jmp.abs bb67
+bb67():
+    ; --- power 10 ---
+    $0 = mos6502.lda.imm 10
+    $21 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $22 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $23 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $24 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.imm 0
+    mos6502.jmp.abs bb68
+bb68():
+    $5 = mos6502.sec
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.sbc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.sbc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.sbc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.sbc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.bcs bb69, implicit $5
+    mos6502.jmp.abs bb70
+bb69():
+    $1 = mos6502.inx
+    mos6502.jmp.abs bb68
+bb70():
+    ; value < power: restore by adding power back, emit digit
+    $5 = mos6502.clc
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.adc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.adc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.adc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.adc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.jmp.abs bb71
+bb71():
+    $0 = mos6502.txa
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.bne bb73, implicit $8
+    mos6502.jmp.abs bb72
+bb72():
+    $0 = mos6502.lda.zp $20
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb74, implicit $8
+    $0 = mos6502.lda.imm 0
+    mos6502.jmp.abs bb73
+bb73():
+    $0 = mos6502.ora.imm $0, 48
+    $25 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 48
+    $20 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $25
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.jmp.abs bb74
+bb74():
+    mos6502.jmp.abs bb75
+bb75():
+    ; --- power 1 ---
+    $0 = mos6502.lda.imm 1
+    $21 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $22 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $23 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 0
+    $24 = mos6502.sta.zp $0
+    $1 = mos6502.ldx.imm 0
+    mos6502.jmp.abs bb76
+bb76():
+    $5 = mos6502.sec
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.sbc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.sbc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.sbc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.sbc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.bcs bb77, implicit $5
+    mos6502.jmp.abs bb78
+bb77():
+    $1 = mos6502.inx
+    mos6502.jmp.abs bb76
+bb78():
+    ; value < power: restore by adding power back, emit digit
+    $5 = mos6502.clc
+    $0 = mos6502.lda.zp $16
+    $0, $5 = mos6502.adc.zp $0, $21, $5
+    $16 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $17
+    $0, $5 = mos6502.adc.zp $0, $22, $5
+    $17 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $18
+    $0, $5 = mos6502.adc.zp $0, $23, $5
+    $18 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $19
+    $0, $5 = mos6502.adc.zp $0, $24, $5
+    $19 = mos6502.sta.zp $0
+    mos6502.jmp.abs bb79
+bb79():
+    $0 = mos6502.txa
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.bne bb81, implicit $8
+    mos6502.jmp.abs bb80
+bb80():
+    $0 = mos6502.lda.zp $20
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb82, implicit $8
+    $0 = mos6502.lda.imm 0
+    mos6502.jmp.abs bb81
+bb81():
+    $0 = mos6502.ora.imm $0, 48
+    $25 = mos6502.sta.zp $0
+    $0 = mos6502.lda.imm 48
+    $20 = mos6502.sta.zp $0
+    $0 = mos6502.lda.zp $25
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.jmp.abs bb82
+bb82():
+    ; if nothing printed (value was 0) print a single '0'
+    $0 = mos6502.lda.zp $25
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.bne bb84, implicit $8
+    mos6502.jmp.abs bb83
+bb83():
+    $0 = mos6502.lda.imm 48
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.jmp.abs bb84
+bb84():
+    $0 = mos6502.lda.imm 13
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.rts
+}
+
+; ---------------------------------------------------------------------------
+; @WriteLineString : (i16) -> void
+;
+; The i16 argument is a pointer to a NUL-terminated string. Loops byte-by-byte
+; printing each character with osasci (so a CR in the string expands to CR/LF),
+; stopping at the terminator. Matches
+; DotNetro.Compiler.CodeGen.BbcMicroCodeGenerator.CompileSystemConsoleWriteLineString.
+;
+; WHY TARGET MIR (not generic dialects): the byte load dereferences a *runtime*
+; pointer, and the instruction selector currently only lowers mem.load.i8 when
+; the address is a `mem.symbol @name` (it throws "Non-symbolic i16 addresses
+; (frame slots, heap pointers) land later" otherwise). So the load is written
+; as a hand-rolled indirect-Y load through a zero-page pointer pair. The rest
+; (compare-to-zero, osasci call, INY) is trivially expressible but kept in
+; target MIR to stay in one block stream with the load.
+;
+; The i16 pointer arrives in $a (low byte) and $x (high byte) per CC_MOS; it is
+; parked in the zero-page pointer pair zp0/zp1, then dereferenced via LDA (zp),Y
+; with Y walking the string. INY/jmp loops until the NUL terminator is hit.
+func @WriteLineString : (i16) -> void {
+bb0(%0 : i16):
+    $12 = mos6502.sta.zp $0
+    $13 = mos6502.stx.zp $1
+    $2 = mos6502.ldy.imm 0
+    mos6502.jmp.abs bb1
+bb1():
+    $0 = mos6502.lda.indy $12, implicit $13, implicit $2
+    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
+    mos6502.beq bb2, implicit $8
+    mos6502.jsr.abs @osasci, implicit $0
+    mos6502.iny
+    mos6502.jmp.abs bb1
+bb2():
+    mos6502.rts
+}

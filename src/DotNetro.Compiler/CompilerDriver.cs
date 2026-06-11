@@ -1,51 +1,59 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 
-using Sixty502DotNet.Shared;
+using Irie.Mir;
+using Irie.Passes;
+using Irie.Target.MOS6502;
 
 namespace DotNetro.Compiler;
 
 public static class CompilerDriver
 {
+    // IL→MIR pipeline: translate the IL to an Irie MirModule, run it through
+    // the MOS6502 BBC Micro pass pipeline, and produce program (raw) + image
+    // (.ssd) bytes. Mirrors Irie.Tools.Compiler's Program.cs.
     public static CompilationResult Compile(string dotNetAssemblyPath, string entryPointMethodName)
     {
-        var assemblyCode = DotNetCompiler.Compile(dotNetAssemblyPath, entryPointMethodName, null);
+        var target = new MOS6502BbcMicroTarget();
 
-        var assemblerOutput = Assemble(assemblyCode);
-
-        return new CompilationResult(assemblyCode, assemblerOutput.Listing, assemblerOutput.CompiledProgram, assemblerOutput.CompiledImage);
-    }
-
-    private static AssemblerResult Assemble(string assemblyCode)
-    {
-        var options = new Options
+        MirModule module;
+        using (var translator = new IlToMirTranslator(dotNetAssemblyPath, target.GetRuntime()))
         {
-            OutputOptions = new OutputOptions
-            {
-                Format = "bbcmicro",
-            },
-        };
-
-        Interpreter interpreter = new(options, new FileSystemBinaryReader(""));
-        AssemblyState state = interpreter.Exec(assemblyCode, new StringSourceFactory());
-
-        foreach (var error in state.Errors)
-        {
-            throw new Exception($"Assembly error. Assembly code: {assemblyCode}. Error: {error}", error);
+            module = translator.Translate(entryPointMethodName);
         }
 
-        var listing = string.Join(System.Environment.NewLine, state.StatementListings);
+        var context = new CompilationContext(module);
 
-        var objectBytes = state.Output.GetCompilation();
+        var passMgr = new PassManager(null, null);
+        passMgr.AddPass(new FrameLoweringPass());
+        passMgr.AddPass(new AbiLoweringPass(target.CallLowering));
+        passMgr.AddPass(new LegalizerPass(target.LegalizerInfo));
+        passMgr.AddPass(new InstructionSelectorPass(target.InstructionSelector));
+        passMgr.AddPass(new PhiEliminationPass(target.BranchLowering));
+        passMgr.AddPass(new TwoAddressInstructionPass());
+        passMgr.AddPass(new RegisterAllocatorPass(target.RegisterInfo));
+        passMgr.AddPass(new CopyEliminationPass());
+        target.AddPostRegisterAllocationPasses(passMgr);
+        passMgr.AddPass(new PseudoExpansionPass(target.PseudoExpander));
+        // Final pass: fill the copy-scratch vregs PseudoExpansion mints (e.g. for
+        // immediate→zp moves) with GPRs dead at each point, then lower them. Must
+        // run last so no vregs survive into machine-code emission (plan §3.6).
+        passMgr.AddPass(new RegisterScavengingPass(target.RegisterInfo, target.PseudoExpander));
+        passMgr.Run(context);
 
-        var outputFormatInfo = new OutputFormatInfo("foo", state.Output.ProgramStart, objectBytes);
+        var origin = target.DefaultOrigin!.Value;
+        var machineCode = target.MachineCodeEmitter.Emit(module);
+        var program = new MOS6502BinaryEncoder().Encode(machineCode, origin);
+        var image = target.PackageImage(program, origin);
 
-        return new AssemblerResult(
-            listing,
-            objectBytes,
-            state.Output.OutputFormat!.GetFormat(outputFormatInfo));
+        // The MIR pipeline does not produce an assembly-text listing; the
+        // AssemblyCode / Listing fields stay empty (the --emit assembly path
+        // produces no output).
+        return new CompilationResult(
+            string.Empty,
+            string.Empty,
+            new ReadOnlyCollection<byte>(program),
+            new ReadOnlyCollection<byte>(image));
     }
-
-    private sealed record AssemblerResult(string Listing, ReadOnlyCollection<byte> CompiledProgram, ReadOnlyCollection<byte> CompiledImage);
 }
 
 public sealed record CompilationResult(string AssemblyCode, string Listing, ReadOnlyCollection<byte> CompiledProgram, ReadOnlyCollection<byte> CompiledImage);

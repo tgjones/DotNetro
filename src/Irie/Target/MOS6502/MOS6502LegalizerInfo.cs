@@ -1,4 +1,6 @@
 using Irie.Dialects.Arith;
+using Irie.Dialects.Cast;
+using Irie.Dialects.Mem;
 using Irie.Dialects.Pseudo;
 using Irie.Mir;
 
@@ -19,10 +21,19 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
         {
             return ((ArithOp)opcode.Code) switch
             {
-                ArithOp.AddI      when intType.SizeInBits == 8  => LegalityAction.Legal,
-                ArithOp.AddI      when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
-                ArithOp.AddICarry => LegalityAction.Legal,
-                ArithOp.Constant  when intType.SizeInBits == 1  => LegalityAction.Legal,
+                ArithOp.AddI       when intType.SizeInBits == 8  => LegalityAction.Legal,
+                ArithOp.AddI       when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
+                ArithOp.SubI       when intType.SizeInBits == 8  => LegalityAction.Legal,
+                ArithOp.SubI       when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
+                ArithOp.AddICarry  => LegalityAction.Legal,
+                ArithOp.SubIBorrow => LegalityAction.Legal,
+                // arith.cmpi's first def is i1 (the boolean result), so the
+                // type query here is always i1. The narrowing decision is
+                // driven by the operand types — see GetCmpINarrowType.
+                ArithOp.CmpI       => LegalityAction.Legal,
+                ArithOp.Constant   when intType.SizeInBits == 1  => LegalityAction.Legal,
+                ArithOp.Constant   when intType.SizeInBits == 8  => LegalityAction.Legal,
+                ArithOp.Constant   when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
                 _ => LegalityAction.Unsupported,
             };
         }
@@ -38,15 +49,273 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
             };
         }
 
+        if (opcode.Dialect == CastDialect.Id)
+        {
+            return ((CastOp)opcode.Code) switch
+            {
+                // cast.trunc lowers to a pseudo.extract / pseudo.merge of the
+                // source vreg's low bytes via the Custom action below.
+                CastOp.Trunc => LegalityAction.Custom,
+                _ => LegalityAction.Unsupported,
+            };
+        }
+
+        if (opcode.Dialect == MemDialect.Id)
+        {
+            // mem.symbol produces an i16 pointer that the isel pattern-matches
+            // through to the per-byte lda.imm.symlo/symhi ops.
+            //
+            // mem.load.i8 / mem.store.i8: rewritten to mem.load.byte_at /
+            // mem.store.byte_at with offset 0 by Custom legalization.
+            //
+            // mem.load.i16/i32, mem.store.i16/i32: narrowed to a chain of
+            // mem.load.byte_at / mem.store.byte_at at consecutive offsets,
+            // wrapped in pseudo.unmerge / pseudo.merge to splice into / out
+            // of the wider vreg. Same Custom path.
+            //
+            // mem.load.byte_at / mem.store.byte_at: the post-legalization
+            // form the isel knows how to lower to lda.indy / sta.indy.
+            return ((MemOp)opcode.Code) switch
+            {
+                MemOp.Symbol      when intType.SizeInBits == 16 => LegalityAction.Legal,
+                MemOp.LoadI8      when intType.SizeInBits == 8  => LegalityAction.Custom,
+                MemOp.LoadI16     when intType.SizeInBits == 16 => LegalityAction.Custom,
+                MemOp.LoadI32     when intType.SizeInBits == 32 => LegalityAction.Custom,
+                MemOp.StoreI8     when intType.SizeInBits == 8  => LegalityAction.Custom,
+                MemOp.StoreI16    when intType.SizeInBits == 16 => LegalityAction.Custom,
+                MemOp.StoreI32    when intType.SizeInBits == 32 => LegalityAction.Custom,
+                MemOp.LoadByteAt  when intType.SizeInBits == 8  => LegalityAction.Legal,
+                MemOp.StoreByteAt when intType.SizeInBits == 8  => LegalityAction.Legal,
+                // mem.fill's TypeOperandIndex points at the byte-pattern (i8) operand;
+                // the count is an Immediate that the Custom path unrolls into per-byte
+                // mem.store.byte_at.
+                MemOp.Fill        when intType.SizeInBits == 8  => LegalityAction.Custom,
+                _ => LegalityAction.Unsupported,
+            };
+        }
+
         return LegalityAction.Unsupported;
     }
 
     public override IRType GetNarrowType(OpcodeRef opcode, IRType fromType)
     {
-        if (opcode.Dialect == ArithDialect.Id && (ArithOp)opcode.Code == ArithOp.AddI)
+        if (opcode.Dialect == ArithDialect.Id
+            && ((ArithOp)opcode.Code == ArithOp.AddI
+                || (ArithOp)opcode.Code == ArithOp.SubI
+                || (ArithOp)opcode.Code == ArithOp.Constant))
             return IRType.I8;
 
         throw new NotSupportedException(
             $"MOS6502LegalizerInfo: no narrow type defined for opcode {opcode}");
+    }
+
+    // Custom legalization for the mem dialect: rewrites typed mem.load / mem.store
+    // ops into per-byte mem.load.byte_at / mem.store.byte_at chains. The byte
+    // form carries an Immediate offset that the isel feeds into the indirect-Y
+    // addressing mode's Y register, so consecutive bytes of a wide load/store
+    // read or write from address+0, address+1, …
+    public override void LegalizeCustom(MirInstruction instr, MirBuilder builder)
+    {
+        if (instr.Opcode.Dialect == MemDialect.Id)
+        {
+            switch ((MemOp)instr.Opcode.Code)
+            {
+                case MemOp.LoadI8:
+                case MemOp.LoadI16:
+                case MemOp.LoadI32:
+                    LowerWideLoad(instr, builder);
+                    return;
+
+                case MemOp.StoreI8:
+                case MemOp.StoreI16:
+                case MemOp.StoreI32:
+                    LowerWideStore(instr, builder);
+                    return;
+
+                case MemOp.Fill:
+                    LowerMemFill(instr, builder);
+                    return;
+            }
+            throw new NotSupportedException(
+                $"MOS6502LegalizerInfo: no Custom legalization for mem opcode {(MemOp)instr.Opcode.Code}");
+        }
+
+        if (instr.Opcode.Dialect == CastDialect.Id)
+        {
+            switch ((CastOp)instr.Opcode.Code)
+            {
+                case CastOp.Trunc:
+                    LowerTrunc(instr, builder);
+                    return;
+            }
+            throw new NotSupportedException(
+                $"MOS6502LegalizerInfo: no Custom legalization for cast opcode {(CastOp)instr.Opcode.Code}");
+        }
+
+        throw new NotSupportedException(
+            $"MOS6502LegalizerInfo: no Custom legalization for {instr.Opcode}");
+    }
+
+    // %v : iN = mem.load.iN %p  →  per-byte mem.load.byte_at chain + pseudo.merge.
+    // The merge re-uses the original wide vreg as its def so downstream uses are
+    // untouched.
+    private static void LowerWideLoad(MirInstruction instr, MirBuilder builder)
+    {
+        var function = builder.Function;
+        if (instr.Operands.Length != 2
+            || instr.Operands[0] is not VirtualReg defReg || !defReg.IsDefinition
+            || instr.Operands[1] is not VirtualReg addrReg || addrReg.IsDefinition)
+        {
+            throw new InvalidOperationException(
+                "MOS6502LegalizerInfo: mem.load.iN must have shape `%def : iN = mem.load.iN %addr`.");
+        }
+
+        var defType = ((TypedVReg)function.GetVRegAnnotation(defReg.Id)).Type;
+        var byteCount = defType.SizeInBits / 8;
+
+        var byteVregs = new int[byteCount];
+        for (var i = 0; i < byteCount; i++)
+        {
+            byteVregs[i] = function.CreateVirtualRegister(IRType.I8);
+            builder.BuildInstruction(
+                MemDialect.OpRef(MemOp.LoadByteAt),
+                new VirtualReg(byteVregs[i], IsDefinition: true),
+                new VirtualReg(addrReg.Id,   IsDefinition: false),
+                new Immediate(i));
+        }
+
+        if (byteCount == 1)
+        {
+            // Single byte: just RAUW the def. The byte vreg replaces the
+            // wide def vreg (both i8 here — the wide form was already i8).
+            function.ReplaceAllUsesOfRegister(defReg.Id, byteVregs[0]);
+        }
+        else
+        {
+            // Reuse the original wide vreg as the merge's def so downstream
+            // consumers keep their operands intact.
+            builder.BuildMergeInto(defReg.Id, byteVregs);
+        }
+
+        builder.Remove(instr);
+    }
+
+    // mem.fill %addr, %byte, <count>  →  unroll into <count> mem.store.byte_at
+    // ops at offsets 0..count-1, all writing the same byte vreg. Loop-form for
+    // large counts is future work; the active tests use small struct sizes.
+    private static void LowerMemFill(MirInstruction instr, MirBuilder builder)
+    {
+        if (instr.Operands.Length != 3
+            || instr.Operands[0] is not VirtualReg addrReg || addrReg.IsDefinition
+            || instr.Operands[1] is not VirtualReg byteReg || byteReg.IsDefinition
+            || instr.Operands[2] is not Immediate countImm)
+        {
+            throw new InvalidOperationException(
+                "MOS6502LegalizerInfo: mem.fill must have shape `mem.fill %addr, %byte, <count>`.");
+        }
+
+        var count = countImm.Value;
+        if (count < 0 || count > 256)
+        {
+            throw new NotSupportedException(
+                $"MOS6502LegalizerInfo: mem.fill count {count} is out of range (loop-form not implemented; expected 0..256).");
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            builder.BuildInstruction(
+                MemDialect.OpRef(MemOp.StoreByteAt),
+                new VirtualReg(addrReg.Id, IsDefinition: false),
+                new Immediate(i),
+                new VirtualReg(byteReg.Id, IsDefinition: false));
+        }
+        builder.Remove(instr);
+    }
+
+    // %y : iM = cast.trunc %x : iN  (M < N)  →  pseudo.unmerge + pseudo.merge
+    // of the low M/8 byte vregs. The special case M = 8 reduces to a single
+    // pseudo.extract (the artifact combiner from step 6 folds it through any
+    // upstream pseudo.merge, so a truncate of a multi-byte construct collapses
+    // to a direct reference to the desired byte).
+    private static void LowerTrunc(MirInstruction instr, MirBuilder builder)
+    {
+        var function = builder.Function;
+        if (instr.Operands.Length != 2
+            || instr.Operands[0] is not VirtualReg defReg || !defReg.IsDefinition
+            || instr.Operands[1] is not VirtualReg srcReg || srcReg.IsDefinition)
+        {
+            throw new InvalidOperationException(
+                "MOS6502LegalizerInfo: cast.trunc must have shape `%def : iM = cast.trunc %src : iN`.");
+        }
+
+        var defType = ((TypedVReg)function.GetVRegAnnotation(defReg.Id)).Type;
+        var srcType = ((TypedVReg)function.GetVRegAnnotation(srcReg.Id)).Type;
+        if (defType.SizeInBits >= srcType.SizeInBits)
+        {
+            throw new InvalidOperationException(
+                $"MOS6502LegalizerInfo: cast.trunc requires the target type to be narrower " +
+                $"than the source (got {defType.DisplayName} ← {srcType.DisplayName}).");
+        }
+
+        var defByteCount = defType.SizeInBits / 8;
+        var srcByteCount = srcType.SizeInBits / 8;
+
+        if (defByteCount == 1)
+        {
+            // Single-byte truncation: surface as a pseudo.extract at offset 0
+            // so the artifact combiner can fold it against an upstream merge.
+            var byteVreg = builder.BuildExtract(IRType.I8, srcReg.Id, bitOffset: 0);
+            function.ReplaceAllUsesOfRegister(defReg.Id, byteVreg);
+            builder.Remove(instr);
+            return;
+        }
+
+        // Wider-than-byte truncation: unmerge the source into its byte vregs
+        // and re-merge only the low defByteCount of them into the original
+        // def vreg.
+        var sourceBytes = builder.BuildUnmerge(IRType.I8, srcReg.Id, srcByteCount);
+        var lowBytes = new int[defByteCount];
+        Array.Copy(sourceBytes, lowBytes, defByteCount);
+        builder.BuildMergeInto(defReg.Id, lowBytes);
+        builder.Remove(instr);
+    }
+
+    // mem.store.iN %p, %v  →  pseudo.unmerge %v + per-byte mem.store.byte_at chain.
+    // For a single-byte store the unmerge is skipped (the value vreg is fed
+    // straight into mem.store.byte_at at offset 0).
+    private static void LowerWideStore(MirInstruction instr, MirBuilder builder)
+    {
+        var function = builder.Function;
+        if (instr.Operands.Length != 2
+            || instr.Operands[0] is not VirtualReg addrReg || addrReg.IsDefinition
+            || instr.Operands[1] is not VirtualReg valReg  || valReg.IsDefinition)
+        {
+            throw new InvalidOperationException(
+                "MOS6502LegalizerInfo: mem.store.iN must have shape `mem.store.iN %addr, %val`.");
+        }
+
+        var valType = ((TypedVReg)function.GetVRegAnnotation(valReg.Id)).Type;
+        var byteCount = valType.SizeInBits / 8;
+
+        int[] byteVregs;
+        if (byteCount == 1)
+        {
+            byteVregs = [valReg.Id];
+        }
+        else
+        {
+            byteVregs = builder.BuildUnmerge(IRType.I8, valReg.Id, byteCount);
+        }
+
+        for (var i = 0; i < byteCount; i++)
+        {
+            builder.BuildInstruction(
+                MemDialect.OpRef(MemOp.StoreByteAt),
+                new VirtualReg(addrReg.Id,   IsDefinition: false),
+                new Immediate(i),
+                new VirtualReg(byteVregs[i], IsDefinition: false));
+        }
+
+        builder.Remove(instr);
     }
 }

@@ -1,0 +1,48 @@
+; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file
+
+; Derived from reference-register-allocator/pressure/many-calls, simplified.
+; The real four-call version (four values surviving four calls) is the corpus's
+; one genuine soft-stack *spill* case, which the current Irie RA cannot handle
+; (spilling is not implemented -- it throws). This reduced two-call chain is the
+; most call pressure Irie allocates today; it is the case the redesign should
+; first extend to real spilling.
+
+; CHECK: func @g : \(i16\) -> i16 \{
+; CHECK: bb0\(\):
+; CHECK:     \[liveins: \$a, \$x\]
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x
+; CHECK: \}
+; CHECK: func @chained_calls : \(i16\) -> i16 \{
+; CHECK: bb0\(\):
+; CHECK:     \[liveins: \$a, \$x\]
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     mos6502\.jsr\.abs @g, implicit \$a, implicit \$x, implicit-def \$a, implicit-def \$x, implicit-def \$y, implicit-def \$c, implicit-def \$n, implicit-def \$v, implicit-def \$z, implicit-def \$i, implicit-def \$d, implicit-def \$b, implicit-def \$zp2, implicit-def \$zp3, implicit-def \$zp4, implicit-def \$zp5, implicit-def \$zp6, implicit-def \$zp7, implicit-def \$zp8, implicit-def \$zp9, implicit-def \$zp10, implicit-def \$zp11, implicit-def \$zp12, implicit-def \$zp13, implicit-def \$zp14, implicit-def \$zp15
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     mos6502\.jsr\.abs @g, implicit \$a, implicit \$x, implicit-def \$a, implicit-def \$x, implicit-def \$y, implicit-def \$c, implicit-def \$n, implicit-def \$v, implicit-def \$z, implicit-def \$i, implicit-def \$d, implicit-def \$b, implicit-def \$zp2, implicit-def \$zp3, implicit-def \$zp4, implicit-def \$zp5, implicit-def \$zp6, implicit-def \$zp7, implicit-def \$zp8, implicit-def \$zp9, implicit-def \$zp10, implicit-def \$zp11, implicit-def \$zp12, implicit-def \$zp13, implicit-def \$zp14, implicit-def \$zp15
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     \$a = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
+; CHECK:     mos6502\.rts implicit \$a, implicit \$x
+; CHECK: \}
+
+func @g : (i16) -> i16 {
+bb0(%0 : i16):
+    core.return %0
+}
+func @chained_calls : (i16) -> i16 {
+bb0(%0 : i16):
+    %1 : i16 = call.func @g, %0
+    %2 : i16 = call.func @g, %1
+    core.return %2
+}

@@ -1,0 +1,93 @@
+; RUN: @iriec --target mos6502 --stop-after RegisterAllocator @file
+
+; Derived from reference-register-allocator/control-flow/if-else, the EXACT
+; absolute-difference shape `a > b ? a - b : b - a` that the sibling IfElse test
+; could not express. Written here as the equivalent `a < b ? b - a : a - b`
+; (using the supported `ult` predicate): the two arms subtract in opposite
+; orders, so each byte of %0 (a) is the *subtrahend* (zero-page R operand) of the
+; sbc in bb1 and the *minuend* (A operand) of the sbc in bb2.
+;
+; This is the case the isel class-intersection gap used to block: the old
+; selector pinned a value to the single-physreg `ac` class at the A-operand site
+; in place, so the SAME byte intersected `ac` (must be $a) with `imag8`
+; (zero-page) at its other use -> an empty allocatable set, and RA aborted with
+;   "vreg %N in class ac has an empty allocatable set after intersecting
+;    operand-class constraints".
+; Closing the gap (isel now funnels the A operand through a fresh `ac` copy and
+; the sbc/adc result out to a flexible `any8` vreg, leaving the source values
+; broad) lets RA park %0 in $zp5 and copy it into $a only at the bb2 minuend
+; site. The coalescer keeps the straight-line arms tight; the funnels survive
+; only where the value genuinely needs to be in two places.
+;
+; CHECK lines pin Irie's actual post-RA output (characterization). Note $zp5
+; (a's low byte) flows as `sbc $a, $zp5` in bb1 (zero-page R operand) AND as
+; `$a = pseudo.copy $zp5; sbc $a, ...` in bb2 (minuend) -- the dual role that
+; previously produced the empty class intersection.
+
+; CHECK: func @abs_diff : \(i16, i16\) -> i16 \{
+; CHECK: bb0\(\):
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3\]
+; CHECK:     \$zp5 = pseudo.copy \$a
+; CHECK:     \$zp4 = pseudo.copy \$x
+; CHECK:     \$zp2 = pseudo.copy \$zp2
+; CHECK:     \$zp3 = pseudo.copy \$zp3
+; CHECK:     \$x = pseudo.copy \$zp5
+; CHECK:     \$a = pseudo.copy \$zp4
+; CHECK:     \$zp7 = pseudo.copy \$zp2
+; CHECK:     \$zp6 = pseudo.copy \$zp3
+; CHECK:     \$a = pseudo.copy \$a
+; CHECK:     mos6502.cmp \$a, \$zp6, implicit-def \$n, implicit-def \$z, implicit-def \$c
+; CHECK:     mos6502.bcc bb1, implicit \$c
+; CHECK:     mos6502.bne bb2, implicit \$z
+; CHECK:     \$a = pseudo.copy \$x
+; CHECK:     mos6502.cmp \$a, \$zp7, implicit-def \$n, implicit-def \$z, implicit-def \$c
+; CHECK:     mos6502.bcc bb1, implicit \$c
+; CHECK:     mos6502.jmp.abs bb2
+; CHECK: bb1\(\):
+; CHECK:     \[liveins: \$zp5, \$zp4, \$zp2, \$zp3\]
+; CHECK:     \$c = mos6502.sec
+; CHECK:     \$a = pseudo.copy \$zp2
+; CHECK:     \$a, \$c = mos6502.sbc \$a, \$zp5, \$c
+; CHECK:     \$y = pseudo.copy \$a
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$a = pseudo.copy \$zp3
+; CHECK:     \$a, \$c = mos6502.sbc \$a, \$zp4, \$c
+; CHECK:     \$x = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     mos6502.jmp.abs bb3
+; CHECK: bb2\(\):
+; CHECK:     \[liveins: \$zp5, \$zp4, \$zp2, \$zp3\]
+; CHECK:     \$c = mos6502.sec
+; CHECK:     \$a = pseudo.copy \$zp5
+; CHECK:     \$a, \$c = mos6502.sbc \$a, \$zp2, \$c
+; CHECK:     \$y = pseudo.copy \$a
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$a = pseudo.copy \$zp4
+; CHECK:     \$a, \$c = mos6502.sbc \$a, \$zp3, \$c
+; CHECK:     \$x = pseudo.copy \$a
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     \$y = pseudo.copy \$y
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     mos6502.jmp.abs bb3
+; CHECK: bb3\(\):
+; CHECK:     \[liveins: \$y, \$x\]
+; CHECK:     \$a = pseudo.copy \$y
+; CHECK:     \$x = pseudo.copy \$x
+; CHECK:     mos6502.rts implicit \$a, implicit \$x
+; CHECK: \}
+
+func @abs_diff : (i16, i16) -> i16 {
+bb0(%0 : i16, %1 : i16):
+    %2 : i1 = arith.cmpi ult, %0, %1
+    cf.cond_br %2, bb1(), bb2()
+bb1():
+    %3 : i16 = arith.subi %1, %0
+    cf.br bb3(%3)
+bb2():
+    %4 : i16 = arith.subi %0, %1
+    cf.br bb3(%4)
+bb3(%5 : i16):
+    core.return %5
+}

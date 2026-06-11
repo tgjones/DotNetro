@@ -1,0 +1,28 @@
+; RUN: @iriec --target mos6502 --stop-after Legalizer @file
+
+; Checks the legalizer's Custom path for mem.load.i16 / mem.store.i16. A
+; typed wide load/store rewrites into a per-byte mem.load.byte_at /
+; mem.store.byte_at chain at offsets 0..N-1. For the load, the byte vregs
+; are merged back into the original wide vreg (so downstream uses see no
+; change). For the store, the wide value is split via pseudo.unmerge into
+; byte vregs that feed each per-offset store.
+
+; CHECK: func @TestMemI16 : \(\) -> void \{
+; CHECK:   bb0\(\):
+; CHECK:     %0 : i16 = mem.symbol @ptr
+; CHECK:     %4 : i8 = mem.load.byte_at %0, 0
+; CHECK:     %5 : i8 = mem.load.byte_at %0, 1
+; CHECK:     mem.store.byte_at %0, 0, %4
+; CHECK:     mem.store.byte_at %0, 1, %5
+; CHECK:     pseudo.return
+; CHECK: \}
+
+global @ptr : i32
+
+func @TestMemI16 : () -> void {
+bb0():
+    %0 : i16 = mem.symbol @ptr
+    %1 : i16 = mem.load.i16 %0
+    mem.store.i16 %0, %1
+    core.return
+}

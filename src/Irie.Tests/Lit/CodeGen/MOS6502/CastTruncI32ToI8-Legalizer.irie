@@ -1,0 +1,30 @@
+; RUN: @iriec --target mos6502 --stop-after Legalizer @file
+
+; Checks the M = 8 special case of cast.trunc legalization: instead of an
+; unmerge + merge, the legalizer emits a single pseudo.extract at bit
+; offset 0. The artifact combiner folds that extract against the upstream
+; pseudo.merge that ABI lowering used to reassemble the i32 parameter, so
+; the byte_at store reads the low byte vreg (%3) directly without any
+; surviving extract / merge instructions.
+
+; CHECK: func @TestTrunc8 : \(i32\) -> void \{
+; CHECK:   bb0\(\):
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3\]
+; CHECK:     %3 : i8 = pseudo.copy \$a
+; CHECK:     %4 : i8 = pseudo.copy \$x
+; CHECK:     %5 : i8 = pseudo.copy \$zp2
+; CHECK:     %6 : i8 = pseudo.copy \$zp3
+; CHECK:     %2 : i16 = mem.symbol @ptr
+; CHECK:     mem.store.byte_at %2, 0, %3
+; CHECK:     pseudo.return
+; CHECK: \}
+
+global @ptr : i32
+
+func @TestTrunc8 : (i32) -> void {
+bb0(%0 : i32):
+    %1 : i8 = cast.trunc %0
+    %2 : i16 = mem.symbol @ptr
+    mem.store.i8 %2, %1
+    core.return
+}

@@ -1,0 +1,27 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; End-to-end check exercising frame slots: a struct-style value type lives
+; in a frame slot, gets initialised to zero via mem.fill, then a single
+; byte is stored to it and read back. Mirrors the shape of `UseStruct` in
+; the DotNetCompilerTests suite — minus the call to Console.WriteLine.
+;
+; FrameLoweringPass materialises @UseStruct_local0 as a zero-init global,
+; the legalizer unrolls mem.fill into 4 byte stores, and the i8 store /
+; load lower through the indirect-Y addressing pattern.
+
+; CHECK: TestStruct:
+; CHECK:     LDA #<UseStruct_local0
+; CHECK:     STA \$00
+; CHECK:     LDA #>UseStruct_local0
+; CHECK:     STA \$01
+
+func @TestStruct : () -> void {
+  frame_slot 0 : i32 @UseStruct_local0
+
+  bb0():
+    %0 : i16 = mem.frame_addr 0
+    %1 : i8  = arith.constant 0
+    mem.fill %0, %1, 4
+    mem.store.i8 %0, %1
+    core.return
+}

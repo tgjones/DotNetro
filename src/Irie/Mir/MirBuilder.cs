@@ -1,4 +1,6 @@
 using Irie.Dialects.Arith;
+using Irie.Dialects.Call;
+using Irie.Dialects.Mem;
 using Irie.Dialects.Pseudo;
 
 namespace Irie.Mir;
@@ -110,6 +112,75 @@ public sealed class MirBuilder(MirFunction function)
         return (result, carryOut);
     }
 
+    // arith.subi_with_borrow: 2 defs (result, borrow-out), 3 uses (a, b, borrow-in).
+    // borrow_in/out follow 6502 C-flag polarity (1 = no borrow).
+    public (int result, int borrowOut) BuildSubBorrow(IRType type, int a, int b, int borrowInVreg)
+    {
+        var result    = function.CreateVirtualRegister(type);
+        var borrowOut = function.CreateVirtualRegister(IRType.I1);
+        Insert(ArithDialect.OpRef(ArithOp.SubIBorrow), [
+            new VirtualReg(result,       IsDefinition: true),
+            new VirtualReg(borrowOut,    IsDefinition: true),
+            new VirtualReg(a,            IsDefinition: false),
+            new VirtualReg(b,            IsDefinition: false),
+            new VirtualReg(borrowInVreg, IsDefinition: false),
+        ]);
+        return (result, borrowOut);
+    }
+
+    // arith.cmpi <pred>, %a, %b: 1 def (i1 result), 3 uses (predicate Immediate, a, b).
+    // The predicate is encoded as the first use Immediate; the writer/parser
+    // render it symbolically via ArithDialect.TryFormat/ParseImmediateUse.
+    public int BuildCmpI(ArithCmpPredicate predicate, int aVreg, int bVreg)
+    {
+        var result = function.CreateVirtualRegister(IRType.I1);
+        Insert(ArithDialect.OpRef(ArithOp.CmpI), [
+            new VirtualReg(result, IsDefinition: true),
+            new Immediate((long)predicate),
+            new VirtualReg(aVreg,  IsDefinition: false),
+            new VirtualReg(bVreg,  IsDefinition: false),
+        ]);
+        return result;
+    }
+
+    // call.func @callee, %arg0, %arg1, ... → %r0, %r1, ...
+    // Allocates fresh def vregs of the given returnTypes. Caller passes
+    // existing arg vregs.
+    public int[] BuildCall(string calleeName, IRType[] returnTypes, params int[] argVregs)
+    {
+        var defs = new int[returnTypes.Length];
+        var operands = new MirOperand[returnTypes.Length + 1 + argVregs.Length];
+        for (var i = 0; i < returnTypes.Length; i++)
+        {
+            defs[i] = function.CreateVirtualRegister(returnTypes[i]);
+            operands[i] = new VirtualReg(defs[i], IsDefinition: true);
+        }
+        operands[returnTypes.Length] = new Symbol(calleeName);
+        for (var i = 0; i < argVregs.Length; i++)
+            operands[returnTypes.Length + 1 + i] = new VirtualReg(argVregs[i], IsDefinition: false);
+        Insert(CallDialect.OpRef(CallOp.Func), operands);
+        return defs;
+    }
+
+    // call.indirect %target, %arg0, %arg1, ... → %r0, %r1, ...
+    // Same shape as BuildCall but the callee is an i16 target-pointer vreg
+    // instead of a Symbol.
+    public int[] BuildCallIndirect(int targetPtrVreg, IRType[] returnTypes, params int[] argVregs)
+    {
+        var defs = new int[returnTypes.Length];
+        var operands = new MirOperand[returnTypes.Length + 1 + argVregs.Length];
+        for (var i = 0; i < returnTypes.Length; i++)
+        {
+            defs[i] = function.CreateVirtualRegister(returnTypes[i]);
+            operands[i] = new VirtualReg(defs[i], IsDefinition: true);
+        }
+        operands[returnTypes.Length] = new VirtualReg(targetPtrVreg, IsDefinition: false);
+        for (var i = 0; i < argVregs.Length; i++)
+            operands[returnTypes.Length + 1 + i] = new VirtualReg(argVregs[i], IsDefinition: false);
+        Insert(CallDialect.OpRef(CallOp.Indirect), operands);
+        return defs;
+    }
+
     // pseudo.unmerge a wide vreg into N freshly-allocated narrow vregs.
     public int[] BuildUnmerge(IRType elementType, int sourceVreg, int count)
     {
@@ -123,6 +194,58 @@ public sealed class MirBuilder(MirFunction function)
         operands[count] = new VirtualReg(sourceVreg, IsDefinition: false);
         Insert(PseudoDialect.OpRef(PseudoOp.Unmerge), operands);
         return defs;
+    }
+
+    // pseudo.extract: %byte = pseudo.extract %wide, <bit_offset>
+    // Carves out a sub-range of `sourceVreg` starting at `bitOffset` bits.
+    // The result vreg's type (sub-range width) is determined by `resultType`.
+    public int BuildExtract(IRType resultType, int sourceVreg, long bitOffset)
+    {
+        var result = function.CreateVirtualRegister(resultType);
+        Insert(PseudoDialect.OpRef(PseudoOp.Extract), [
+            new VirtualReg(result,     IsDefinition: true),
+            new VirtualReg(sourceVreg, IsDefinition: false),
+            new Immediate(bitOffset),
+        ]);
+        return result;
+    }
+
+    // pseudo.insert: %new = pseudo.insert %wide, %sub, <bit_offset>
+    public int BuildInsert(IRType resultType, int wideVreg, int subVreg, long bitOffset)
+    {
+        var result = function.CreateVirtualRegister(resultType);
+        Insert(PseudoDialect.OpRef(PseudoOp.Insert), [
+            new VirtualReg(result,   IsDefinition: true),
+            new VirtualReg(wideVreg, IsDefinition: false),
+            new VirtualReg(subVreg,  IsDefinition: false),
+            new Immediate(bitOffset),
+        ]);
+        return result;
+    }
+
+    // mem.symbol @name → %p : i16
+    // Returns the i16 pointer vreg holding the address of the named global.
+    public int BuildMemSymbol(string symbolName)
+    {
+        var result = function.CreateVirtualRegister(IRType.Pointer);
+        Insert(MemDialect.OpRef(MemOp.Symbol), [
+            new VirtualReg(result, IsDefinition: true),
+            new Symbol(symbolName),
+        ]);
+        return result;
+    }
+
+    // mem.frame_addr <slot_index> → %p : i16
+    // Surface the address of one of the function's reserved frame slots.
+    // The slot itself must already be registered on `function.FrameSlots`.
+    public int BuildFrameAddr(int slotIndex)
+    {
+        var result = function.CreateVirtualRegister(IRType.Pointer);
+        Insert(MemDialect.OpRef(MemOp.FrameAddr), [
+            new VirtualReg(result, IsDefinition: true),
+            new Immediate(slotIndex),
+        ]);
+        return result;
     }
 
     // Remove an instruction from its block and detach it (Parent = null).

@@ -17,10 +17,77 @@ internal sealed class MirWriter
     private void WriteAll(MirModule module, TextWriter writer)
     {
         MirBootstrap.EnsureRegistered();
+
+        foreach (var global in module.Globals)
+            WriteGlobal(global, writer);
+
+        var hasGlobals = module.Globals.Count > 0;
         for (var i = 0; i < module.Functions.Count; i++)
         {
-            if (i > 0) writer.WriteLine();
+            if (i > 0 || hasGlobals) writer.WriteLine();
             WriteFunction(module.Functions[i], writer);
+        }
+    }
+
+    // Module-level globals: `global @name : <type> [= <initializer>]`.
+    // Initializer is omitted for zero-init (`.bss`-style) globals.
+    private static void WriteGlobal(MirGlobal global, TextWriter writer)
+    {
+        writer.Write($"global @{global.SymbolName} : {global.Type.DisplayName}");
+        if (global.Initializer is not null)
+        {
+            writer.Write(" = ");
+            WriteInitializer(global.Initializer, writer);
+        }
+        writer.WriteLine();
+    }
+
+    private static void WriteInitializer(MirInitializer initializer, TextWriter writer)
+    {
+        if (initializer.Items.Length == 1)
+        {
+            WriteDataItem(initializer.Items[0], writer);
+            return;
+        }
+        writer.Write("[");
+        for (var i = 0; i < initializer.Items.Length; i++)
+        {
+            if (i > 0) writer.Write(", ");
+            WriteDataItem(initializer.Items[i], writer);
+        }
+        writer.Write("]");
+    }
+
+    private static void WriteDataItem(MirDataItem item, TextWriter writer)
+    {
+        switch (item)
+        {
+            case DataBytes(var bytes):
+                writer.Write("bytes \"");
+                foreach (var b in bytes)
+                {
+                    switch (b)
+                    {
+                        case (byte)'\\': writer.Write(@"\\"); break;
+                        case (byte)'"':  writer.Write("\\\""); break;
+                        case (byte)'\n': writer.Write(@"\n"); break;
+                        case (byte)'\r': writer.Write(@"\r"); break;
+                        case (byte)'\t': writer.Write(@"\t"); break;
+                        case >= 0x20 and < 0x7F:
+                            writer.Write((char)b);
+                            break;
+                        default:
+                            writer.Write($"\\x{b:X2}");
+                            break;
+                    }
+                }
+                writer.Write("\"");
+                break;
+            case DataSymbolRef(var name):
+                writer.Write($"@{name}");
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown MirDataItem: {item.GetType().Name}");
         }
     }
 
@@ -28,6 +95,9 @@ internal sealed class MirWriter
     {
         var paramStr = string.Join(", ", function.ParameterTypes.Select(FormatType));
         writer.WriteLine($"func @{function.Name} : ({paramStr}) -> {FormatType(function.ReturnType)} {{");
+
+        foreach (var slot in function.FrameSlots)
+            writer.WriteLine($"  frame_slot {slot.Index} : {FormatType(slot.Type)} @{slot.SymbolName}");
 
         var blockIndex = new Dictionary<MirBlock, int>();
         for (var i = 0; i < function.Blocks.Count; i++)
@@ -72,6 +142,7 @@ internal sealed class MirWriter
         var defStrings = new List<string>();
         var useStrings = new List<string>();
         var implicitStrings = new List<string>();
+        var useIndex = 0;
         for (var i = 0; i < instruction.Operands.Length; i++)
         {
             var op = instruction.Operands[i];
@@ -86,7 +157,8 @@ internal sealed class MirWriter
             else
             {
                 var tiedTo = tied != null && i < tied.Length ? tied[i] : -1;
-                useStrings.Add(FormatUseOperand(op, function, blockIndex, tiedTo));
+                useStrings.Add(FormatUseOperand(op, function, blockIndex, tiedTo, dialect, instruction.Opcode.Code, useIndex));
+                useIndex++;
             }
         }
 
@@ -124,15 +196,22 @@ internal sealed class MirWriter
 
     // Uses print unannotated per the format spec — the annotation is taken from
     // the def site. The one exception is `(tied-def N)`, pulled from the
-    // dialect's TiedOperands metadata.
+    // dialect's TiedOperands metadata. Immediate uses can opt into symbolic
+    // rendering via Dialect.TryFormatImmediateUse (e.g. arith.cmpi's predicate).
     private string FormatUseOperand(
         MirOperand operand,
         MirFunction function,
         Dictionary<MirBlock, int> blockIndex,
-        int tiedToDefIndex)
+        int tiedToDefIndex,
+        Dialect dialect,
+        ushort opcode,
+        int useIndex)
     {
         if (operand is VirtualReg vreg && tiedToDefIndex >= 0)
             return $"%{vreg.Id}(tied-def {tiedToDefIndex})";
+        if (operand is Immediate imm
+            && dialect.TryFormatImmediateUse(opcode, useIndex, imm.Value, out var symbolic))
+            return symbolic;
         return FormatOperand(operand, function, blockIndex);
     }
 

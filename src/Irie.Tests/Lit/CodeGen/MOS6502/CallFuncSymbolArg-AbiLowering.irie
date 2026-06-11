@@ -1,0 +1,29 @@
+; RUN: @iriec --target mos6502 --stop-after AbiLowering @file
+
+; Regression test for the call-argument setup ordering. CallLowering must
+; materialize EVERY argument's bytes (the pseudo.unmerges) BEFORE pinning any of
+; them into a CC physreg. A mem.symbol argument lowers to a hard-$a `lda.imm`, so
+; if arg0 were pinned to $a first and the symbol's bytes materialized afterwards,
+; two values would contend for $a and the allocator could not colour the call.
+; Here arg1 is a mem.symbol in the second (zp2/zp3) slot: both unmerges must
+; appear before the first `$a = pseudo.copy`.
+
+; CHECK: func @TestSymbolArg : \(\) -> void \{
+; CHECK:     %\d+ : i8, %\d+ : i8 = pseudo.unmerge %\d+
+; CHECK:     %\d+ : i8, %\d+ : i8 = pseudo.unmerge %\d+
+; CHECK:     \$a = pseudo.copy %\d+
+; CHECK:     \$x = pseudo.copy %\d+
+; CHECK:     \$zp2 = pseudo.copy %\d+
+; CHECK:     \$zp3 = pseudo.copy %\d+
+; CHECK:     mos6502.jsr.abs @Callee
+; CHECK: \}
+
+global @g : i16
+
+func @TestSymbolArg : () -> void {
+bb0():
+    %0 : i16 = arith.constant 0
+    %1 : i16 = mem.symbol @g
+    call.func @Callee, %0, %1
+    core.return
+}

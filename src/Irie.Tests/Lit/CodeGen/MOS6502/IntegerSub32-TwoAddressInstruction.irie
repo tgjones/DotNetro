@@ -1,0 +1,43 @@
+; RUN: @iriec --target mos6502 --stop-after TwoAddressInstruction @file
+
+; Checks the unified-MIR two-address instruction pass on subtraction. Each
+; `mos6502.sbc` has a `(tied-def 0)` use; the pass inserts an explicit
+; `pseudo.copy` before each sbc to materialize the tied use as a fresh def
+; of the def[0] vreg, so RA can pick a single physreg for both ends.
+
+; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
+; CHECK: bb0\(\):
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
+; CHECK:     %3 : any8 = pseudo.copy \$a
+; CHECK:     %4 : any8 = pseudo.copy \$x
+; CHECK:     %5 : any8 = pseudo.copy \$zp2
+; CHECK:     %6 : any8 = pseudo.copy \$zp3
+; CHECK:     %7 : i8 = pseudo.copy \$zp4
+; CHECK:     %8 : i8 = pseudo.copy \$zp5
+; CHECK:     %9 : i8 = pseudo.copy \$zp6
+; CHECK:     %10 : i8 = pseudo.copy \$zp7
+; CHECK:     %32 : cc = mos6502.sec
+; CHECK:     %33 : any8 = pseudo.copy %3
+; CHECK:     %33 : any8, %34 : cc = mos6502.sbc %33\(tied-def 0\), %7, %32
+; CHECK:     %35 : any8 = pseudo.copy %33
+; CHECK:     %36 : any8 = pseudo.copy %4
+; CHECK:     %36 : any8, %37 : cc = mos6502.sbc %36\(tied-def 0\), %8, %34
+; CHECK:     %38 : any8 = pseudo.copy %36
+; CHECK:     %39 : any8 = pseudo.copy %5
+; CHECK:     %39 : any8, %40 : cc = mos6502.sbc %39\(tied-def 0\), %9, %37
+; CHECK:     %41 : any8 = pseudo.copy %39
+; CHECK:     %42 : any8 = pseudo.copy %6
+; CHECK:     %42 : any8, %43 : cc = mos6502.sbc %42\(tied-def 0\), %10, %40
+; CHECK:     %44 : any8 = pseudo.copy %42
+; CHECK:     \$a = pseudo.copy %35
+; CHECK:     \$x = pseudo.copy %38
+; CHECK:     \$zp2 = pseudo.copy %41
+; CHECK:     \$zp3 = pseudo.copy %44
+; CHECK:     mos6502.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
+; CHECK: \}
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i32 = arith.subi %0, %1
+    core.return %2
+}

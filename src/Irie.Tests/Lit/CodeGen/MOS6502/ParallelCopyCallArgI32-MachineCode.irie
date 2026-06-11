@@ -1,0 +1,39 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Exercises MOS6502ParallelCopyPass on a multi-byte call-argument shuffle.
+;
+; CC_MOS passes a 32-bit value LSB-first in $a, $x, $zp2($02), $zp3($03). RA
+; parks the four constant bytes of 0x12345678 in $02..$05, then the call lowering
+; emits the acyclic parallel copy {A<-$02, X<-$03, $02<-$04, $03<-$05}. On the
+; 6502 the two zp→zp moves expand to LDA;STA and clobber $a, so naïvely loading
+; $a first would lose the argument. The pass instead:
+;   * evacuates byte 0 out of $02 into a free scratch slot ($06) before $02 is
+;     overwritten, and
+;   * emits the $a-destined load LAST,
+; so byte 0 (0x78) reaches $a intact at the JSR.
+
+; CHECK: SinkI32:
+; CHECK:     RTS
+; CHECK: CallI32:
+; CHECK:     LDA #\$78
+; CHECK:     LDX #\$56
+; CHECK:     LDY #\$34
+; CHECK:     STY \$02
+; CHECK:     LDY #\$12
+; CHECK:     STY \$03
+; CHECK:     JSR SinkI32
+; CHECK:     RTS
+; The $02-home byte 0 is evacuated to scratch before $02 is reused ...
+; ... and byte 0 is loaded into $a LAST, just before the call.
+
+func @SinkI32 : (i32) -> void {
+bb0(%0 : i32):
+    core.return
+}
+
+func @CallI32 : () -> void {
+bb0():
+    %0 : i32 = arith.constant 305419896
+    call.func @SinkI32, %0
+    core.return
+}

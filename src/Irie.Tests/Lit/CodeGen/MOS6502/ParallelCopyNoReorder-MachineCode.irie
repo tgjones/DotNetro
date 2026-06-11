@@ -1,0 +1,26 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; A single i16 argument is passed in $a/$x; the call lowering emits the parallel
+; copy {A<-$02, X<-$03}. Neither move clobbers $a (LDA into $a then LDX into $x),
+; so the emitted order is already correct and MOS6502ParallelCopyPass leaves it
+; untouched — no scratch slot, no evacuation, $a loaded directly.
+
+; CHECK: SinkI16:
+; CHECK:     RTS
+; CHECK: CallI16:
+; CHECK:     LDA #\$34
+; CHECK:     LDX #\$12
+; CHECK:     JSR SinkI16
+; CHECK:     RTS
+
+func @SinkI16 : (i16) -> void {
+bb0(%0 : i16):
+    core.return
+}
+
+func @CallI16 : () -> void {
+bb0():
+    %0 : i16 = arith.constant 4660
+    call.func @SinkI16, %0
+    core.return
+}

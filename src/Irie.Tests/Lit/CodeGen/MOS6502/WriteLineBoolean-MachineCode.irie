@@ -1,0 +1,50 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; @WriteLineBoolean from runtime.irie: prints "True" or "False" depending on
+; whether the i8 argument is non-zero. Written in generic MIR (an arith.cmpi ne
+; against 0 fused with cf.cond_br) so the pipeline lowers it like any other
+; conditional call. Each leg materialises the address of the matching string
+; global (@True_String / @False_String, registered by the IL→MIR translator)
+; and tail-calls @WriteLineString.
+;
+; A stub @WriteLineString stands in for the real runtime helper so the call
+; links; only @WriteLineBoolean's lowering is checked.
+
+; CHECK: WriteLineString:
+; CHECK:     RTS
+; CHECK: WriteLineBoolean:
+; CHECK:     LDX #\$00
+; CHECK:     STX \$02
+; CHECK:     CMP \$02
+; CHECK:     BNE \.bb1
+; CHECK:     JMP \.bb2
+; CHECK: \.bb1:
+; CHECK:     LDA #<True_String
+; CHECK:     LDA #>True_String
+; CHECK:     JSR WriteLineString
+; CHECK:     RTS
+; CHECK: \.bb2:
+; CHECK:     LDA #<False_String
+; CHECK:     LDA #>False_String
+; CHECK:     JSR WriteLineString
+; CHECK:     RTS
+
+func @WriteLineString : (i16) -> void {
+bb0(%0 : i16):
+    mos6502.rts
+}
+
+func @WriteLineBoolean : (i8) -> void {
+bb0(%0 : i8):
+    %1 : i8 = arith.constant 0
+    %2 : i1 = arith.cmpi ne, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    %3 : i16 = mem.symbol @True_String
+    call.func @WriteLineString, %3
+    core.return
+bb2():
+    %4 : i16 = mem.symbol @False_String
+    call.func @WriteLineString, %4
+    core.return
+}

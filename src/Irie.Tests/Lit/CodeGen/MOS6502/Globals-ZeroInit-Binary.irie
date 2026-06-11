@@ -1,0 +1,17 @@
+; RUN: @iriec --target mos6502 --emit=bin --origin=0x1000 @file | @irie-mc --hex-dump
+
+; Verifies that a MirGlobal with no initializer occupies SizeInBytes bytes
+; of zero in the final binary (bss-style).
+;
+; Layout starting at $1000:
+;   $1000: RTS              ; 60     — @entry
+;   $1001: 00 00            ;        — @counter (i16, zero-init, 2 bytes)
+
+; CHECK: 00000000: 60 00 00
+
+func @entry : () -> void {
+bb0():
+    mos6502.rts
+}
+
+global @counter : i16

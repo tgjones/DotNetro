@@ -4,4 +4,8 @@
     <TargetFramework>$(DotNetVersion)</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Target/MOS6502/runtime.irie" />
+  </ItemGroup>
+
 </Project>

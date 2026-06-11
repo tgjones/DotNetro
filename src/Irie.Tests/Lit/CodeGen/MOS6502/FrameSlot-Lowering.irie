@@ -1,0 +1,24 @@
+; RUN: @iriec --target mos6502 --stop-after FrameLowering @file
+
+; Checks the FrameLoweringPass: each frame_slot declaration on a function
+; materialises as a zero-init (`.bss`-style) MirGlobal on the module, and
+; every `mem.frame_addr <slot_index>` in the function body is rewritten
+; to `mem.symbol @<slot_symbol>`. The frame_slot declaration itself is
+; preserved on the function so subsequent passes / writers can still see
+; the per-function reservation alongside the materialised global.
+
+; CHECK: global @TestStruct_local0 : i32
+; CHECK: func @TestStruct : \(\) -> void \{
+; CHECK:   frame_slot 0 : i32 @TestStruct_local0
+; CHECK:   bb0\(\):
+; CHECK:     %0 : i16 = mem.symbol @TestStruct_local0
+; CHECK:     core.return
+; CHECK: \}
+
+func @TestStruct : () -> void {
+  frame_slot 0 : i32 @TestStruct_local0
+
+  bb0():
+    %0 : i16 = mem.frame_addr 0
+    core.return
+}

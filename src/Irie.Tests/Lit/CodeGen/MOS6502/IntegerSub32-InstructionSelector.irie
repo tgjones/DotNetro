@@ -1,0 +1,45 @@
+; RUN: @iriec --target mos6502 --stop-after InstructionSelector @file
+
+; Checks the unified-MIR instruction selector on subtraction. The post-
+; legalizer MIR is:
+;   - `arith.constant 1 : i1` (the chain-head no-borrow materialized by the
+;     legalizer; 1 = no borrow under 6502 C-flag polarity)
+;   - four `arith.subi_with_borrow %a, %b, %borrow_in` ops in a chain
+;
+; The selector lowers them to:
+;   - `mos6502.sec`            (def: class cc vreg — replaces the i1 constant)
+;   - `mos6502.sbc` (pre-AMS)  same shape as `mos6502.adc`: class ac / cc defs
+;     and class ac / zp / cc uses. use[0] is tied to def[0].
+
+; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
+; CHECK: bb0\(\):
+; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
+; CHECK:     %3 : any8 = pseudo.copy \$a
+; CHECK:     %4 : any8 = pseudo.copy \$x
+; CHECK:     %5 : any8 = pseudo.copy \$zp2
+; CHECK:     %6 : any8 = pseudo.copy \$zp3
+; CHECK:     %7 : i8 = pseudo.copy \$zp4
+; CHECK:     %8 : i8 = pseudo.copy \$zp5
+; CHECK:     %9 : i8 = pseudo.copy \$zp6
+; CHECK:     %10 : i8 = pseudo.copy \$zp7
+; CHECK:     %32 : cc = mos6502.sec
+; CHECK:     %33 : ac, %34 : cc = mos6502.sbc %3\(tied-def 0\), %7, %32
+; CHECK:     %35 : any8 = pseudo.copy %33
+; CHECK:     %36 : ac, %37 : cc = mos6502.sbc %4\(tied-def 0\), %8, %34
+; CHECK:     %38 : any8 = pseudo.copy %36
+; CHECK:     %39 : ac, %40 : cc = mos6502.sbc %5\(tied-def 0\), %9, %37
+; CHECK:     %41 : any8 = pseudo.copy %39
+; CHECK:     %42 : ac, %43 : cc = mos6502.sbc %6\(tied-def 0\), %10, %40
+; CHECK:     %44 : any8 = pseudo.copy %42
+; CHECK:     \$a = pseudo.copy %35
+; CHECK:     \$x = pseudo.copy %38
+; CHECK:     \$zp2 = pseudo.copy %41
+; CHECK:     \$zp3 = pseudo.copy %44
+; CHECK:     mos6502.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
+; CHECK: \}
+
+func @TestFunction : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i32 = arith.subi %0, %1
+    core.return %2
+}

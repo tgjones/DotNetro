@@ -1,0 +1,105 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Step 16 (plan §6 G5): brfalse lowers to `arith.cmpi <eq>, %x, <0>` + cf.cond_br.
+; Verify the eq-against-constant-0 path end-to-end at i8, i16, and i32. The
+; constant 0 operand materializes as LDA #$00 + STA into a zero-page byte (one
+; per operand byte); the cmpi+cond_br fusion then emits the per-byte CMP / BEQ /
+; BNE chain. This is the regression guard for the frontend's `brfalse`.
+;
+; The compared value arrives in $a/$x (call-convention live-ins). The const-0
+; materialization (`LD? #$00 ; ST? $zp`) needs a scratch GPR, picked post-RA by
+; RegisterScavengingPass with exact liveness (plan §3.6): for i8 only $a is a
+; live-in, so the scavenger uses the dead $x (`LDX #$00 ; STX $02`); for i16/i32
+; $a and $x both hold live bytes, so it uses $y (`LDY #$00 ; STY $zp`). The live
+; parameter byte therefore stays in $a — no eviction before the const setup, as
+; the old RA $a-scratch reservation forced — and the CMP reads it directly.
+
+; --- i8: materialise 0 via dead $x, single CMP of $a vs 0, BEQ true / JMP false. ---
+
+; CHECK: CmpEqZeroI8:
+; CHECK:     LDX #\$00
+; CHECK:     STX \$02
+; CHECK:     CMP \$02
+; CHECK:     BEQ \.bb1
+; CHECK:     JMP \.bb2
+; CHECK: \.bb1:
+; CHECK:     RTS
+; CHECK: \.bb2:
+; CHECK:     RTS
+; CHECK: CmpEqZeroI16:
+; CHECK:     LDY #\$00
+; CHECK:     STY \$03
+; CHECK:     LDY #\$00
+; CHECK:     STY \$02
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     CMP \$02
+; CHECK:     BNE \.bb2
+; CHECK:     TYA
+; CHECK:     CMP \$03
+; CHECK:     BNE \.bb2
+; CHECK:     JMP \.bb1
+; CHECK: \.bb1:
+; CHECK:     RTS
+; CHECK: \.bb2:
+; CHECK:     RTS
+; CHECK: CmpEqZeroI32:
+; CHECK:     LDY #\$00
+; CHECK:     STY \$07
+; CHECK:     LDY #\$00
+; CHECK:     STY \$06
+; CHECK:     LDY #\$00
+; CHECK:     STY \$05
+; CHECK:     LDY #\$00
+; CHECK:     STY \$04
+; CHECK:     TAY
+; CHECK:     LDA \$03
+; CHECK:     CMP \$04
+; CHECK:     BNE \.bb2
+; CHECK:     LDA \$02
+; CHECK:     CMP \$05
+; CHECK:     BNE \.bb2
+; CHECK:     TXA
+; CHECK:     CMP \$06
+; CHECK:     BNE \.bb2
+; CHECK:     TYA
+; CHECK:     CMP \$07
+; CHECK:     BNE \.bb2
+; CHECK:     JMP \.bb1
+; CHECK: \.bb1:
+; CHECK:     RTS
+; CHECK: \.bb2:
+; CHECK:     RTS
+
+func @CmpEqZeroI8 : (i8) -> void {
+bb0(%0 : i8):
+    %1 : i8 = arith.constant 0
+    %2 : i1 = arith.cmpi eq, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    core.return
+bb2():
+    core.return
+}
+
+func @CmpEqZeroI16 : (i16) -> void {
+bb0(%0 : i16):
+    %1 : i16 = arith.constant 0
+    %2 : i1 = arith.cmpi eq, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    core.return
+bb2():
+    core.return
+}
+
+func @CmpEqZeroI32 : (i32) -> void {
+bb0(%0 : i32):
+    %1 : i32 = arith.constant 0
+    %2 : i1 = arith.cmpi eq, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1():
+    core.return
+bb2():
+    core.return
+}
