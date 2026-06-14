@@ -303,7 +303,7 @@ paths:
    (2) `MOS6502InstructionSelector`'s pointer-setup cache (`_currentPointerKey`)
    was not invalidated across a `jsr`, so a slot pointer set up before a call was
    reused after the call had clobbered the shared `$zp0/$zp1` indirect pair.
-2. **Migrate Workstream A to the callee-saved-register model** — RA uses
+2. **Migrate Workstream A to the callee-saved-register model** — DONE 2026-06-14. RA uses
    `RC20..RC31` for cross-call ranges + a post-RA `CalleeSavedSpillPass`
    prologue/epilogue (`pha`/`pla` on the hardware stack); apply the Layer 0
    `CallerSavedScratch` alignment (`RC2..RC19`, drop `D`/`I`) that the interim
