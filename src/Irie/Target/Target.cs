@@ -13,6 +13,7 @@ public abstract class Target
     public abstract InstructionSelector InstructionSelector { get; }
     public abstract PseudoExpander PseudoExpander { get; }
     public abstract BranchLowering BranchLowering { get; }
+    public abstract FrameLowering FrameLowering { get; }
 
     // Emits a MachineCodeModule from a post-PseudoExpansion MirModule. Called
     // by the driver after passMgr.Run(); not part of the pass pipeline.

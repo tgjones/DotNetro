@@ -33,6 +33,7 @@ public static class CompilerDriver
         passMgr.AddPass(new RegisterAllocatorPass(target.RegisterInfo));
         passMgr.AddPass(new CopyEliminationPass());
         target.AddPostRegisterAllocationPasses(passMgr);
+        passMgr.AddPass(new PrologueEpilogueInsertionPass(target.RegisterInfo, target.FrameLowering));
         passMgr.AddPass(new PseudoExpansionPass(target.PseudoExpander));
         // Final pass: fill the copy-scratch vregs PseudoExpansion mints (e.g. for
         // immediate→zp moves) with GPRs dead at each point, then lower them. Must

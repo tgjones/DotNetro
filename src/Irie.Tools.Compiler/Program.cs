@@ -69,6 +69,7 @@ rootCommand.SetAction(parseResult =>
     passMgr.AddPass(new RegisterAllocatorPass(target.RegisterInfo));
     passMgr.AddPass(new CopyEliminationPass());
     target.AddPostRegisterAllocationPasses(passMgr);
+    passMgr.AddPass(new PrologueEpilogueInsertionPass(target.RegisterInfo, target.FrameLowering));
     passMgr.AddPass(new PseudoExpansionPass(target.PseudoExpander));
     // Register scavenging runs LAST: PseudoExpansion mints copy-scratch vregs
     // (e.g. for immediate→zp moves), and this pass assigns each the cheapest GPR
