@@ -10,7 +10,7 @@
 ; CHECK:     \[liveins: \$a\]
 ; CHECK:     %0 : i8 = pseudo.copy \$a
 ; CHECK:     \$a = pseudo.copy %0
-; CHECK:     mos6502.jsr.abs @Callee, implicit \$a, implicit-def \$a, implicit-def \$x, implicit-def \$y, implicit-def \$c, implicit-def \$n, implicit-def \$v, implicit-def \$z, implicit-def \$i, implicit-def \$d, implicit-def \$b, implicit-def \$zp2, implicit-def \$zp3, implicit-def \$zp4, implicit-def \$zp5, implicit-def \$zp6, implicit-def \$zp7, implicit-def \$zp8, implicit-def \$zp9, implicit-def \$zp10, implicit-def \$zp11, implicit-def \$zp12, implicit-def \$zp13, implicit-def \$zp14, implicit-def \$zp15
+; CHECK:     mos6502.jsr.abs @Callee, implicit \$a, implicit-def \$a, implicit-def \$x, implicit-def \$y, implicit-def \$c, implicit-def \$n, implicit-def \$v, implicit-def \$z, implicit-def \$b, implicit-def \$zp2, implicit-def \$zp3, implicit-def \$zp4, implicit-def \$zp5, implicit-def \$zp6, implicit-def \$zp7, implicit-def \$zp8, implicit-def \$zp9, implicit-def \$zp10, implicit-def \$zp11, implicit-def \$zp12, implicit-def \$zp13, implicit-def \$zp14, implicit-def \$zp15, implicit-def \$zp16, implicit-def \$zp17, implicit-def \$zp18, implicit-def \$zp19
 ; CHECK:     %1 : i8 = pseudo.copy \$a
 ; CHECK:     \$a = pseudo.copy %1
 ; CHECK:     pseudo.return

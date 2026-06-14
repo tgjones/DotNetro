@@ -1,0 +1,52 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Companion to CallFuncCrossLive-MachineCode.irie for a 16-bit (i16) value live
+; across two call.func — the pointer/loop shape. Both pointer bytes must survive
+; the calls, so the RA parks them in the callee-saved pair RC20/RC21 ($14/$15),
+; and the prologue/epilogue save+restore BOTH bytes (PrologueEpilogueInsertion
+; Pass + MOS6502FrameLowering). An i16 is passed/returned LSB-first in $a / $x.
+;
+;   prologue: save callee-saved RC20/RC21 (live $a preserved via $y):
+;     TAY                      ; park live $a (arg byte0) in $y
+;     LDA $14 ; PHA            ; push old RC20
+;     LDA $15 ; PHA            ; push old RC21
+;     TYA                      ; restore $a
+;   body: park %0 (LSB $a → RC21? no — see below), call, reload, call:
+;     STA $15 ; STX $14        ; preserve %0's bytes into RC21/RC20
+;     JSR Callee               ; call 1 (args already in $a/$x; %0 safe in $14/$15)
+;     LDA $15 ; LDX $14        ; reload %0's bytes as the args for call 2
+;     JSR Callee               ; call 2
+;   epilogue: restore RC21/RC20 (LIFO, live $a preserved via $y):
+;     TAY                      ; park live $a (return byte0) in $y
+;     PLA ; STA $15            ; pop old RC21
+;     PLA ; STA $14            ; pop old RC20
+;     TYA                      ; restore $a
+;     RTS
+
+; CHECK: TestCrossCall16:
+; CHECK:     TAY
+; CHECK:     LDA \$14
+; CHECK:     PHA
+; CHECK:     LDA \$15
+; CHECK:     PHA
+; CHECK:     TYA
+; CHECK:     STA \$15
+; CHECK:     STX \$14
+; CHECK:     JSR Callee
+; CHECK:     LDA \$15
+; CHECK:     LDX \$14
+; CHECK:     JSR Callee
+; CHECK:     TAY
+; CHECK:     PLA
+; CHECK:     STA \$15
+; CHECK:     PLA
+; CHECK:     STA \$14
+; CHECK:     TYA
+; CHECK:     RTS
+
+func @TestCrossCall16 : (i16) -> i16 {
+bb0(%0 : i16):
+    %1 : i16 = call.func @Callee, %0
+    %2 : i16 = call.func @Callee, %0
+    core.return %2
+}

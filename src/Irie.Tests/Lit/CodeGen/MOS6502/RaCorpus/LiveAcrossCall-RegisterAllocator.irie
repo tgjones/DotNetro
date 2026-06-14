@@ -17,20 +17,22 @@
 ; CHECK: func @live_across_call : \(i16\) -> i16 \{
 ; CHECK: bb0\(\):
 ; CHECK:     \[liveins: \$a, \$x\]
-; CHECK:     \$zp17 = pseudo\.copy \$a
-; CHECK:     \$zp16 = pseudo\.copy \$x
-; CHECK:     \$a = pseudo\.copy \$zp17
-; CHECK:     \$x = pseudo\.copy \$zp16
-; CHECK:     mos6502\.jsr\.abs @g, implicit \$a, implicit \$x, implicit-def \$a, implicit-def \$x, implicit-def \$y, implicit-def \$c, implicit-def \$n, implicit-def \$v, implicit-def \$z, implicit-def \$i, implicit-def \$d, implicit-def \$b, implicit-def \$zp2, implicit-def \$zp3, implicit-def \$zp4, implicit-def \$zp5, implicit-def \$zp6, implicit-def \$zp7, implicit-def \$zp8, implicit-def \$zp9, implicit-def \$zp10, implicit-def \$zp11, implicit-def \$zp12, implicit-def \$zp13, implicit-def \$zp14, implicit-def \$zp15
+; CHECK:     \$zp21 = pseudo\.copy \$a
+; CHECK:     \$zp20 = pseudo\.copy \$x
+; CHECK:     \$a = pseudo\.copy \$zp21
+; CHECK:     \$x = pseudo\.copy \$zp20
+; CHECK:     mos6502\.jsr\.abs @g, implicit \$a, implicit \$x, implicit-def \$a, implicit-def \$x, implicit-def \$y, implicit-def \$c, implicit-def \$n, implicit-def \$v, implicit-def \$z, implicit-def \$b, implicit-def \$zp2, implicit-def \$zp3, implicit-def \$zp4, implicit-def \$zp5, implicit-def \$zp6, implicit-def \$zp7, implicit-def \$zp8, implicit-def \$zp9, implicit-def \$zp10, implicit-def \$zp11, implicit-def \$zp12, implicit-def \$zp13, implicit-def \$zp14, implicit-def \$zp15, implicit-def \$zp16, implicit-def \$zp17, implicit-def \$zp18, implicit-def \$zp19
 ; CHECK:     \$a = pseudo\.copy \$a
 ; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     \$c = mos6502\.clc
 ; CHECK:     \$a = pseudo\.copy \$a
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp17, \$c
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp21, \$c
 ; CHECK:     \$y = pseudo\.copy \$a
+; CHECK:     \$y = pseudo\.copy \$y
 ; CHECK:     \$a = pseudo\.copy \$x
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp16, \$c
+; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp20, \$c
 ; CHECK:     \$x = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     \$a = pseudo\.copy \$y
 ; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x

@@ -18,15 +18,14 @@ namespace Irie.Target.MOS6502;
 //   caller can rely on them surviving a call):
 //       PC, S, D, I, RC0, RC1, RC20..RC31   (RC20..RC31 = zp $14..$1F)
 //
-// CAVEAT — the current implementation does NOT yet match this convention:
-// `CallerSavedScratch` below lists RC2..RC15 (not RC2..RC19) and wrongly
-// includes D and I, and no function actually saves/restores the callee-saved
-// RC20..RC31, so cross-call values placed there are not yet preserved. Aligning
-// the clobber set to the table above, plus callee-saved spilling to a static
-// frame, is the subject of notes/mos6502-codegen-quality-plan.md (Layers 0–3). Until
-// that lands, RC16..RC29 are left out of CallerSavedScratch as a stopgap (see
-// the CallerSavedScratch comment) which preserves simple cross-call patterns but
-// miscompiles when a callee reuses those slots (e.g. CallNestedMethods).
+// `CallerSavedScratch` below encodes the caller-saved view of this convention:
+// it lists A, X, Y, C, N, V, Z and RC2..RC19, which are attached as implicit
+// defs (a clobber barrier) on every `jsr.abs`. The callee-saved RC20..RC31 are
+// deliberately omitted, so a vreg that is live across a call is placed there by
+// the RA; each function then saves/restores the callee-saved registers it
+// actually clobbers in its prologue/epilogue (PrologueEpilogueInsertionPass +
+// MOS6502FrameLowering), via the hardware stack (pha/pla). This makes cross-call
+// preservation recursion-safe and frame-slot-free.
 public sealed class MOS6502CallLowering : Irie.Target.CallLowering
 {
     private static readonly int[] ArgRegs =
@@ -133,8 +132,8 @@ public sealed class MOS6502CallLowering : Irie.Target.CallLowering
 
         // Implicit-defs on return physregs + all caller-saved scratch
         // (clobber barrier). Track the set so we don't add a register twice.
-        // CC_MOS treats $a, $x, all RC2..RC15 as caller-saved; $y, $c, $n,
-        // $z, $v, $i, $d, $b are also clobbered by an arbitrary callee.
+        // CC_MOS treats $a, $x, $y, $c, $n, $v, $z, $b and RC2..RC19 as
+        // caller-saved; RC20..RC31 and the D/I flags are callee-saved.
         var clobberedDefs = new HashSet<int>(CallerSavedScratch);
         var returnRegIdx = 0;
         var returnPhysRegs = new List<int>();
@@ -314,32 +313,23 @@ public sealed class MOS6502CallLowering : Irie.Target.CallLowering
     private static readonly int CallTargetHi = MOS6502Registers.RC(31);
 
     // Caller-saved scratch physregs that any arbitrary callee may clobber,
-    // independent of the call's arg/return registers. See the file-header
-    // table for the full LLVM-MOS save classes.
+    // independent of the call's arg/return registers. Attached as implicit defs
+    // on every `jsr.abs` so the RA keeps no live value in them across a call.
+    // See the file-header table for the full LLVM-MOS save classes.
     //
-    // TARGET convention: caller-saved = A, X, Y, C, N, V, Z, RC2..RC19;
-    // callee-saved = RC0, RC1, RC20..RC31 (plus D, I, S, PC). I.e. the flags
-    // D and I should NOT be here, and the RC caller-saved range should run to
-    // RC19, not RC15.
-    //
-    // CURRENT (stopgap) convention, which this list encodes: only RC2..RC15 are
-    // marked clobbered, and RC16..RC31 are left out so the RA has a pool of
-    // "effectively callee-saved" zero-page slots for values that must live
-    // across calls — without any callee actually saving them. This lets simple
-    // cross-call patterns (`call @F, %x; call @F, %x`) allocate without
-    // spilling, but MISCOMPILES when a callee reuses those slots (the
-    // CallNestedMethods bug). D and I are also (incorrectly) included here.
-    //
-    // Fixing this — extend the clobber set to RC2..RC19, drop D/I, and add
-    // callee-saved spilling of RC20..RC31 to a static frame — is Layers 0–1 of
-    // notes/mos6502-codegen-quality-plan.md.
+    // TARGET convention (encoded here): caller-saved = A, X, Y, C, N, V, Z,
+    // RC2..RC19. The callee-saved flags D and I are NOT clobbered by a call, so
+    // they are excluded. The callee-saved RC20..RC31 are likewise excluded: a
+    // cross-call vreg lands there (the RC class orders RC20..RC31 after the
+    // caller-saved RC2..RC19) and is preserved by each function's
+    // prologue/epilogue (PrologueEpilogueInsertionPass + MOS6502FrameLowering).
     private static readonly int[] CallerSavedScratch =
     [
         MOS6502Registers.A,
         MOS6502Registers.X,
         MOS6502Registers.Y,
         MOS6502Registers.C, MOS6502Registers.N, MOS6502Registers.Z,
-        MOS6502Registers.V, MOS6502Registers.I, MOS6502Registers.D,
+        MOS6502Registers.V,
         MOS6502Registers.B,
         MOS6502Registers.RC(2),  MOS6502Registers.RC(3),
         MOS6502Registers.RC(4),  MOS6502Registers.RC(5),
@@ -348,6 +338,8 @@ public sealed class MOS6502CallLowering : Irie.Target.CallLowering
         MOS6502Registers.RC(10), MOS6502Registers.RC(11),
         MOS6502Registers.RC(12), MOS6502Registers.RC(13),
         MOS6502Registers.RC(14), MOS6502Registers.RC(15),
+        MOS6502Registers.RC(16), MOS6502Registers.RC(17),
+        MOS6502Registers.RC(18), MOS6502Registers.RC(19),
     ];
 
     private static int ByteCount(IRType type) => type.SizeInBits / 8;
