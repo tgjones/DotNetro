@@ -3,6 +3,16 @@
   <PropertyGroup>
     <TargetFramework>$(DotNetVersion)</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!--
+      This library is not executed as .NET; it is transpiled to 6502 by the
+      IL→MIR translator, which supports only a subset of IL. Force optimized
+      codegen even in Debug so the runtime helpers compile to the same minimal
+      IL the Release build (and CI's Release run) already handles — e.g.
+      ConsoleHelper.WriteLineString's loop stays `ldind.u1; dup; brtrue` instead
+      of the unoptimized `cgt.un`-against-zero form the translator can't yet
+      lower. Keeps Debug and Release builds of the compiler consistent.
+    -->
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
 </Project>

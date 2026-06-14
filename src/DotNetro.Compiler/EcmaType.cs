@@ -118,6 +118,24 @@ internal sealed class EcmaType : TypeDescription
         return result;
     }
 
+    // Resolve a method by name alone. Use only for methods known to have a single
+    // overload (e.g. runtime helpers like ConsoleHelper.WriteLineString); throws
+    // if the name is absent or ambiguous so an unexpected overload is visible.
+    public EcmaMethod GetMethod(string name)
+    {
+        EcmaMethod? found = null;
+        foreach (var methodDefinitionHandle in TypeDefinition.GetMethods())
+        {
+            var methodDefinition = Assembly.MetadataReader.GetMethodDefinition(methodDefinitionHandle);
+            if (Assembly.MetadataReader.GetString(methodDefinition.Name) != name)
+                continue;
+            if (found != null)
+                throw new InvalidOperationException($"Multiple methods named {name} on {FullName}");
+            found = Assembly.GetMethod(methodDefinitionHandle);
+        }
+        return found ?? throw new InvalidOperationException($"Could not find method {name} on {FullName}");
+    }
+
     private void EnsureFields()
     {
         if (_builtFields)

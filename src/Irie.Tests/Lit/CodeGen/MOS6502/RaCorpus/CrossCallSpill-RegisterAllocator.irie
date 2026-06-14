@@ -14,7 +14,7 @@
 ; (after the call). The allocator mints two ABSTRACT frame slots (i8, no physical
 ; address) — printed in the function header as `frame_slot N : i8 @...`. A future
 ; static-stack pass places them in zero page / .bss
-; (notes/static-stack-alloc-plan.md). Only two bytes spill: the zero-page file
+; (notes/mos6502-codegen-quality-plan.md). Only two bytes spill: the zero-page file
 ; absorbs the rest, exactly as the plan predicts for this target.
 ;
 ; CHECK lines are an ordered subsequence (DotLit matches each after the previous),

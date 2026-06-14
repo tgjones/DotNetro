@@ -59,6 +59,14 @@ internal sealed class IlToMirTranslator : IDisposable
     // other method (plan open-question 3 — the translated path).
     private EcmaMethod? _allocMethod;
 
+    // Lazily-resolved ConsoleHelper.WriteLineString(byte*); see GetWriteLineStringMethod.
+    private EcmaMethod? _writeLineStringMethod;
+
+    // Methods that must be emitted under a fixed MIR function name rather than
+    // their UniqueName. Currently just the C# WriteLineString helper, pinned to
+    // "WriteLineString" so the hand-written runtime can keep calling it by name.
+    private readonly Dictionary<EcmaMethod, string> _emitNameOverrides = [];
+
     // Pointer size is 16-bit on the 6502.
     private const int PointerSize = 2;
 
@@ -93,6 +101,15 @@ internal sealed class IlToMirTranslator : IDisposable
         // fixpoint: drain the queue, then re-seed it from the vtables / static
         // fields discovered, until nothing new is enqueued.
         EnqueueMethod(entryPointMethod);
+
+        // The whole hand-written runtime is always linked in (see EnsureRuntime
+        // globals below), and @WriteLineBoolean unconditionally tail-calls
+        // @WriteLineString. Since @WriteLineString is now the translated C# helper
+        // rather than a runtime.irie function, enqueue it unconditionally so the
+        // symbol is always defined even when the program never calls
+        // Console.WriteLine(string) directly.
+        EnqueueMethod(GetWriteLineStringMethod());
+
         do
         {
             while (_methodsToVisit.Count > 0)
@@ -143,6 +160,26 @@ internal sealed class IlToMirTranslator : IDisposable
                 new SignatureHeader(), _typeSystemContext.IntPtr, 2, 0,
                 [_typeSystemContext.IntPtr, _typeSystemContext.IntPtr]));
         return _allocMethod;
+    }
+
+    // True if `name` matches a function supplied by the hand-written runtime
+    // (oswrch, osasci, WriteLineInt32, …). Used to validate InternalCall routing.
+    internal bool IsRuntimeFunction(string name) => _runtimeFunctionNames.Contains(name);
+
+    // ConsoleHelper.WriteLineString(byte*) → void, the C# replacement for the old
+    // hand-written @WriteLineString MIR. Resolved on first Console.WriteLine(string)
+    // and translated through the pipeline like any other method, but emitted under
+    // the stable MIR name "WriteLineString" so the runtime @WriteLineBoolean (which
+    // tail-calls @WriteLineString) still links. See _emitNameOverrides.
+    internal EcmaMethod GetWriteLineStringMethod()
+    {
+        if (_writeLineStringMethod != null)
+            return _writeLineStringMethod;
+
+        var consoleHelperType = _typeSystemContext.RuntimeAssembly.GetType("DotNetro.Runtime", "ConsoleHelper");
+        _writeLineStringMethod = consoleHelperType.GetMethod("WriteLineString");
+        _emitNameOverrides[_writeLineStringMethod] = "WriteLineString";
+        return _writeLineStringMethod;
     }
 
     // The dispatch table for `type`: slot index → the method that index resolves
@@ -432,7 +469,8 @@ internal sealed class IlToMirTranslator : IDisposable
             .ToArray();
         var returnType = ToIRType(method.MethodSignature.ReturnType);
 
-        var function = new MirFunction(method.UniqueName, paramTypes, returnType);
+        var name = _emitNameOverrides.TryGetValue(method, out var pinned) ? pinned : method.UniqueName;
+        var function = new MirFunction(name, paramTypes, returnType);
         var methodTranslator = new MethodTranslator(this, method, function);
         methodTranslator.Translate();
         return function;
@@ -446,6 +484,7 @@ internal sealed class IlToMirTranslator : IDisposable
             {
                 PrimitiveTypeCode.Void => IRType.Void,
                 PrimitiveTypeCode.Boolean => IRType.I8,
+                PrimitiveTypeCode.Byte => IRType.I8,
                 PrimitiveTypeCode.Int32 => IRType.I32,
                 PrimitiveTypeCode.IntPtr or PrimitiveTypeCode.UIntPtr => IRType.I16,
                 // A managed string / object is a heap reference: a 16-bit pointer
@@ -516,7 +555,7 @@ internal sealed class IlToMirTranslator : IDisposable
         // mem.load on every ldarg) when its value is live across a call — a call
         // clobbers the caller-saved registers, so a register-held parameter would
         // not survive it. This is the caller-side ".bss" interim for cross-call
-        // value preservation (notes/static-stack-alloc-plan.md, Layer 1). The
+        // value preservation (notes/mos6502-codegen-quality-plan.md, Layer 1). The
         // parameter's FrameSlot Index is _paramSlotBase + paramIndex, kept
         // disjoint from the local slots (indices 0..localCount-1).
         private bool[] _paramIsFrameSlot = [];
@@ -547,7 +586,7 @@ internal sealed class IlToMirTranslator : IDisposable
             // bound; everything else is a pure SSA vreg. Decide upfront so
             // ldloc/stloc/ldarg know which path to take. Cross-call values must
             // live in memory because a call clobbers the caller-saved registers
-            // (notes/static-stack-alloc-plan.md, Layer 1 caller-side spill).
+            // (notes/mos6502-codegen-quality-plan.md, Layer 1 caller-side spill).
             var addressTaken = ScanAddressTakenLocals();
             var (crossCallLocals, crossCallParams) = ComputeCrossCallLive(locals.Length);
             for (var i = 0; i < locals.Length; i++)
@@ -779,6 +818,10 @@ internal sealed class IlToMirTranslator : IDisposable
 
                     case ILOpCode.Stind_i:
                         TranslateStind(IRType.I16);
+                        break;
+
+                    case ILOpCode.Ldind_u1:
+                        TranslateLdindU1();
                         break;
 
                     case ILOpCode.Ret:
@@ -1355,8 +1398,21 @@ internal sealed class IlToMirTranslator : IDisposable
             var right = _stack.Pop();
             var left = _stack.Pop();
             if (!left.Type.Equals(right.Type))
-                throw new NotSupportedException(
-                    $"IL→MIR: add of mismatched types {left.Type} and {right.Type}.");
+            {
+                // Pointer arithmetic: an i16 pointer plus an i32 index/offset. IL
+                // leaves the index as i32 (no conv) and relies on the pointer's
+                // width — e.g. `q++` on a byte* emits `ldloc q; ldc.i4.1; add`.
+                // Narrow the i32 side to the pointer's i16 width and produce an
+                // i16 result. Any other width combination is a real gap — keep it
+                // visible.
+                if (left.Type.Equals(IRType.I16) && right.Type.Equals(IRType.I32))
+                    right = new StackValue(NarrowToI16(right.Vreg), IRType.I16);
+                else if (left.Type.Equals(IRType.I32) && right.Type.Equals(IRType.I16))
+                    left = new StackValue(NarrowToI16(left.Vreg), IRType.I16);
+                else
+                    throw new NotSupportedException(
+                        $"IL→MIR: add of mismatched types {left.Type} and {right.Type}.");
+            }
 
             var result = _function.CreateVirtualRegister(left.Type);
             _builder.BuildInstruction(ArithDialect.OpRef(ArithOp.AddI),
@@ -1546,15 +1602,37 @@ internal sealed class IlToMirTranslator : IDisposable
             var fallThrough = NextBlockAfter(from);
             var targetBlock = BlockAt(target);
 
+            _builder.SetInsertionPointAtEnd(from);
+
+            // A bare value condition (e.g. `while (c != 0)` lowers to brtrue on the
+            // loaded byte, not a clt) is not an i1 — isel only lowers a cond_br
+            // that is fused with a preceding arith.cmpi. Synthesize that compare
+            // against zero: brtrue → `cmpi ne, v, 0`, brfalse → `cmpi eq, v, 0`.
+            // (When the condition is already an i1 from a clt, branch on it
+            // directly so isel fuses the existing cmpi.)
+            int condVreg;
+            if (cond.Type.Equals(IRType.I1))
+            {
+                condVreg = cond.Vreg;
+            }
+            else
+            {
+                var zero = _builder.BuildConstant(cond.Type, 0);
+                var predicate = branchIfTrue ? ArithCmpPredicate.Ne : ArithCmpPredicate.Eq;
+                condVreg = _builder.BuildCmpI(predicate, cond.Vreg, zero);
+                // The predicate already encodes the test, so both forms now take
+                // the target on the "compare succeeded" edge.
+                branchIfTrue = true;
+            }
+
             // brtrue: cond true → target, false → fall-through.
             // brfalse: invert the two edges.
             var trueEdge = branchIfTrue ? targetBlock : fallThrough;
             var falseEdge = branchIfTrue ? fallThrough : targetBlock;
 
-            _builder.SetInsertionPointAtEnd(from);
             _builder.BuildInstruction(
                 CfDialect.OpRef(CfOp.CondBr),
-                new VirtualReg(cond.Vreg, IsDefinition: false),
+                new VirtualReg(condVreg, IsDefinition: false),
                 new BlockTarget(trueEdge, LocalArgsFor(trueEdge)),
                 new BlockTarget(falseEdge, LocalArgsFor(falseEdge)));
         }
@@ -1745,13 +1823,35 @@ internal sealed class IlToMirTranslator : IDisposable
         // methods), emit call.func, push the return value.
         private void TranslateDirectCall(EcmaMethod callee)
         {
-            // Special-cased BCL methods map to hand-written runtime functions
+            // [MethodImpl(InternalCall)] methods (e.g. osasci) have no IL body —
+            // they are provided by the hand-written runtime. Route the call to the
+            // matching runtime symbol (the method name) and don't enqueue anything.
+            if (callee.IsInternalCall)
+            {
+                if (!_parent.IsRuntimeFunction(callee.Name))
+                    throw new NotSupportedException(
+                        $"IL→MIR: [MethodImpl(InternalCall)] method {callee.UniqueName} has no " +
+                        $"matching runtime function @{callee.Name} in runtime.irie.");
+                EmitDirectCall(callee, callee.Name);
+                return;
+            }
+
+            // Console.WriteLine(string) is implemented by the C# helper
+            // ConsoleHelper.WriteLineString — translate it (emitted under the
+            // stable name @WriteLineString) and call it.
+            if (callee.UniqueName == "System_Console_WriteLine_String")
+            {
+                _parent.EnqueueMethod(_parent.GetWriteLineStringMethod());
+                EmitDirectCall(callee, "WriteLineString");
+                return;
+            }
+
+            // Other special-cased BCL methods map to hand-written runtime functions
             // (their real IL bodies are NOT translated/enqueued — the runtime
             // MIR replaces them).
             var calleeName = callee.UniqueName switch
             {
                 "System_Console_WriteLine_Int32" => "WriteLineInt32",
-                "System_Console_WriteLine_String" => "WriteLineString",
                 "System_Console_WriteLine_Boolean" => "WriteLineBoolean",
                 "System_Console_ReadLine" => "ReadLine",
                 "System_Console_Beep" => "Beep",
@@ -1759,16 +1859,24 @@ internal sealed class IlToMirTranslator : IDisposable
             };
             var isSpecialCased = !ReferenceEquals(calleeName, callee.UniqueName);
 
-            var argVregs = PopCallArgs(callee);
-            var returnType = ToIRType(callee.MethodSignature.ReturnType);
-            var returnTypes = returnType is VoidType ? Array.Empty<IRType>() : [returnType];
-
             // Only enqueue methods we are responsible for translating; runtime
             // functions (and special-cased BCL methods) are skipped.
             if (!isSpecialCased)
                 _parent.EnqueueMethod(callee);
 
-            var defs = _builder.BuildCall(calleeName, returnTypes, argVregs);
+            EmitDirectCall(callee, calleeName);
+        }
+
+        // Pop one vreg per callee parameter, emit `call.func <symbolName>`, and
+        // push the return value (if any). The symbol may differ from the callee's
+        // UniqueName (special-cased BCL methods, InternalCall runtime wrappers).
+        private void EmitDirectCall(EcmaMethod callee, string symbolName)
+        {
+            var argVregs = PopCallArgs(callee);
+            var returnType = ToIRType(callee.MethodSignature.ReturnType);
+            var returnTypes = returnType is VoidType ? Array.Empty<IRType>() : [returnType];
+
+            var defs = _builder.BuildCall(symbolName, returnTypes, argVregs);
             if (returnTypes.Length > 0)
                 _stack.Push(new StackValue(defs[0], returnType));
         }
@@ -1895,11 +2003,38 @@ internal sealed class IlToMirTranslator : IDisposable
                 return;
             }
 
+            _stack.Push(new StackValue(NarrowToI16(value.Vreg), IRType.I16));
+        }
+
+        // Truncate a wider value (i32) to i16 via cast.trunc, returning the new
+        // vreg. Shared by conv.i/conv.u and by pointer-arithmetic add (an i16
+        // pointer plus an i32 index).
+        private int NarrowToI16(int valueVreg)
+        {
             var result = _function.CreateVirtualRegister(IRType.I16);
             _builder.BuildInstruction(CastDialect.OpRef(CastOp.Trunc),
                 new VirtualReg(result, IsDefinition: true),
-                new VirtualReg(value.Vreg, IsDefinition: false));
-            _stack.Push(new StackValue(result, IRType.I16));
+                new VirtualReg(valueVreg, IsDefinition: false));
+            return result;
+        }
+
+        // ldind.u1 → load a byte from the i16 pointer on top of stack.
+        //
+        // Stack-type note: real IL zero-extends the loaded byte to i32 on the
+        // evaluation stack. We deliberately model the result as i8, not i32, so
+        // the value flows to consumers like osasci(byte) as a single CC_MOS byte
+        // rather than a 4-byte value. Don't be surprised by the i8 stack type —
+        // it is intentional, and matches how every current caller uses the byte
+        // (compare-to-zero, pass to an i8 parameter). Revisit only if a future
+        // caller actually needs the zero-extended i32 semantics.
+        private void TranslateLdindU1()
+        {
+            var addr = _stack.Pop();
+            var value = _function.CreateVirtualRegister(IRType.I8);
+            _builder.BuildInstruction(MemDialect.OpRef(MemOp.LoadI8),
+                new VirtualReg(value, IsDefinition: true),
+                new VirtualReg(addr.Vreg, IsDefinition: false));
+            _stack.Push(new StackValue(value, IRType.I8));
         }
 
         // stind.i (and friends) → store the value into the pointer. Stack layout

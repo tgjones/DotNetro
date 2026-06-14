@@ -897,35 +897,9 @@ bb84():
 ; ---------------------------------------------------------------------------
 ; @WriteLineString : (i16) -> void
 ;
-; The i16 argument is a pointer to a NUL-terminated string. Loops byte-by-byte
-; printing each character with osasci (so a CR in the string expands to CR/LF),
-; stopping at the terminator. Matches
-; DotNetro.Compiler.CodeGen.BbcMicroCodeGenerator.CompileSystemConsoleWriteLineString.
-;
-; WHY TARGET MIR (not generic dialects): the byte load dereferences a *runtime*
-; pointer, and the instruction selector currently only lowers mem.load.i8 when
-; the address is a `mem.symbol @name` (it throws "Non-symbolic i16 addresses
-; (frame slots, heap pointers) land later" otherwise). So the load is written
-; as a hand-rolled indirect-Y load through a zero-page pointer pair. The rest
-; (compare-to-zero, osasci call, INY) is trivially expressible but kept in
-; target MIR to stay in one block stream with the load.
-;
-; The i16 pointer arrives in $a (low byte) and $x (high byte) per CC_MOS; it is
-; parked in the zero-page pointer pair zp0/zp1, then dereferenced via LDA (zp),Y
-; with Y walking the string. INY/jmp loops until the NUL terminator is hit.
-func @WriteLineString : (i16) -> void {
-bb0(%0 : i16):
-    $12 = mos6502.sta.zp $0
-    $13 = mos6502.stx.zp $1
-    $2 = mos6502.ldy.imm 0
-    mos6502.jmp.abs bb1
-bb1():
-    $0 = mos6502.lda.indy $12, implicit $13, implicit $2
-    mos6502.cmp.imm $0, 0, implicit-def $6, implicit-def $8, implicit-def $5
-    mos6502.beq bb2, implicit $8
-    mos6502.jsr.abs @osasci, implicit $0
-    mos6502.iny
-    mos6502.jmp.abs bb1
-bb2():
-    mos6502.rts
-}
+; No longer hand-written here. It is now the C# helper
+; DotNetro.Runtime.ConsoleHelper.WriteLineString(byte*), compiled by the IL→MIR
+; translator and emitted under the stable MIR name @WriteLineString (so the
+; @WriteLineBoolean tail-calls above still link). The translator's runtime-pointer
+; mem.load path makes the byte dereference expressible in generic dialects, which
+; is why the hand-rolled indirect-Y loop is gone.

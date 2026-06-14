@@ -338,22 +338,29 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         var aVreg = ((VirtualReg)cmpi.Operands[2]).Id;
         var bVreg = ((VirtualReg)cmpi.Operands[3]).Id;
 
-        if (function.GetVRegAnnotation(aVreg) is not TypedVReg aTyped)
-            throw new NotSupportedException(
-                $"MOS6502InstructionSelector: arith.cmpi on non-typed operand %{aVreg} is not supported.");
+        // The compare width comes from the `a` operand. It is a TypedVReg when the
+        // value is still generic (a local / ABI value), or a ClassedVReg when it
+        // has already been instruction-selected (e.g. a byte produced by the
+        // mem-load lowering, which reclassifies its result to Anyi8 before this
+        // cmpi is reached). Every MOS6502 register class is a single byte, so a
+        // ClassedVReg operand is always an i8 compare.
+        var aByteWidth = function.GetVRegAnnotation(aVreg) switch
+        {
+            TypedVReg aTyped => aTyped.Type.SizeInBits / 8,
+            ClassedVReg => 1,
+            var other => throw new NotSupportedException(
+                $"MOS6502InstructionSelector: arith.cmpi on operand %{aVreg} with annotation " +
+                $"{other?.ToString() ?? "none"} is not supported."),
+        };
 
         // Multi-byte cmpi (i16, i32) widens to a per-byte chain of CMP +
         // conditional branches via the target-private path below. Only
         // unsigned / equality predicates are supported in this first cut;
         // signed predicates use SBC + N⊕V and are deferred.
-        if (aTyped.Type.SizeInBits > 8)
+        if (aByteWidth > 1)
         {
-            return SelectCmpIMultiByte(cmpi, builder, predicate, aVreg, bVreg, condVreg, aTyped.Type.SizeInBits / 8);
+            return SelectCmpIMultiByte(cmpi, builder, predicate, aVreg, bVreg, condVreg, aByteWidth);
         }
-
-        if (aTyped.Type != IRType.I8)
-            throw new NotSupportedException(
-                $"MOS6502InstructionSelector: arith.cmpi on type {aTyped.Type.DisplayName} is not supported.");
 
         // Find the cond_br that consumes this cmpi.
         var cmpiIndex = block.Instructions.IndexOf(cmpi);

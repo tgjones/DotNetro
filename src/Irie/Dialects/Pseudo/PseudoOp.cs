@@ -38,7 +38,7 @@ public enum PseudoOp : ushort
     // are concrete physical registers; the only abstract thing is the frame-slot
     // index, which references a MirFunction.FrameSlot. RA does NOT assign that
     // slot a physical address — a future static-stack pass
-    // (notes/static-stack-alloc-plan.md, Layer 3 "MOS6502StaticFrameAllocPass")
+    // (notes/mos6502-codegen-quality-plan.md, Layer 3 "MOS6502StaticFrameAllocPass")
     // lowers each `pseudo.spill`/`pseudo.reload` to a concrete `sta.zp`/`lda.zp`
     // (zero-page frame) or a `.bss` store/load once it has coloured the call
     // graph and placed every function's frame. The slot shape (FrameSlot:

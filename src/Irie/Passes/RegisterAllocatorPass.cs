@@ -215,7 +215,7 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
     // ---- The abstract spill-slot SHAPE (the contract; plan §3.4 & §8) --------
     // A spill slot is a `MirFunction.FrameSlot(Index, Type, SymbolName)` — the
     // SAME representation FrameLoweringPass and the future static-stack pass
-    // already consume (notes/static-stack-alloc-plan.md: "MirFunction.FrameSlots
+    // already consume (notes/mos6502-codegen-quality-plan.md: "MirFunction.FrameSlots
     // … FrameLoweringPass materialises each slot as a zero-init MirGlobal and
     // rewrites mem.frame_addr <i> → mem.symbol @<slot_name>"). RA mints the slot
     // (index + i8 type + unique symbol name) but assigns it NO physical address.

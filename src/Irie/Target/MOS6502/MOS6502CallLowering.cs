@@ -23,7 +23,7 @@ namespace Irie.Target.MOS6502;
 // includes D and I, and no function actually saves/restores the callee-saved
 // RC20..RC31, so cross-call values placed there are not yet preserved. Aligning
 // the clobber set to the table above, plus callee-saved spilling to a static
-// frame, is the subject of notes/static-stack-alloc-plan.md (Layers 0–3). Until
+// frame, is the subject of notes/mos6502-codegen-quality-plan.md (Layers 0–3). Until
 // that lands, RC16..RC29 are left out of CallerSavedScratch as a stopgap (see
 // the CallerSavedScratch comment) which preserves simple cross-call patterns but
 // miscompiles when a callee reuses those slots (e.g. CallNestedMethods).
@@ -332,7 +332,7 @@ public sealed class MOS6502CallLowering : Irie.Target.CallLowering
     //
     // Fixing this — extend the clobber set to RC2..RC19, drop D/I, and add
     // callee-saved spilling of RC20..RC31 to a static frame — is Layers 0–1 of
-    // notes/static-stack-alloc-plan.md.
+    // notes/mos6502-codegen-quality-plan.md.
     private static readonly int[] CallerSavedScratch =
     [
         MOS6502Registers.A,
