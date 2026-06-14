@@ -12,6 +12,15 @@ public sealed class MirFunction(string name, IRType[] paramTypes, IRType returnT
 
     public List<MirBlock> Blocks { get; } = [];
 
+    // Interprocedural property set by ReentrancyAnalysis: true iff this function
+    // can never be active on the call stack more than once at a time (its call-
+    // graph SCC is a singleton, it doesn't self-recurse, and it isn't reachable
+    // from an interrupt handler). A non-reentrant function may use static memory
+    // (e.g. fixed zero-page addresses) for its locals, because there is never a
+    // second live activation whose locals would alias the first's. Default false
+    // (conservative) until the analysis proves otherwise.
+    public bool IsNonReentrant { get; set; }
+
     // Address-taken / value-type locals that the frontend has reserved as
     // .bss-style frame slots. The FrameLoweringPass converts each entry to a
     // MirGlobal (zero-init) on the module, and rewrites each mem.frame_addr

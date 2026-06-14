@@ -5,15 +5,37 @@
 ; byte is stored to it and read back. Mirrors the shape of `UseStruct` in
 ; the DotNetCompilerTests suite — minus the call to Console.WriteLine.
 ;
-; FrameLoweringPass materialises @UseStruct_local0 as a zero-init global,
-; the legalizer unrolls mem.fill into 4 byte stores, and the i8 store /
-; load lower through the indirect-Y addressing pattern.
+; FrameLoweringPass materialises @UseStruct_local0 as a zero-init global and
+; the legalizer unrolls mem.fill into 4 byte stores. Because @TestStruct is
+; non-reentrant (ReentrancyAnalysis) and its 4-byte frame fits in the
+; zero-page window ($14..$1D), MOS6502StaticFrameAllocPass places the slot at
+; $14..$17 and rewrites every access to a direct zero-page STA/LDA — no
+; indirect-Y pointer-pair setup. The frame bytes are callee-saved RCs, so the
+; prologue/epilogue pass preserves their incoming values via PHA/PLA.
 
 ; CHECK: TestStruct:
-; CHECK:     LDA #<UseStruct_local0
-; CHECK:     STA \$00
-; CHECK:     LDA #>UseStruct_local0
-; CHECK:     STA \$01
+; CHECK:     LDA \$14
+; CHECK:     PHA
+; CHECK:     LDA \$15
+; CHECK:     PHA
+; CHECK:     LDA \$16
+; CHECK:     PHA
+; CHECK:     LDA \$17
+; CHECK:     PHA
+; CHECK:     STA \$14
+; CHECK:     STA \$15
+; CHECK:     STA \$16
+; CHECK:     STA \$17
+; CHECK:     STA \$14
+; CHECK:     PLA
+; CHECK:     STA \$17
+; CHECK:     PLA
+; CHECK:     STA \$16
+; CHECK:     PLA
+; CHECK:     STA \$15
+; CHECK:     PLA
+; CHECK:     STA \$14
+; CHECK:     RTS
 
 func @TestStruct : () -> void {
   frame_slot 0 : i32 @UseStruct_local0

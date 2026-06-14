@@ -1,0 +1,79 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Static stack allocation across a two-deep call chain (plan item 2b).
+;
+; All three functions are non-reentrant (ReentrancyAnalysis), so
+; MOS6502StaticFrameAllocPass colours their frame slots into the zero-page
+; window ($14..$1D) with a bottom-up static-stack layout:
+;
+;   base(f) = max over callees c of (base(c) + size(c))
+;
+; @leaf_a and @leaf_b are independent leaves (base 0): they REUSE the same
+; zero page — both colour their slot at $14. @mid CALLS @leaf_a, so its frame
+; base is leaf_a's frame end (2 bytes) → its slot lands at $16, DISJOINT from
+; the callee's $14. That disjointness is what lets the value @mid stores into
+; its slot survive the `JSR leaf_a` and be read back unchanged afterwards.
+;
+; Every access is a direct zero-page LDA/STA (no indirect-Y pointer setup).
+; The frame bytes sit in the callee-saved RC window, so the prologue/epilogue
+; pass preserves their incoming values with PHA/PLA.
+
+; --- leaf_a: slot at $14 (base 0) ---------------------------------------
+; CHECK: leaf_a:
+; CHECK:     LDA \$14
+; CHECK:     PHA
+; CHECK:     STA \$14
+; CHECK:     PLA
+; CHECK:     STA \$14
+; CHECK:     RTS
+
+; --- leaf_b: independent leaf — REUSES $14 (base 0) ----------------------
+; CHECK: leaf_b:
+; CHECK:     LDA \$14
+; CHECK:     PHA
+; CHECK:     STA \$14
+; CHECK:     PLA
+; CHECK:     STA \$14
+; CHECK:     RTS
+
+; --- mid: calls leaf_a — frame DISJOINT from callee, slot at $16 ---------
+; CHECK: mid:
+; CHECK:     LDA \$16
+; CHECK:     PHA
+; CHECK:     STA \$16
+; CHECK:     JSR leaf_a
+; CHECK:     LDA \$16
+; CHECK:     STA \$16
+; CHECK:     PLA
+; CHECK:     STA \$16
+; CHECK:     RTS
+
+func @leaf_a : () -> void {
+  frame_slot 0 : i16 @leaf_a_local0
+  bb0():
+    %0 : i16 = mem.frame_addr 0
+    %1 : i8 = arith.constant 7
+    mem.store.i8 %0, %1
+    core.return
+}
+
+func @leaf_b : () -> void {
+  frame_slot 0 : i16 @leaf_b_local0
+  bb0():
+    %0 : i16 = mem.frame_addr 0
+    %1 : i8 = arith.constant 9
+    mem.store.i8 %0, %1
+    core.return
+}
+
+func @mid : () -> void {
+  frame_slot 0 : i16 @mid_local0
+  bb0():
+    %0 : i16 = mem.frame_addr 0
+    %1 : i8 = arith.constant 3
+    mem.store.i8 %0, %1
+    call.func @leaf_a
+    %2 : i8 = mem.load.i8 %0
+    mem.store.i8 %0, %2
+    core.return
+}

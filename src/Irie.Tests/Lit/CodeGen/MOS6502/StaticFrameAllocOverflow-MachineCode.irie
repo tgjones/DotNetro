@@ -1,0 +1,30 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; .bss-overflow fallback for static stack allocation (plan item 2b).
+;
+; @big is non-reentrant, but its three i32 frame slots total 12 bytes — more
+; than the 10-byte zero-page window ($14..$1D). MOS6502StaticFrameAllocPass
+; therefore leaves @big's slots on the existing .bss path: each access keeps
+; the indirect-Y lowering (materialise the slot's address low/high bytes into
+; the $00/$01 pointer pair, then `STA ($00),Y`). This proves the pass is
+; always correctness-safe: when the window can't hold a frame, nothing is
+; rewritten and the slow-but-correct path stands.
+
+; CHECK: big:
+; CHECK:     LDA #<big_local0
+; CHECK:     STA \$00
+; CHECK:     LDA #>big_local0
+; CHECK:     STA \$01
+; CHECK:     STA \(\$00\),Y
+; CHECK:     RTS
+
+func @big : () -> void {
+  frame_slot 0 : i32 @big_local0
+  frame_slot 1 : i32 @big_local1
+  frame_slot 2 : i32 @big_local2
+  bb0():
+    %0 : i16 = mem.frame_addr 0
+    %1 : i8 = arith.constant 1
+    mem.store.i8 %0, %1
+    core.return
+}

@@ -29,6 +29,7 @@ public class MOS6502Target : Irie.Target.Target
         pm.AddPass(new MOS6502AddressingModeSelectorPass());
         pm.AddPass(new MOS6502IncrementStrengthReductionPass());
         pm.AddPass(new MOS6502ParallelCopyPass());
+        pm.AddPass(new MOS6502StaticFrameAllocPass());
     }
 
     // Hand-written MIR runtime (currently just the indirect-call trampoline;

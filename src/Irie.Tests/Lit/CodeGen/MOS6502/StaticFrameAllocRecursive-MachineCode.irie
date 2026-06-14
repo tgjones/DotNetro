@@ -1,0 +1,29 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; ReentrancyAnalysis safety guard for static stack allocation (plan item 2a/2b).
+;
+; @recur calls itself, so it is reentrant - a second activation would alias the
+; first's locals if they lived at a fixed zero-page address. ReentrancyAnalysis
+; therefore leaves MirFunction.IsNonReentrant false and
+; MOS6502StaticFrameAllocPass keeps @recur's frame slot on the .bss path
+; (indirect-Y through the $00/$01 pointer pair). Without this guard the
+; recursive program would be silently miscompiled.
+
+; CHECK: recur:
+; CHECK:     LDA #<recur_local0
+; CHECK:     STA \$00
+; CHECK:     LDA #>recur_local0
+; CHECK:     STA \$01
+; CHECK:     STA \(\$00\),Y
+; CHECK:     JSR recur
+; CHECK:     RTS
+
+func @recur : () -> void {
+  frame_slot 0 : i16 @recur_local0
+  bb0():
+    %0 : i16 = mem.frame_addr 0
+    %1 : i8 = arith.constant 5
+    mem.store.i8 %0, %1
+    call.func @recur
+    core.return
+}
