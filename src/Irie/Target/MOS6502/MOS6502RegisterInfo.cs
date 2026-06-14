@@ -119,4 +119,14 @@ public sealed class MOS6502RegisterInfo : TargetRegisterInfo
 
     private static readonly int[] ShortRangeGprs =
         [MOS6502Registers.X, MOS6502Registers.Y, MOS6502Registers.A];
+
+    // The CC_MOS callee-saved registers: RC20..RC31 (zero page $14..$1F), the
+    // cross-call register pool — the complement of the caller-saved RC2..RC19
+    // scratch range. Matches MOS_CSR in llvm-mos. A clobbering callee saves and
+    // restores these in its prologue/epilogue.
+    public override ReadOnlySpan<int> GetCalleeSavedRegisters() => CalleeSavedRegs;
+
+    private static readonly int[] CalleeSavedRegs = Enumerable.Range(20, 12)
+        .Select(MOS6502Registers.RC)
+        .ToArray();
 }

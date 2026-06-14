@@ -78,4 +78,9 @@ public abstract class TargetRegisterInfo
     // legal set so allocation converges toward the llvm-mos references, which use
     // $a/$x/$y for data where Irie used to park everything in zero page.
     public virtual ReadOnlySpan<int> GetShortRangeGprPreference() => default;
+
+    // The callee-saved registers per the calling convention — registers a
+    // clobbering callee must save in its prologue and restore in its epilogue.
+    // Mirrors LLVM getCalleeSavedRegs. Empty by default.
+    public virtual ReadOnlySpan<int> GetCalleeSavedRegisters() => default;
 }

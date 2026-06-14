@@ -174,6 +174,11 @@ public static class MOS6502MachineCodeEmitTable
 
         // mos6502.rts implicit $a, implicit $x, … — all operands implicit.
         [MOS6502Op.Rts]   = new EmitRule(MOS6502Opcode.RTS,          EmitOperandKind.Implied,         null),
+
+        // mos6502.pha pushes $a / mos6502.pla pulls $a — both implied; the $a
+        // operand is implicit in the encoding.
+        [MOS6502Op.Pha]   = new EmitRule(MOS6502Opcode.PHA,          EmitOperandKind.Implied,         null),
+        [MOS6502Op.Pla]   = new EmitRule(MOS6502Opcode.PLA,          EmitOperandKind.Implied,         null),
     };
 
     public static EmitRule Get(MOS6502Op op)
