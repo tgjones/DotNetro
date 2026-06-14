@@ -1,0 +1,40 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+; RUN-noadc: not @iriec --target mos6502 --emit=asm @file | grep -qi 'adc'
+
+; Increment strength reduction (plan Item 1): an in-place 8-bit `value + 1`
+; on a value the register allocator parks in a register (or zero page) folds
+; to a single INX / INY / INC, instead of the generic
+; `lda / clc / adc #1 / sta` sequence the legalizer + isel emit.
+;
+; @Inc loops `i = i + 1` until `i >= limit`. The loop-carried counter %2 is a
+; block parameter, so the same physreg holds it across the back-edge; the
+; allocator picks X. After AMS the loop body is
+;   $zp3 = pseudo.copy 1 ; clc ; $a = copy $x ; adc.zp $a,$zp3 ; $x = copy $a
+; which MOS6502IncrementStrengthReductionPass rewrites to a single INX, then
+; drops the now-dead constant-1 copy and CLC. The carry-out of the adc is dead
+; (the compare that follows recomputes the flags), so the fold is sound.
+;
+; The second RUN line (RUN-noadc) asserts there is NO ADC anywhere in the
+; output: the increment must not fall back to the generic adc path.
+
+; CHECK: Inc:
+; CHECK:     TAX
+; CHECK:     JMP .bb1
+; CHECK: .bb1:
+; CHECK:     INX
+; CHECK:     TXA
+; CHECK:     CMP \$02
+; CHECK:     BCC .bb3
+
+func @Inc : (i8, i8) -> i8 {
+bb0(%0 : i8, %1 : i8):
+    cf.br bb1(%0)
+bb1(%2 : i8):
+    %3 : i8 = arith.constant 1
+    %4 : i1 = arith.constant 0
+    %5 : i8, %6 : i1 = arith.addi_with_carry %2, %3, %4
+    %7 : i1 = arith.cmpi ult, %5, %1
+    cf.cond_br %7, bb1(%5), bb2(%5)
+bb2(%8 : i8):
+    core.return %8
+}

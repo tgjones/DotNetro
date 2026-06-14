@@ -27,6 +27,7 @@ public class MOS6502Target : Irie.Target.Target
     public override void AddPostRegisterAllocationPasses(Irie.Passes.PassManager pm)
     {
         pm.AddPass(new MOS6502AddressingModeSelectorPass());
+        pm.AddPass(new MOS6502IncrementStrengthReductionPass());
         pm.AddPass(new MOS6502ParallelCopyPass());
     }
 

@@ -89,9 +89,19 @@ public static class MOS6502MachineCodeEmitTable
         // two's-complement negate (EOR #$FF) in WriteLineInt32.
         [MOS6502Op.EorImm] = new EmitRule(MOS6502Opcode.EOR_Immediate, EmitOperandKind.Immediate, 2),
 
-        // mos6502.inx / mos6502.iny — implied; both operands (if any) implicit.
+        // mos6502.inx / mos6502.iny / mos6502.dex / mos6502.dey — implied; both
+        // operands (the X/Y read+write) are implicit. Emitted by the
+        // increment strength-reduction peephole for in-place register ±1.
         [MOS6502Op.Inx]    = new EmitRule(MOS6502Opcode.INX,          EmitOperandKind.Implied,         null),
         [MOS6502Op.Iny]    = new EmitRule(MOS6502Opcode.INY,          EmitOperandKind.Implied,         null),
+        [MOS6502Op.Dex]    = new EmitRule(MOS6502Opcode.DEX,          EmitOperandKind.Implied,         null),
+        [MOS6502Op.Dey]    = new EmitRule(MOS6502Opcode.DEY,          EmitOperandKind.Implied,         null),
+
+        // $zpN = mos6502.inc.zp $zpN / mos6502.dec.zp $zpN — read-modify-write
+        // in place. Operands: def[0]=zp, use[0]=zp. Index 0 = the zero-page
+        // address. Emitted by the increment strength-reduction peephole.
+        [MOS6502Op.IncZp]  = new EmitRule(MOS6502Opcode.INC_ZeroPage, EmitOperandKind.ZeroPageAddress, 0),
+        [MOS6502Op.DecZp]  = new EmitRule(MOS6502Opcode.DEC_ZeroPage, EmitOperandKind.ZeroPageAddress, 0),
 
         // mos6502.b<pred> T implicit $<flag>
         // operands[0] = BlockTarget T; operand[1] = implicit flag use (not encoded).
