@@ -21,7 +21,8 @@ public sealed class MOS6502MachineCodeEmitter : Irie.Target.MachineCodeEmitter
     private static MachineCodeGlobal LowerGlobal(MirGlobal global)
     {
         if (global.Initializer is null)
-            return new MachineCodeGlobal(global.SymbolName, global.SizeInBytes, Items: null);
+            return new MachineCodeGlobal(global.SymbolName, global.SizeInBytes, Items: null)
+            { ZeroPageAddress = global.ZeroPageAddress };
 
         var items = new MachineCodeDataItem[global.Initializer.Items.Length];
         for (var i = 0; i < items.Length; i++)
@@ -34,7 +35,8 @@ public sealed class MOS6502MachineCodeEmitter : Irie.Target.MachineCodeEmitter
                     $"MOS6502MachineCodeEmitter: unknown MirDataItem {item.GetType().Name} in global '{global.SymbolName}'."),
             };
         }
-        return new MachineCodeGlobal(global.SymbolName, global.SizeInBytes, items);
+        return new MachineCodeGlobal(global.SymbolName, global.SizeInBytes, items)
+        { ZeroPageAddress = global.ZeroPageAddress };
     }
 
     private static void EmitFunction(MirFunction src, MachineCodeFunction dst)
@@ -79,11 +81,22 @@ public sealed class MOS6502MachineCodeEmitter : Irie.Target.MachineCodeEmitter
 
     private static MachineCodeOperand EmitZeroPage(MirInstruction instr, int index)
     {
-        var operand = instr.Operands[index];
-        if (operand is not PhysicalReg phys || phys.IsImplicit || phys.Id < MOS6502Registers.RC(0))
-            throw new InvalidOperationException(
-                $"MOS6502MachineCodeEmitter: expected an explicit zero-page PhysicalReg at operand[{index}] of {(MOS6502Op)instr.Opcode.Code}, got {operand}.");
-        return new MachineCodeOperand.Immediate(phys.Id - MOS6502Registers.RC(0));
+        // A zero-page address operand is polymorphic (D3): an RC register
+        // (whose zp address equals its index) or a literal zp address (used by
+        // a zp-placed frame slot, base + byte offset baked at instruction
+        // selection). Both encode into the same one-byte ZeroPage operand.
+        switch (instr.Operands[index])
+        {
+            case PhysicalReg phys when !phys.IsImplicit && phys.Id >= MOS6502Registers.RC(0):
+                return new MachineCodeOperand.Immediate(phys.Id - MOS6502Registers.RC(0));
+
+            case Mir.Immediate imm:
+                return new MachineCodeOperand.Immediate(imm.Value);
+
+            default:
+                throw new InvalidOperationException(
+                    $"MOS6502MachineCodeEmitter: expected an explicit zero-page PhysicalReg or Immediate at operand[{index}] of {(MOS6502Op)instr.Opcode.Code}, got {instr.Operands[index]}.");
+        }
     }
 
     private static MachineCodeOperand EmitImmediate(MirInstruction instr, int index)

@@ -787,6 +787,39 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
                 "MOS6502InstructionSelector: mem.load.byte_at must have shape `%def : i8 = mem.load.byte_at %addr, <offset>`.");
 
         builder.SetInsertionPointBefore(instr);
+
+        // A zp-placed frame slot lowers to a *direct* zp load against the
+        // concrete literal address (base + byte offset) — no pointer pair, no
+        // $y, no indirect-Y (D3/D5). Leave the indirect path's pointer cache
+        // (_currentPointerKey) untouched.
+        if (TryGetZeroPagePlacement(function, addrReg.Id, offset.Value) is int loadAddr)
+        {
+            // %ac : ac = mos6502.lda.zp #<addr>  (def[0], addr at operand[1])
+            // then copy out of $a into a flexible Anyi8 vreg, mirroring the
+            // indirect path's Ac→park idiom so the RA isn't pinned to $a.
+            var ldaZpAc = function.CreateVirtualRegisterInClass(
+                MOS6502RegisterClass.Ac,
+                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+            builder.BuildInstruction(
+                MOS6502Dialect.OpRef(MOS6502Op.LdaZp),
+                new VirtualReg(ldaZpAc, IsDefinition: true),
+                new Immediate(loadAddr));
+
+            var zpResultVreg = function.CreateVirtualRegisterInClass(
+                MOS6502RegisterClass.Anyi8,
+                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
+            builder.BuildInstruction(
+                PseudoDialect.OpRef(PseudoOp.Copy),
+                new VirtualReg(zpResultVreg, IsDefinition: true),
+                new VirtualReg(ldaZpAc,      IsDefinition: false));
+
+            function.ReplaceAllUsesOfRegister(defReg.Id, zpResultVreg);
+            builder.Remove(instr);
+
+            TryRemoveDeadMemSymbol(function, addrReg.Id, builder);
+            return true;
+        }
+
         EmitPointerSetup(builder, addrReg, offset.Value);
 
         // %a3 : ac = mos6502.lda.indy $rc2, implicit-use $rc3, implicit-use $y
@@ -846,6 +879,32 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             PseudoDialect.OpRef(PseudoOp.Copy),
             new VirtualReg(parkedVreg, IsDefinition: true),
             new VirtualReg(valReg.Id,  IsDefinition: false));
+
+        // A zp-placed frame slot lowers to a *direct* zp store against the
+        // concrete literal address — no pointer pair, no $y, no indirect-Y
+        // (D3/D5). Funnel the parked value through an Ac vreg (sta.zp's source
+        // is $a) and leave _currentPointerKey untouched.
+        if (TryGetZeroPagePlacement(function, addrReg.Id, offset.Value) is int storeAddr)
+        {
+            var zpSrcVreg = function.CreateVirtualRegisterInClass(
+                MOS6502RegisterClass.Ac,
+                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+            builder.BuildInstruction(
+                PseudoDialect.OpRef(PseudoOp.Copy),
+                new VirtualReg(zpSrcVreg,  IsDefinition: true),
+                new VirtualReg(parkedVreg, IsDefinition: false));
+
+            // %addr-as-def is the StaZp emit rule's operand[0]; source $a at [1].
+            builder.BuildInstruction(
+                MOS6502Dialect.OpRef(MOS6502Op.StaZp),
+                new Immediate(storeAddr),
+                new VirtualReg(zpSrcVreg, IsDefinition: false));
+
+            builder.Remove(instr);
+
+            TryRemoveDeadMemSymbol(function, addrReg.Id, builder);
+            return true;
+        }
 
         EmitPointerSetup(builder, addrReg, offset.Value);
 
@@ -1066,6 +1125,27 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
 
     // The symbol name backing an address vreg, or null if the vreg is not
     // defined by a `mem.symbol @name` instruction (i.e. it's a runtime pointer).
+    // If the address vreg resolves to a frame slot symbol whose placement is
+    // ZeroPage, returns the concrete byte address for this access (the slot's
+    // base zp address plus the access's byte offset). Otherwise null, and the
+    // caller falls through to the indirect-Y path. This is the D5 placement key:
+    // until a pass sets ZeroPage placement this always returns null (dormant).
+    private static int? TryGetZeroPagePlacement(MirFunction function, int addrVreg, long byteOffset)
+    {
+        var symbolName = TryResolveSymbolAddress(function, addrVreg);
+        if (symbolName is null) return null;
+
+        foreach (var slot in function.FrameSlots)
+        {
+            if (slot.SymbolName == symbolName
+                && slot.Placement is FrameSlotPlacement.ZeroPage zp)
+            {
+                return zp.Address + (int)byteOffset;
+            }
+        }
+        return null;
+    }
+
     private static string? TryResolveSymbolAddress(MirFunction function, int addrVreg)
     {
         var def = function.GetDefinition(addrVreg);

@@ -7,7 +7,15 @@ public sealed record MirGlobal(
     string          SymbolName,
     IRType          Type,
     int             SizeInBytes,
-    MirInitializer? Initializer);
+    MirInitializer? Initializer)
+{
+    // When non-null, the global is a *fixed zero-page reservation* at this byte
+    // address (an `AS_ZeroPage` analogue from llvm-mos): the binary encoder
+    // records the symbol at this address but emits no bytes and does not advance
+    // the absolute cursor. `null` (the default) = an absolute-memory global,
+    // laid out after all functions exactly as today.
+    public int? ZeroPageAddress { get; init; }
+}
 
 // Sequence of data items concatenated to form a global's initial value.
 public sealed record MirInitializer(MirDataItem[] Items);
