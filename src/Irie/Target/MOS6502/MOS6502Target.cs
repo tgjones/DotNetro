@@ -29,9 +29,9 @@ public class MOS6502Target : Irie.Target.Target
         pm.AddPass(new MOS6502AddressingModeSelectorPass());
         pm.AddPass(new MOS6502IncrementStrengthReductionPass());
         pm.AddPass(new MOS6502ParallelCopyPass());
-        // Frame placement is now owned by the early target-agnostic
-        // StaticFramePlacementPass (before FrameLowering); the post-RA
-        // MOS6502StaticFrameAllocPass is no longer run.
+        // Frame placement is owned by the early, target-agnostic
+        // StaticFramePlacementPass (run before FrameLowering), so there is no
+        // post-RA frame-allocation pass here.
     }
 
     // Hand-written MIR runtime (currently just the indirect-call trampoline;

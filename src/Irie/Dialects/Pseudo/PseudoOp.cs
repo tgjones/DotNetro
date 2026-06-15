@@ -37,11 +37,12 @@ public enum PseudoOp : ushort
     // plan.md §3.4). They are emitted POST register allocation, so both operands
     // are concrete physical registers; the only abstract thing is the frame-slot
     // index, which references a MirFunction.FrameSlot. RA does NOT assign that
-    // slot a physical address — a future static-stack pass
-    // (notes/mos6502-codegen-quality-plan.md, Layer 3 "MOS6502StaticFrameAllocPass")
-    // lowers each `pseudo.spill`/`pseudo.reload` to a concrete `sta.zp`/`lda.zp`
-    // (zero-page frame) or a `.bss` store/load once it has coloured the call
-    // graph and placed every function's frame. The slot shape (FrameSlot:
+    // slot a physical address — the static-stack placement pass
+    // (StaticFramePlacementPass) colours the call graph and decides every
+    // function's frame placement (zero-page vs absolute); a future spill/reload
+    // lowering would consume that decision to emit each `pseudo.spill`/
+    // `pseudo.reload` as a concrete `sta.zp`/`lda.zp` (zero-page frame) or a
+    // `.bss` store/load. The slot shape (FrameSlot:
     // index + i8 type + symbol name) is exactly the one FrameLoweringPass and
     // that future pass already consume — see the comment on PickSpillSlot in
     // RegisterAllocatorPass for the full contract.
