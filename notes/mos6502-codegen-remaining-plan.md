@@ -87,6 +87,14 @@ and exercises no new register-model machinery.
 
 ### Item 2 — Static stack allocation (frame-placement optimization)
 
+**SHIPPED `da9d9e0` then found to REGRESS instruction counts** (it reused the
+callee-saved RC pool as frame storage, forcing spurious `PHA`/`PLA`). Being
+reworked — see the standalone
+[MOS6502 Frame Placement — Revised Plan](mos6502-frame-placement-plan.md), which
+matches the llvm-mos two-namespace / placement-before-lowering model and deletes
+the lower-then-rewrite hacks. The notes below describe the shipped (to-be-replaced)
+version.
+
 **DONE 2026-06-14** (commit `da9d9e0`). Both sub-pieces landed end-to-end.
 - 2a: `bool IsNonReentrant` on `MirFunction` + `src/Irie/Passes/Analyses/ReentrancyAnalysis.cs`
   (call graph from `Symbol` operands + one conservative indirect-call edge;

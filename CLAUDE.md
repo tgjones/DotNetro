@@ -150,6 +150,27 @@ Two layers (unified IR landed; see [`notes/unified-ir-plan.md`](notes/unified-ir
 - **Aemula** — 6502 CPU emulator used during test execution
 - **Sixty502DotNet** — 6502 assembler (Antlr4-based) used to assemble the emitted code
 
+## MOS6502 codegen design reference (llvm-mos)
+
+DotNetro's 6502 codegen is anchored to **llvm-mos** as the reference
+implementation. When approaching a compiler **design** question for the MOS6502
+target (calling convention, register allocation, frame/stack layout, lowering
+choices, peephole opportunities, etc.), check **both** of these — not just one:
+
+1. **llvm-mos output** — compile representative C with the local toolchain and
+   read the generated asm / Machine IR:
+   - `clang`/`llc` at `/Users/timjones/Code/llvm-mos/build/bin`
+   - e.g. `clang --target=mos -Os -S -o - foo.c`; inspect Machine IR with
+     `llc -stop-after=…`; use `volatile` to keep stores/loads from being
+     optimized away when you want to see the access pattern.
+2. **llvm-mos source code** — read the actual pass/algorithm, at
+   `/Users/timjones/Code/llvm-mos` (target sources under
+   `llvm/lib/Target/MOS/`, e.g. `MOSStaticStackAlloc.cpp`,
+   `MOSZeroPageAlloc.cpp`, `MOSFrameLowering.cpp`, `MOSRegisterInfo.td`). The
+   output shows *what* it does on one example; the source explains *why* and the
+   general rule (coloring, benefit model, edge cases) that the output alone can
+   hide.
+
 ## Planning workflow
 
 Before modifying code in any area: read the relevant files first,
