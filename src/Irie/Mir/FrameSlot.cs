@@ -7,25 +7,15 @@ namespace Irie.Mir;
 // function is fully built.
 public sealed record FrameSlot(int Index, IRType Type, string SymbolName)
 {
-    // Where this slot's storage lives. Decided by the frame-placement pass
-    // *before* the access is lowered (the TargetStackID analogue from llvm-mos),
-    // so each access is lowered correctly once rather than lowered-then-rewritten.
-    // Defaults to Absolute; never serialised in MIR text (a pass recomputes it).
-    public FrameSlotPlacement Placement { get; set; } = FrameSlotPlacement.Default;
-}
+    // The slot's target stack id (the llvm-mos `TargetStackID` analogue) and its
+    // offset within that stack (the `getObjectOffset` analogue). Both are opaque
+    // integers decided by the frame-placement pass; generic code never interprets
+    // a non-default StackId — only the owning target knows what a given id means.
+    // `DefaultStackId` (0) is the universal default: an absolute-memory global.
+    // Neither field is serialised in MIR text/binary (a pass recomputes them).
+    public int StackId { get; set; } = DefaultStackId;
+    public int Offset { get; set; }
 
-// Where a FrameSlot's bytes are stored. `Absolute` is the .bss-style global in
-// absolute RAM (today's universal default); `ZeroPage` is a fixed zero-page
-// address reserved for the slot, enabling direct `lda.zp`/`sta.zp` access. The
-// placement pass colours each slot into one of these; lowering keys off it (D5).
-public abstract record FrameSlotPlacement
-{
-    // The slot lives in an absolute-memory global (indirect-Y access).
-    public sealed record Absolute : FrameSlotPlacement;
-
-    // The slot lives at a fixed zero-page byte address (direct zp access).
-    public sealed record ZeroPage(int Address) : FrameSlotPlacement;
-
-    // The default placement: absolute, matching today's universal behaviour.
-    public static readonly FrameSlotPlacement Default = new Absolute();
+    // The default stack id: the slot lives in an absolute-memory .bss-style global.
+    public const int DefaultStackId = 0;
 }

@@ -1125,11 +1125,12 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
 
     // The symbol name backing an address vreg, or null if the vreg is not
     // defined by a `mem.symbol @name` instruction (i.e. it's a runtime pointer).
-    // If the address vreg resolves to a frame slot symbol whose placement is
-    // ZeroPage, returns the concrete byte address for this access (the slot's
-    // base zp address plus the access's byte offset). Otherwise null, and the
-    // caller falls through to the indirect-Y path. This is the D5 placement key:
-    // until a pass sets ZeroPage placement this always returns null (dormant).
+    // If the address vreg resolves to a frame slot symbol promoted to zero page
+    // (a non-default StackId), returns the concrete byte address for this access
+    // (the slot's base zp address — its opaque Offset — plus the access's byte
+    // offset). Otherwise null, and the caller falls through to the indirect-Y
+    // path. This is the placement key: until a pass promotes a slot this always
+    // returns null (dormant).
     private static int? TryGetZeroPagePlacement(MirFunction function, int addrVreg, long byteOffset)
     {
         var symbolName = TryResolveSymbolAddress(function, addrVreg);
@@ -1138,9 +1139,9 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         foreach (var slot in function.FrameSlots)
         {
             if (slot.SymbolName == symbolName
-                && slot.Placement is FrameSlotPlacement.ZeroPage zp)
+                && slot.StackId != FrameSlot.DefaultStackId)
             {
-                return zp.Address + (int)byteOffset;
+                return slot.Offset + (int)byteOffset;
             }
         }
         return null;

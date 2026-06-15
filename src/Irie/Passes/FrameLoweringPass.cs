@@ -31,12 +31,14 @@ public sealed class FrameLoweringPass : Pass
             // FrameLowering twice on the same module (e.g. across pass
             // restarts) doesn't duplicate globals.
             //
-            // A slot the placement pass (StaticFramePlacementPass) promoted to
-            // ZeroPage becomes a fixed zero-page reservation (MirGlobal
-            // .ZeroPageAddress) rather than an absolute-memory global: the
-            // encoder reserves no image bytes for it, and any address-taken use
-            // resolves into zero page. An Absolute slot is materialised exactly
-            // as before.
+            // A slot the placement pass (StaticFramePlacementPass) promoted to a
+            // non-default StackId becomes a fixed zero-page reservation (MirGlobal
+            // .ZeroPageAddress) rather than an absolute-memory global: the encoder
+            // reserves no image bytes for it, and any address-taken use resolves
+            // into zero page. A default-placement slot is materialised exactly as
+            // before. Generic code does not interpret the StackId beyond "is it
+            // default?"; the promoted slot's absolute zero-page address is the
+            // opaque Offset the target's placement pass stored there.
             foreach (var slot in function.FrameSlots)
             {
                 if (!existingGlobals.Add(slot.SymbolName)) continue;
@@ -46,8 +48,8 @@ public sealed class FrameLoweringPass : Pass
                     SizeInBytes: slot.Type.SizeInBits / 8,
                     Initializer: null)
                 {
-                    ZeroPageAddress = slot.Placement is FrameSlotPlacement.ZeroPage zp
-                        ? zp.Address
+                    ZeroPageAddress = slot.StackId != FrameSlot.DefaultStackId
+                        ? slot.Offset
                         : null,
                 });
             }
