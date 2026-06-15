@@ -1,14 +1,15 @@
-; RUN: @iriec --target mos6502 --emit=asm @file
+; RUN: @iriec --target mos6502-bbcmicro --emit=asm @file
 
-; .bss-overflow fallback for static stack allocation (plan item 2b).
+; .bss-overflow fallback for static frame placement.
 ;
-; @big is non-reentrant, but its three i32 frame slots total 12 bytes — more
-; than the 10-byte zero-page window ($14..$1D). MOS6502StaticFrameAllocPass
-; therefore leaves @big's slots on the existing .bss path: each access keeps
-; the indirect-Y lowering (materialise the slot's address low/high bytes into
-; the $00/$01 pointer pair, then `STA ($00),Y`). This proves the pass is
-; always correctness-safe: when the window can't hold a frame, nothing is
-; rewritten and the slow-but-correct path stands.
+; @big is non-reentrant, but its nine i32 frame slots total 36 bytes — more
+; than the 32-byte zero-page window ($70..$8F) the BBC Micro subtarget
+; advertises (FreeZeroPage). StaticFramePlacementPass therefore leaves @big's
+; slots Absolute: each access keeps the indirect-Y lowering (materialise the
+; slot's address low/high bytes into the $00/$01 pointer pair, then
+; `STA ($00),Y`). This proves placement is always correctness-safe: when the
+; window can't hold a frame, nothing is promoted and the slow-but-correct path
+; stands.
 
 ; CHECK: big:
 ; CHECK:     LDA #<big_local0
@@ -22,6 +23,12 @@ func @big : () -> void {
   frame_slot 0 : i32 @big_local0
   frame_slot 1 : i32 @big_local1
   frame_slot 2 : i32 @big_local2
+  frame_slot 3 : i32 @big_local3
+  frame_slot 4 : i32 @big_local4
+  frame_slot 5 : i32 @big_local5
+  frame_slot 6 : i32 @big_local6
+  frame_slot 7 : i32 @big_local7
+  frame_slot 8 : i32 @big_local8
   bb0():
     %0 : i16 = mem.frame_addr 0
     %1 : i8 = arith.constant 1

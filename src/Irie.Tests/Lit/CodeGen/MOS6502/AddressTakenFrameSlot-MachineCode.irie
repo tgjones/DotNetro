@@ -1,0 +1,41 @@
+; RUN: @iriec --target mos6502-bbcmicro --emit=asm @file
+
+; Address-taken frame slot under the new placement-first design.
+;
+; @owner is a non-reentrant leaf-ish function whose i16 frame slot is both
+; accessed directly in-function (mem.store.i8 / mem.load.i8) AND escaped — its
+; address (mem.frame_addr 0) is passed as an i16 pointer argument to @sink.
+;
+; @sink does not touch @owner's slot, so coloring places @owner's frame at the
+; base of the window ($70). Because placement is decided BEFORE lowering, the
+; slot has a SINGLE location: the in-function accesses lower to direct
+; `LDA/STA $70`, and the escaped address materialises as `LDA #<owner_local0`
+; / `LDA #>owner_local0` on the SAME symbol — which the encoder resolves to the
+; very same zero-page address ($70, high byte $00). No escape-driven split into
+; a separate absolute home (the old pass forced that; the new design does not
+; need to). This test fails if the slot were split or mis-placed.
+
+; CHECK: owner:
+; CHECK:     LDA #\$04
+; CHECK:     STA \$70
+; CHECK:     LDA \$70
+; CHECK:     LDA #<owner_local0
+; CHECK:     LDA #>owner_local0
+; CHECK:     JSR sink
+; CHECK:     RTS
+
+func @sink : (i16) -> void {
+  bb0(%0 : i16):
+    core.return
+}
+
+func @owner : () -> void {
+  frame_slot 0 : i16 @owner_local0
+  bb0():
+    %0 : i16 = mem.frame_addr 0
+    %1 : i8 = arith.constant 4
+    mem.store.i8 %0, %1
+    %2 : i8 = mem.load.i8 %0
+    call.func @sink, %0
+    core.return
+}

@@ -1,51 +1,45 @@
-; RUN: @iriec --target mos6502 --emit=asm @file
+; RUN: @iriec --target mos6502-bbcmicro --emit=asm @file
 
-; Static stack allocation across a two-deep call chain (plan item 2b).
+; Static frame placement across a two-deep call chain.
 ;
 ; All three functions are non-reentrant (ReentrancyAnalysis), so
-; MOS6502StaticFrameAllocPass colours their frame slots into the zero-page
-; window ($14..$1D) with a bottom-up static-stack layout:
+; StaticFramePlacementPass colours their frame slots into the BBC Micro
+; subtarget's zero-page window ($70..$8F, FreeZeroPage) with a bottom-up
+; static-stack layout:
 ;
 ;   base(f) = max over callees c of (base(c) + size(c))
 ;
 ; @leaf_a and @leaf_b are independent leaves (base 0): they REUSE the same
-; zero page — both colour their slot at $14. @mid CALLS @leaf_a, so its frame
-; base is leaf_a's frame end (2 bytes) → its slot lands at $16, DISJOINT from
-; the callee's $14. That disjointness is what lets the value @mid stores into
+; zero page — both colour their slot at $70. @mid CALLS @leaf_a, so its frame
+; base is leaf_a's frame end (2 bytes) → its slot lands at $72, DISJOINT from
+; the callee's $70. That disjointness is what lets the value @mid stores into
 ; its slot survive the `JSR leaf_a` and be read back unchanged afterwards.
 ;
-; Every access is a direct zero-page LDA/STA (no indirect-Y pointer setup).
-; The frame bytes sit in the callee-saved RC window, so the prologue/epilogue
-; pass preserves their incoming values with PHA/PLA.
+; Every access is a direct zero-page LDA/STA (no indirect-Y pointer setup) and
+; there is no PHA/PLA at all. Frame storage lives in a dedicated zero-page
+; window disjoint from the RC callee-saved register pool, and coloring
+; guarantees a callee never clobbers the caller's frame, so no preservation is
+; needed.
 
-; --- leaf_a: slot at $14 (base 0) ---------------------------------------
+; --- leaf_a: slot at $70 (base 0) ---------------------------------------
 ; CHECK: leaf_a:
-; CHECK:     LDA \$14
-; CHECK:     PHA
-; CHECK:     STA \$14
-; CHECK:     PLA
-; CHECK:     STA \$14
+; CHECK:     LDA #\$07
+; CHECK:     STA \$70
 ; CHECK:     RTS
 
-; --- leaf_b: independent leaf — REUSES $14 (base 0) ----------------------
+; --- leaf_b: independent leaf — REUSES $70 (base 0) ----------------------
 ; CHECK: leaf_b:
-; CHECK:     LDA \$14
-; CHECK:     PHA
-; CHECK:     STA \$14
-; CHECK:     PLA
-; CHECK:     STA \$14
+; CHECK:     LDA #\$09
+; CHECK:     STA \$70
 ; CHECK:     RTS
 
-; --- mid: calls leaf_a — frame DISJOINT from callee, slot at $16 ---------
+; --- mid: calls leaf_a — frame DISJOINT from callee, slot at $72 ---------
 ; CHECK: mid:
-; CHECK:     LDA \$16
-; CHECK:     PHA
-; CHECK:     STA \$16
+; CHECK:     LDA #\$03
+; CHECK:     STA \$72
 ; CHECK:     JSR leaf_a
-; CHECK:     LDA \$16
-; CHECK:     STA \$16
-; CHECK:     PLA
-; CHECK:     STA \$16
+; CHECK:     LDA \$72
+; CHECK:     STA \$72
 ; CHECK:     RTS
 
 func @leaf_a : () -> void {

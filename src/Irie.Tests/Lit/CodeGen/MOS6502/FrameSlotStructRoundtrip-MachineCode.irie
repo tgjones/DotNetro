@@ -1,40 +1,31 @@
-; RUN: @iriec --target mos6502 --emit=asm @file
+; RUN: @iriec --target mos6502-bbcmicro --emit=asm @file
 
 ; End-to-end check exercising frame slots: a struct-style value type lives
 ; in a frame slot, gets initialised to zero via mem.fill, then a single
 ; byte is stored to it and read back. Mirrors the shape of `UseStruct` in
 ; the DotNetCompilerTests suite — minus the call to Console.WriteLine.
 ;
-; FrameLoweringPass materialises @UseStruct_local0 as a zero-init global and
-; the legalizer unrolls mem.fill into 4 byte stores. Because @TestStruct is
-; non-reentrant (ReentrancyAnalysis) and its 4-byte frame fits in the
-; zero-page window ($14..$1D), MOS6502StaticFrameAllocPass places the slot at
-; $14..$17 and rewrites every access to a direct zero-page STA/LDA — no
-; indirect-Y pointer-pair setup. The frame bytes are callee-saved RCs, so the
-; prologue/epilogue pass preserves their incoming values via PHA/PLA.
+; @TestStruct is a non-reentrant leaf (ReentrancyAnalysis) whose 4-byte i32
+; frame fits the BBC Micro subtarget's 32-byte zero-page window ($70..$8F,
+; FreeZeroPage). StaticFramePlacementPass (running before FrameLowering)
+; therefore promotes the slot to ZeroPage at $70..$73, and every access lowers
+; directly to a zero-page STA/LDA — no indirect-Y pointer-pair setup, and
+; (the whole point of this rework) no PHA/PLA at all. Frame storage now lives in
+; a dedicated zero-page window disjoint from the RC callee-saved register pool,
+; so the prologue/epilogue pass never sees it as a register to preserve.
 
 ; CHECK: TestStruct:
-; CHECK:     LDA \$14
-; CHECK:     PHA
-; CHECK:     LDA \$15
-; CHECK:     PHA
-; CHECK:     LDA \$16
-; CHECK:     PHA
-; CHECK:     LDA \$17
-; CHECK:     PHA
-; CHECK:     STA \$14
-; CHECK:     STA \$15
-; CHECK:     STA \$16
-; CHECK:     STA \$17
-; CHECK:     STA \$14
-; CHECK:     PLA
-; CHECK:     STA \$17
-; CHECK:     PLA
-; CHECK:     STA \$16
-; CHECK:     PLA
-; CHECK:     STA \$15
-; CHECK:     PLA
-; CHECK:     STA \$14
+; CHECK:     LDX #\$00
+; CHECK:     TXA
+; CHECK:     STA \$70
+; CHECK:     TXA
+; CHECK:     STA \$71
+; CHECK:     TXA
+; CHECK:     STA \$72
+; CHECK:     TXA
+; CHECK:     STA \$73
+; CHECK:     TXA
+; CHECK:     STA \$70
 ; CHECK:     RTS
 
 func @TestStruct : () -> void {
