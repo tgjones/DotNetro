@@ -60,7 +60,6 @@ rootCommand.SetAction(parseResult =>
     var context = new CompilationContext(module);
 
     var passMgr = new PassManager(stopAfterPass, startAtPass);
-    passMgr.AddPass(new StaticFramePlacementPass(target.FreeZeroPage));
     passMgr.AddPass(new FrameLoweringPass());
     passMgr.AddPass(new AbiLoweringPass(target.CallLowering));
     passMgr.AddPass(new LegalizerPass(target.LegalizerInfo));
@@ -70,6 +69,11 @@ rootCommand.SetAction(parseResult =>
     passMgr.AddPass(new RegisterAllocatorPass(target.RegisterInfo));
     passMgr.AddPass(new CopyEliminationPass());
     target.AddPostRegisterAllocationPasses(passMgr);
+    // Expand abstract frame accesses (mos6502.frame.*.byte) into concrete
+    // addressing sequences per each slot's placement — the eliminateFrameIndex
+    // analogue. Post-RA, after the target's post-RA passes, before PEI / pseudo
+    // expansion.
+    passMgr.AddPass(new FrameAccessLoweringPass(target.FrameLowering));
     passMgr.AddPass(new PrologueEpilogueInsertionPass(target.RegisterInfo, target.FrameLowering));
     passMgr.AddPass(new PseudoExpansionPass(target.PseudoExpander));
     // Register scavenging runs LAST: PseudoExpansion mints copy-scratch vregs

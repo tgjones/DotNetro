@@ -37,10 +37,10 @@ public enum PseudoOp : ushort
     // plan.md §3.4). They are emitted POST register allocation, so both operands
     // are concrete physical registers; the only abstract thing is the frame-slot
     // index, which references a MirFunction.FrameSlot. RA does NOT assign that
-    // slot a physical address — the static-stack placement pass
-    // (StaticFramePlacementPass) colours the call graph and decides every
-    // function's frame placement (zero-page vs absolute); a future spill/reload
-    // lowering would consume that decision to emit each `pseudo.spill`/
+    // slot a physical address — a post-RA frame-placement pass decides every
+    // function's frame placement (zero-page vs absolute) by setting each slot's
+    // StackId/Offset; a future spill/reload lowering would consume that decision
+    // (the same way FrameAccessLoweringPass does) to emit each `pseudo.spill`/
     // `pseudo.reload` as a concrete `sta.zp`/`lda.zp` (zero-page frame) or a
     // `.bss` store/load. The slot shape (FrameSlot:
     // index + i8 type + symbol name) is exactly the one FrameLoweringPass and

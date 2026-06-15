@@ -40,4 +40,22 @@ public abstract class FrameLowering
     // uses on the return).
     public abstract void EmitCalleeSavedRestores(
         MirInstruction returnInstr, IReadOnlyList<int> saved, MirBuilder builder);
+
+    // True iff `instr` is one of the target's abstract frame-access instructions
+    // (the llvm-mos LDStk/STStk analogue) — a byte load/store still carrying a
+    // FrameSlot symbol + offset rather than a concrete address. The generic
+    // FrameAccessLoweringPass uses this to find the accesses it must delegate to
+    // LowerFrameAccess; the target owns what its abstract frame ops look like.
+    public abstract bool IsFrameAccess(MirInstruction instr);
+
+    // Rewrite one abstract frame access (`IsFrameAccess(instr)` is true) into the
+    // concrete instruction sequence that addresses the slot, per the slot's
+    // placement (FrameSlot.StackId / Offset). The llvm-mos
+    // MOSRegisterInfo::eliminateFrameIndex analogue: it runs post-RA, so the
+    // value byte is already in its physreg and the access's scratch clobbers are
+    // already reserved — no register scavenging is required. `function` supplies
+    // the FrameSlots; `builder` is positioned by the caller and the implementation
+    // builds the replacement and removes `instr`.
+    public abstract void LowerFrameAccess(
+        MirFunction function, MirInstruction instr, MirBuilder builder);
 }

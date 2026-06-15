@@ -1,45 +1,66 @@
 ; RUN: @iriec --target mos6502-bbcmicro --emit=asm @file
 
-; Static frame placement across a two-deep call chain.
+; Static frame accesses across a two-deep call chain.
 ;
-; All three functions are non-reentrant (ReentrancyAnalysis), so
-; StaticFramePlacementPass colours their frame slots into the BBC Micro
-; subtarget's zero-page window ($70..$8F, FreeZeroPage) with a bottom-up
-; static-stack layout:
-;
-;   base(f) = max over callees c of (base(c) + size(c))
-;
-; @leaf_a and @leaf_b are independent leaves (base 0): they REUSE the same
-; zero page — both colour their slot at $70. @mid CALLS @leaf_a, so its frame
-; base is leaf_a's frame end (2 bytes) → its slot lands at $72, DISJOINT from
-; the callee's $70. That disjointness is what lets the value @mid stores into
-; its slot survive the `JSR leaf_a` and be read back unchanged afterwards.
-;
-; Every access is a direct zero-page LDA/STA (no indirect-Y pointer setup) and
-; there is no PHA/PLA at all. Frame storage lives in a dedicated zero-page
-; window disjoint from the RC callee-saved register pool, and coloring
-; guarantees a callee never clobbers the caller's frame, so no preservation is
-; needed.
+; STAGE 2 of the frame-placement rework: every frame slot is placed in absolute
+; memory (StackId == default) and each byte access lowers — late, post-RA, via
+; FrameAccessLoweringPass → MOS6502FrameLowering.LowerFrameAccess — to the
+; absolute global + indirect-Y sequence (materialise the slot address into the
+; $00/$01 pointer pair, set $y to the byte offset, then LDA/STA ($00),Y). No
+; slot is promoted to zero page yet; that is Stage 3, which adds a target-private
+; post-RA placement pass and the direct-zp branch in LowerFrameAccess, at which
+; point these CHECK lines return to direct LDA/STA $70.. (commit b24e2ff's
+; output). For now this just pins down the indirect-Y reversion.
 
-; --- leaf_a: slot at $70 (base 0) ---------------------------------------
+; --- leaf_a -------------------------------------------------------------
 ; CHECK: leaf_a:
-; CHECK:     LDA #\$07
-; CHECK:     STA \$70
+; CHECK:     LDX #\$07
+; CHECK:     LDA #<leaf_a_local0
+; CHECK:     STA \$00
+; CHECK:     LDA #>leaf_a_local0
+; CHECK:     STA \$01
+; CHECK:     LDY #\$00
+; CHECK:     TXA
+; CHECK:     STA \(\$00\),Y
 ; CHECK:     RTS
 
-; --- leaf_b: independent leaf — REUSES $70 (base 0) ----------------------
+; --- leaf_b -------------------------------------------------------------
 ; CHECK: leaf_b:
-; CHECK:     LDA #\$09
-; CHECK:     STA \$70
+; CHECK:     LDX #\$09
+; CHECK:     LDA #<leaf_b_local0
+; CHECK:     STA \$00
+; CHECK:     LDA #>leaf_b_local0
+; CHECK:     STA \$01
+; CHECK:     LDY #\$00
+; CHECK:     TXA
+; CHECK:     STA \(\$00\),Y
 ; CHECK:     RTS
 
-; --- mid: calls leaf_a — frame DISJOINT from callee, slot at $72 ---------
+; --- mid: stores, calls leaf_a, reads its slot back, stores again ------
 ; CHECK: mid:
-; CHECK:     LDA #\$03
-; CHECK:     STA \$72
+; CHECK:     LDX #\$03
+; CHECK:     LDA #<mid_local0
+; CHECK:     STA \$00
+; CHECK:     LDA #>mid_local0
+; CHECK:     STA \$01
+; CHECK:     LDY #\$00
+; CHECK:     TXA
+; CHECK:     STA \(\$00\),Y
 ; CHECK:     JSR leaf_a
-; CHECK:     LDA \$72
-; CHECK:     STA \$72
+; CHECK:     LDA #<mid_local0
+; CHECK:     STA \$00
+; CHECK:     LDA #>mid_local0
+; CHECK:     STA \$01
+; CHECK:     LDY #\$00
+; CHECK:     LDA \(\$00\),Y
+; CHECK:     TAX
+; CHECK:     LDA #<mid_local0
+; CHECK:     STA \$00
+; CHECK:     LDA #>mid_local0
+; CHECK:     STA \$01
+; CHECK:     LDY #\$00
+; CHECK:     TXA
+; CHECK:     STA \(\$00\),Y
 ; CHECK:     RTS
 
 func @leaf_a : () -> void {

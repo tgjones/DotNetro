@@ -327,16 +327,6 @@ public sealed class MOS6502BinaryEncoder
             if (functionAddrs.ContainsKey(global.SymbolName))
                 throw new InvalidOperationException(
                     $"MOS6502BinaryEncoder: global '{global.SymbolName}' clashes with function of the same name.");
-            // A zero-page reservation lives in pre-existing zero-page RAM far
-            // below `origin`: record its fixed symbol address, but emit no bytes
-            // and don't advance the absolute cursor (no layout entry).
-            if (global.ZeroPageAddress is int zpAddr)
-            {
-                if (!globalAddrs.TryAdd(global.SymbolName, zpAddr))
-                    throw new InvalidOperationException(
-                        $"MOS6502BinaryEncoder: duplicate global name '{global.SymbolName}'.");
-                continue;
-            }
 
             if (!globalAddrs.TryAdd(global.SymbolName, cursor))
                 throw new InvalidOperationException(

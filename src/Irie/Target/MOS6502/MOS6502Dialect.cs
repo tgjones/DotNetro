@@ -211,6 +211,10 @@ public sealed class MOS6502Dialect : Dialect
         [MOS6502Op.Bvs] = "bvs",
         [MOS6502Op.Bgt] = "bgt",
 
+        // Abstract frame accesses (addressing-mode-agnostic; expanded post-RA).
+        [MOS6502Op.FrameLoadByte]  = "frame.load.byte",
+        [MOS6502Op.FrameStoreByte] = "frame.store.byte",
+
         // Jumps / calls / returns
         [MOS6502Op.JmpAbs] = "jmp.abs",
         [MOS6502Op.JmpInd] = "jmp.ind",
@@ -290,8 +294,31 @@ public sealed class MOS6502Dialect : Dialect
             MOS6502Op.CmpZp  => CmpInfo,
             MOS6502Op.CmpImm => CmpInfo,
             MOS6502Op.EorImm => EorImmInfo,
+            MOS6502Op.FrameLoadByte  => FrameLoadByteInfo,
+            MOS6502Op.FrameStoreByte => FrameStoreByteInfo,
             _ => DialectInstructionInfo.Empty,
         };
+
+    // Abstract frame byte accesses. The shared scratch the absolute/indirect-Y
+    // expansion uses is $y (the indexed offset) and the $rc0/$rc1 zero-page
+    // pointer pair — declared here as implicit defs to document the clobber
+    // contract. The instruction selector also materialises these as explicit
+    // PhysicalReg(IsImplicit) operands (like mos6502.cmp's $n/$z/$c), which is
+    // what RA actually reads to reserve them. No tied operands.
+    //
+    // The load defines its value in $a (Ac) — where lda.indy lands it. The store's
+    // value is a use pinned to $x (Xc): the expansion clobbers $a (pointer LDAs)
+    // and $y before the value reaches $a for sta.indy, so the value must live in
+    // the one GPR the sequence never touches. The selector therefore adds $a as a
+    // further explicit implicit-def on the store op (see MOS6502InstructionSelector).
+    //
+    //   %v : ac = frame.load.byte  @slot, #off   (def[0]=value)
+    //             frame.store.byte  @slot, #off, %v : xc
+    private static readonly DialectInstructionInfo FrameLoadByteInfo = new(
+        ImplicitDefs: [MOS6502Registers.Y, MOS6502Registers.RC(0), MOS6502Registers.RC(1)]);
+
+    private static readonly DialectInstructionInfo FrameStoreByteInfo = new(
+        ImplicitDefs: [MOS6502Registers.Y, MOS6502Registers.RC(0), MOS6502Registers.RC(1)]);
 
     // Pre-AMS `mos6502.adc` and its AMS-refined variants (`adc.zp`, `adc.imm`).
     // 2 defs + 3 uses; use[0] is tied to def[0]. All addressing modes share

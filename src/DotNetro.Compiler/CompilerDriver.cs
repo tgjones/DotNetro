@@ -24,7 +24,6 @@ public static class CompilerDriver
         var context = new CompilationContext(module);
 
         var passMgr = new PassManager(null, null);
-        passMgr.AddPass(new StaticFramePlacementPass(target.FreeZeroPage));
         passMgr.AddPass(new FrameLoweringPass());
         passMgr.AddPass(new AbiLoweringPass(target.CallLowering));
         passMgr.AddPass(new LegalizerPass(target.LegalizerInfo));
@@ -34,6 +33,11 @@ public static class CompilerDriver
         passMgr.AddPass(new RegisterAllocatorPass(target.RegisterInfo));
         passMgr.AddPass(new CopyEliminationPass());
         target.AddPostRegisterAllocationPasses(passMgr);
+        // Expand abstract frame accesses (mos6502.frame.*.byte) into concrete
+        // addressing sequences per each slot's placement — the eliminateFrameIndex
+        // analogue. Post-RA (value already in its physreg, scratch reserved), after
+        // the target's placement/addressing passes, before PEI/PseudoExpansion.
+        passMgr.AddPass(new FrameAccessLoweringPass(target.FrameLowering));
         passMgr.AddPass(new PrologueEpilogueInsertionPass(target.RegisterInfo, target.FrameLowering));
         passMgr.AddPass(new PseudoExpansionPass(target.PseudoExpander));
         // Final pass: fill the copy-scratch vregs PseudoExpansion mints (e.g. for

@@ -29,9 +29,11 @@ public class MOS6502Target : Irie.Target.Target
         pm.AddPass(new MOS6502AddressingModeSelectorPass());
         pm.AddPass(new MOS6502IncrementStrengthReductionPass());
         pm.AddPass(new MOS6502ParallelCopyPass());
-        // Frame placement is owned by the early, target-agnostic
-        // StaticFramePlacementPass (run before FrameLowering), so there is no
-        // post-RA frame-allocation pass here.
+        // No frame-placement pass yet: Stage 2 places every slot in absolute
+        // memory (StackId == default) and the generic FrameAccessLoweringPass
+        // (added by the driver right after these passes) expands each abstract
+        // frame access to the indirect-Y sequence. Stage 3 adds a target-private
+        // post-RA placement pass here that promotes eligible slots to zero page.
     }
 
     // Hand-written MIR runtime (currently just the indirect-call trampoline;

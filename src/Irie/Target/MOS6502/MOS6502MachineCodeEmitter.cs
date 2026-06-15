@@ -21,8 +21,7 @@ public sealed class MOS6502MachineCodeEmitter : Irie.Target.MachineCodeEmitter
     private static MachineCodeGlobal LowerGlobal(MirGlobal global)
     {
         if (global.Initializer is null)
-            return new MachineCodeGlobal(global.SymbolName, global.SizeInBytes, Items: null)
-            { ZeroPageAddress = global.ZeroPageAddress };
+            return new MachineCodeGlobal(global.SymbolName, global.SizeInBytes, Items: null);
 
         var items = new MachineCodeDataItem[global.Initializer.Items.Length];
         for (var i = 0; i < items.Length; i++)
@@ -35,8 +34,7 @@ public sealed class MOS6502MachineCodeEmitter : Irie.Target.MachineCodeEmitter
                     $"MOS6502MachineCodeEmitter: unknown MirDataItem {item.GetType().Name} in global '{global.SymbolName}'."),
             };
         }
-        return new MachineCodeGlobal(global.SymbolName, global.SizeInBytes, items)
-        { ZeroPageAddress = global.ZeroPageAddress };
+        return new MachineCodeGlobal(global.SymbolName, global.SizeInBytes, items);
     }
 
     private static void EmitFunction(MirFunction src, MachineCodeFunction dst)

@@ -788,32 +788,42 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
 
         builder.SetInsertionPointBefore(instr);
 
-        // A zp-placed frame slot lowers to a *direct* zp load against the
-        // concrete literal address (base + byte offset) — no pointer pair, no
-        // $y, no indirect-Y (D3/D5). Leave the indirect path's pointer cache
-        // (_currentPointerKey) untouched.
-        if (TryGetZeroPagePlacement(function, addrReg.Id, offset.Value) is int loadAddr)
+        // A byte access whose address resolves to a FrameSlot lowers to the
+        // addressing-mode-agnostic mos6502.frame.load.byte: the value byte is
+        // defined in $a, and the scratch the absolute/indirect-Y sequence uses
+        // ($y, $rc0, $rc1) is declared as an implicit clobber so RA reserves it.
+        // FrameAccessLoweringPass expands it post-RA per the slot's placement.
+        // Non-frame globals (strings, statics — genuine absolute addresses) fall
+        // through to the indirect-Y path below. The pointer cache is left
+        // untouched: a frame access does not park anything in the shared pair.
+        if (ResolveFrameSlotSymbol(function, addrReg.Id) is string loadSym)
         {
-            // %ac : ac = mos6502.lda.zp #<addr>  (def[0], addr at operand[1])
-            // then copy out of $a into a flexible Anyi8 vreg, mirroring the
-            // indirect path's Ac→park idiom so the RA isn't pinned to $a.
-            var ldaZpAc = function.CreateVirtualRegisterInClass(
+            // %v : ac = mos6502.frame.load.byte @sym, #off,
+            //          implicit-def $y, implicit-def $rc0, implicit-def $rc1
+            var valueVreg = function.CreateVirtualRegisterInClass(
                 MOS6502RegisterClass.Ac,
                 MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
             builder.BuildInstruction(
-                MOS6502Dialect.OpRef(MOS6502Op.LdaZp),
-                new VirtualReg(ldaZpAc, IsDefinition: true),
-                new Immediate(loadAddr));
+                MOS6502Dialect.OpRef(MOS6502Op.FrameLoadByte),
+                new VirtualReg(valueVreg, IsDefinition: true),
+                new Symbol(loadSym),
+                new Immediate(offset.Value),
+                new PhysicalReg(MOS6502Registers.Y, IsDefinition: true, IsImplicit: true),
+                new PhysicalReg(PointerZpLo, IsDefinition: true, IsImplicit: true),
+                new PhysicalReg(PointerZpHi, IsDefinition: true, IsImplicit: true));
 
-            var zpResultVreg = function.CreateVirtualRegisterInClass(
+            // Funnel out of $a into a flexible Anyi8 vreg so the value can be
+            // parked in zero page when more accesses are in flight (mirrors the
+            // indirect path's Ac→park idiom).
+            var frameResultVreg = function.CreateVirtualRegisterInClass(
                 MOS6502RegisterClass.Anyi8,
                 MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
             builder.BuildInstruction(
                 PseudoDialect.OpRef(PseudoOp.Copy),
-                new VirtualReg(zpResultVreg, IsDefinition: true),
-                new VirtualReg(ldaZpAc,      IsDefinition: false));
+                new VirtualReg(frameResultVreg, IsDefinition: true),
+                new VirtualReg(valueVreg,       IsDefinition: false));
 
-            function.ReplaceAllUsesOfRegister(defReg.Id, zpResultVreg);
+            function.ReplaceAllUsesOfRegister(defReg.Id, frameResultVreg);
             builder.Remove(instr);
 
             TryRemoveDeadMemSymbol(function, addrReg.Id, builder);
@@ -880,25 +890,39 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             new VirtualReg(parkedVreg, IsDefinition: true),
             new VirtualReg(valReg.Id,  IsDefinition: false));
 
-        // A zp-placed frame slot lowers to a *direct* zp store against the
-        // concrete literal address — no pointer pair, no $y, no indirect-Y
-        // (D3/D5). Funnel the parked value through an Ac vreg (sta.zp's source
-        // is $a) and leave _currentPointerKey untouched.
-        if (TryGetZeroPagePlacement(function, addrReg.Id, offset.Value) is int storeAddr)
+        // A byte access whose address resolves to a FrameSlot lowers to the
+        // addressing-mode-agnostic mos6502.frame.store.byte. FrameAccessLoweringPass
+        // expands it post-RA per the slot's placement; non-frame globals fall
+        // through to the indirect-Y path below.
+        if (ResolveFrameSlotSymbol(function, addrReg.Id) is string storeSym)
         {
-            var zpSrcVreg = function.CreateVirtualRegisterInClass(
-                MOS6502RegisterClass.Ac,
-                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+            // The value byte must survive the absolute/indirect-Y expansion's
+            // scratch usage ($a for the pointer LDAs, $y for the offset, the
+            // $rc0/$rc1 pointer pair) and then be moved into $a for sta.indy. Pin
+            // it to $x: the one GPR the sequence never touches. (A use that merely
+            // *coincided* with the op's $a/$y clobber would not interfere with it
+            // under RA's half-open slot model — the value would be read at the use
+            // point and the clobber defined a slot later — so it could be placed
+            // in a scratch reg and read back stale. Pinning to $x sidesteps that.)
+            var valueVreg = function.CreateVirtualRegisterInClass(
+                MOS6502RegisterClass.Xc,
+                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Xc)!);
             builder.BuildInstruction(
                 PseudoDialect.OpRef(PseudoOp.Copy),
-                new VirtualReg(zpSrcVreg,  IsDefinition: true),
+                new VirtualReg(valueVreg,  IsDefinition: true),
                 new VirtualReg(parkedVreg, IsDefinition: false));
 
-            // %addr-as-def is the StaZp emit rule's operand[0]; source $a at [1].
+            // frame.store.byte @sym, #off, $x,
+            //   implicit-def $a, implicit-def $y, implicit-def $rc0, implicit-def $rc1
             builder.BuildInstruction(
-                MOS6502Dialect.OpRef(MOS6502Op.StaZp),
-                new Immediate(storeAddr),
-                new VirtualReg(zpSrcVreg, IsDefinition: false));
+                MOS6502Dialect.OpRef(MOS6502Op.FrameStoreByte),
+                new Symbol(storeSym),
+                new Immediate(offset.Value),
+                new VirtualReg(valueVreg, IsDefinition: false),
+                new PhysicalReg(MOS6502Registers.A, IsDefinition: true, IsImplicit: true),
+                new PhysicalReg(MOS6502Registers.Y, IsDefinition: true, IsImplicit: true),
+                new PhysicalReg(PointerZpLo, IsDefinition: true, IsImplicit: true),
+                new PhysicalReg(PointerZpHi, IsDefinition: true, IsImplicit: true));
 
             builder.Remove(instr);
 
@@ -1123,27 +1147,21 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             new VirtualReg(hiVreg, IsDefinition: false));
     }
 
-    // The symbol name backing an address vreg, or null if the vreg is not
-    // defined by a `mem.symbol @name` instruction (i.e. it's a runtime pointer).
-    // If the address vreg resolves to a frame slot symbol promoted to zero page
-    // (a non-default StackId), returns the concrete byte address for this access
-    // (the slot's base zp address — its opaque Offset — plus the access's byte
-    // offset). Otherwise null, and the caller falls through to the indirect-Y
-    // path. This is the placement key: until a pass promotes a slot this always
-    // returns null (dormant).
-    private static int? TryGetZeroPagePlacement(MirFunction function, int addrVreg, long byteOffset)
+    // The frame-slot symbol backing an address vreg, or null if the address is
+    // not a FrameSlot (a non-frame global — string/static absolute address — or
+    // a runtime pointer). A frame-slot access is routed to the abstract
+    // mos6502.frame.{load,store}.byte op and placed/addressed late
+    // (FrameAccessLoweringPass → MOS6502FrameLowering.LowerFrameAccess); a
+    // non-frame global keeps the indirect-Y lowering at isel because its address
+    // is genuinely absolute, not a frame object.
+    private static string? ResolveFrameSlotSymbol(MirFunction function, int addrVreg)
     {
         var symbolName = TryResolveSymbolAddress(function, addrVreg);
         if (symbolName is null) return null;
 
         foreach (var slot in function.FrameSlots)
-        {
-            if (slot.SymbolName == symbolName
-                && slot.StackId != FrameSlot.DefaultStackId)
-            {
-                return slot.Offset + (int)byteOffset;
-            }
-        }
+            if (slot.SymbolName == symbolName)
+                return symbolName;
         return null;
     }
 

@@ -215,6 +215,19 @@ public enum MOS6502Op : ushort
     // PseudoExpansionPass (or a target-internal peephole).
     Bgt,
 
+    // ===== Abstract frame accesses (the llvm-mos LDStk/STStk analogues) =====
+    //
+    // Addressing-mode-agnostic byte load/store against a FrameSlot, carrying the
+    // slot's symbol + a byte offset. Emitted at instruction selection for any
+    // byte access whose address resolves to a frame slot; expanded post-RA by
+    // FrameAccessLoweringPass → MOS6502FrameLowering.LowerFrameAccess into the
+    // concrete sequence chosen from the slot's StackId (today: always absolute
+    // indirect-Y; Stage 3 adds the direct-zp branch). The value byte lives in
+    // $a and the scratch the lowering uses ($y, $rc0, $rc1) is declared as an
+    // implicit clobber, so RA models both ends — no register scavenging later.
+    FrameLoadByte,
+    FrameStoreByte,
+
     // Jumps / calls / returns
     JmpAbs,
     JmpInd,

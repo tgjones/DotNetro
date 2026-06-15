@@ -10,7 +10,8 @@ public sealed class MOS6502BbcMicroTarget : MOS6502Target
     // $70–$8F is the BBC Micro user zero page (safe even with BASIC resident),
     // dedicated here to static frame storage — a separate namespace from the RC
     // imaginary register file. 32 bytes; non-reentrant frames that fit promote
-    // to direct zero-page access (StaticFramePlacementPass).
+    // to direct zero-page access. Unused in Stage 2 (every slot stays absolute);
+    // Stage 3's target-private post-RA placement pass consumes this window.
     public override FrameZeroPageWindow FreeZeroPage =>
         new(0x70, 0x20, MOS6502FrameStackIds.ZeroPage);
 
