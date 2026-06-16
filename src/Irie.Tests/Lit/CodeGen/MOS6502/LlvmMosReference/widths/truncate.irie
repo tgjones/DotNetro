@@ -3,23 +3,16 @@
 ; Corpus: llvm-mos-reference/widths/truncate
 ;   char truncate(int a, int b) { return (char)(a + b); }
 ; Two i16 args, added, then truncated to i8. Truncation drops the high byte of
-; the sum, so its live range ends early and the allocator should be able to skip
-; computing it entirely.
+; the sum, so its live range ends early and the high-byte add is dead. The
+; legalizer's cascade DCE (CascadeErase, mirroring llvm::eraseInstrs) erases the
+; folded merge, then the now-dead high-byte add, then that add's argument copies
+; — so the high byte is never computed.
 ;
-; CHECK pins Irie's current --emit=asm output (characterization / golden).
-; Compare against ext/llvm-mos-reference/widths/truncate.s; close gaps via irie-report.
-; Gap: llvm-mos emits just `clc; adc __rc2; rts` (high byte never computed),
-; whereas Irie still computes the dead high byte (TYA / ADC $03).
+; At parity with ext/llvm-mos-reference/widths/truncate.s (`clc; adc __rc2; rts`).
 
 ; CHECK:     truncate:
-; CHECK:         STX \$04
-; CHECK:         LDY \$04
 ; CHECK:         CLC
 ; CHECK:         ADC \$02
-; CHECK:         TAX
-; CHECK:         TYA
-; CHECK:         ADC \$03
-; CHECK:         TXA
 ; CHECK:         RTS
 
 func @truncate : (i16, i16) -> i8 {

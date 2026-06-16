@@ -58,7 +58,7 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
                 if (instr.Parent == null) continue;
                 if (function.IsTriviallyDead(instr))
                 {
-                    builder.Remove(instr);
+                    CascadeErase([instr], function, builder);
                     continue;
                 }
 
@@ -71,18 +71,18 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
                 if (instr.Parent == null) continue;
                 if (function.IsTriviallyDead(instr))
                 {
-                    builder.Remove(instr);
+                    CascadeErase([instr], function, builder);
                     continue;
                 }
 
                 var deadInstrs = new List<MirInstruction>();
                 if (combiner.TryCombineInstruction(instr, deadInstrs))
                 {
-                    foreach (var dead in deadInstrs)
-                    {
-                        if (dead.Parent != null)
-                            builder.Remove(dead);
-                    }
+                    // A fold typically leaves the producers feeding the now-dead
+                    // instructions dead too (e.g. folding trunc(merge) kills the
+                    // merge, which kills the high-byte add that fed it, which
+                    // kills that add's argument copies). Erase the whole chain.
+                    CascadeErase(deadInstrs, function, builder);
                 }
                 // If not combined, fall through: artifacts that don't fold are
                 // assumed legal as-is by the target's legalizer info.
@@ -90,6 +90,49 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         } while (!instList.IsEmpty);
 
         builder.SetObserver(null);
+    }
+
+    // Erase a seed set of dead instructions, then propagate deadness through the
+    // producers of the vregs they used: removing a use can leave its producer
+    // trivially dead, so re-check and erase those too, repeating to a fixpoint.
+    private static void CascadeErase(
+        IReadOnlyList<MirInstruction> seed, MirFunction function, MirBuilder builder)
+    {
+        var chain = new InstructionWorkList();
+        foreach (var instr in seed)
+        {
+            if (instr.Parent != null)
+                SaveUsesAndErase(instr, function, builder, chain);
+        }
+
+        while (!chain.IsEmpty)
+        {
+            var instr = chain.Pop();
+            if (instr.Parent == null) continue;
+            if (!function.IsTriviallyDead(instr)) continue;
+            SaveUsesAndErase(instr, function, builder, chain);
+        }
+    }
+
+    // Record the defining instruction of each vreg `instr` uses (its producers
+    // may become dead once this use is gone), then erase `instr`. Producers are
+    // collected before the erase so the subsequent IsTriviallyDead check sees
+    // the decremented use counts.
+    private static void SaveUsesAndErase(
+        MirInstruction instr, MirFunction function, MirBuilder builder, InstructionWorkList chain)
+    {
+        foreach (var operand in instr.Operands)
+        {
+            if (operand is VirtualReg v && !v.IsDefinition)
+            {
+                var def = function.GetDefinition(v.Id);
+                if (def != null && def != instr)
+                    chain.Add(def);
+            }
+        }
+
+        chain.Remove(instr);
+        builder.Remove(instr);
     }
 
     // Narrow every wide (>8-bit) block parameter into a run of i8 parameters.

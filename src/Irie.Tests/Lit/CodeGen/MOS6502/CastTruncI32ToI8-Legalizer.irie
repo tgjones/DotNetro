@@ -5,15 +5,13 @@
 ; offset 0. The artifact combiner folds that extract against the upstream
 ; pseudo.merge that ABI lowering used to reassemble the i32 parameter, so
 ; the byte_at store reads the low byte vreg (%3) directly without any
-; surviving extract / merge instructions.
+; surviving extract / merge instructions. The cascade DCE then erases the
+; three high-byte argument copies (%4/%5/%6), which the truncation left dead.
 
 ; CHECK: func @TestTrunc8 : \(i32\) -> void \{
 ; CHECK:   bb0\(\):
 ; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3\]
 ; CHECK:     %3 : i8 = pseudo.copy \$a
-; CHECK:     %4 : i8 = pseudo.copy \$x
-; CHECK:     %5 : i8 = pseudo.copy \$zp2
-; CHECK:     %6 : i8 = pseudo.copy \$zp3
 ; CHECK:     %2 : i16 = mem.symbol @ptr
 ; CHECK:     mem.store.byte_at %2, 0, %3
 ; CHECK:     pseudo.return
