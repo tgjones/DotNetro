@@ -1,5 +1,13 @@
 # MOS6502 Frame Placement — Implementation Notes (concrete representation)
 
+> **SUPERSEDED (2026-06-16).** This file documents the *place-before-lower*
+> representation that shipped in `5c02ddb`…`74b2ce4`. That architecture leaked
+> 6502 specifics into target-agnostic code and placed frames too early; it was
+> reworked to place late (post-RA) and keep frame accesses abstract. See
+> [`mos6502-frame-placement-rework-plan.md`](mos6502-frame-placement-rework-plan.md)
+> (status: COMPLETE) for the current design. Kept for history only — the facts
+> below no longer match the codebase.
+
 Companion to [`mos6502-frame-placement-plan.md`](mos6502-frame-placement-plan.md).
 The plan fixes the *design*; this file fixes the *concrete representation* in our
 codebase so each implementation commit is self-contained. Read the plan first.
