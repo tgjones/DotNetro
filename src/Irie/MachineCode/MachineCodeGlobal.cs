@@ -6,7 +6,14 @@ namespace Irie.MachineCode;
 public sealed record MachineCodeGlobal(
     string SymbolName,
     int SizeInBytes,
-    MachineCodeDataItem[]? Items);   // null means zero-init (bss-style).
+    MachineCodeDataItem[]? Items)   // null means zero-init (bss-style).
+{
+    // When non-null, the global is pinned to this pre-assigned absolute byte
+    // address and reserves no output storage: the encoder records the symbol here
+    // but emits no bytes and leaves the output cursor untouched. Mirrors
+    // MirGlobal.FixedAddress.
+    public int? FixedAddress { get; init; }
+}
 
 // A single piece of a global's initial value. Items are concatenated in order
 // starting at the global's base address.

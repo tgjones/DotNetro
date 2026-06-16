@@ -104,11 +104,13 @@ public sealed class MOS6502FrameLowering : Irie.Target.FrameLowering
            && (MOS6502Op)instr.Opcode.Code is MOS6502Op.FrameLoadByte or MOS6502Op.FrameStoreByte;
 
     // Expand one mos6502.frame.{load,store}.byte into the concrete sequence that
-    // addresses the slot. Stage 2: every slot has StackId == DefaultStackId, so
-    // the only branch implemented is the absolute global + indirect-Y path,
-    // mirroring exactly what MOS6502InstructionSelector emitted for absolute
-    // frame globals before this rework. Stage 3 adds the FrameStackIds.ZeroPage
-    // branch (a direct lda.zp/sta.zp against the slot's promoted zp address).
+    // addresses the slot, chosen from the slot's StackId (the eliminateFrameIndex
+    // analogue). Two placements:
+    //   ZeroPage  — a direct lda.zp/sta.zp against the slot's promoted absolute
+    //               zero-page address (slot.Offset + byteOffset). No pointer pair,
+    //               no $y, no indirect-Y.
+    //   default   — the absolute global + indirect-Y path: build the $rc0/$rc1
+    //               pointer pair and set $y to the offset, then LDA/STA ($rc0),Y.
     public override void LowerFrameAccess(
         MirFunction function, MirInstruction instr, MirBuilder builder)
     {
@@ -116,56 +118,84 @@ public sealed class MOS6502FrameLowering : Irie.Target.FrameLowering
         var (symbol, offset, valueReg) = DecodeFrameAccess(instr, op);
         var slot = ResolveSlot(function, symbol);
 
-        if (slot.StackId != FrameSlot.DefaultStackId)
-            throw new NotSupportedException(
-                $"MOS6502FrameLowering: frame slot '{symbol}' has non-default StackId " +
-                $"{slot.StackId}, but zero-page placement is not implemented until Stage 3.");
-
         builder.SetInsertionPointBefore(instr);
 
-        // Materialise the slot's absolute address low/high bytes into the
-        // $rc0/$rc1 pointer pair, then set $y to the access offset.
-        //   $a = lda.imm.symlo @sym ; $rc0 = sta.zp $a
-        //   $a = lda.imm.symhi @sym ; $rc1 = sta.zp $a
-        //   $y = ldy.imm #off
-        EmitSymbolPointerByte(builder, MOS6502Op.LdaImmSymLo, symbol, PointerZpLo);
-        EmitSymbolPointerByte(builder, MOS6502Op.LdaImmSymHi, symbol, PointerZpHi);
-        builder.BuildInstruction(
-            MOS6502Dialect.OpRef(MOS6502Op.LdyImm),
-            new PhysicalReg(MOS6502Registers.Y, IsDefinition: true),
-            new Immediate(offset));
+        if (slot.StackId == MOS6502FrameStackIds.ZeroPage)
+            LowerZeroPageAccess(builder, op, slot, offset, valueReg);
+        else
+            LowerAbsoluteAccess(builder, op, symbol, offset, valueReg);
 
+        builder.Remove(instr);
+    }
+
+    // Direct zero-page access. The slot's Offset is its absolute zp base address
+    // (stamped by MOS6502FramePlacementPass); the byte offset is added literally.
+    //   load:  $a = lda.zp #addr
+    //   store: sta.zp #addr        (value already in $a — the op's preserved use)
+    private static void LowerZeroPageAccess(
+        MirBuilder builder, MOS6502Op op, FrameSlot slot, long offset, int valueReg)
+    {
+        var address = slot.Offset + offset;
         if (op == MOS6502Op.FrameLoadByte)
         {
-            // $a = lda.indy $rc0, implicit-use $rc1, implicit-use $y.
-            // The value def is $a (Ac), so the result lands directly where the
-            // op modelled it — no extra move.
+            builder.BuildInstruction(
+                MOS6502Dialect.OpRef(MOS6502Op.LdaZp),
+                new PhysicalReg(valueReg, IsDefinition: true),
+                new Immediate(address));
+        }
+        else
+        {
+            builder.BuildInstruction(
+                MOS6502Dialect.OpRef(MOS6502Op.StaZp),
+                new Immediate(address),
+                new PhysicalReg(valueReg, IsDefinition: false));
+        }
+    }
+
+    // Absolute global + indirect-Y access. For a store the value byte is in $a
+    // and must survive the pointer setup, so the pointer pair is built through $x
+    // (ldx/stx, never lda/sta). The load is free to use $a (it is the result).
+    private void LowerAbsoluteAccess(
+        MirBuilder builder, MOS6502Op op, string symbol, long offset, int valueReg)
+    {
+        if (op == MOS6502Op.FrameLoadByte)
+        {
+            // $a = lda.imm.symlo @sym ; $rc0 = sta.zp $a   (and high → $rc1)
+            // $y = ldy.imm #off
+            // $a = lda.indy $rc0, implicit-use $rc1, implicit-use $y
+            EmitSymbolPointerByteViaA(builder, MOS6502Op.LdaImmSymLo, symbol, PointerZpLo);
+            EmitSymbolPointerByteViaA(builder, MOS6502Op.LdaImmSymHi, symbol, PointerZpHi);
+            EmitLoadY(builder, offset);
             builder.BuildInstruction(
                 MOS6502Dialect.OpRef(MOS6502Op.LdaIndY),
                 new PhysicalReg(valueReg, IsDefinition: true),
                 new PhysicalReg(PointerZpLo, IsDefinition: false),
                 new PhysicalReg(PointerZpHi, IsDefinition: false, IsImplicit: true),
                 new PhysicalReg(MOS6502Registers.Y, IsDefinition: false, IsImplicit: true));
-        }
-        else
-        {
-            // The value byte must be in $a for sta.indy; the store op modelled
-            // it in a flexible class (and $a as a clobber), so move it into $a
-            // now — a no-op if RA already parked it there.
-            if (valueReg != MOS6502Registers.A)
-                EmitMoveIntoA(builder, valueReg);
-
-            // sta.indy $rc0, $a, implicit-use $rc1, implicit-use $y.
-            builder.BuildInstruction(
-                MOS6502Dialect.OpRef(MOS6502Op.StaIndY),
-                new PhysicalReg(PointerZpLo, IsDefinition: false),
-                new PhysicalReg(MOS6502Registers.A, IsDefinition: false),
-                new PhysicalReg(PointerZpHi, IsDefinition: false, IsImplicit: true),
-                new PhysicalReg(MOS6502Registers.Y, IsDefinition: false, IsImplicit: true));
+            return;
         }
 
-        builder.Remove(instr);
+        // Store: the value is already in $a (a preserved use). Build the pointer
+        // pair via $x so $a is untouched, then sta.indy with the value still in $a.
+        //   $x = ldx.imm.symlo @sym ; $rc0 = stx.zp $x   (and high → $rc1)
+        //   $y = ldy.imm #off
+        //   sta.indy $rc0, $a, implicit-use $rc1, implicit-use $y
+        EmitSymbolPointerByteViaX(builder, MOS6502Op.LdxImmSymLo, symbol, PointerZpLo);
+        EmitSymbolPointerByteViaX(builder, MOS6502Op.LdxImmSymHi, symbol, PointerZpHi);
+        EmitLoadY(builder, offset);
+        builder.BuildInstruction(
+            MOS6502Dialect.OpRef(MOS6502Op.StaIndY),
+            new PhysicalReg(PointerZpLo, IsDefinition: false),
+            new PhysicalReg(MOS6502Registers.A, IsDefinition: false),
+            new PhysicalReg(PointerZpHi, IsDefinition: false, IsImplicit: true),
+            new PhysicalReg(MOS6502Registers.Y, IsDefinition: false, IsImplicit: true));
     }
+
+    private static void EmitLoadY(MirBuilder builder, long offset)
+        => builder.BuildInstruction(
+            MOS6502Dialect.OpRef(MOS6502Op.LdyImm),
+            new PhysicalReg(MOS6502Registers.Y, IsDefinition: true),
+            new Immediate(offset));
 
     // Decode a frame access into (slot symbol, byte offset, value physreg).
     //   load:  %v = frame.load.byte @sym, #off    → value=def[0]
@@ -202,8 +232,9 @@ public sealed class MOS6502FrameLowering : Irie.Target.FrameLowering
             $"MOS6502FrameLowering: function @{function.Name} has no frame slot named '{symbol}'.");
     }
 
-    // $a = lda.imm.sym{lo,hi} @sym ; $rcN = sta.zp $a.
-    private static void EmitSymbolPointerByte(MirBuilder builder, MOS6502Op ldaOp, string symbol, int zpReg)
+    // $a = lda.imm.sym{lo,hi} @sym ; $rcN = sta.zp $a. Used by the load path,
+    // whose result lands in $a anyway.
+    private static void EmitSymbolPointerByteViaA(MirBuilder builder, MOS6502Op ldaOp, string symbol, int zpReg)
     {
         builder.BuildInstruction(
             MOS6502Dialect.OpRef(ldaOp),
@@ -215,25 +246,18 @@ public sealed class MOS6502FrameLowering : Irie.Target.FrameLowering
             new PhysicalReg(MOS6502Registers.A, IsDefinition: false));
     }
 
-    // Move the byte in `src` into $a. $x/$y use the transfer ops; a zero-page
-    // register loads via lda.zp. ($a is handled by the caller's no-op guard.)
-    private static void EmitMoveIntoA(MirBuilder builder, int src)
+    // $x = ldx.imm.sym{lo,hi} @sym ; $rcN = stx.zp $x. Used by the store path so
+    // the value byte already in $a is not disturbed while the pointer is built.
+    private static void EmitSymbolPointerByteViaX(MirBuilder builder, MOS6502Op ldxOp, string symbol, int zpReg)
     {
-        switch (src)
-        {
-            case MOS6502Registers.X:
-                EmitTransfer(builder, MOS6502Op.Txa, MOS6502Registers.A, MOS6502Registers.X);
-                break;
-            case MOS6502Registers.Y:
-                EmitTransfer(builder, MOS6502Op.Tya, MOS6502Registers.A, MOS6502Registers.Y);
-                break;
-            default:
-                builder.BuildInstruction(
-                    MOS6502Dialect.OpRef(MOS6502Op.LdaZp),
-                    new PhysicalReg(MOS6502Registers.A, IsDefinition: true),
-                    new PhysicalReg(src, IsDefinition: false));
-                break;
-        }
+        builder.BuildInstruction(
+            MOS6502Dialect.OpRef(ldxOp),
+            new PhysicalReg(MOS6502Registers.X, IsDefinition: true),
+            new Symbol(symbol));
+        builder.BuildInstruction(
+            MOS6502Dialect.OpRef(MOS6502Op.StxZp),
+            new PhysicalReg(zpReg, IsDefinition: true),
+            new PhysicalReg(MOS6502Registers.X, IsDefinition: false));
     }
 
     private static void EmitTransfer(MirBuilder builder, MOS6502Op op, int dst, int src)

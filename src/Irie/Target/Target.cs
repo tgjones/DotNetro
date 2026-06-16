@@ -34,13 +34,6 @@ public abstract class Target
     // for MOS6502) — there is no generic stage at this point in the pipeline.
     public virtual void AddPostRegisterAllocationPasses(Irie.Passes.PassManager pm) { }
 
-    // The target's free zero-page frame budget: the platform's known-free user
-    // zero page that a frame-placement pass may promote non-reentrant functions'
-    // frame slots into. The base chip target offers none; a subtarget overrides
-    // this (as it overrides DefaultOrigin / PackageImage). See FrameZeroPageWindow.
-    // Unused in Stage 2 (placement is deferred to Stage 3's post-RA pass).
-    public virtual FrameZeroPageWindow FreeZeroPage => FrameZeroPageWindow.None;
-
     // Default origin (load address) when --origin is not supplied; null = no opinion.
     public virtual int? DefaultOrigin => null;
 

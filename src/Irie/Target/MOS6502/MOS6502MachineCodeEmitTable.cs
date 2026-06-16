@@ -136,6 +136,11 @@ public static class MOS6502MachineCodeEmitTable
         // $x = mos6502.ldx.imm #N — same shape as LdaImm.
         [MOS6502Op.LdxImm] = new EmitRule(MOS6502Opcode.LDX_Immediate, EmitOperandKind.Immediate, 1),
 
+        // $x = mos6502.ldx.imm.symlo @sym — the $x counterpart of LdaImmSymLo.
+        // Encodes as LDX_Immediate with the low byte of @sym. (High byte below.)
+        [MOS6502Op.LdxImmSymLo] = new EmitRule(MOS6502Opcode.LDX_Immediate, EmitOperandKind.SymbolLowByte, 1),
+        [MOS6502Op.LdxImmSymHi] = new EmitRule(MOS6502Opcode.LDX_Immediate, EmitOperandKind.SymbolHighByte, 1),
+
         // $y = mos6502.ldy.imm #N — same shape as LdaImm.
         [MOS6502Op.LdyImm] = new EmitRule(MOS6502Opcode.LDY_Immediate, EmitOperandKind.Immediate, 1),
 

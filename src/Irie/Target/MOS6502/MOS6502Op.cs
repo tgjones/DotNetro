@@ -65,6 +65,14 @@ public enum MOS6502Op : ushort
 
     // LDX
     LdxImm,
+    // LDX immediate with the low or high byte of a Symbol address. Both encode
+    // as the LDX_Immediate byte (0xA2); the operand is a Symbol resolved to the
+    // low (`<sym`) or high (`>sym`) half of the symbol's address. The $x
+    // counterpart of LdaImmSymLo/Hi — used by frame lowering to build a slot's
+    // zero-page pointer pair via $x, so a store value already parked in $a is
+    // preserved across the pointer setup.
+    LdxImmSymLo,
+    LdxImmSymHi,
     LdxZp,
     LdxZpY,
     LdxAbs,

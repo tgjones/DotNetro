@@ -1,0 +1,46 @@
+; RUN: @iriec --target mos6502-bbcmicro --stop-after MOS6502FramePlacement @file
+
+; Proves frame placement happens LATE — post-register-allocation — exactly like
+; llvm-mos's MOSZeroPageAlloc (which runs in addPrePEI, after RA, and only sets a
+; stack-id attribute). The target-private MOS6502FramePlacementPass is added via
+; AddPostRegisterAllocationPasses, so it runs after the call has already been
+; lowered to mos6502.jsr.abs and after RA; this dump (stopped right after that
+; pass, before the generic FrameAccessLoweringPass) shows:
+;
+;   * the placement decision recorded as an attribute on the frame_slot
+;     (`stackid 1 offset <addr>`) — id 1 is MOS6502FrameStackIds.ZeroPage and the
+;     offset is the absolute zero-page address ($70 = 112, $72 = 114);
+;   * the access itself still ABSTRACT (mos6502.frame.store.byte) — addressing is
+;     chosen only in the *next* pass, from this attribute;
+;   * the call already lowered to mos6502.jsr.abs — i.e. we really are post-RA;
+;   * the bottom-up colouring: @leaf (leaf, base 0) at $70, @caller (calls @leaf)
+;     at $72 — disjoint, so @caller's slot survives the JSR;
+;   * the store value carried in $a (no $x pin).
+
+; CHECK: func @leaf : \(\) -> void \{
+; CHECK:   frame_slot 0 : i16 @leaf_local0 stackid 1 offset 112
+; CHECK:     mos6502.frame.store.byte @leaf_local0, 0, \$a,
+
+; CHECK: func @caller : \(\) -> void \{
+; CHECK:   frame_slot 0 : i16 @caller_local0 stackid 1 offset 114
+; CHECK:     mos6502.frame.store.byte @caller_local0, 0, \$a,
+; CHECK:     mos6502.jsr.abs @leaf,
+
+func @leaf : () -> void {
+  frame_slot 0 : i16 @leaf_local0
+  bb0():
+    %0 : i16 = mem.frame_addr 0
+    %1 : i8 = arith.constant 7
+    mem.store.i8 %0, %1
+    core.return
+}
+
+func @caller : () -> void {
+  frame_slot 0 : i16 @caller_local0
+  bb0():
+    %0 : i16 = mem.frame_addr 0
+    %1 : i8 = arith.constant 3
+    mem.store.i8 %0, %1
+    call.func @leaf
+    core.return
+}

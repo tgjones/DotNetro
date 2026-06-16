@@ -97,7 +97,14 @@ internal sealed class MirWriter
         writer.WriteLine($"func @{function.Name} : ({paramStr}) -> {FormatType(function.ReturnType)} {{");
 
         foreach (var slot in function.FrameSlots)
-            writer.WriteLine($"  frame_slot {slot.Index} : {FormatType(slot.Type)} @{slot.SymbolName}");
+        {
+            writer.Write($"  frame_slot {slot.Index} : {FormatType(slot.Type)} @{slot.SymbolName}");
+            // A non-default placement (stamped by a target's post-RA frame-placement
+            // pass) is printed so the decision is visible in post-pass MIR dumps.
+            if (slot.StackId != FrameSlot.DefaultStackId)
+                writer.Write($" stackid {slot.StackId} offset {slot.Offset}");
+            writer.WriteLine();
+        }
 
         var blockIndex = new Dictionary<MirBlock, int>();
         for (var i = 0; i < function.Blocks.Count; i++)

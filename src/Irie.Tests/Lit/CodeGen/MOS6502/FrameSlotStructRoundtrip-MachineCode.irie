@@ -5,42 +5,27 @@
 ; byte is stored to it and read back. Mirrors the shape of `UseStruct` in
 ; the DotNetCompilerTests suite — minus the call to Console.WriteLine.
 ;
-; Stage 2 of the frame-placement rework: the i32 slot stays in absolute memory
-; (no zero-page promotion yet), so every byte access — the four mem.fill bytes
-; at offsets 0..3 plus the explicit store at offset 0 — lowers, post-RA via
-; FrameAccessLoweringPass, to the absolute global + indirect-Y sequence
-; (re-materialise the slot address into the $00/$01 pointer pair, set $y to the
-; offset, STA ($00),Y). The zero byte is held in $x (parked through $02) and
-; moved into $a with TXA before each store. Stage 3 promotes the slot to the
-; BBC Micro zero-page window and these become direct STA $70.. .
+; The i32 slot belongs to a non-reentrant leaf, so MOS6502FramePlacementPass
+; promotes it to the BBC Micro zero-page window at $70. Every byte access — the
+; four mem.fill bytes at offsets 0..3 plus the explicit store at offset 0 —
+; lowers, post-RA via FrameAccessLoweringPass, to a direct STA $70.. (the slot
+; base $70 plus the byte offset). The zero byte is parked through $02 and loaded
+; into $a (`LDA $02`) before each store — the store value now lives in $a, so
+; there is no TXA and no pointer setup.
 
 ; CHECK: TestStruct:
 ; CHECK:     LDA #\$00
 ; CHECK:     STA \$02
-; CHECK:     LDX \$02
-; CHECK:     LDA #<UseStruct_local0
-; CHECK:     STA \$00
-; CHECK:     LDA #>UseStruct_local0
-; CHECK:     STA \$01
-; CHECK:     LDY #\$00
-; CHECK:     TXA
-; CHECK:     STA \(\$00\),Y
-; CHECK:     LDX \$02
-; CHECK:     LDY #\$01
-; CHECK:     TXA
-; CHECK:     STA \(\$00\),Y
-; CHECK:     LDX \$02
-; CHECK:     LDY #\$02
-; CHECK:     TXA
-; CHECK:     STA \(\$00\),Y
-; CHECK:     LDX \$02
-; CHECK:     LDY #\$03
-; CHECK:     TXA
-; CHECK:     STA \(\$00\),Y
-; CHECK:     LDX \$02
-; CHECK:     LDY #\$00
-; CHECK:     TXA
-; CHECK:     STA \(\$00\),Y
+; CHECK:     LDA \$02
+; CHECK:     STA \$70
+; CHECK:     LDA \$02
+; CHECK:     STA \$71
+; CHECK:     LDA \$02
+; CHECK:     STA \$72
+; CHECK:     LDA \$02
+; CHECK:     STA \$73
+; CHECK:     LDA \$02
+; CHECK:     STA \$70
 ; CHECK:     RTS
 
 func @TestStruct : () -> void {

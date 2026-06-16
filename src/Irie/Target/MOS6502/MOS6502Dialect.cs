@@ -64,6 +64,8 @@ public sealed class MOS6502Dialect : Dialect
 
         // LDX
         [MOS6502Op.LdxImm]  = "ldx.imm",
+        [MOS6502Op.LdxImmSymLo] = "ldx.imm.symlo",
+        [MOS6502Op.LdxImmSymHi] = "ldx.imm.symhi",
         [MOS6502Op.LdxZp]   = "ldx.zp",
         [MOS6502Op.LdxZpY]  = "ldx.zpy",
         [MOS6502Op.LdxAbs]  = "ldx.abs",
@@ -299,26 +301,28 @@ public sealed class MOS6502Dialect : Dialect
             _ => DialectInstructionInfo.Empty,
         };
 
-    // Abstract frame byte accesses. The shared scratch the absolute/indirect-Y
-    // expansion uses is $y (the indexed offset) and the $rc0/$rc1 zero-page
-    // pointer pair — declared here as implicit defs to document the clobber
-    // contract. The instruction selector also materialises these as explicit
-    // PhysicalReg(IsImplicit) operands (like mos6502.cmp's $n/$z/$c), which is
-    // what RA actually reads to reserve them. No tied operands.
+    // Abstract frame byte accesses. The scratch each expansion uses is declared
+    // here as implicit defs to document the clobber contract; the instruction
+    // selector also materialises these as explicit PhysicalReg(IsImplicit)
+    // operands (like mos6502.cmp's $n/$z/$c), which is what RA actually reads to
+    // reserve them. No tied operands.
     //
-    // The load defines its value in $a (Ac) — where lda.indy lands it. The store's
-    // value is a use pinned to $x (Xc): the expansion clobbers $a (pointer LDAs)
-    // and $y before the value reaches $a for sta.indy, so the value must live in
-    // the one GPR the sequence never touches. The selector therefore adds $a as a
-    // further explicit implicit-def on the store op (see MOS6502InstructionSelector).
+    // The load defines its value in $a (Ac) — where lda.indy / lda.zp lands it —
+    // and clobbers $y plus the $rc0/$rc1 pointer pair (the indirect-Y path).
+    //
+    // The store's value is a use in $a (Ac), PRESERVED through the expansion: the
+    // absolute path builds the $rc0/$rc1 pointer pair via $x (ldx/stx, not
+    // lda/sta) precisely so the value byte already sitting in $a survives until
+    // the sta.indy. The store therefore clobbers $x, $y, $rc0, $rc1 — but NOT $a
+    // (it is a preserved use, not a clobber).
     //
     //   %v : ac = frame.load.byte  @slot, #off   (def[0]=value)
-    //             frame.store.byte  @slot, #off, %v : xc
+    //             frame.store.byte  @slot, #off, %v : ac
     private static readonly DialectInstructionInfo FrameLoadByteInfo = new(
         ImplicitDefs: [MOS6502Registers.Y, MOS6502Registers.RC(0), MOS6502Registers.RC(1)]);
 
     private static readonly DialectInstructionInfo FrameStoreByteInfo = new(
-        ImplicitDefs: [MOS6502Registers.Y, MOS6502Registers.RC(0), MOS6502Registers.RC(1)]);
+        ImplicitDefs: [MOS6502Registers.X, MOS6502Registers.Y, MOS6502Registers.RC(0), MOS6502Registers.RC(1)]);
 
     // Pre-AMS `mos6502.adc` and its AMS-refined variants (`adc.zp`, `adc.imm`).
     // 2 defs + 3 uses; use[0] is tied to def[0]. All addressing modes share

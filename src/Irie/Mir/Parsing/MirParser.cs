@@ -159,10 +159,29 @@ internal sealed class MirParser
         var type = ParseTypeName(typeToken);
         Expect(MirTokenKind.At);
         var nameToken = Expect(MirTokenKind.Identifier);
-        function.FrameSlots.Add(new FrameSlot(
+        var slot = new FrameSlot(
             Index:      (int)indexToken.IntValue!.Value,
             Type:       type,
-            SymbolName: nameToken.Text!));
+            SymbolName: nameToken.Text!);
+
+        // Optional placement annotation, round-tripping MirWriter's output:
+        //   frame_slot N : type @name stackid <id> offset <off>
+        if (_current.Kind == MirTokenKind.Identifier && _current.Text == "stackid")
+        {
+            Advance();
+            slot.StackId = (int)Expect(MirTokenKind.Integer).IntValue!.Value;
+            ExpectKeyword("offset");
+            slot.Offset = (int)Expect(MirTokenKind.Integer).IntValue!.Value;
+        }
+
+        function.FrameSlots.Add(slot);
+    }
+
+    private void ExpectKeyword(string keyword)
+    {
+        if (_current.Kind != MirTokenKind.Identifier || _current.Text != keyword)
+            throw Fail(_current, $"Expected '{keyword}', got '{_current.Text}'");
+        Advance();
     }
 
     // -------------------------------------------------------------------------

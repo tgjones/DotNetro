@@ -328,6 +328,19 @@ public sealed class MOS6502BinaryEncoder
                 throw new InvalidOperationException(
                     $"MOS6502BinaryEncoder: global '{global.SymbolName}' clashes with function of the same name.");
 
+            // A pinned global lives in pre-existing RAM the target manages
+            // elsewhere (e.g. a frame slot aliased to a fixed location): record
+            // its fixed symbol address, but emit no bytes and don't advance the
+            // cursor (no layout entry). Distinct pinned symbols may share one
+            // address — the duplicate guard rejects only a repeated NAME.
+            if (global.FixedAddress is int fixedAddr)
+            {
+                if (!globalAddrs.TryAdd(global.SymbolName, fixedAddr))
+                    throw new InvalidOperationException(
+                        $"MOS6502BinaryEncoder: duplicate global name '{global.SymbolName}'.");
+                continue;
+            }
+
             if (!globalAddrs.TryAdd(global.SymbolName, cursor))
                 throw new InvalidOperationException(
                     $"MOS6502BinaryEncoder: duplicate global name '{global.SymbolName}'.");

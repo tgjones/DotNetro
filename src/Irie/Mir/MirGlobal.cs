@@ -7,7 +7,19 @@ public sealed record MirGlobal(
     string          SymbolName,
     IRType          Type,
     int             SizeInBytes,
-    MirInitializer? Initializer);
+    MirInitializer? Initializer)
+{
+    // When non-null, the global is *pinned* to this pre-assigned absolute byte
+    // address and reserves NO output storage: its bytes live in pre-existing RAM
+    // that the target manages elsewhere, so the binary encoder records the symbol
+    // at this address but emits no bytes and does not advance the output cursor.
+    // `null` (the default) = an ordinary global, laid out into output storage
+    // after all functions. The concept is target-agnostic (a generic
+    // pinned-address reservation); a target may use it to alias a frame slot to a
+    // fixed location it owns. Settable because placement may pin a global late,
+    // after the global itself was materialised.
+    public int? FixedAddress { get; set; }
+}
 
 // Sequence of data items concatenated to form a global's initial value.
 public sealed record MirInitializer(MirDataItem[] Items);

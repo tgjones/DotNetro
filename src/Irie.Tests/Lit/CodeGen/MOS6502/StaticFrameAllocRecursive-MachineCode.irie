@@ -4,18 +4,22 @@
 ;
 ; @recur calls itself, so it is reentrant — a second activation would alias the
 ; first's locals if they lived at a fixed zero-page address. ReentrancyAnalysis
-; therefore leaves MirFunction.IsNonReentrant false, and StaticFramePlacementPass
-; keeps @recur's frame slot Absolute (the .bss path: indirect-Y through the
-; $00/$01 pointer pair) — DESPITE the BBC Micro subtarget now advertising a
-; non-zero zero-page budget ($70..$8F). Reentrancy gates eligibility, so the
-; budget is irrelevant here; without this guard the recursive program would be
-; silently miscompiled.
+; therefore leaves MirFunction.IsNonReentrant false, and MOS6502FramePlacementPass
+; keeps @recur's frame slot in absolute memory (the indirect-Y path through the
+; $00/$01 pointer pair) — DESPITE the BBC Micro subtarget owning a zero-page
+; window ($70..$8F). Reentrancy gates eligibility, so the window is irrelevant
+; here; without this guard the recursive program would be silently miscompiled.
+;
+; The store value lives in $a and is preserved across the $x-built pointer setup
+; (LDX/STX, no TXA).
 
 ; CHECK: recur:
-; CHECK:     LDA #<recur_local0
-; CHECK:     STA \$00
-; CHECK:     LDA #>recur_local0
-; CHECK:     STA \$01
+; CHECK:     LDA #\$05
+; CHECK:     LDX #<recur_local0
+; CHECK:     STX \$00
+; CHECK:     LDX #>recur_local0
+; CHECK:     STX \$01
+; CHECK:     LDY #\$00
 ; CHECK:     STA \(\$00\),Y
 ; CHECK:     JSR recur
 ; CHECK:     RTS

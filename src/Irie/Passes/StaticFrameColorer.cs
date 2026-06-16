@@ -106,10 +106,13 @@ public sealed class StaticFrameColorer
         onStack[i] = false;
     }
 
-    // Precise direct-call adjacency: an edge i → j iff function i contains a
-    // call.func instruction whose Symbol operand names function j. call.indirect
-    // is ignored (its caller is already reentrant ⇒ ineligible); non-call Symbol
-    // operands (e.g. mem.symbol @data) never appear on a call.func op.
+    // Precise direct-call adjacency: an edge i → j iff function i contains a call
+    // instruction whose Symbol operand names function j. This covers both the
+    // pre-isel `call.func @j` form and the lowered target form (`mos6502.jsr.abs
+    // @j`) — the colorer may run at either point, and a target placement pass
+    // runs it post-RA, after calls have been lowered. Indirect dispatch (a call
+    // with no resolvable Symbol) is ignored: its caller is already reentrant ⇒
+    // ineligible, so it never claims budget anyway.
     //
     // We build a precise direct-call graph here rather than reusing
     // ReentrancyAnalysis's graph, which deliberately over-approximates indirect
@@ -126,8 +129,7 @@ public sealed class StaticFrameColorer
             foreach (var block in functions[i].Blocks)
                 foreach (var instr in block.Instructions)
                 {
-                    if (instr.Opcode.Dialect != CallDialect.Id
-                        || (CallOp)instr.Opcode.Code != CallOp.Func)
+                    if (!IsDirectCall(instr))
                         continue;
                     foreach (var op in instr.Operands)
                         if (op is Symbol s && indexByName.TryGetValue(s.Name, out var c))
@@ -135,5 +137,25 @@ public sealed class StaticFrameColorer
                 }
         }
         return callees;
+    }
+
+    // A direct call is either the generic `call.func` or a lowered target call
+    // (e.g. `mos6502.jsr.abs @name`). We detect the latter structurally — the
+    // same rule ReentrancyAnalysis uses: a non-side-effect-free instruction that
+    // carries a Symbol operand. mem.symbol is side-effect-free, so it is excluded.
+    private static bool IsDirectCall(MirInstruction instr)
+    {
+        var dialect = DialectRegistry.ById(instr.Opcode.Dialect);
+        if (dialect.Prefix == "call")
+            return (CallOp)instr.Opcode.Code == CallOp.Func;
+        return !dialect.IsSideEffectFree(instr.Opcode.Code) && HasSymbolOperand(instr);
+    }
+
+    private static bool HasSymbolOperand(MirInstruction instr)
+    {
+        foreach (var op in instr.Operands)
+            if (op is Symbol)
+                return true;
+        return false;
     }
 }

@@ -896,30 +896,28 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         // through to the indirect-Y path below.
         if (ResolveFrameSlotSymbol(function, addrReg.Id) is string storeSym)
         {
-            // The value byte must survive the absolute/indirect-Y expansion's
-            // scratch usage ($a for the pointer LDAs, $y for the offset, the
-            // $rc0/$rc1 pointer pair) and then be moved into $a for sta.indy. Pin
-            // it to $x: the one GPR the sequence never touches. (A use that merely
-            // *coincided* with the op's $a/$y clobber would not interfere with it
-            // under RA's half-open slot model — the value would be read at the use
-            // point and the clobber defined a slot later — so it could be placed
-            // in a scratch reg and read back stale. Pinning to $x sidesteps that.)
+            // The value byte lives in $a and is PRESERVED through the expansion.
+            // Both placements keep it there: the zero-page branch is a single
+            // sta.zp (value already in $a), and the absolute branch builds the
+            // $rc0/$rc1 pointer pair via $x (ldx/stx, never lda/sta) so $a is
+            // never disturbed before the sta.indy. The op therefore clobbers
+            // $x/$y/$rc0/$rc1 but reads $a as a plain (preserved) use.
             var valueVreg = function.CreateVirtualRegisterInClass(
-                MOS6502RegisterClass.Xc,
-                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Xc)!);
+                MOS6502RegisterClass.Ac,
+                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
             builder.BuildInstruction(
                 PseudoDialect.OpRef(PseudoOp.Copy),
                 new VirtualReg(valueVreg,  IsDefinition: true),
                 new VirtualReg(parkedVreg, IsDefinition: false));
 
-            // frame.store.byte @sym, #off, $x,
-            //   implicit-def $a, implicit-def $y, implicit-def $rc0, implicit-def $rc1
+            // frame.store.byte @sym, #off, $a,
+            //   implicit-def $x, implicit-def $y, implicit-def $rc0, implicit-def $rc1
             builder.BuildInstruction(
                 MOS6502Dialect.OpRef(MOS6502Op.FrameStoreByte),
                 new Symbol(storeSym),
                 new Immediate(offset.Value),
                 new VirtualReg(valueVreg, IsDefinition: false),
-                new PhysicalReg(MOS6502Registers.A, IsDefinition: true, IsImplicit: true),
+                new PhysicalReg(MOS6502Registers.X, IsDefinition: true, IsImplicit: true),
                 new PhysicalReg(MOS6502Registers.Y, IsDefinition: true, IsImplicit: true),
                 new PhysicalReg(PointerZpLo, IsDefinition: true, IsImplicit: true),
                 new PhysicalReg(PointerZpHi, IsDefinition: true, IsImplicit: true));

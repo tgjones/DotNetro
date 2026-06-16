@@ -1,19 +1,23 @@
 namespace Irie.Target.MOS6502;
 
 // BBC Micro subtarget: identical to MOS6502Target in every codegen aspect,
-// but defaults --origin to $2000 and packages --emit=bin output as a DFS .ssd
+// but defaults --origin to $2000, promotes non-reentrant frames into the BBC
+// Micro's free user zero page, and packages --emit=bin output as a DFS .ssd
 // disk image instead of returning raw bytes.
 public sealed class MOS6502BbcMicroTarget : MOS6502Target
 {
     public override int? DefaultOrigin => 0x2000;
 
-    // $70–$8F is the BBC Micro user zero page (safe even with BASIC resident),
-    // dedicated here to static frame storage — a separate namespace from the RC
-    // imaginary register file. 32 bytes; non-reentrant frames that fit promote
-    // to direct zero-page access. Unused in Stage 2 (every slot stays absolute);
-    // Stage 3's target-private post-RA placement pass consumes this window.
-    public override FrameZeroPageWindow FreeZeroPage =>
-        new(0x70, 0x20, MOS6502FrameStackIds.ZeroPage);
+    public override void AddPostRegisterAllocationPasses(Irie.Passes.PassManager pm)
+    {
+        base.AddPostRegisterAllocationPasses(pm);
+
+        // The zero-page frame-placement pass is BBC-Micro-specific: $70–$8F is
+        // the portable user zero page, which a bare 6502 has no equivalent of, so
+        // the base chip never promotes (its slots stay absolute). It runs post-RA
+        // and before the generic FrameAccessLoweringPass.
+        pm.AddPass(new MOS6502FramePlacementPass());
+    }
 
     public override byte[] PackageImage(byte[] code, int origin)
         => BbcMicroDfsImage.Build(code, loadAddress: origin, execAddress: origin, fileName: "MAIN");

@@ -1,21 +1,24 @@
 ; RUN: @iriec --target mos6502-bbcmicro --emit=asm @file
 
-; .bss-overflow fallback for static frame placement.
+; Absolute-overflow fallback for static frame placement.
 ;
 ; @big is non-reentrant, but its nine i32 frame slots total 36 bytes — more
-; than the 32-byte zero-page window ($70..$8F) the BBC Micro subtarget
-; advertises (FreeZeroPage). StaticFramePlacementPass therefore leaves @big's
-; slots Absolute: each access keeps the indirect-Y lowering (materialise the
-; slot's address low/high bytes into the $00/$01 pointer pair, then
-; `STA ($00),Y`). This proves placement is always correctness-safe: when the
-; window can't hold a frame, nothing is promoted and the slow-but-correct path
-; stands.
+; than the 32-byte zero-page window ($70..$8F) the BBC Micro subtarget owns.
+; MOS6502FramePlacementPass therefore leaves @big's slots in absolute memory
+; (StackId default): each access keeps the indirect-Y lowering. For a store the
+; value byte lives in $a and must survive the pointer setup, so the $00/$01
+; pointer pair is built via $x (LDX/STX, not LDA/STA) and the value reaches
+; `STA ($00),Y` still in $a — no TXA. This proves placement is always
+; correctness-safe: when the window can't hold a frame, nothing is promoted and
+; the slow-but-correct path stands.
 
 ; CHECK: big:
-; CHECK:     LDA #<big_local0
-; CHECK:     STA \$00
-; CHECK:     LDA #>big_local0
-; CHECK:     STA \$01
+; CHECK:     LDA #\$01
+; CHECK:     LDX #<big_local0
+; CHECK:     STX \$00
+; CHECK:     LDX #>big_local0
+; CHECK:     STX \$01
+; CHECK:     LDY #\$00
 ; CHECK:     STA \(\$00\),Y
 ; CHECK:     RTS
 

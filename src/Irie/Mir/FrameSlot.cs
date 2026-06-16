@@ -12,7 +12,9 @@ public sealed record FrameSlot(int Index, IRType Type, string SymbolName)
     // integers decided by the frame-placement pass; generic code never interprets
     // a non-default StackId — only the owning target knows what a given id means.
     // `DefaultStackId` (0) is the universal default: an absolute-memory global.
-    // Neither field is serialised in MIR text/binary (a pass recomputes them).
+    // A non-default placement is serialised in MIR text (`… stackid N offset M`)
+    // so the decision is visible in post-pass dumps; the binary format omits it
+    // (a pass recomputes placement before lowering).
     public int StackId { get; set; } = DefaultStackId;
     public int Offset { get; set; }
 
