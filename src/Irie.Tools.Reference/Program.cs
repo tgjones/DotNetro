@@ -46,7 +46,9 @@ root.SetAction(parse =>
             ? CountLlvmInstructions(File.ReadAllLines(sFile))
             : (0, "(.s missing — run ext/llvm-mos-reference/build.sh)");
 
-        var testFile = Path.Combine(tests, name + ".irie");
+        // The Irie test tree mirrors the corpus subfolder layout, so pair within
+        // the matching category directory (basics/, control-flow/, …).
+        var testFile = Path.Combine(tests, category, name + ".irie");
         int? irieCount = null;
         string irieAsm;
         string status;
