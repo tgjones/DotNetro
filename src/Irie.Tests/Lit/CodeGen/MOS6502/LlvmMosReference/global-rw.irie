@@ -9,18 +9,11 @@
 ; Compare against ext/llvm-mos-reference/memory/global-rw.s; close gaps via irie-report.
 
 ; CHECK:     global_rw:
-; CHECK:     STA \$03
-; CHECK:     STX \$02
-; CHECK:     LDA counter
-; CHECK:     TAY
-; CHECK:     LDA counter\+1
-; CHECK:     TAX
 ; CHECK:     CLC
-; CHECK:     TYA
-; CHECK:     ADC \$03
+; CHECK:     ADC counter
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     ADC \$02
+; CHECK:     ADC counter\+1
 ; CHECK:     TAX
 ; CHECK:     TYA
 ; CHECK:     STA counter

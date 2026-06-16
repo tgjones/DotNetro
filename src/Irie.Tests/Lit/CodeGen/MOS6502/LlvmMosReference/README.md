@@ -79,11 +79,6 @@ doubles as a punch-list (and `irie-report` flags each as uncovered):
 `irie-report` pairs by basename. All tests are now faithful translations of the
 corpus C, but two have caveats:
 
-- **`global-rw`** now uses absolute addressing (`lda counter` / `sta counter+1`)
-  for symbol-addressed loads/stores, matching llvm-mos. The residual gap (Irie 19
-  vs llvm-mos 10) is the load→ALU-operand fold (`adc counter` directly), which
-  llvm-mos does and Irie does not yet — tracked as Stage B of
-  [`notes/mos6502-absolute-addressing-plan.md`](../../../../../../notes/mos6502-absolute-addressing-plan.md).
 - **`loop-counter`** is faithful (`s += i`), but llvm-mos strength-reduces the
   whole loop to a closed-form multiply (`__mulsi3`) — an optimisation Irie's
   pipeline does not perform — so the comparison is apples-to-oranges.

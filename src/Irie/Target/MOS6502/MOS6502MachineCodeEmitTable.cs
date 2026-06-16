@@ -138,6 +138,16 @@ public static class MOS6502MachineCodeEmitTable
         [MOS6502Op.StxAbs] = new EmitRule(MOS6502Opcode.STX_Absolute, EmitOperandKind.AbsoluteAddress, 1),
         [MOS6502Op.StyAbs] = new EmitRule(MOS6502Opcode.STY_Absolute, EmitOperandKind.AbsoluteAddress, 1),
 
+        // Absolute-addressed ALU ops that fold a single-use static-symbol load
+        // into the memory operand (the load->ALU fold; mirrors llvm-mos
+        // m_FoldedLdAbs). Same operand block as AdcInfo/SbcInfo, but use[1] is a
+        // Symbol(name, offset) instead of a register:
+        //   $a, $c = mos6502.adc.abs $a, @sym, $c
+        // def[0]=$a, def[1]=$c, use[0]=$a (tied), use[1]=Symbol, use[2]=$c.
+        // Index 3 = use[1], the absolute address.
+        [MOS6502Op.AdcAbs] = new EmitRule(MOS6502Opcode.ADC_Absolute, EmitOperandKind.AbsoluteAddress, 3),
+        [MOS6502Op.SbcAbs] = new EmitRule(MOS6502Opcode.SBC_Absolute, EmitOperandKind.AbsoluteAddress, 3),
+
         // $zpN = mos6502.sta.zp $a
         // Operands: def[0]=zp (the address), use[0]=$a.
         // Index 0 = def[0]; the source register is implicit in the opcode.

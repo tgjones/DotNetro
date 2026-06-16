@@ -107,7 +107,7 @@ CI runs `dotnet test --solution src` in both Debug and Release configurations.
     - `MOS6502RegisterClass` / `MOS6502RegisterInfo` — register classes (`ac`, `xc`, `yc`, `zp`, `any8`, plus single-register flag classes) and the `FlexibleI8ClassId` advertised to RA.
     - `MOS6502CallLowering` — CC_MOS convention: i8 bytes assigned in order A, X, RC2, RC3, … (LSB-first for multi-byte values).
     - `MOS6502LegalizerInfo` — declares `arith.addi i32 → NarrowScalar` (4× `arith.addi_with_carry i8`), `arith.addi i16 → NarrowScalar` (2× chain), etc.
-    - `MOS6502InstructionSelector` — maps `arith.*` to target opcodes; fuses `arith.cmpi` + `cf.cond_br` into `mos6502.cmp` + `mos6502.bXX`; lowers `pseudo.return` to `mos6502.rts`.
+    - `MOS6502InstructionSelector` — maps `arith.*` to target opcodes; fuses `arith.cmpi` + `cf.cond_br` into `mos6502.cmp` + `mos6502.bXX`; folds a single-use absolute-symbol load feeding an add/sub into the ALU's memory operand (`adc.abs`/`sbc.abs @sym`, dropping the `lda.abs`; mirrors llvm-mos `m_FoldedLdAbs`); lowers `pseudo.return` to `mos6502.rts`.
     - `MOS6502AddressingModeSelectorPass` — target-private post-RA pass; pattern-matches `mos6502.adc` / `.cmp` / `.lda` etc. against their concrete physreg / immediate operands and rewrites the opcode.
     - `MOS6502PseudoExpander` — expands `pseudo.copy` to target moves (`mos6502.tax`, `.tay`, `.txa`, `.tya`, `.stx`, `.sty`, `.lda.zp`, `.ldx.zp`, `.ldy.zp`, `.lda.imm`, …). Impossible pairs (e.g. `$x = pseudo.copy $y`) expand via `$a`.
     - `MOS6502AssemblyWriter` / `MOS6502AssemblyParser` — traditional `$FF` / `#$FF` assembly syntax for the MachineCode layer; `MOS6502Opcode` constants equal the 6502 byte values.

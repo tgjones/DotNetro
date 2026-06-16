@@ -1,0 +1,39 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+; RUN-bin: @iriec --target mos6502 --emit=bin --origin=0x1000 @file | @irie-mc --hex-dump
+
+; A single-use absolute load feeding an add folds into the ALU's memory operand:
+; `x + g` reads the global directly with `ADC g` / `ADC g+1` (no separate LDA),
+; mirroring llvm-mos m_FoldedLdAbs. (Stage B of
+; notes/mos6502-absolute-addressing-plan.md.) The load is operand `b` here, so
+; this exercises the direct (non-commuted) fold path; global-rw exercises the
+; commuted path where the load is operand `a`.
+
+; CHECK:     add_global:
+; CHECK:     CLC
+; CHECK:     ADC g
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC g\+1
+; CHECK:     TAX
+; CHECK:     TYA
+; CHECK:     RTS
+
+; Layout at $1000: the 12-byte function, then g (2 bytes) at $100C/$100D.
+;   18        CLC
+;   6D 0C 10  ADC $100C (g)        <- absolute ADC (0x6D), folded load
+;   A8        TAY
+;   8A        TXA
+;   6D 0D 10  ADC $100D (g+1)      <- +1 offset for the high byte
+;   AA        TAX
+;   98        TYA
+;   60        RTS
+; CHECK-bin: 00000000: 18 6D 0C 10 A8 8A 6D 0D  10 AA 98 60 00 00
+
+global @g : i16 = bytes "\x00\x00"
+func @add_global : (i16) -> i16 {
+bb0(%0 : i16):
+    %1 : i16 = mem.symbol @g
+    %2 : i16 = mem.load.i16 %1
+    %3 : i16 = arith.addi %0, %2
+    core.return %3
+}

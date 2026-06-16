@@ -214,6 +214,20 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         var bVreg          = ((VirtualReg)instr.Operands[3]).Id;
         var flagInVreg     = ((VirtualReg)instr.Operands[4]).Id;
 
+        // Stage B: fold a single-use static-symbol load into the ALU's memory
+        // operand, mirroring llvm-mos m_FoldedLdAbs. `A = A op mem` reads the
+        // folded byte directly from `@sym`, dropping the separate `lda.abs` +
+        // copy. The accumulator (use[0], tied to def[0]) holds the *other*
+        // operand; `adc` is commutative so either input may become the memory
+        // operand, but `sbc` is not — only the subtrahend (b) may fold.
+        var absOp = targetOp == MOS6502Op.Adc ? MOS6502Op.AdcAbs : MOS6502Op.SbcAbs;
+        if (TryMatchFoldableAbsLoad(function, bVreg, instr) is { } foldB)
+            return EmitFoldedAbsCarryBorrow(
+                builder, instr, absOp, resultVreg, flagOutVreg, accVreg: aVreg, flagInVreg, foldB);
+        if (targetOp == MOS6502Op.Adc && TryMatchFoldableAbsLoad(function, aVreg, instr) is { } foldA)
+            return EmitFoldedAbsCarryBorrow(
+                builder, instr, absOp, resultVreg, flagOutVreg, accVreg: bVreg, flagInVreg, foldA);
+
         // Do NOT pin aVreg/bVreg to a *single-physreg* class. The class-
         // intersection gap (plan §3.1) arises when a single value is pinned `Ac`
         // here and used as a zero-page (`Imag8`) operand elsewhere: Ac ∩ Imag8 =
@@ -266,6 +280,128 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         function.ReplaceAllUsesOfRegister(flagOutVreg, newFlag);
         builder.Remove(instr);
         return true;
+    }
+
+    // A folded absolute-symbol load: the Symbol the ALU op will read directly,
+    // plus the now-dead `lda.abs` and its funnel `pseudo.copy` to erase.
+    private readonly record struct AbsLoadFold(Symbol Symbol, MirInstruction Lda, MirInstruction Copy);
+
+    // Match `%v = pseudo.copy %lda` where `%lda = mos6502.lda.abs @sym`, both
+    // single-use, with no memory write between the load and `consumer` (which
+    // would make folding the load past it unsound). Returns the symbol + the two
+    // instructions to erase, or null if the pattern / safety check fails.
+    private static AbsLoadFold? TryMatchFoldableAbsLoad(MirFunction function, int vreg, MirInstruction consumer)
+    {
+        if (function.GetUseCount(vreg) != 1) return null;
+
+        var copy = function.GetDefinition(vreg);
+        if (copy is null
+            || copy.Opcode.Dialect != PseudoDialect.Id
+            || (PseudoOp)copy.Opcode.Code != PseudoOp.Copy
+            || copy.Operands.Length != 2
+            || copy.Operands[1] is not VirtualReg copySrc)
+            return null;
+
+        if (function.GetUseCount(copySrc.Id) != 1) return null;
+
+        var lda = function.GetDefinition(copySrc.Id);
+        if (lda is null
+            || lda.Opcode != MOS6502Dialect.OpRef(MOS6502Op.LdaAbs)
+            || lda.Operands.Length != 2
+            || lda.Operands[1] is not Symbol symbol)
+            return null;
+
+        // The load can only sink to its single use if nothing writes memory in
+        // between. The selector always emits the load and its consumer in the
+        // same block; bail otherwise.
+        if (lda.Parent is not { } block || consumer.Parent != block) return null;
+        var ldaIndex = block.Instructions.IndexOf(lda);
+        var consumerIndex = block.Instructions.IndexOf(consumer);
+        for (var i = ldaIndex + 1; i < consumerIndex; i++)
+            if (MayWriteMemory(block.Instructions[i]))
+                return null;
+
+        return new AbsLoadFold(symbol, lda, copy);
+    }
+
+    // Emit `%r, %c = mos6502.{adc,sbc}.abs %acc, @sym, %carryIn`, funnel the
+    // result out of $a into a flexible Anyi8 vreg (the same out-funnel the plain
+    // adc/sbc path uses), and erase the original op plus the now-dead load.
+    private static bool EmitFoldedAbsCarryBorrow(
+        MirBuilder builder, MirInstruction instr, MOS6502Op absOp,
+        int resultVreg, int flagOutVreg, int accVreg, int flagInVreg, AbsLoadFold fold)
+    {
+        var function = builder.Function;
+
+        // The accumulator (use[0], tied to def[0]) carries the broad Anyi8 class
+        // for the same reason the plain path keeps `a` flexible; the carry-in
+        // lives in the carry register.
+        ReclassifyTo(function, accVreg,    MOS6502RegisterClass.Anyi8);
+        ReclassifyTo(function, flagInVreg, MOS6502RegisterClass.Cc);
+
+        var newResult = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Ac,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+        var newFlag   = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Cc,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Cc)!);
+
+        builder.SetInsertionPointBefore(instr);
+        builder.BuildInstruction(
+            MOS6502Dialect.OpRef(absOp),
+            new VirtualReg(newResult,  IsDefinition: true),
+            new VirtualReg(newFlag,    IsDefinition: true),
+            new VirtualReg(accVreg,    IsDefinition: false),
+            fold.Symbol,
+            new VirtualReg(flagInVreg, IsDefinition: false));
+
+        var resOut = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Anyi8,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(resOut,    IsDefinition: true),
+            new VirtualReg(newResult, IsDefinition: false));
+
+        function.ReplaceAllUsesOfRegister(resultVreg,  resOut);
+        function.ReplaceAllUsesOfRegister(flagOutVreg, newFlag);
+        builder.Remove(instr);
+
+        // The load now has no remaining uses (both single-use checks passed).
+        builder.Remove(fold.Copy);
+        builder.Remove(fold.Lda);
+        return true;
+    }
+
+    // Conservative aliasing test for the absolute-load fold: does this
+    // instruction possibly write memory (so a load may not sink past it)?
+    // pseudo.copy moves only between registers (incl. RA-assigned zero-page
+    // scratch, which cannot alias an absolute global). Any not-yet-lowered
+    // generic op is treated as a possible writer. Every mos6502 store / memory
+    // read-modify-write / stack push / call / frame access is a writer.
+    private static bool MayWriteMemory(MirInstruction instr)
+    {
+        if (instr.Opcode.Dialect == PseudoDialect.Id)
+            return false;
+        if (instr.Opcode.Dialect != MOS6502Dialect.Id)
+            return true;
+
+        return (MOS6502Op)instr.Opcode.Code is
+            MOS6502Op.Sta or MOS6502Op.Stx or MOS6502Op.Sty
+            or MOS6502Op.StaZp or MOS6502Op.StaZpX or MOS6502Op.StaAbs or MOS6502Op.StaAbsX
+            or MOS6502Op.StaAbsY or MOS6502Op.StaIndX or MOS6502Op.StaIndY
+            or MOS6502Op.StxZp or MOS6502Op.StxZpY or MOS6502Op.StxAbs
+            or MOS6502Op.StyZp or MOS6502Op.StyZpX or MOS6502Op.StyAbs
+            or MOS6502Op.Inc or MOS6502Op.Dec
+            or MOS6502Op.IncZp or MOS6502Op.IncZpX or MOS6502Op.IncAbs or MOS6502Op.IncAbsX
+            or MOS6502Op.DecZp or MOS6502Op.DecZpX or MOS6502Op.DecAbs or MOS6502Op.DecAbsX
+            or MOS6502Op.Asl or MOS6502Op.Lsr or MOS6502Op.Rol or MOS6502Op.Ror
+            or MOS6502Op.AslZp or MOS6502Op.AslZpX or MOS6502Op.AslAbs or MOS6502Op.AslAbsX
+            or MOS6502Op.LsrZp or MOS6502Op.LsrZpX or MOS6502Op.LsrAbs or MOS6502Op.LsrAbsX
+            or MOS6502Op.RolZp or MOS6502Op.RolZpX or MOS6502Op.RolAbs or MOS6502Op.RolAbsX
+            or MOS6502Op.RorZp or MOS6502Op.RorZpX or MOS6502Op.RorAbs or MOS6502Op.RorAbsX
+            or MOS6502Op.FrameLoadByte or MOS6502Op.FrameStoreByte
+            or MOS6502Op.Pha or MOS6502Op.Php or MOS6502Op.JsrAbs or MOS6502Op.Brk;
     }
 
     // pseudo.return → mos6502.rts. The return physregs are surfaced as
