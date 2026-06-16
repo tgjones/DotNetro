@@ -171,6 +171,28 @@ choices, peephole opportunities, etc.), check **both** of these — not just one
    general rule (coloring, benefit model, edge cases) that the output alone can
    hide.
 
+### A pipeline crash is usually a design question in disguise
+
+Errors from the Irie pass pipeline — "no selection rule for `x`", "unexpected
+`pseudo.y` survived to the final pass", a legality gap — name a *missing* piece,
+not a wrong one. Before touching anything, identify the intended design and fix
+the gap at its root:
+
+- **Check llvm-mos first** (per the two sources above). "Should this op be
+  `Legal`? how is it lowered? at which layer?" are design questions — answer them
+  from the reference *before* writing code, not after a human pushes back. A
+  legalizer rule that already exists (e.g. an op marked `Legal`) usually encodes
+  deliberate intent; a crash downstream means the *consumer* (selector, expander)
+  is missing a case, so add that case rather than rerouting the op to dodge it.
+- **Don't accrete workarounds.** If a fix produces a *second* error, or needs a
+  special-case branch to suppress an artifact, stop — that is a signal the
+  approach is wrong, not that it needs another patch. Back out and reconsider.
+- **Don't rationalize.** If you find yourself constructing a confident
+  architectural justification for why a hacky-feeling change is actually fine,
+  treat that as a red flag and verify the claim (read the pass, run the case)
+  before relying on it. State uncertainty plainly instead of inventing a
+  constraint to justify the path already taken.
+
 ## Planning workflow
 
 Before modifying code in any area: read the relevant files first,

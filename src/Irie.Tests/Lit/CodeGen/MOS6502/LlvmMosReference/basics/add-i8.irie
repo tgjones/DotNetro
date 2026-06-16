@@ -1,0 +1,23 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/basics/add-i8
+;   char add_i8(char a, char b) { return a + b; }
+; Single-byte add: one operand (a) arrives in $a, the other (b) in $x. A bare
+; i8 add is legal on this target and selected directly — the selector emits the
+; carry-chain head (CLC) then a single ADC. b is staged to zero page (STX $02)
+; so ADC can address it.
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Matches ext/llvm-mos-reference/basics/add-i8.s exactly (stx __rc2; clc; adc __rc2; rts).
+
+; CHECK:     add_i8:
+; CHECK:         STX \$02
+; CHECK:         CLC
+; CHECK:         ADC \$02
+; CHECK:         RTS
+
+func @add_i8 : (i8, i8) -> i8 {
+bb0(%0 : i8, %1 : i8):
+    %2 : i8 = arith.addi %0, %1
+    core.return %2
+}

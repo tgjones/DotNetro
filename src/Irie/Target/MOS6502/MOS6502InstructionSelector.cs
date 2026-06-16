@@ -64,6 +64,8 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             return (ArithOp)opcode.Code switch
             {
                 ArithOp.Constant   => SelectConstant(instruction, builder),
+                ArithOp.AddI       => SelectAddI(instruction, builder),
+                ArithOp.SubI       => SelectSubI(instruction, builder),
                 ArithOp.AddICarry  => SelectAddCarry(instruction, builder),
                 ArithOp.SubIBorrow => SelectSubBorrow(instruction, builder),
                 ArithOp.CmpI       => SelectCmpI(instruction, builder),
@@ -193,26 +195,78 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // arith.addi_with_carry → mos6502.adc (pre-AMS). New defs are created in
     // class Ac/Cc; existing typed-vreg uses are reclassified to Ac (a),
     // Imag8 (b), Cc (carry-in).
+    //
+    // Operand layout: def[0]=result, def[1]=carry_out, use[0]=a, use[1]=b,
+    //                 use[2]=carry_in (the carry-in's def — an arith.constant —
+    //                 was already selected into a clc/sec earlier in the block).
     private static bool SelectAddCarry(MirInstruction instr, MirBuilder builder)
-        => SelectCarryBorrowOp(instr, builder, MOS6502Op.Adc);
+        => SelectCarryBorrowOp(
+            instr, builder, MOS6502Op.Adc,
+            resultVreg:  ((VirtualReg)instr.Operands[0]).Id,
+            flagOutVreg: ((VirtualReg)instr.Operands[1]).Id,
+            aVreg:       ((VirtualReg)instr.Operands[2]).Id,
+            bVreg:       ((VirtualReg)instr.Operands[3]).Id,
+            flagInVreg:  ((VirtualReg)instr.Operands[4]).Id);
 
     // arith.subi_with_borrow → mos6502.sbc (pre-AMS). Same operand layout,
     // class assignment, and tied-def shape as add-with-carry — the only
     // difference is the emitted opcode tag.
     private static bool SelectSubBorrow(MirInstruction instr, MirBuilder builder)
-        => SelectCarryBorrowOp(instr, builder, MOS6502Op.Sbc);
+        => SelectCarryBorrowOp(
+            instr, builder, MOS6502Op.Sbc,
+            resultVreg:  ((VirtualReg)instr.Operands[0]).Id,
+            flagOutVreg: ((VirtualReg)instr.Operands[1]).Id,
+            aVreg:       ((VirtualReg)instr.Operands[2]).Id,
+            bVreg:       ((VirtualReg)instr.Operands[3]).Id,
+            flagInVreg:  ((VirtualReg)instr.Operands[4]).Id);
 
-    private static bool SelectCarryBorrowOp(MirInstruction instr, MirBuilder builder, MOS6502Op targetOp)
+    // arith.addi : i8 → clc + mos6502.adc. The bare (carry-less) byte add is
+    // legal on this target (wider adds narrow to an addi_with_carry chain in the
+    // legalizer; an i8 add never does), so the selector supplies the carry chain
+    // head itself: it emits a clc into a fresh carry-class vreg and feeds that as
+    // the carry-in, then reuses the addi_with_carry lowering. The carry-out is
+    // unused — a fresh dead Cc vreg absorbs it. Mirrors llvm-mos selecting a
+    // legal S8 G_ADD directly.
+    private static bool SelectAddI(MirInstruction instr, MirBuilder builder)
+        => SelectBareAddSub(instr, builder, MOS6502Op.Adc, MOS6502Op.Clc);
+
+    // arith.subi : i8 → sec + mos6502.sbc. Carry-in head is a SEC (6502 "no
+    // borrow"), mirroring the subi_with_borrow chain head. See SelectAddI.
+    private static bool SelectSubI(MirInstruction instr, MirBuilder builder)
+        => SelectBareAddSub(instr, builder, MOS6502Op.Sbc, MOS6502Op.Sec);
+
+    private static bool SelectBareAddSub(
+        MirInstruction instr, MirBuilder builder, MOS6502Op aluOp, MOS6502Op carryHeadOp)
     {
         var function = builder.Function;
 
-        // Operand layout: def[0]=result, def[1]=carry/borrow_out,
-        //                 use[0]=a, use[1]=b, use[2]=carry/borrow_in
-        var resultVreg     = ((VirtualReg)instr.Operands[0]).Id;
-        var flagOutVreg    = ((VirtualReg)instr.Operands[1]).Id;
-        var aVreg          = ((VirtualReg)instr.Operands[2]).Id;
-        var bVreg          = ((VirtualReg)instr.Operands[3]).Id;
-        var flagInVreg     = ((VirtualReg)instr.Operands[4]).Id;
+        // Bare operand layout: def[0]=result, use[0]=a, use[1]=b (no carry).
+        var resultVreg = ((VirtualReg)instr.Operands[0]).Id;
+        var aVreg      = ((VirtualReg)instr.Operands[1]).Id;
+        var bVreg      = ((VirtualReg)instr.Operands[2]).Id;
+
+        // Emit the carry-chain head (clc/sec) into a fresh carry-class vreg, and
+        // a fresh dead carry-class vreg to absorb the alu's carry-out. Inserting
+        // before `instr` keeps the clc/sec ahead of the adc/sbc the core emits.
+        builder.SetInsertionPointBefore(instr);
+        var carryInVreg = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Cc, MOS6502RegisterClass.GetName(MOS6502RegisterClass.Cc)!);
+        builder.BuildInstruction(
+            MOS6502Dialect.OpRef(carryHeadOp),
+            new VirtualReg(carryInVreg, IsDefinition: true));
+        var deadCarryOut = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Cc, MOS6502RegisterClass.GetName(MOS6502RegisterClass.Cc)!);
+
+        return SelectCarryBorrowOp(
+            instr, builder, aluOp,
+            resultVreg, flagOutVreg: deadCarryOut, aVreg, bVreg, flagInVreg: carryInVreg);
+    }
+
+    private static bool SelectCarryBorrowOp(
+        MirInstruction instr, MirBuilder builder, MOS6502Op targetOp,
+        int resultVreg, int flagOutVreg, int aVreg, int bVreg, int flagInVreg)
+    {
+        var function = builder.Function;
 
         // Stage B: fold a single-use static-symbol load into the ALU's memory
         // operand, mirroring llvm-mos m_FoldedLdAbs. `A = A op mem` reads the
