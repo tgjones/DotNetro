@@ -396,3 +396,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# irie-report generated output
+ext/llvm-mos-reference/report.html

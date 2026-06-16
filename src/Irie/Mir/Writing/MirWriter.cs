@@ -231,7 +231,7 @@ internal sealed class MirWriter
         PhysicalReg p => $"${FormatPhysReg(p.Id)}",
         Immediate imm => imm.Value.ToString(),
         BlockTarget bt => FormatBlockTarget(bt, function, blockIndex),
-        Symbol s      => $"@{s.Name}",
+        Symbol s      => s.Offset == 0 ? $"@{s.Name}" : $"@{s.Name}{s.Offset:+0;-0}",
         _ => throw new InvalidOperationException($"Unknown operand type: {operand.GetType().Name}"),
     };
 

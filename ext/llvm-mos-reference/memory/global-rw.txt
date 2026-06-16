@@ -1,0 +1,659 @@
+*** IR Dump At Start ***
+; ModuleID = './memory/global-rw.c'
+source_filename = "./memory/global-rw.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+@counter = dso_local global i16 0, align 1
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @global_rw(i16 noundef %0) #0 {
+  %2 = alloca i16, align 1
+  store i16 %0, ptr %2, align 1, !tbaa !2
+  %3 = load i16, ptr %2, align 1, !tbaa !2
+  %4 = load i16, ptr @counter, align 1, !tbaa !2
+  %5 = add nsw i16 %4, %3
+  store i16 %5, ptr @counter, align 1, !tbaa !2
+  %6 = load i16, ptr @counter, align 1, !tbaa !2
+  ret i16 %6
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on global_rw omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on global_rw omitted because no change ***
+*** IR Dump After SimplifyCFGPass on global_rw omitted because no change ***
+*** IR Dump After SROAPass on global_rw ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @global_rw(i16 noundef %0) #0 {
+  %2 = load i16, ptr @counter, align 1, !tbaa !2
+  %3 = add nsw i16 %2, %0
+  store i16 %3, ptr @counter, align 1, !tbaa !2
+  %4 = load i16, ptr @counter, align 1, !tbaa !2
+  ret i16 %4
+}
+*** IR Dump After EarlyCSEPass on global_rw ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @global_rw(i16 noundef %0) #0 {
+  %2 = load i16, ptr @counter, align 1, !tbaa !2
+  %3 = add nsw i16 %2, %0
+  store i16 %3, ptr @counter, align 1, !tbaa !2
+  ret i16 %3
+}
+*** IR Pass PassManager<Function> on global_rw ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './memory/global-rw.c'
+source_filename = "./memory/global-rw.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+@counter = dso_local local_unnamed_addr global i16 0, align 1
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @global_rw(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = load i16, ptr @counter, align 1, !tbaa !2
+  %3 = add nsw i16 %2, %0
+  store i16 %3, ptr @counter, align 1, !tbaa !2
+  ret i16 %3
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on global_rw omitted because no change ***
+*** IR Dump After InstCombinePass on global_rw omitted because no change ***
+*** IR Dump After SimplifyCFGPass on global_rw omitted because no change ***
+*** IR Pass PassManager<Function> on global_rw ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on global_rw omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (global_rw) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (global_rw) omitted because no change ***
+*** IR Dump After SROAPass on global_rw omitted because no change ***
+*** IR Dump After EarlyCSEPass on global_rw omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on global_rw omitted because no change ***
+*** IR Dump After JumpThreadingPass on global_rw omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on global_rw omitted because no change ***
+*** IR Dump After SimplifyCFGPass on global_rw omitted because no change ***
+*** IR Dump After InstCombinePass on global_rw omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on global_rw omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on global_rw omitted because no change ***
+*** IR Dump After TailCallElimPass on global_rw omitted because no change ***
+*** IR Dump After SimplifyCFGPass on global_rw omitted because no change ***
+*** IR Dump After ReassociatePass on global_rw omitted because no change ***
+*** IR Dump After ConstraintEliminationPass on global_rw omitted because no change ***
+*** IR Dump After LoopSimplifyPass on global_rw omitted because no change ***
+*** IR Dump After LCSSAPass on global_rw omitted because no change ***
+*** IR Pass PassManager<Function> on global_rw ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on global_rw ignored ***
+*** IR Dump After SimplifyCFGPass on global_rw omitted because no change ***
+*** IR Dump After InstCombinePass on global_rw omitted because no change ***
+*** IR Dump After LoopSimplifyPass on global_rw omitted because no change ***
+*** IR Dump After LCSSAPass on global_rw omitted because no change ***
+*** IR Pass PassManager<Function> on global_rw ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on global_rw ignored ***
+*** IR Dump After SROAPass on global_rw omitted because no change ***
+*** IR Dump After VectorCombinePass on global_rw omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on global_rw omitted because no change ***
+*** IR Dump After GVNPass on global_rw omitted because no change ***
+*** IR Dump After SCCPPass on global_rw omitted because no change ***
+*** IR Dump After BDCEPass on global_rw omitted because no change ***
+*** IR Dump After InstCombinePass on global_rw omitted because no change ***
+*** IR Dump After JumpThreadingPass on global_rw omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on global_rw omitted because no change ***
+*** IR Dump After ADCEPass on global_rw omitted because no change ***
+*** IR Dump After MemCpyOptPass on global_rw omitted because no change ***
+*** IR Dump After DSEPass on global_rw omitted because no change ***
+*** IR Dump After MoveAutoInitPass on global_rw omitted because no change ***
+*** IR Dump After LoopSimplifyPass on global_rw omitted because no change ***
+*** IR Dump After LCSSAPass on global_rw omitted because no change ***
+*** IR Pass PassManager<Function> on global_rw ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on global_rw ignored ***
+*** IR Dump After CoroElidePass on global_rw omitted because no change ***
+*** IR Dump After SimplifyCFGPass on global_rw omitted because no change ***
+*** IR Dump After InstCombinePass on global_rw omitted because no change ***
+*** IR Pass PassManager<Function> on global_rw ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (global_rw) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (global_rw) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(readwrite, argmem: none, inaccessiblemem: none, target_mem: none)
+define dso_local i16 @global_rw(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = load i16, ptr @counter, align 1, !tbaa !2
+  %3 = add nsw i16 %2, %0
+  store i16 %3, ptr @counter, align 1, !tbaa !2
+  ret i16 %3
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on global_rw omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (global_rw) ignored ***
+*** IR Dump After CoroSplitPass on (global_rw) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (global_rw) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (global_rw) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (global_rw) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on global_rw omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on global_rw omitted because no change ***
+*** IR Dump After Float2IntPass on global_rw omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on global_rw omitted because no change ***
+*** IR Dump After LoopSimplifyPass on global_rw omitted because no change ***
+*** IR Dump After LCSSAPass on global_rw omitted because no change ***
+*** IR Pass PassManager<Function> on global_rw ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on global_rw ignored ***
+*** IR Dump After LoopDistributePass on global_rw omitted because no change ***
+*** IR Dump After InjectTLIMappings on global_rw omitted because no change ***
+*** IR Dump After LoopVectorizePass on global_rw omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on global_rw omitted because no change ***
+*** IR Dump After InferAlignmentPass on global_rw omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on global_rw omitted because no change ***
+*** IR Dump After InstCombinePass on global_rw omitted because no change ***
+*** IR Dump After SimplifyCFGPass on global_rw omitted because no change ***
+*** IR Dump After SLPVectorizerPass on global_rw omitted because no change ***
+*** IR Dump After VectorCombinePass on global_rw omitted because no change ***
+*** IR Dump After InstCombinePass on global_rw omitted because no change ***
+*** IR Dump After LoopUnrollPass on global_rw omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on global_rw omitted because no change ***
+*** IR Dump After SROAPass on global_rw omitted because no change ***
+*** IR Dump After InferAlignmentPass on global_rw omitted because no change ***
+*** IR Dump After InstCombinePass on global_rw omitted because no change ***
+*** IR Dump After LoopSimplifyPass on global_rw omitted because no change ***
+*** IR Dump After LCSSAPass on global_rw omitted because no change ***
+*** IR Pass PassManager<Function> on global_rw ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on global_rw ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on global_rw omitted because no change ***
+*** IR Dump After LoopSinkPass on global_rw omitted because no change ***
+*** IR Dump After InstSimplifyPass on global_rw omitted because no change ***
+*** IR Dump After DivRemPairsPass on global_rw omitted because no change ***
+*** IR Dump After MergeICmpsPass on global_rw omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on global_rw omitted because no change ***
+*** IR Dump After TailCallElimPass on global_rw omitted because no change ***
+*** IR Dump After SimplifyCFGPass on global_rw omitted because no change ***
+*** IR Pass PassManager<Function> on global_rw ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on global_rw omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on global_rw omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on global_rw ***
+# Machine code for function global_rw: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %1:_(s8), %2:_(s8)
+  %4:_(p0) = G_GLOBAL_VALUE @counter
+  %3:_(s16) = G_LOAD %4:_(p0) :: (dereferenceable load (s16) from @counter, align 1, !tbaa !2)
+  %5:_(s16) = nsw G_ADD %3:_, %0:_
+  G_STORE %5:_(s16), %4:_(p0) :: (store (s16) into @counter, align 1, !tbaa !2)
+  %6:_(s8), %7:_(s8) = G_UNMERGE_VALUES %5:_(s16)
+  $a = COPY %6:_(s8)
+  $x = COPY %7:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on global_rw omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on global_rw omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on global_rw omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on global_rw omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on global_rw omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on global_rw omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on global_rw omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on global_rw ***
+# Machine code for function global_rw: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %21:_(s8) = G_LOAD_ABS @counter :: (dereferenceable load (s8) from @counter, !tbaa !2)
+  %24:_(s8) = G_LOAD_ABS @counter + 1 :: (dereferenceable load (s8) from @counter + 1, !tbaa !2)
+  %20:_(s1) = G_CONSTANT i1 false
+  %16:_(s8), %17:_(s1) = G_UADDE %21:_, %1:_, %20:_
+  %18:_(s8), %19:_(s1) = G_UADDE %24:_, %2:_, %17:_
+  G_STORE_ABS %16:_(s8), @counter :: (store (s8) into @counter, !tbaa !2)
+  G_STORE_ABS %18:_(s8), @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $a = COPY %16:_(s8)
+  $x = COPY %18:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on global_rw omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on global_rw omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on global_rw omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on global_rw omitted because no change ***
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on global_rw omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on global_rw ***
+# Machine code for function global_rw: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:any(s8) = COPY $a
+  %2:any(s8) = COPY $x
+  %21:any(s8) = G_LOAD_ABS @counter :: (dereferenceable load (s8) from @counter, !tbaa !2)
+  %24:any(s8) = G_LOAD_ABS @counter + 1 :: (dereferenceable load (s8) from @counter + 1, !tbaa !2)
+  %20:any(s1) = G_CONSTANT i1 false
+  %16:any(s8), %17:any(s1) = G_UADDE %21:any, %1:any, %20:any
+  %18:any(s8), %19:any(s1) = G_UADDE %24:any, %2:any, %17:any
+  G_STORE_ABS %16:any(s8), @counter :: (store (s8) into @counter, !tbaa !2)
+  G_STORE_ABS %18:any(s8), @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $a = COPY %16:any(s8)
+  $x = COPY %18:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Localizer (localizer) on global_rw omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on global_rw omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on global_rw ***
+# Machine code for function global_rw: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:ac = COPY $a
+  %2:ac = COPY $x
+  %20:cc = LDImm1 0
+  %16:ac, %17:cc, %26:vc = ADCAbs %1:ac(tied-def 0), @counter, %20:cc(tied-def 1)
+  %18:ac, %19:cc, %25:vc = ADCAbs %2:ac(tied-def 0), @counter + 1, %17:cc(tied-def 1)
+  STAbs %16:ac, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs %18:ac, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $a = COPY %16:ac
+  $x = COPY %18:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After ResetMachineFunction on global_rw omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on global_rw omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on global_rw omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on global_rw omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on global_rw omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on global_rw omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on global_rw omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on global_rw omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on global_rw omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on global_rw omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on global_rw omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on global_rw omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on global_rw omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on global_rw omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on global_rw omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on global_rw omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on global_rw omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on global_rw omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on global_rw omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on global_rw omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on global_rw omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on global_rw omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on global_rw ***
+# Machine code for function global_rw: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:ac = COPY $a
+  %2:ac = COPY $x
+  %20:cc = LDImm1 0
+  %16:ac, %17:cc, dead %26:vc = ADCAbs %1:ac(tied-def 0), @counter, %20:cc(tied-def 1)
+  %18:ac, dead %19:cc, dead %25:vc = ADCAbs %2:ac(tied-def 0), @counter + 1, %17:cc(tied-def 1)
+  STAbs %16:ac, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs %18:ac, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $a = COPY %16:ac
+  $x = COPY %18:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Init Undef Pass (init-undef) on global_rw omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on global_rw omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on global_rw ***
+# Machine code for function global_rw: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %1:ac = COPY $a
+  %2:ac = COPY $x
+  %20:cc = LDImm1 0
+  %16:ac, %17:cc, dead %26:vc = ADCAbs %1:ac(tied-def 0), @counter, %20:cc(tied-def 1)
+  %18:ac, dead %19:cc, dead %25:vc = ADCAbs %2:ac(tied-def 0), @counter + 1, %17:cc(tied-def 1)
+  STAbs %16:ac, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs %18:ac, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $a = COPY %16:ac
+  $x = COPY %18:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Live Variable Analysis (livevars) on global_rw ***
+# Machine code for function global_rw: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %1:ac = COPY killed $a
+  %2:ac = COPY killed $x
+  %20:cc = LDImm1 0
+  %16:ac, %17:cc, dead %26:vc = ADCAbs killed %1:ac(tied-def 0), @counter, killed %20:cc(tied-def 1)
+  %18:ac, dead %19:cc, dead %25:vc = ADCAbs killed %2:ac(tied-def 0), @counter + 1, killed %17:cc(tied-def 1)
+  STAbs %16:ac, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs %18:ac, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $a = COPY killed %16:ac
+  $x = COPY killed %18:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on global_rw omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on global_rw omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on global_rw ***
+# Machine code for function global_rw: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %1:ac = COPY killed $a
+  %2:ac = COPY killed $x
+  %20:cc = LDImm1 0
+  %16:ac, %17:cc, dead %26:vc = ADCAbs killed %1:ac(tied-def 0), @counter, killed %20:cc(tied-def 1)
+  %18:ac, dead %19:cc, dead %25:vc = ADCAbs killed %2:ac(tied-def 0), @counter + 1, killed %17:cc(tied-def 1)
+  STAbs %16:ac, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs %18:ac, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $a = COPY killed %16:ac
+  $x = COPY killed %18:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on global_rw ***
+# Machine code for function global_rw: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %1:ac = COPY killed $a
+  %2:ac = COPY killed $x
+  %20:cc = LDImm1 0
+  %17:cc = COPY killed %20:cc
+  %16:ac = COPY killed %1:ac
+  %16:ac, %17:cc, dead %26:vc = ADCAbs %16:ac(tied-def 0), @counter, %17:cc(tied-def 1)
+  %19:cc = COPY killed %17:cc
+  %18:ac = COPY killed %2:ac
+  %18:ac, dead %19:cc, dead %25:vc = ADCAbs %18:ac(tied-def 0), @counter + 1, %19:cc(tied-def 1)
+  STAbs %16:ac, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs %18:ac, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $a = COPY killed %16:ac
+  $x = COPY killed %18:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Slot index numbering (slotindexes) on global_rw omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on global_rw ***
+# Machine code for function global_rw: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %1:ac = COPY $a
+  %2:ac = COPY $x
+  %20:cc = LDImm1 0
+  %17:cc = COPY %20:cc
+  %16:ac = COPY %1:ac
+  %16:ac, %17:cc, dead %26:vc = ADCAbs %16:ac(tied-def 0), @counter, %17:cc(tied-def 1)
+  %19:cc = COPY %17:cc
+  %18:ac = COPY %2:ac
+  %18:ac, dead %19:cc, dead %25:vc = ADCAbs %18:ac(tied-def 0), @counter + 1, %19:cc(tied-def 1)
+  STAbs %16:ac, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs %18:ac, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $a = COPY %16:ac
+  $x = COPY %18:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Register Coalescer (register-coalescer) on global_rw ***
+# Machine code for function global_rw: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %16:ac = COPY $a
+  %18:ac = COPY $x
+  %19:cc = LDImm1 0
+  %16:ac, %19:cc, dead %26:vc = ADCAbs %16:ac(tied-def 0), @counter, %19:cc(tied-def 1)
+  %18:ac, dead %19:cc, dead %25:vc = ADCAbs %18:ac(tied-def 0), @counter + 1, %19:cc(tied-def 1)
+  STAbs %16:ac, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs %18:ac, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $a = COPY %16:ac
+  $x = COPY %18:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Register Coalescer (register-coalescer) on global_rw omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on global_rw omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on global_rw omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on global_rw ***
+# Machine code for function global_rw: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %16:ac = COPY $a
+  %18:ac = COPY $x
+  %19:cc = LDImm1 0
+  %16:ac, %19:cc, dead %26:vc = ADCAbs %16:ac(tied-def 0), @counter, %19:cc(tied-def 1)
+  %18:ac, dead %19:cc, dead %25:vc = ADCAbs %18:ac(tied-def 0), @counter + 1, %19:cc(tied-def 1)
+  STAbs %16:ac, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs %18:ac, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $x = COPY %18:ac
+  $a = COPY %16:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on global_rw ***
+# Machine code for function global_rw: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %16:ac = COPY $a
+  %18:ac = COPY $x
+  %19:cc = LDImm1 0
+  %16:ac, %19:cc, dead %26:vc = ADCAbs %16:ac(tied-def 0), @counter, %19:cc(tied-def 1)
+  %18:ac, dead %19:cc, dead %25:vc = ADCAbs %18:ac(tied-def 0), @counter + 1, %19:cc(tied-def 1)
+  STAbs %16:ac, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs %18:ac, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $x = COPY %18:ac
+  $a = COPY %16:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on global_rw omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on global_rw omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on global_rw omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on global_rw omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on global_rw omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on global_rw omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on global_rw omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on global_rw ***
+# Machine code for function global_rw: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %27:anyi8 = COPY $a
+  %33:anyi8 = COPY $x
+  %19:cc = LDImm1 0
+  %28:ac = COPY %27:anyi8
+  %28:ac, %19:cc, dead %26:vc = ADCAbs %28:ac(tied-def 0), @counter, %19:cc(tied-def 1)
+  %30:anyi8 = COPY %28:ac
+  %34:ac = COPY %33:anyi8
+  %34:ac, dead %19:cc, dead %25:vc = ADCAbs %34:ac(tied-def 0), @counter + 1, %19:cc(tied-def 1)
+  %35:anyi8 = COPY %34:ac
+  %29:gpr = COPY %30:anyi8
+  STAbs %29:gpr, @counter :: (store (s8) into @counter, !tbaa !2)
+  %32:gpr = COPY %35:anyi8
+  STAbs %32:gpr, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $x = COPY %32:gpr
+  $a = COPY %30:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on global_rw ***
+# Machine code for function global_rw: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCAbs killed renamable $a(tied-def 0), @counter, killed renamable $c(tied-def 1)
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCAbs killed renamable $a(tied-def 0), @counter + 1, killed renamable $c(tied-def 1)
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY renamable $y
+  STAbs killed renamable $a, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs renamable $x, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on global_rw omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on global_rw omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on global_rw ***
+# Machine code for function global_rw: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCAbs killed renamable $a(tied-def 0), @counter, killed renamable $c(tied-def 1)
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCAbs killed renamable $a(tied-def 0), @counter + 1, killed renamable $c(tied-def 1)
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY renamable $y
+  STAbs $y, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs renamable $x, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  RTS implicit $a, implicit $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on global_rw omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on global_rw omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on global_rw omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on global_rw omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on global_rw omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on global_rw omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on global_rw omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on global_rw omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on global_rw omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on global_rw omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on global_rw omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on global_rw omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on global_rw omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on global_rw omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on global_rw omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on global_rw omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on global_rw omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on global_rw omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on global_rw omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on global_rw omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on global_rw omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on global_rw ***
+# Machine code for function global_rw: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCAbs killed renamable $a(tied-def 0), @counter, killed renamable $c(tied-def 1)
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCAbs killed renamable $a(tied-def 0), @counter + 1, killed renamable $c(tied-def 1)
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY renamable $y
+  STAbs killed $y, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs renamable $x, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on global_rw ***
+# Machine code for function global_rw: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCAbs killed renamable $a(tied-def 0), @counter, killed renamable $c(tied-def 1)
+  $y = TA $a
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCAbs killed renamable $a(tied-def 0), @counter + 1, killed renamable $c(tied-def 1)
+  $x = TA $a
+  $a = T_A $y
+  STAbs killed $y, @counter :: (store (s8) into @counter, !tbaa !2)
+  STAbs renamable $x, @counter + 1 :: (store (s8) into @counter + 1, !tbaa !2)
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function global_rw.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on global_rw omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on global_rw omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on global_rw omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on global_rw omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on global_rw omitted because no change ***
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on global_rw omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on global_rw omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on global_rw omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on global_rw omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on global_rw omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on global_rw omitted because no change ***
+*** IR Dump After Insert fentry calls (fentry-insert) on global_rw omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on global_rw omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on global_rw omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on global_rw omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on global_rw omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on global_rw omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on global_rw omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on global_rw omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on global_rw omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on global_rw omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on global_rw omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on global_rw omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on global_rw omitted because no change ***

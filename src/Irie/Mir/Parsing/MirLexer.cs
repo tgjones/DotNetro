@@ -47,6 +47,11 @@ internal sealed class MirLexer
             case '[': Advance(); return new MirToken(MirTokenKind.LBracket, line, col);
             case ']': Advance(); return new MirToken(MirTokenKind.RBracket, line, col);
 
+            // `+` is only meaningful as a symbol-offset separator (`@name+N`).
+            // A following digit is read as part of the integer there; a bare
+            // `+` becomes a Plus token the parser consumes after a symbol name.
+            case '+': Advance(); return new MirToken(MirTokenKind.Plus, line, col);
+
             case '-':
                 if (_reader.Peek() == '>')
                 {

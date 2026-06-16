@@ -1,0 +1,4473 @@
+*** IR Dump At Start ***
+; ModuleID = './constraints/compare-flags.c'
+source_filename = "./constraints/compare-flags.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local zeroext i8 @compare_flags(i16 noundef %0, i16 noundef %1, i16 noundef %2) #0 {
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  store i16 %0, ptr %4, align 1, !tbaa !2
+  store i16 %1, ptr %5, align 1, !tbaa !2
+  store i16 %2, ptr %6, align 1, !tbaa !2
+  %7 = load i16, ptr %4, align 1, !tbaa !2
+  %8 = load i16, ptr %5, align 1, !tbaa !2
+  %9 = icmp slt i16 %7, %8
+  %10 = zext i1 %9 to i16
+  %11 = load i16, ptr %5, align 1, !tbaa !2
+  %12 = load i16, ptr %6, align 1, !tbaa !2
+  %13 = icmp slt i16 %11, %12
+  %14 = zext i1 %13 to i16
+  %15 = and i16 %10, %14
+  %16 = load i16, ptr %4, align 1, !tbaa !2
+  %17 = load i16, ptr %6, align 1, !tbaa !2
+  %18 = icmp ne i16 %16, %17
+  %19 = zext i1 %18 to i16
+  %20 = and i16 %15, %19
+  %21 = trunc i16 %20 to i8
+  ret i8 %21
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on compare_flags omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on compare_flags omitted because no change ***
+*** IR Dump After SimplifyCFGPass on compare_flags omitted because no change ***
+*** IR Dump After SROAPass on compare_flags ***
+; Function Attrs: nounwind optsize
+define dso_local zeroext i8 @compare_flags(i16 noundef %0, i16 noundef %1, i16 noundef %2) #0 {
+  %4 = icmp slt i16 %0, %1
+  %5 = zext i1 %4 to i16
+  %6 = icmp slt i16 %1, %2
+  %7 = zext i1 %6 to i16
+  %8 = and i16 %5, %7
+  %9 = icmp ne i16 %0, %2
+  %10 = zext i1 %9 to i16
+  %11 = and i16 %8, %10
+  %12 = trunc i16 %11 to i8
+  ret i8 %12
+}
+*** IR Dump After EarlyCSEPass on compare_flags omitted because no change ***
+*** IR Pass PassManager<Function> on compare_flags ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] ***
+; ModuleID = './constraints/compare-flags.c'
+source_filename = "./constraints/compare-flags.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local zeroext range(i8 0, 2) i8 @compare_flags(i16 noundef %0, i16 noundef %1, i16 noundef %2) #0 {
+  %4 = icmp slt i16 %0, %1
+  %5 = zext i1 %4 to i16
+  %6 = icmp slt i16 %1, %2
+  %7 = zext i1 %6 to i16
+  %8 = and i16 %5, %7
+  %9 = icmp ne i16 %0, %2
+  %10 = zext i1 %9 to i16
+  %11 = and i16 %8, %10
+  %12 = trunc nuw nsw i16 %11 to i8
+  ret i8 %12
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './constraints/compare-flags.c'
+source_filename = "./constraints/compare-flags.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local zeroext range(i8 0, 2) i8 @compare_flags(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+  %4 = icmp slt i16 %0, %1
+  %5 = zext i1 %4 to i16
+  %6 = icmp slt i16 %1, %2
+  %7 = zext i1 %6 to i16
+  %8 = and i16 %5, %7
+  %9 = icmp ne i16 %0, %2
+  %10 = zext i1 %9 to i16
+  %11 = and i16 %8, %10
+  %12 = trunc nuw nsw i16 %11 to i8
+  ret i8 %12
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on compare_flags omitted because no change ***
+*** IR Dump After InstCombinePass on compare_flags ***
+; Function Attrs: nounwind optsize
+define dso_local zeroext range(i8 0, 2) i8 @compare_flags(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+  %4 = icmp slt i16 %0, %1
+  %5 = icmp slt i16 %1, %2
+  %6 = and i1 %4, %5
+  %7 = icmp ne i16 %0, %2
+  %8 = and i1 %6, %7
+  %9 = zext i1 %8 to i8
+  ret i8 %9
+}
+*** IR Dump After SimplifyCFGPass on compare_flags omitted because no change ***
+*** IR Pass PassManager<Function> on compare_flags ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on compare_flags omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (compare_flags) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (compare_flags) omitted because no change ***
+*** IR Dump After SROAPass on compare_flags omitted because no change ***
+*** IR Dump After EarlyCSEPass on compare_flags omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on compare_flags omitted because no change ***
+*** IR Dump After JumpThreadingPass on compare_flags omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on compare_flags omitted because no change ***
+*** IR Dump After SimplifyCFGPass on compare_flags omitted because no change ***
+*** IR Dump After InstCombinePass on compare_flags omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on compare_flags omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on compare_flags omitted because no change ***
+*** IR Dump After TailCallElimPass on compare_flags omitted because no change ***
+*** IR Dump After SimplifyCFGPass on compare_flags omitted because no change ***
+*** IR Dump After ReassociatePass on compare_flags ***
+; Function Attrs: nounwind optsize
+define dso_local zeroext range(i8 0, 2) i8 @compare_flags(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+  %4 = icmp slt i16 %0, %1
+  %5 = icmp slt i16 %1, %2
+  %6 = and i1 %4, %5
+  %7 = icmp ne i16 %0, %2
+  %8 = and i1 %7, %6
+  %9 = zext i1 %8 to i8
+  ret i8 %9
+}
+*** IR Dump After ConstraintEliminationPass on compare_flags omitted because no change ***
+*** IR Dump After LoopSimplifyPass on compare_flags omitted because no change ***
+*** IR Dump After LCSSAPass on compare_flags omitted because no change ***
+*** IR Pass PassManager<Function> on compare_flags ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on compare_flags ignored ***
+*** IR Dump After SimplifyCFGPass on compare_flags omitted because no change ***
+*** IR Dump After InstCombinePass on compare_flags omitted because no change ***
+*** IR Dump After LoopSimplifyPass on compare_flags omitted because no change ***
+*** IR Dump After LCSSAPass on compare_flags omitted because no change ***
+*** IR Pass PassManager<Function> on compare_flags ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on compare_flags ignored ***
+*** IR Dump After SROAPass on compare_flags omitted because no change ***
+*** IR Dump After VectorCombinePass on compare_flags omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on compare_flags omitted because no change ***
+*** IR Dump After GVNPass on compare_flags omitted because no change ***
+*** IR Dump After SCCPPass on compare_flags omitted because no change ***
+*** IR Dump After BDCEPass on compare_flags omitted because no change ***
+*** IR Dump After InstCombinePass on compare_flags omitted because no change ***
+*** IR Dump After JumpThreadingPass on compare_flags omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on compare_flags omitted because no change ***
+*** IR Dump After ADCEPass on compare_flags omitted because no change ***
+*** IR Dump After MemCpyOptPass on compare_flags omitted because no change ***
+*** IR Dump After DSEPass on compare_flags omitted because no change ***
+*** IR Dump After MoveAutoInitPass on compare_flags omitted because no change ***
+*** IR Dump After LoopSimplifyPass on compare_flags omitted because no change ***
+*** IR Dump After LCSSAPass on compare_flags omitted because no change ***
+*** IR Pass PassManager<Function> on compare_flags ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on compare_flags ignored ***
+*** IR Dump After CoroElidePass on compare_flags omitted because no change ***
+*** IR Dump After SimplifyCFGPass on compare_flags omitted because no change ***
+*** IR Dump After InstCombinePass on compare_flags omitted because no change ***
+*** IR Pass PassManager<Function> on compare_flags ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (compare_flags) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (compare_flags) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local zeroext range(i8 0, 2) i8 @compare_flags(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+  %4 = icmp slt i16 %0, %1
+  %5 = icmp slt i16 %1, %2
+  %6 = and i1 %4, %5
+  %7 = icmp ne i16 %0, %2
+  %8 = and i1 %7, %6
+  %9 = zext i1 %8 to i8
+  ret i8 %9
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on compare_flags omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (compare_flags) ignored ***
+*** IR Dump After CoroSplitPass on (compare_flags) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (compare_flags) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (compare_flags) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (compare_flags) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on compare_flags omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on compare_flags omitted because no change ***
+*** IR Dump After Float2IntPass on compare_flags omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on compare_flags omitted because no change ***
+*** IR Dump After LoopSimplifyPass on compare_flags omitted because no change ***
+*** IR Dump After LCSSAPass on compare_flags omitted because no change ***
+*** IR Pass PassManager<Function> on compare_flags ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on compare_flags ignored ***
+*** IR Dump After LoopDistributePass on compare_flags omitted because no change ***
+*** IR Dump After InjectTLIMappings on compare_flags omitted because no change ***
+*** IR Dump After LoopVectorizePass on compare_flags omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on compare_flags omitted because no change ***
+*** IR Dump After InferAlignmentPass on compare_flags omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on compare_flags omitted because no change ***
+*** IR Dump After InstCombinePass on compare_flags omitted because no change ***
+*** IR Dump After SimplifyCFGPass on compare_flags omitted because no change ***
+*** IR Dump After SLPVectorizerPass on compare_flags omitted because no change ***
+*** IR Dump After VectorCombinePass on compare_flags omitted because no change ***
+*** IR Dump After InstCombinePass on compare_flags omitted because no change ***
+*** IR Dump After LoopUnrollPass on compare_flags omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on compare_flags omitted because no change ***
+*** IR Dump After SROAPass on compare_flags omitted because no change ***
+*** IR Dump After InferAlignmentPass on compare_flags omitted because no change ***
+*** IR Dump After InstCombinePass on compare_flags omitted because no change ***
+*** IR Dump After LoopSimplifyPass on compare_flags omitted because no change ***
+*** IR Dump After LCSSAPass on compare_flags omitted because no change ***
+*** IR Pass PassManager<Function> on compare_flags ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on compare_flags ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on compare_flags omitted because no change ***
+*** IR Dump After LoopSinkPass on compare_flags omitted because no change ***
+*** IR Dump After InstSimplifyPass on compare_flags omitted because no change ***
+*** IR Dump After DivRemPairsPass on compare_flags omitted because no change ***
+*** IR Dump After MergeICmpsPass on compare_flags omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on compare_flags omitted because no change ***
+*** IR Dump After TailCallElimPass on compare_flags omitted because no change ***
+*** IR Dump After SimplifyCFGPass on compare_flags omitted because no change ***
+*** IR Pass PassManager<Function> on compare_flags ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on compare_flags omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on compare_flags omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on compare_flags ***
+# Machine code for function compare_flags: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:_(s8) = COPY $a
+  %4:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %3:_(s8), %4:_(s8)
+  %5:_(s8) = COPY $rc2
+  %6:_(s8) = COPY $rc3
+  %1:_(s16) = G_MERGE_VALUES %5:_(s8), %6:_(s8)
+  %7:_(s8) = COPY $rc4
+  %8:_(s8) = COPY $rc5
+  %2:_(s16) = G_MERGE_VALUES %7:_(s8), %8:_(s8)
+  %9:_(s1) = G_ICMP intpred(slt), %0:_(s16), %1:_
+  %10:_(s1) = G_ICMP intpred(slt), %1:_(s16), %2:_
+  %11:_(s1) = G_AND %9:_, %10:_
+  %12:_(s1) = G_ICMP intpred(ne), %0:_(s16), %2:_
+  %13:_(s1) = G_AND %12:_, %11:_
+  %14:_(s8) = G_ZEXT %13:_(s1)
+  $a = COPY %14:_(s8)
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on compare_flags omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on compare_flags omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on compare_flags omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on compare_flags omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on compare_flags omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on compare_flags omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on compare_flags omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on compare_flags ***
+# Machine code for function compare_flags: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:_(s8) = COPY $a
+  %4:_(s8) = COPY $x
+  %5:_(s8) = COPY $rc2
+  %6:_(s8) = COPY $rc3
+  %7:_(s8) = COPY $rc4
+  %8:_(s8) = COPY $rc5
+  %19:_(s1) = G_CONSTANT i1 true
+  %66:_(s8), %67:_(s1), %68:_, %69:_, %70:_ = G_SBC %3:_, %5:_, %19:_
+  %71:_(s8), %72:_(s1), %73:_, %74:_, %75:_ = G_SBC %4:_, %6:_, %67:_
+  %56:_(s8) = G_CONSTANT i8 -128
+  %76:_(s8) = G_XOR %71:_, %56:_
+  %58:_(s8) = G_CONSTANT i8 0
+  %77:_(s8) = G_SELECT %74:_(s1), %76:_, %71:_
+  %78:_(s8), %79:_(s1), %80:_, %81:_, %82:_ = G_SBC %77:_, %58:_, %19:_
+  %28:_(s1) = G_CONSTANT i1 false
+  %83:_(s1) = G_SELECT %80:_(s1), %19:_, %28:_
+  %9:_(s1) = COPY %83:_(s1)
+  %46:_(s8), %47:_(s1), %48:_, %49:_, %50:_ = G_SBC %5:_, %7:_, %19:_
+  %51:_(s8), %52:_(s1), %53:_, %54:_, %55:_ = G_SBC %6:_, %8:_, %47:_
+  %57:_(s8) = G_XOR %51:_, %56:_
+  %59:_(s8) = G_SELECT %54:_(s1), %57:_, %51:_
+  %60:_(s8), %61:_(s1), %62:_, %63:_, %64:_ = G_SBC %59:_, %58:_, %19:_
+  %65:_(s1) = G_SELECT %62:_(s1), %19:_, %28:_
+  %10:_(s1) = COPY %65:_(s1)
+  %21:_(s8) = G_CONSTANT i8 1
+  %41:_(s8) = G_SELECT %9:_(s1), %21:_, %58:_
+  %42:_(s8) = G_SELECT %10:_(s1), %21:_, %58:_
+  %43:_(s8) = G_AND %41:_, %42:_
+  %36:_(s8), %37:_(s1), %38:_, %39:_, %40:_ = G_SBC %4:_, %8:_, %19:_
+  %27:_(s1) = COPY %40:_(s1)
+  %30:_(s8), %31:_(s1), %32:_, %33:_, %34:_ = G_SBC %3:_, %7:_, %19:_
+  %35:_(s1) = G_SELECT %34:_(s1), %19:_, %28:_
+  %29:_(s1) = COPY %35:_(s1)
+  %18:_(s1) = G_SELECT %27:_(s1), %29:_, %28:_
+  %20:_(s8) = G_SELECT %18:_(s1), %21:_, %58:_
+  %22:_(s8) = G_XOR %20:_, %21:_
+  %17:_(s8) = G_AND %22:_, %43:_
+  %14:_(s8) = G_AND %17:_, %21:_
+  $a = COPY %14:_(s8)
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on compare_flags omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on compare_flags omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on compare_flags omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on compare_flags ***
+# Machine code for function compare_flags: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:_(s8) = COPY $a
+  %4:_(s8) = COPY $x
+  %5:_(s8) = COPY $rc2
+  %6:_(s8) = COPY $rc3
+  %7:_(s8) = COPY $rc4
+  %8:_(s8) = COPY $rc5
+  %19:_(s1) = G_CONSTANT i1 true
+  %66:_(s8), %67:_(s1), %68:_, %69:_, %70:_ = G_SBC %3:_, %5:_, %19:_
+  %71:_(s8), %72:_(s1), %73:_, %74:_, %75:_ = G_SBC %4:_, %6:_, %67:_
+  %56:_(s8) = G_CONSTANT i8 -128
+  %76:_(s8) = G_XOR %71:_, %56:_
+  %58:_(s8) = G_CONSTANT i8 0
+  %77:_(s8) = G_SELECT %74:_(s1), %76:_, %71:_
+  %78:_(s8), %79:_(s1), %80:_, %81:_, %82:_ = G_SBC %77:_, %58:_, %19:_
+  %28:_(s1) = G_CONSTANT i1 false
+  %83:_(s1) = G_SELECT %80:_(s1), %19:_, %28:_
+  %46:_(s8), %47:_(s1), %48:_, %49:_, %50:_ = G_SBC %5:_, %7:_, %19:_
+  %51:_(s8), %52:_(s1), %53:_, %54:_, %55:_ = G_SBC %6:_, %8:_, %47:_
+  %57:_(s8) = G_XOR %51:_, %56:_
+  %59:_(s8) = G_SELECT %54:_(s1), %57:_, %51:_
+  %60:_(s8), %61:_(s1), %62:_, %63:_, %64:_ = G_SBC %59:_, %58:_, %19:_
+  %65:_(s1) = G_SELECT %62:_(s1), %19:_, %28:_
+  %21:_(s8) = G_CONSTANT i8 1
+  %41:_(s8) = G_SELECT %83:_(s1), %21:_, %58:_
+  %42:_(s8) = G_SELECT %65:_(s1), %21:_, %58:_
+  %43:_(s8) = G_AND %41:_, %42:_
+  %36:_(s8), %37:_(s1), %38:_, %39:_, %40:_ = G_SBC %4:_, %8:_, %19:_
+  %30:_(s8), %31:_(s1), %32:_, %33:_, %34:_ = G_SBC %3:_, %7:_, %19:_
+  %35:_(s1) = G_SELECT %34:_(s1), %19:_, %28:_
+  %18:_(s1) = G_SELECT %40:_(s1), %35:_, %28:_
+  %22:_(s8) = G_SELECT %18:_(s1), %58:_, %21:_
+  %17:_(s8) = G_AND %22:_, %43:_
+  $a = COPY %17:_(s8)
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on compare_flags ***
+# Machine code for function compare_flags: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.3):
+  successors: %bb.26(0x40000000), %bb.27(0x40000000); %bb.26(50.00%), %bb.27(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:_(s8) = COPY $a
+  %4:_(s8) = COPY $x
+  %5:_(s8) = COPY $rc2
+  %6:_(s8) = COPY $rc3
+  %7:_(s8) = COPY $rc4
+  %8:_(s8) = COPY $rc5
+  %19:_(s1) = G_CONSTANT i1 true
+  %66:_(s8), %67:_(s1), %68:_, %69:_, %70:_ = G_SBC %3:_, %5:_, %19:_
+  %71:_(s8), %72:_(s1), %73:_, %74:_, %75:_ = G_SBC %4:_, %6:_, %67:_
+  %56:_(s8) = G_CONSTANT i8 -128
+  %58:_(s8) = G_CONSTANT i8 0
+  G_BRCOND_IMM %74:_(s1), %bb.26, 1
+  G_BR %bb.27
+
+bb.26 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.28(0x80000000); %bb.28(100.00%)
+
+  %76:_(s8) = G_XOR %71:_, %56:_
+  G_BR %bb.28
+
+bb.27 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.28(0x80000000); %bb.28(100.00%)
+
+  G_BR %bb.28
+
+bb.28 (%ir-block.3):
+; predecessors: %bb.26, %bb.27
+  successors: %bb.23(0x40000000), %bb.24(0x40000000); %bb.23(50.00%), %bb.24(50.00%)
+
+  %77:_(s8) = G_PHI %76:_(s8), %bb.26, %71:_(s8), %bb.27
+  %78:_(s8), %79:_(s1), %80:_, %81:_, %82:_ = G_SBC %77:_, %58:_, %19:_
+  %28:_(s1) = G_CONSTANT i1 false
+  G_BRCOND_IMM %80:_(s1), %bb.23, 1
+  G_BR %bb.24
+
+bb.23 (%ir-block.3):
+; predecessors: %bb.28
+  successors: %bb.25(0x80000000); %bb.25(100.00%)
+
+  G_BR %bb.25
+
+bb.24 (%ir-block.3):
+; predecessors: %bb.28
+  successors: %bb.25(0x80000000); %bb.25(100.00%)
+
+  G_BR %bb.25
+
+bb.25 (%ir-block.3):
+; predecessors: %bb.23, %bb.24
+  successors: %bb.20(0x40000000), %bb.21(0x40000000); %bb.20(50.00%), %bb.21(50.00%)
+
+  %83:_(s1) = G_PHI %19:_(s1), %bb.23, %28:_(s1), %bb.24
+  %46:_(s8), %47:_(s1), %48:_, %49:_, %50:_ = G_SBC %5:_, %7:_, %19:_
+  %51:_(s8), %52:_(s1), %53:_, %54:_, %55:_ = G_SBC %6:_, %8:_, %47:_
+  G_BRCOND_IMM %54:_(s1), %bb.20, 1
+  G_BR %bb.21
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.25
+  successors: %bb.22(0x80000000); %bb.22(100.00%)
+
+  %57:_(s8) = G_XOR %51:_, %56:_
+  G_BR %bb.22
+
+bb.21 (%ir-block.3):
+; predecessors: %bb.25
+  successors: %bb.22(0x80000000); %bb.22(100.00%)
+
+  G_BR %bb.22
+
+bb.22 (%ir-block.3):
+; predecessors: %bb.20, %bb.21
+  successors: %bb.17(0x40000000), %bb.18(0x40000000); %bb.17(50.00%), %bb.18(50.00%)
+
+  %59:_(s8) = G_PHI %57:_(s8), %bb.20, %51:_(s8), %bb.21
+  %60:_(s8), %61:_(s1), %62:_, %63:_, %64:_ = G_SBC %59:_, %58:_, %19:_
+  G_BRCOND_IMM %62:_(s1), %bb.17, 1
+  G_BR %bb.18
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.22
+  successors: %bb.19(0x80000000); %bb.19(100.00%)
+
+  G_BR %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.22
+  successors: %bb.19(0x80000000); %bb.19(100.00%)
+
+  G_BR %bb.19
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.18
+  successors: %bb.14(0x40000000), %bb.15(0x40000000); %bb.14(50.00%), %bb.15(50.00%)
+
+  %65:_(s1) = G_PHI %19:_(s1), %bb.17, %28:_(s1), %bb.18
+  %21:_(s8) = G_CONSTANT i8 1
+  G_BRCOND_IMM %83:_(s1), %bb.14, 1
+  G_BR %bb.15
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.19
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  G_BR %bb.16
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.19
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  G_BR %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.14, %bb.15
+  successors: %bb.11(0x40000000), %bb.12(0x40000000); %bb.11(50.00%), %bb.12(50.00%)
+
+  %41:_(s8) = G_PHI %21:_(s8), %bb.14, %58:_(s8), %bb.15
+  G_BRCOND_IMM %65:_(s1), %bb.11, 1
+  G_BR %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.13(0x80000000); %bb.13(100.00%)
+
+  G_BR %bb.13
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.13(0x80000000); %bb.13(100.00%)
+
+  G_BR %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.11, %bb.12
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+
+  %42:_(s8) = G_PHI %21:_(s8), %bb.11, %58:_(s8), %bb.12
+  %43:_(s8) = G_AND %41:_, %42:_
+  %36:_(s8), %37:_(s1), %38:_, %39:_, %40:_ = G_SBC %4:_, %8:_, %19:_
+  G_BRCOND_IMM %40:_(s1), %bb.5, 1
+  G_BR %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.13
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+
+  %30:_(s8), %31:_(s1), %32:_, %33:_, %34:_ = G_SBC %3:_, %7:_, %19:_
+  G_BRCOND_IMM %34:_(s1), %bb.8, 1
+  G_BR %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  G_BR %bb.2
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  G_BR %bb.10
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  G_BR %bb.7
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.13
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  G_BR %bb.7
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6, %bb.10
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  G_BR %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.8
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2, %bb.3
+
+  %22:_(s8) = G_PHI %58:_(s8), %bb.2, %21:_(s8), %bb.3
+  %17:_(s8) = G_AND %22:_, %43:_
+  $a = COPY %17:_(s8)
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After RegBankSelect (regbankselect) on compare_flags ***
+# Machine code for function compare_flags: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.3):
+  successors: %bb.26(0x40000000), %bb.27(0x40000000); %bb.26(50.00%), %bb.27(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:any(s8) = COPY $a
+  %4:any(s8) = COPY $x
+  %5:any(s8) = COPY $rc2
+  %6:any(s8) = COPY $rc3
+  %7:any(s8) = COPY $rc4
+  %8:any(s8) = COPY $rc5
+  %19:any(s1) = G_CONSTANT i1 true
+  %66:any(s8), %67:any(s1), %68:any, %69:any, %70:any = G_SBC %3:any, %5:any, %19:any
+  %71:any(s8), %72:any(s1), %73:any, %74:any, %75:any = G_SBC %4:any, %6:any, %67:any
+  %56:any(s8) = G_CONSTANT i8 -128
+  %58:any(s8) = G_CONSTANT i8 0
+  G_BRCOND_IMM %74:any(s1), %bb.26, 1
+  G_BR %bb.27
+
+bb.26 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.28(0x80000000); %bb.28(100.00%)
+
+  %76:any(s8) = G_XOR %71:any, %56:any
+  G_BR %bb.28
+
+bb.27 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.28(0x80000000); %bb.28(100.00%)
+
+  G_BR %bb.28
+
+bb.28 (%ir-block.3):
+; predecessors: %bb.26, %bb.27
+  successors: %bb.23(0x40000000), %bb.24(0x40000000); %bb.23(50.00%), %bb.24(50.00%)
+
+  %77:any(s8) = G_PHI %76:any(s8), %bb.26, %71:any(s8), %bb.27
+  %78:any(s8), %79:any(s1), %80:any, %81:any, %82:any = G_SBC %77:any, %58:any, %19:any
+  %28:any(s1) = G_CONSTANT i1 false
+  G_BRCOND_IMM %80:any(s1), %bb.23, 1
+  G_BR %bb.24
+
+bb.23 (%ir-block.3):
+; predecessors: %bb.28
+  successors: %bb.25(0x80000000); %bb.25(100.00%)
+
+  G_BR %bb.25
+
+bb.24 (%ir-block.3):
+; predecessors: %bb.28
+  successors: %bb.25(0x80000000); %bb.25(100.00%)
+
+  G_BR %bb.25
+
+bb.25 (%ir-block.3):
+; predecessors: %bb.23, %bb.24
+  successors: %bb.20(0x40000000), %bb.21(0x40000000); %bb.20(50.00%), %bb.21(50.00%)
+
+  %83:any(s1) = G_PHI %19:any(s1), %bb.23, %28:any(s1), %bb.24
+  %46:any(s8), %47:any(s1), %48:any, %49:any, %50:any = G_SBC %5:any, %7:any, %19:any
+  %51:any(s8), %52:any(s1), %53:any, %54:any, %55:any = G_SBC %6:any, %8:any, %47:any
+  G_BRCOND_IMM %54:any(s1), %bb.20, 1
+  G_BR %bb.21
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.25
+  successors: %bb.22(0x80000000); %bb.22(100.00%)
+
+  %57:any(s8) = G_XOR %51:any, %56:any
+  G_BR %bb.22
+
+bb.21 (%ir-block.3):
+; predecessors: %bb.25
+  successors: %bb.22(0x80000000); %bb.22(100.00%)
+
+  G_BR %bb.22
+
+bb.22 (%ir-block.3):
+; predecessors: %bb.20, %bb.21
+  successors: %bb.17(0x40000000), %bb.18(0x40000000); %bb.17(50.00%), %bb.18(50.00%)
+
+  %59:any(s8) = G_PHI %57:any(s8), %bb.20, %51:any(s8), %bb.21
+  %60:any(s8), %61:any(s1), %62:any, %63:any, %64:any = G_SBC %59:any, %58:any, %19:any
+  G_BRCOND_IMM %62:any(s1), %bb.17, 1
+  G_BR %bb.18
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.22
+  successors: %bb.19(0x80000000); %bb.19(100.00%)
+
+  G_BR %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.22
+  successors: %bb.19(0x80000000); %bb.19(100.00%)
+
+  G_BR %bb.19
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.18
+  successors: %bb.14(0x40000000), %bb.15(0x40000000); %bb.14(50.00%), %bb.15(50.00%)
+
+  %65:any(s1) = G_PHI %19:any(s1), %bb.17, %28:any(s1), %bb.18
+  %21:any(s8) = G_CONSTANT i8 1
+  G_BRCOND_IMM %83:any(s1), %bb.14, 1
+  G_BR %bb.15
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.19
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  G_BR %bb.16
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.19
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  G_BR %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.14, %bb.15
+  successors: %bb.11(0x40000000), %bb.12(0x40000000); %bb.11(50.00%), %bb.12(50.00%)
+
+  %41:any(s8) = G_PHI %21:any(s8), %bb.14, %58:any(s8), %bb.15
+  G_BRCOND_IMM %65:any(s1), %bb.11, 1
+  G_BR %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.13(0x80000000); %bb.13(100.00%)
+
+  G_BR %bb.13
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.13(0x80000000); %bb.13(100.00%)
+
+  G_BR %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.11, %bb.12
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+
+  %42:any(s8) = G_PHI %21:any(s8), %bb.11, %58:any(s8), %bb.12
+  %43:any(s8) = G_AND %41:any, %42:any
+  %36:any(s8), %37:any(s1), %38:any, %39:any, %40:any = G_SBC %4:any, %8:any, %19:any
+  G_BRCOND_IMM %40:any(s1), %bb.5, 1
+  G_BR %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.13
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+
+  %30:any(s8), %31:any(s1), %32:any, %33:any, %34:any = G_SBC %3:any, %7:any, %19:any
+  G_BRCOND_IMM %34:any(s1), %bb.8, 1
+  G_BR %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  G_BR %bb.2
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  G_BR %bb.10
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  G_BR %bb.7
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.13
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  G_BR %bb.7
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6, %bb.10
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  G_BR %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.8
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2, %bb.3
+
+  %22:any(s8) = G_PHI %58:any(s8), %bb.2, %21:any(s8), %bb.3
+  %17:any(s8) = G_AND %22:any, %43:any
+  $a = COPY %17:any(s8)
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Localizer (localizer) on compare_flags ***
+# Machine code for function compare_flags: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.3):
+  successors: %bb.26(0x40000000), %bb.27(0x40000000); %bb.26(50.00%), %bb.27(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:any(s8) = COPY $a
+  %4:any(s8) = COPY $x
+  %5:any(s8) = COPY $rc2
+  %6:any(s8) = COPY $rc3
+  %7:any(s8) = COPY $rc4
+  %8:any(s8) = COPY $rc5
+  %19:any(s1) = G_CONSTANT i1 true
+  %66:any(s8), %67:any(s1), %68:any, %69:any, %70:any = G_SBC %3:any, %5:any, %19:any
+  %71:any(s8), %72:any(s1), %73:any, %74:any, %75:any = G_SBC %4:any, %6:any, %67:any
+  %56:any(s8) = G_CONSTANT i8 -128
+  %58:any(s8) = G_CONSTANT i8 0
+  G_BRCOND_IMM %74:any(s1), %bb.26, 1
+  G_BR %bb.27
+
+bb.26 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.28(0x80000000); %bb.28(100.00%)
+
+  %90:any(s8) = G_CONSTANT i8 -128
+  %76:any(s8) = G_XOR %71:any, %90:any
+  G_BR %bb.28
+
+bb.27 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.28(0x80000000); %bb.28(100.00%)
+
+  G_BR %bb.28
+
+bb.28 (%ir-block.3):
+; predecessors: %bb.26, %bb.27
+  successors: %bb.23(0x40000000), %bb.24(0x40000000); %bb.23(50.00%), %bb.24(50.00%)
+
+  %77:any(s8) = G_PHI %76:any(s8), %bb.26, %71:any(s8), %bb.27
+  %85:any(s8) = G_CONSTANT i8 0
+  %94:any(s1) = G_CONSTANT i1 true
+  %78:any(s8), %79:any(s1), %80:any, %81:any, %82:any = G_SBC %77:any, %85:any, %94:any
+  %28:any(s1) = G_CONSTANT i1 false
+  G_BRCOND_IMM %80:any(s1), %bb.23, 1
+  G_BR %bb.24
+
+bb.23 (%ir-block.3):
+; predecessors: %bb.28
+  successors: %bb.25(0x80000000); %bb.25(100.00%)
+
+  %97:any(s1) = G_CONSTANT i1 true
+  G_BR %bb.25
+
+bb.24 (%ir-block.3):
+; predecessors: %bb.28
+  successors: %bb.25(0x80000000); %bb.25(100.00%)
+
+  G_BR %bb.25
+
+bb.25 (%ir-block.3):
+; predecessors: %bb.23, %bb.24
+  successors: %bb.20(0x40000000), %bb.21(0x40000000); %bb.20(50.00%), %bb.21(50.00%)
+
+  %83:any(s1) = G_PHI %97:any(s1), %bb.23, %28:any(s1), %bb.24
+  %92:any(s1) = G_CONSTANT i1 true
+  %46:any(s8), %47:any(s1), %48:any, %49:any, %50:any = G_SBC %5:any, %7:any, %92:any
+  %51:any(s8), %52:any(s1), %53:any, %54:any, %55:any = G_SBC %6:any, %8:any, %47:any
+  G_BRCOND_IMM %54:any(s1), %bb.20, 1
+  G_BR %bb.21
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.25
+  successors: %bb.22(0x80000000); %bb.22(100.00%)
+
+  %89:any(s8) = G_CONSTANT i8 -128
+  %57:any(s8) = G_XOR %51:any, %89:any
+  G_BR %bb.22
+
+bb.21 (%ir-block.3):
+; predecessors: %bb.25
+  successors: %bb.22(0x80000000); %bb.22(100.00%)
+
+  G_BR %bb.22
+
+bb.22 (%ir-block.3):
+; predecessors: %bb.20, %bb.21
+  successors: %bb.17(0x40000000), %bb.18(0x40000000); %bb.17(50.00%), %bb.18(50.00%)
+
+  %59:any(s8) = G_PHI %57:any(s8), %bb.20, %51:any(s8), %bb.21
+  %84:any(s8) = G_CONSTANT i8 0
+  %93:any(s1) = G_CONSTANT i1 true
+  %60:any(s8), %61:any(s1), %62:any, %63:any, %64:any = G_SBC %59:any, %84:any, %93:any
+  G_BRCOND_IMM %62:any(s1), %bb.17, 1
+  G_BR %bb.18
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.22
+  successors: %bb.19(0x80000000); %bb.19(100.00%)
+
+  %96:any(s1) = G_CONSTANT i1 true
+  G_BR %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.22
+  successors: %bb.19(0x80000000); %bb.19(100.00%)
+
+  G_BR %bb.19
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.18
+  successors: %bb.14(0x40000000), %bb.15(0x40000000); %bb.14(50.00%), %bb.15(50.00%)
+
+  %65:any(s1) = G_PHI %96:any(s1), %bb.17, %28:any(s1), %bb.18
+  %21:any(s8) = G_CONSTANT i8 1
+  G_BRCOND_IMM %83:any(s1), %bb.14, 1
+  G_BR %bb.15
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.19
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  G_BR %bb.16
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.19
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %88:any(s8) = G_CONSTANT i8 0
+  G_BR %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.14, %bb.15
+  successors: %bb.11(0x40000000), %bb.12(0x40000000); %bb.11(50.00%), %bb.12(50.00%)
+
+  %41:any(s8) = G_PHI %21:any(s8), %bb.14, %88:any(s8), %bb.15
+  G_BRCOND_IMM %65:any(s1), %bb.11, 1
+  G_BR %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.13(0x80000000); %bb.13(100.00%)
+
+  G_BR %bb.13
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.13(0x80000000); %bb.13(100.00%)
+
+  %87:any(s8) = G_CONSTANT i8 0
+  G_BR %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.11, %bb.12
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+
+  %42:any(s8) = G_PHI %21:any(s8), %bb.11, %87:any(s8), %bb.12
+  %43:any(s8) = G_AND %41:any, %42:any
+  %91:any(s1) = G_CONSTANT i1 true
+  %36:any(s8), %37:any(s1), %38:any, %39:any, %40:any = G_SBC %4:any, %8:any, %91:any
+  G_BRCOND_IMM %40:any(s1), %bb.5, 1
+  G_BR %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.13
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+
+  %95:any(s1) = G_CONSTANT i1 true
+  %30:any(s8), %31:any(s1), %32:any, %33:any, %34:any = G_SBC %3:any, %7:any, %95:any
+  G_BRCOND_IMM %34:any(s1), %bb.8, 1
+  G_BR %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  G_BR %bb.2
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  G_BR %bb.10
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  G_BR %bb.7
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.13
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  G_BR %bb.7
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6, %bb.10
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  G_BR %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.8
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %86:any(s8) = G_CONSTANT i8 0
+  G_BR %bb.4
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2, %bb.3
+
+  %22:any(s8) = G_PHI %86:any(s8), %bb.2, %21:any(s8), %bb.3
+  %17:any(s8) = G_AND %22:any, %43:any
+  $a = COPY %17:any(s8)
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on compare_flags omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on compare_flags ***
+# Machine code for function compare_flags: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.3):
+  successors: %bb.26(0x40000000), %bb.27(0x40000000); %bb.26(50.00%), %bb.27(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:gpr = COPY $a
+  %4:ac = COPY $x
+  %5:gpr = COPY $rc2
+  %6:ac = COPY $rc3
+  %7:imag8 = COPY $rc4
+  %8:imag8 = COPY $rc5
+  %100:imag8 = COPY %5:gpr
+  %67:cc = CMPImag8 %3:gpr, %100:imag8
+  %99:imag8 = COPY %6:ac
+  %71:ac, %72:cc, %74:vc = SBCImag8 %4:ac(tied-def 0), %99:imag8, %67:cc(tied-def 1)
+  GBR %bb.26, %74:vc, 1, implicit-def $c
+  JMP %bb.27
+
+bb.26 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.28(0x80000000); %bb.28(100.00%)
+
+  %76:ac = EORImm %71:ac(tied-def 0), -128
+  JMP %bb.28
+
+bb.27 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.28(0x80000000); %bb.28(100.00%)
+
+  JMP %bb.28
+
+bb.28 (%ir-block.3):
+; predecessors: %bb.26, %bb.27
+  successors: %bb.23(0x40000000), %bb.24(0x40000000); %bb.23(50.00%), %bb.24(50.00%)
+
+  %77:anyi8 = PHI %76:ac, %bb.26, %71:ac, %bb.27
+  %28:cv_gpr_lsb = LDImm1 0
+  CmpBrZero %bb.23, undef $n, 1, %77:anyi8, implicit-def $c
+  JMP %bb.24
+
+bb.23 (%ir-block.3):
+; predecessors: %bb.28
+  successors: %bb.25(0x80000000); %bb.25(100.00%)
+
+  %97:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.25
+
+bb.24 (%ir-block.3):
+; predecessors: %bb.28
+  successors: %bb.25(0x80000000); %bb.25(100.00%)
+
+  JMP %bb.25
+
+bb.25 (%ir-block.3):
+; predecessors: %bb.23, %bb.24
+  successors: %bb.20(0x40000000), %bb.21(0x40000000); %bb.20(50.00%), %bb.21(50.00%)
+
+  %83:anyi1 = PHI %97:cv_gpr_lsb, %bb.23, %28:cv_gpr_lsb, %bb.24
+  %47:cc = CMPImag8 %5:gpr, %7:imag8
+  %51:ac, %52:cc, %54:vc = SBCImag8 %6:ac(tied-def 0), %8:imag8, %47:cc(tied-def 1)
+  GBR %bb.20, %54:vc, 1, implicit-def $c
+  JMP %bb.21
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.25
+  successors: %bb.22(0x80000000); %bb.22(100.00%)
+
+  %57:ac = EORImm %51:ac(tied-def 0), -128
+  JMP %bb.22
+
+bb.21 (%ir-block.3):
+; predecessors: %bb.25
+  successors: %bb.22(0x80000000); %bb.22(100.00%)
+
+  JMP %bb.22
+
+bb.22 (%ir-block.3):
+; predecessors: %bb.20, %bb.21
+  successors: %bb.17(0x40000000), %bb.18(0x40000000); %bb.17(50.00%), %bb.18(50.00%)
+
+  %59:anyi8 = PHI %57:ac, %bb.20, %51:ac, %bb.21
+  CmpBrZero %bb.17, undef $n, 1, %59:anyi8, implicit-def $c
+  JMP %bb.18
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.22
+  successors: %bb.19(0x80000000); %bb.19(100.00%)
+
+  %96:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.22
+  successors: %bb.19(0x80000000); %bb.19(100.00%)
+
+  JMP %bb.19
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.18
+  successors: %bb.14(0x40000000), %bb.15(0x40000000); %bb.14(50.00%), %bb.15(50.00%)
+
+  %65:anyi1 = PHI %96:cv_gpr_lsb, %bb.17, %28:cv_gpr_lsb, %bb.18
+  %21:gpr = LDImm 1
+  GBR %bb.14, %83:anyi1, 1, implicit-def $c
+  JMP %bb.15
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.19
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  JMP %bb.16
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.19
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %88:gpr = LDImm 0
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.14, %bb.15
+  successors: %bb.11(0x40000000), %bb.12(0x40000000); %bb.11(50.00%), %bb.12(50.00%)
+
+  %41:ac = PHI %21:gpr, %bb.14, %88:gpr, %bb.15
+  GBR %bb.11, %65:anyi1, 1, implicit-def $c
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.13(0x80000000); %bb.13(100.00%)
+
+  JMP %bb.13
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.13(0x80000000); %bb.13(100.00%)
+
+  %87:gpr = LDImm 0
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.11, %bb.12
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+
+  %42:imag8 = PHI %21:gpr, %bb.11, %87:gpr, %bb.12
+  %98:ac = ANDImag8 %41:ac(tied-def 0), %42:imag8
+  %43:imag8 = COPY %98:ac
+  CmpBrImag8 %bb.5, undef $z, 1, %4:ac, %8:imag8, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.13
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+
+  CmpBrImag8 %bb.8, undef $z, 1, %3:gpr, %7:imag8, implicit-def $c
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  JMP %bb.2
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  JMP %bb.10
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  JMP %bb.7
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.13
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  JMP %bb.7
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6, %bb.10
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.8
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %86:gpr = LDImm 0
+  JMP %bb.4
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  JMP %bb.4
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2, %bb.3
+
+  %22:ac = PHI %86:gpr, %bb.2, %21:gpr, %bb.3
+  %17:ac = ANDImag8 %22:ac(tied-def 0), %43:imag8
+  $a = COPY %17:ac
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After ResetMachineFunction on compare_flags omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on compare_flags omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on compare_flags omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on compare_flags ***
+# Machine code for function compare_flags: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.3):
+  successors: %bb.26(0x40000000), %bb.27(0x40000000); %bb.26(50.00%), %bb.27(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:gpr = COPY $a
+  %4:ac = COPY $x
+  %5:gpr = COPY $rc2
+  %6:ac = COPY $rc3
+  %7:imag8 = COPY $rc4
+  %8:imag8 = COPY $rc5
+  %100:imag8 = COPY %5:gpr
+  %67:cc = CMPImag8 %3:gpr, %100:imag8
+  %99:imag8 = COPY %6:ac
+  %71:ac, %72:cc, %74:vc = SBCImag8 %4:ac(tied-def 0), %99:imag8, %67:cc(tied-def 1)
+  GBR %bb.26, %74:vc, 1, implicit-def $c
+  JMP %bb.27
+
+bb.26 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.28(0x80000000); %bb.28(100.00%)
+
+  %76:ac = EORImm %71:ac(tied-def 0), -128
+  JMP %bb.28
+
+bb.27 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.28(0x80000000); %bb.28(100.00%)
+
+  JMP %bb.28
+
+bb.28 (%ir-block.3):
+; predecessors: %bb.26, %bb.27
+  successors: %bb.23(0x40000000), %bb.24(0x40000000); %bb.23(50.00%), %bb.24(50.00%)
+
+  %77:anyi8 = PHI %76:ac, %bb.26, %71:ac, %bb.27
+  %28:cv_gpr_lsb = LDImm1 0
+  CmpBrZero %bb.23, undef $n, 1, %77:anyi8, implicit-def $c
+  JMP %bb.24
+
+bb.23 (%ir-block.3):
+; predecessors: %bb.28
+  successors: %bb.25(0x80000000); %bb.25(100.00%)
+
+  %97:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.25
+
+bb.24 (%ir-block.3):
+; predecessors: %bb.28
+  successors: %bb.25(0x80000000); %bb.25(100.00%)
+
+  JMP %bb.25
+
+bb.25 (%ir-block.3):
+; predecessors: %bb.23, %bb.24
+  successors: %bb.20(0x40000000), %bb.21(0x40000000); %bb.20(50.00%), %bb.21(50.00%)
+
+  %83:anyi1 = PHI %97:cv_gpr_lsb, %bb.23, %28:cv_gpr_lsb, %bb.24
+  %47:cc = CMPImag8 %5:gpr, %7:imag8
+  %51:ac, %52:cc, %54:vc = SBCImag8 %6:ac(tied-def 0), %8:imag8, %47:cc(tied-def 1)
+  GBR %bb.20, %54:vc, 1, implicit-def $c
+  JMP %bb.21
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.25
+  successors: %bb.22(0x80000000); %bb.22(100.00%)
+
+  %57:ac = EORImm %51:ac(tied-def 0), -128
+  JMP %bb.22
+
+bb.21 (%ir-block.3):
+; predecessors: %bb.25
+  successors: %bb.22(0x80000000); %bb.22(100.00%)
+
+  JMP %bb.22
+
+bb.22 (%ir-block.3):
+; predecessors: %bb.20, %bb.21
+  successors: %bb.17(0x40000000), %bb.18(0x40000000); %bb.17(50.00%), %bb.18(50.00%)
+
+  %59:anyi8 = PHI %57:ac, %bb.20, %51:ac, %bb.21
+  CmpBrZero %bb.17, undef $n, 1, %59:anyi8, implicit-def $c
+  JMP %bb.18
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.22
+  successors: %bb.19(0x80000000); %bb.19(100.00%)
+
+  %96:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.22
+  successors: %bb.19(0x80000000); %bb.19(100.00%)
+
+  JMP %bb.19
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.18
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+
+  %65:anyi1 = PHI %96:cv_gpr_lsb, %bb.17, %28:cv_gpr_lsb, %bb.18
+  %21:gpr = LDImm 1
+  GBR %bb.16, %83:anyi1, 1, implicit-def $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.19
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %88:gpr = LDImm 0
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.19
+  successors: %bb.13(0x40000000), %bb.12(0x40000000); %bb.13(50.00%), %bb.12(50.00%)
+
+  %41:ac = PHI %21:gpr, %bb.19, %88:gpr, %bb.15
+  GBR %bb.13, %65:anyi1, 1, implicit-def $c
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.13(0x80000000); %bb.13(100.00%)
+
+  %87:gpr = LDImm 0
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12, %bb.16
+  successors: %bb.5(0x40000000), %bb.3(0x40000000); %bb.5(50.00%), %bb.3(50.00%)
+
+  %42:imag8 = PHI %21:gpr, %bb.16, %87:gpr, %bb.12
+  %98:ac = ANDImag8 %41:ac(tied-def 0), %42:imag8
+  %43:imag8 = COPY %98:ac
+  CmpBrImag8 %bb.5, undef $z, 1, %4:ac, %8:imag8, implicit-def $c
+  JMP %bb.3
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.13
+  successors: %bb.2(0x40000000), %bb.3(0x40000000); %bb.2(50.00%), %bb.3(50.00%)
+
+  CmpBrImag8 %bb.2, undef $z, 1, %3:gpr, %7:imag8, implicit-def $c
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %86:gpr = LDImm 0
+  JMP %bb.4
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.5, %bb.13
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  JMP %bb.4
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2, %bb.3
+
+  %22:ac = PHI %86:gpr, %bb.2, %21:gpr, %bb.3
+  %17:ac = ANDImag8 %22:ac(tied-def 0), %43:imag8
+  $a = COPY %17:ac
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on compare_flags omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on compare_flags omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on compare_flags omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on compare_flags omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on compare_flags omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on compare_flags omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on compare_flags omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on compare_flags omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on compare_flags omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on compare_flags omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on compare_flags omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on compare_flags omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on compare_flags omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on compare_flags omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on compare_flags omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on compare_flags omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on compare_flags omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on compare_flags omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on compare_flags ***
+# Machine code for function compare_flags: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.3):
+  successors: %bb.26(0x40000000), %bb.27(0x40000000); %bb.26(50.00%), %bb.27(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:gpr = COPY $a
+  %4:ac = COPY $x
+  %5:gpr = COPY $rc2
+  %6:ac = COPY $rc3
+  %7:imag8 = COPY $rc4
+  %8:imag8 = COPY $rc5
+  %100:imag8 = COPY %5:gpr
+  %67:cc = CMPImag8 %3:gpr, %100:imag8
+  %99:imag8 = COPY %6:ac
+  %71:ac, dead %72:cc, %74:vc = SBCImag8 %4:ac(tied-def 0), %99:imag8, %67:cc(tied-def 1)
+  GBR %bb.26, %74:vc, 1, implicit-def $c
+  JMP %bb.27
+
+bb.26 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.28(0x80000000); %bb.28(100.00%)
+
+  %76:ac = EORImm %71:ac(tied-def 0), -128
+  JMP %bb.28
+
+bb.27 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.28(0x80000000); %bb.28(100.00%)
+
+  JMP %bb.28
+
+bb.28 (%ir-block.3):
+; predecessors: %bb.26, %bb.27
+  successors: %bb.23(0x40000000), %bb.24(0x40000000); %bb.23(50.00%), %bb.24(50.00%)
+
+  %77:anyi8 = PHI %76:ac, %bb.26, %71:ac, %bb.27
+  %28:cv_gpr_lsb = LDImm1 0
+  CmpBrZero %bb.23, undef $n, 1, %77:anyi8, implicit-def $c
+  JMP %bb.24
+
+bb.23 (%ir-block.3):
+; predecessors: %bb.28
+  successors: %bb.25(0x80000000); %bb.25(100.00%)
+
+  %97:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.25
+
+bb.24 (%ir-block.3):
+; predecessors: %bb.28
+  successors: %bb.25(0x80000000); %bb.25(100.00%)
+
+  JMP %bb.25
+
+bb.25 (%ir-block.3):
+; predecessors: %bb.23, %bb.24
+  successors: %bb.20(0x40000000), %bb.21(0x40000000); %bb.20(50.00%), %bb.21(50.00%)
+
+  %83:anyi1 = PHI %97:cv_gpr_lsb, %bb.23, %28:cv_gpr_lsb, %bb.24
+  %47:cc = CMPImag8 %5:gpr, %7:imag8
+  %51:ac, dead %52:cc, %54:vc = SBCImag8 %6:ac(tied-def 0), %8:imag8, %47:cc(tied-def 1)
+  GBR %bb.20, %54:vc, 1, implicit-def $c
+  JMP %bb.21
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.25
+  successors: %bb.22(0x80000000); %bb.22(100.00%)
+
+  %57:ac = EORImm %51:ac(tied-def 0), -128
+  JMP %bb.22
+
+bb.21 (%ir-block.3):
+; predecessors: %bb.25
+  successors: %bb.22(0x80000000); %bb.22(100.00%)
+
+  JMP %bb.22
+
+bb.22 (%ir-block.3):
+; predecessors: %bb.20, %bb.21
+  successors: %bb.17(0x40000000), %bb.18(0x40000000); %bb.17(50.00%), %bb.18(50.00%)
+
+  %59:anyi8 = PHI %57:ac, %bb.20, %51:ac, %bb.21
+  CmpBrZero %bb.17, undef $n, 1, %59:anyi8, implicit-def $c
+  JMP %bb.18
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.22
+  successors: %bb.19(0x80000000); %bb.19(100.00%)
+
+  %96:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.22
+  successors: %bb.19(0x80000000); %bb.19(100.00%)
+
+  JMP %bb.19
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.18
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+
+  %65:anyi1 = PHI %96:cv_gpr_lsb, %bb.17, %28:cv_gpr_lsb, %bb.18
+  %21:gpr = LDImm 1
+  GBR %bb.16, %83:anyi1, 1, implicit-def $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.19
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %88:gpr = LDImm 0
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.19
+  successors: %bb.13(0x40000000), %bb.12(0x40000000); %bb.13(50.00%), %bb.12(50.00%)
+
+  %41:ac = PHI %21:gpr, %bb.19, %88:gpr, %bb.15
+  GBR %bb.13, %65:anyi1, 1, implicit-def $c
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.13(0x80000000); %bb.13(100.00%)
+
+  %87:gpr = LDImm 0
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12, %bb.16
+  successors: %bb.5(0x40000000), %bb.3(0x40000000); %bb.5(50.00%), %bb.3(50.00%)
+
+  %42:imag8 = PHI %21:gpr, %bb.16, %87:gpr, %bb.12
+  %98:ac = ANDImag8 %41:ac(tied-def 0), %42:imag8
+  %43:imag8 = COPY %98:ac
+  CmpBrImag8 %bb.5, undef $z, 1, %4:ac, %8:imag8, implicit-def $c
+  JMP %bb.3
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.13
+  successors: %bb.2(0x40000000), %bb.3(0x40000000); %bb.2(50.00%), %bb.3(50.00%)
+
+  CmpBrImag8 %bb.2, undef $z, 1, %3:gpr, %7:imag8, implicit-def $c
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %86:gpr = LDImm 0
+  JMP %bb.4
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.5, %bb.13
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  JMP %bb.4
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2, %bb.3
+
+  %22:ac = PHI %86:gpr, %bb.2, %21:gpr, %bb.3
+  %17:ac = ANDImag8 %22:ac(tied-def 0), %43:imag8
+  $a = COPY %17:ac
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Init Undef Pass (init-undef) on compare_flags omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on compare_flags omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on compare_flags ***
+# Machine code for function compare_flags: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:gpr = COPY $a
+  %4:ac = COPY $x
+  %5:gpr = COPY $rc2
+  %6:ac = COPY $rc3
+  %7:imag8 = COPY $rc4
+  %8:imag8 = COPY $rc5
+  %100:imag8 = COPY %5:gpr
+  %67:cc = CMPImag8 %3:gpr, %100:imag8
+  %99:imag8 = COPY %6:ac
+  %71:ac, dead %72:cc, %74:vc = SBCImag8 %4:ac(tied-def 0), %99:imag8, %67:cc(tied-def 1)
+  GBR %bb.1, %74:vc, 1, implicit-def $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %76:ac = EORImm %71:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %77:anyi8 = PHI %76:ac, %bb.1, %71:ac, %bb.2
+  %28:cv_gpr_lsb = LDImm1 0
+  CmpBrZero %bb.4, undef $n, 1, %77:anyi8, implicit-def $c
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %97:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  JMP %bb.6
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %83:anyi1 = PHI %97:cv_gpr_lsb, %bb.4, %28:cv_gpr_lsb, %bb.5
+  %47:cc = CMPImag8 %5:gpr, %7:imag8
+  %51:ac, dead %52:cc, %54:vc = SBCImag8 %6:ac(tied-def 0), %8:imag8, %47:cc(tied-def 1)
+  GBR %bb.7, %54:vc, 1, implicit-def $c
+  JMP %bb.8
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  %57:ac = EORImm %51:ac(tied-def 0), -128
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  JMP %bb.9
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x40000000), %bb.11(0x40000000); %bb.10(50.00%), %bb.11(50.00%)
+
+  %59:anyi8 = PHI %57:ac, %bb.7, %51:ac, %bb.8
+  CmpBrZero %bb.10, undef $n, 1, %59:anyi8, implicit-def $c
+  JMP %bb.11
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  %96:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.10, %bb.11
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+
+  %65:anyi1 = PHI %96:cv_gpr_lsb, %bb.10, %28:cv_gpr_lsb, %bb.11
+  %21:gpr = LDImm 1
+  GBR %bb.14, %83:anyi1, 1, implicit-def $c
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+
+  %88:gpr = LDImm 0
+  JMP %bb.14
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+
+  %41:ac = PHI %21:gpr, %bb.12, %88:gpr, %bb.13
+  GBR %bb.16, %65:anyi1, 1, implicit-def $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %87:gpr = LDImm 0
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.14
+  successors: %bb.17(0x40000000), %bb.19(0x40000000); %bb.17(50.00%), %bb.19(50.00%)
+
+  %42:imag8 = PHI %21:gpr, %bb.14, %87:gpr, %bb.15
+  %98:ac = ANDImag8 %41:ac(tied-def 0), %42:imag8
+  %43:imag8 = COPY %98:ac
+  CmpBrImag8 %bb.17, undef $z, 1, %4:ac, %8:imag8, implicit-def $c
+  JMP %bb.19
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.18(0x40000000), %bb.19(0x40000000); %bb.18(50.00%), %bb.19(50.00%)
+
+  CmpBrImag8 %bb.18, undef $z, 1, %3:gpr, %7:imag8, implicit-def $c
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.17
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  %86:gpr = LDImm 0
+  JMP %bb.20
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.16
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  JMP %bb.20
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.18, %bb.19
+
+  %22:ac = PHI %86:gpr, %bb.18, %21:gpr, %bb.19
+  %17:ac = ANDImag8 %22:ac(tied-def 0), %43:imag8
+  $a = COPY %17:ac
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Live Variable Analysis (livevars) on compare_flags ***
+# Machine code for function compare_flags: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:gpr = COPY killed $a
+  %4:ac = COPY killed $x
+  %5:gpr = COPY killed $rc2
+  %6:ac = COPY killed $rc3
+  %7:imag8 = COPY killed $rc4
+  %8:imag8 = COPY killed $rc5
+  %100:imag8 = COPY %5:gpr
+  %67:cc = CMPImag8 %3:gpr, killed %100:imag8
+  %99:imag8 = COPY %6:ac
+  %71:ac, dead %72:cc, %74:vc = SBCImag8 %4:ac(tied-def 0), killed %99:imag8, killed %67:cc(tied-def 1)
+  GBR %bb.1, killed %74:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %76:ac = EORImm killed %71:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %77:anyi8 = PHI %76:ac, %bb.1, %71:ac, %bb.2
+  %28:cv_gpr_lsb = LDImm1 0
+  CmpBrZero %bb.4, undef $n, 1, killed %77:anyi8, implicit-def dead $c
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %97:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  JMP %bb.6
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %83:anyi1 = PHI %97:cv_gpr_lsb, %bb.4, %28:cv_gpr_lsb, %bb.5
+  %47:cc = CMPImag8 killed %5:gpr, %7:imag8
+  %51:ac, dead %52:cc, %54:vc = SBCImag8 killed %6:ac(tied-def 0), %8:imag8, killed %47:cc(tied-def 1)
+  GBR %bb.7, killed %54:vc, 1, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  %57:ac = EORImm killed %51:ac(tied-def 0), -128
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  JMP %bb.9
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x40000000), %bb.11(0x40000000); %bb.10(50.00%), %bb.11(50.00%)
+
+  %59:anyi8 = PHI %57:ac, %bb.7, %51:ac, %bb.8
+  CmpBrZero %bb.10, undef $n, 1, killed %59:anyi8, implicit-def dead $c
+  JMP %bb.11
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  %96:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.10, %bb.11
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+
+  %65:anyi1 = PHI %96:cv_gpr_lsb, %bb.10, %28:cv_gpr_lsb, %bb.11
+  %21:gpr = LDImm 1
+  GBR %bb.14, killed %83:anyi1, 1, implicit-def dead $c
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+
+  %88:gpr = LDImm 0
+  JMP %bb.14
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+
+  %41:ac = PHI %21:gpr, %bb.12, %88:gpr, %bb.13
+  GBR %bb.16, killed %65:anyi1, 1, implicit-def dead $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %87:gpr = LDImm 0
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.14
+  successors: %bb.17(0x40000000), %bb.19(0x40000000); %bb.17(50.00%), %bb.19(50.00%)
+
+  %42:imag8 = PHI %21:gpr, %bb.14, %87:gpr, %bb.15
+  %98:ac = ANDImag8 killed %41:ac(tied-def 0), killed %42:imag8
+  %43:imag8 = COPY killed %98:ac
+  CmpBrImag8 %bb.17, undef $z, 1, killed %4:ac, killed %8:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.18(0x40000000), %bb.19(0x40000000); %bb.18(50.00%), %bb.19(50.00%)
+
+  CmpBrImag8 %bb.18, undef $z, 1, killed %3:gpr, killed %7:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.17
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  %86:gpr = LDImm 0
+  JMP %bb.20
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.16
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  JMP %bb.20
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.18, %bb.19
+
+  %22:ac = PHI %86:gpr, %bb.18, %21:gpr, %bb.19
+  %17:ac = ANDImag8 killed %22:ac(tied-def 0), killed %43:imag8
+  $a = COPY killed %17:ac
+  RTS implicit killed $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on compare_flags omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on compare_flags omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:gpr = COPY killed $a
+  %4:ac = COPY killed $x
+  %5:gpr = COPY killed $rc2
+  %6:ac = COPY killed $rc3
+  %7:imag8 = COPY killed $rc4
+  %8:imag8 = COPY killed $rc5
+  %100:imag8 = COPY %5:gpr
+  %67:cc = CMPImag8 %3:gpr, killed %100:imag8
+  %99:imag8 = COPY %6:ac
+  %71:ac, dead %72:cc, %74:vc = SBCImag8 %4:ac(tied-def 0), killed %99:imag8, killed %67:cc(tied-def 1)
+  GBR %bb.1, killed %74:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %76:ac = EORImm killed %71:ac(tied-def 0), -128
+  %101:anyi8 = COPY killed %76:ac
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %101:anyi8 = COPY killed %71:ac
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %77:anyi8 = COPY killed %101:anyi8
+  %28:cv_gpr_lsb = LDImm1 0
+  CmpBrZero %bb.4, undef $n, 1, killed %77:anyi8, implicit-def dead $c
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %97:cv_gpr_lsb = LDImm1 -1
+  %102:anyi1 = COPY killed %97:cv_gpr_lsb
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %102:anyi1 = COPY %28:cv_gpr_lsb
+  JMP %bb.6
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %83:anyi1 = COPY killed %102:anyi1
+  %47:cc = CMPImag8 killed %5:gpr, %7:imag8
+  %51:ac, dead %52:cc, %54:vc = SBCImag8 killed %6:ac(tied-def 0), %8:imag8, killed %47:cc(tied-def 1)
+  GBR %bb.7, killed %54:vc, 1, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  %57:ac = EORImm killed %51:ac(tied-def 0), -128
+  %103:anyi8 = COPY killed %57:ac
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  %103:anyi8 = COPY killed %51:ac
+  JMP %bb.9
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x40000000), %bb.11(0x40000000); %bb.10(50.00%), %bb.11(50.00%)
+
+  %59:anyi8 = COPY killed %103:anyi8
+  CmpBrZero %bb.10, undef $n, 1, killed %59:anyi8, implicit-def dead $c
+  JMP %bb.11
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  %96:cv_gpr_lsb = LDImm1 -1
+  %104:anyi1 = COPY killed %96:cv_gpr_lsb
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  %104:anyi1 = COPY killed %28:cv_gpr_lsb
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.10, %bb.11
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+
+  %65:anyi1 = COPY killed %104:anyi1
+  %21:gpr = LDImm 1
+  %105:ac = COPY %21:gpr
+  GBR %bb.14, killed %83:anyi1, 1, implicit-def dead $c
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+
+  %88:gpr = LDImm 0
+  %105:ac = COPY killed %88:gpr
+  JMP %bb.14
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+
+  %41:ac = COPY killed %105:ac
+  %106:imag8 = COPY %21:gpr
+  GBR %bb.16, killed %65:anyi1, 1, implicit-def dead $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %87:gpr = LDImm 0
+  %106:imag8 = COPY killed %87:gpr
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.14
+  successors: %bb.17(0x40000000), %bb.19(0x40000000); %bb.17(50.00%), %bb.19(50.00%)
+
+  %42:imag8 = COPY killed %106:imag8
+  %98:ac = ANDImag8 killed %41:ac(tied-def 0), killed %42:imag8
+  %43:imag8 = COPY killed %98:ac
+  CmpBrImag8 %bb.17, undef $z, 1, killed %4:ac, killed %8:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.18(0x40000000), %bb.19(0x40000000); %bb.18(50.00%), %bb.19(50.00%)
+
+  CmpBrImag8 %bb.18, undef $z, 1, killed %3:gpr, killed %7:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.17
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  %86:gpr = LDImm 0
+  %107:ac = COPY killed %86:gpr
+  JMP %bb.20
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.16
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  %107:ac = COPY killed %21:gpr
+  JMP %bb.20
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.18, %bb.19
+
+  %22:ac = COPY killed %107:ac
+  %17:ac = ANDImag8 killed %22:ac(tied-def 0), killed %43:imag8
+  $a = COPY killed %17:ac
+  RTS implicit killed $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:gpr = COPY killed $a
+  %4:ac = COPY killed $x
+  %5:gpr = COPY killed $rc2
+  %6:ac = COPY killed $rc3
+  %7:imag8 = COPY killed $rc4
+  %8:imag8 = COPY killed $rc5
+  %100:imag8 = COPY %5:gpr
+  %67:cc = CMPImag8 %3:gpr, killed %100:imag8
+  %99:imag8 = COPY %6:ac
+  %71:ac = COPY %4:ac
+  %72:cc = COPY killed %67:cc
+  %71:ac, dead %72:cc, %74:vc = SBCImag8 %71:ac(tied-def 0), killed %99:imag8, %72:cc(tied-def 1)
+  GBR %bb.1, killed %74:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %76:ac = COPY killed %71:ac
+  %76:ac = EORImm %76:ac(tied-def 0), -128
+  %101:anyi8 = COPY killed %76:ac
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %101:anyi8 = COPY killed %71:ac
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %77:anyi8 = COPY killed %101:anyi8
+  %28:cv_gpr_lsb = LDImm1 0
+  CmpBrZero %bb.4, undef $n, 1, killed %77:anyi8, implicit-def dead $c
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %97:cv_gpr_lsb = LDImm1 -1
+  %102:anyi1 = COPY killed %97:cv_gpr_lsb
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %102:anyi1 = COPY %28:cv_gpr_lsb
+  JMP %bb.6
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %83:anyi1 = COPY killed %102:anyi1
+  %47:cc = CMPImag8 killed %5:gpr, %7:imag8
+  %51:ac = COPY killed %6:ac
+  %52:cc = COPY killed %47:cc
+  %51:ac, dead %52:cc, %54:vc = SBCImag8 %51:ac(tied-def 0), %8:imag8, %52:cc(tied-def 1)
+  GBR %bb.7, killed %54:vc, 1, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  %57:ac = COPY killed %51:ac
+  %57:ac = EORImm %57:ac(tied-def 0), -128
+  %103:anyi8 = COPY killed %57:ac
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  %103:anyi8 = COPY killed %51:ac
+  JMP %bb.9
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x40000000), %bb.11(0x40000000); %bb.10(50.00%), %bb.11(50.00%)
+
+  %59:anyi8 = COPY killed %103:anyi8
+  CmpBrZero %bb.10, undef $n, 1, killed %59:anyi8, implicit-def dead $c
+  JMP %bb.11
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  %96:cv_gpr_lsb = LDImm1 -1
+  %104:anyi1 = COPY killed %96:cv_gpr_lsb
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  %104:anyi1 = COPY killed %28:cv_gpr_lsb
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.10, %bb.11
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+
+  %65:anyi1 = COPY killed %104:anyi1
+  %21:gpr = LDImm 1
+  %105:ac = COPY %21:gpr
+  GBR %bb.14, killed %83:anyi1, 1, implicit-def dead $c
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+
+  %88:gpr = LDImm 0
+  %105:ac = COPY killed %88:gpr
+  JMP %bb.14
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+
+  %41:ac = COPY killed %105:ac
+  %106:imag8 = COPY %21:gpr
+  GBR %bb.16, killed %65:anyi1, 1, implicit-def dead $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %87:gpr = LDImm 0
+  %106:imag8 = COPY killed %87:gpr
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.14
+  successors: %bb.17(0x40000000), %bb.19(0x40000000); %bb.17(50.00%), %bb.19(50.00%)
+
+  %42:imag8 = COPY killed %106:imag8
+  %98:ac = COPY killed %41:ac
+  %98:ac = ANDImag8 %98:ac(tied-def 0), killed %42:imag8
+  %43:imag8 = COPY killed %98:ac
+  CmpBrImag8 %bb.17, undef $z, 1, killed %4:ac, killed %8:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.18(0x40000000), %bb.19(0x40000000); %bb.18(50.00%), %bb.19(50.00%)
+
+  CmpBrImag8 %bb.18, undef $z, 1, killed %3:gpr, killed %7:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.17
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  %86:gpr = LDImm 0
+  %107:ac = COPY killed %86:gpr
+  JMP %bb.20
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.16
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  %107:ac = COPY killed %21:gpr
+  JMP %bb.20
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.18, %bb.19
+
+  %22:ac = COPY killed %107:ac
+  %17:ac = COPY killed %22:ac
+  %17:ac = ANDImag8 %17:ac(tied-def 0), killed %43:imag8
+  $a = COPY killed %17:ac
+  RTS implicit killed $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Slot index numbering (slotindexes) on compare_flags omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:gpr = COPY $a
+  %4:ac = COPY $x
+  %5:gpr = COPY $rc2
+  %6:ac = COPY $rc3
+  %7:imag8 = COPY $rc4
+  %8:imag8 = COPY $rc5
+  %100:imag8 = COPY %5:gpr
+  %67:cc = CMPImag8 %3:gpr, %100:imag8
+  %99:imag8 = COPY %6:ac
+  %71:ac = COPY %4:ac
+  %72:cc = COPY %67:cc
+  %71:ac, dead %72:cc, %74:vc = SBCImag8 %71:ac(tied-def 0), %99:imag8, %72:cc(tied-def 1)
+  GBR %bb.1, %74:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %76:ac = COPY %71:ac
+  %76:ac = EORImm %76:ac(tied-def 0), -128
+  %101:anyi8 = COPY %76:ac
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %101:anyi8 = COPY %71:ac
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %77:anyi8 = COPY %101:anyi8
+  %28:cv_gpr_lsb = LDImm1 0
+  CmpBrZero %bb.4, undef $n, 1, %77:anyi8, implicit-def dead $c
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %97:cv_gpr_lsb = LDImm1 -1
+  %102:anyi1 = COPY %97:cv_gpr_lsb
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %102:anyi1 = COPY %28:cv_gpr_lsb
+  JMP %bb.6
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %83:anyi1 = COPY %102:anyi1
+  %47:cc = CMPImag8 %5:gpr, %7:imag8
+  %51:ac = COPY %6:ac
+  %52:cc = COPY %47:cc
+  %51:ac, dead %52:cc, %54:vc = SBCImag8 %51:ac(tied-def 0), %8:imag8, %52:cc(tied-def 1)
+  GBR %bb.7, %54:vc, 1, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  %57:ac = COPY %51:ac
+  %57:ac = EORImm %57:ac(tied-def 0), -128
+  %103:anyi8 = COPY %57:ac
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  %103:anyi8 = COPY %51:ac
+  JMP %bb.9
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x40000000), %bb.11(0x40000000); %bb.10(50.00%), %bb.11(50.00%)
+
+  %59:anyi8 = COPY %103:anyi8
+  CmpBrZero %bb.10, undef $n, 1, %59:anyi8, implicit-def dead $c
+  JMP %bb.11
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  %96:cv_gpr_lsb = LDImm1 -1
+  %104:anyi1 = COPY %96:cv_gpr_lsb
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  %104:anyi1 = COPY %28:cv_gpr_lsb
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.10, %bb.11
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+
+  %65:anyi1 = COPY %104:anyi1
+  %21:gpr = LDImm 1
+  %105:ac = COPY %21:gpr
+  GBR %bb.14, %83:anyi1, 1, implicit-def dead $c
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+
+  %88:gpr = LDImm 0
+  %105:ac = COPY %88:gpr
+  JMP %bb.14
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+
+  %41:ac = COPY %105:ac
+  %106:imag8 = COPY %21:gpr
+  GBR %bb.16, %65:anyi1, 1, implicit-def dead $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %87:gpr = LDImm 0
+  %106:imag8 = COPY %87:gpr
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.14
+  successors: %bb.17(0x40000000), %bb.19(0x40000000); %bb.17(50.00%), %bb.19(50.00%)
+
+  %42:imag8 = COPY %106:imag8
+  %98:ac = COPY %41:ac
+  %98:ac = ANDImag8 %98:ac(tied-def 0), %42:imag8
+  %43:imag8 = COPY %98:ac
+  CmpBrImag8 %bb.17, undef $z, 1, %4:ac, %8:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.18(0x40000000), %bb.19(0x40000000); %bb.18(50.00%), %bb.19(50.00%)
+
+  CmpBrImag8 %bb.18, undef $z, 1, %3:gpr, %7:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.17
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  %86:gpr = LDImm 0
+  %107:ac = COPY %86:gpr
+  JMP %bb.20
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.16
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  %107:ac = COPY %21:gpr
+  JMP %bb.20
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.18, %bb.19
+
+  %22:ac = COPY %107:ac
+  %17:ac = COPY %22:ac
+  %17:ac = ANDImag8 %17:ac(tied-def 0), %43:imag8
+  $a = COPY %17:ac
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Register Coalescer (register-coalescer) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:gpr = COPY $a
+  %4:ac = COPY $x
+  %5:gpr = COPY $rc2
+  %103:ac = COPY $rc3
+  %7:imag8 = COPY $rc4
+  %8:imag8 = COPY $rc5
+  %100:imag8 = COPY %5:gpr
+  %72:cc = CMPImag8 %3:gpr, %100:imag8
+  %99:imag8 = COPY %103:ac
+  %101:ac = COPY %4:ac
+  %101:ac, dead %72:cc, %74:vc = SBCImag8 %101:ac(tied-def 0), %99:imag8, %72:cc(tied-def 1)
+  GBR %bb.1, %74:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %101:ac = EORImm %101:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %104:cv_gpr_lsb = LDImm1 0
+  CmpBrZero %bb.4, undef $n, 1, %101:ac, implicit-def dead $c
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %102:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %102:cv_gpr_lsb = LDImm1 0
+  JMP %bb.6
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %52:cc = CMPImag8 %5:gpr, %7:imag8
+  %103:ac, dead %52:cc, %54:vc = SBCImag8 %103:ac(tied-def 0), %8:imag8, %52:cc(tied-def 1)
+  GBR %bb.7, %54:vc, 1, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  %103:ac = EORImm %103:ac(tied-def 0), -128
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  JMP %bb.9
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x40000000), %bb.11(0x40000000); %bb.10(50.00%), %bb.11(50.00%)
+
+  CmpBrZero %bb.10, undef $n, 1, %103:ac, implicit-def dead $c
+  JMP %bb.11
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  %104:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.10, %bb.11
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+
+  %107:ac = LDImm 1
+  %105:ac = LDImm 1
+  GBR %bb.14, %102:cv_gpr_lsb, 1, implicit-def dead $c
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+
+  %105:ac = LDImm 0
+  JMP %bb.14
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+
+  %106:imag8 = COPY %107:ac
+  GBR %bb.16, %104:cv_gpr_lsb, 1, implicit-def dead $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %87:gpr = LDImm 0
+  %106:imag8 = COPY %87:gpr
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.14
+  successors: %bb.17(0x40000000), %bb.19(0x40000000); %bb.17(50.00%), %bb.19(50.00%)
+
+  %105:ac = ANDImag8 %105:ac(tied-def 0), %106:imag8
+  %43:imag8 = COPY %105:ac
+  CmpBrImag8 %bb.17, undef $z, 1, %4:ac, %8:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.18(0x40000000), %bb.19(0x40000000); %bb.18(50.00%), %bb.19(50.00%)
+
+  CmpBrImag8 %bb.18, undef $z, 1, %3:gpr, %7:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.17
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  %107:ac = LDImm 0
+  JMP %bb.20
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.16
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  JMP %bb.20
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.18, %bb.19
+
+  %107:ac = ANDImag8 %107:ac(tied-def 0), %43:imag8
+  $a = COPY %107:ac
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Register Coalescer (register-coalescer) on compare_flags omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on compare_flags omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on compare_flags omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:gpr = COPY $a
+  %4:ac = COPY $x
+  %7:imag8 = COPY $rc4
+  %8:imag8 = COPY $rc5
+  %5:gpr = COPY $rc2
+  %103:ac = COPY $rc3
+  %100:imag8 = COPY %5:gpr
+  %72:cc = CMPImag8 %3:gpr, %100:imag8
+  %99:imag8 = COPY %103:ac
+  %101:ac = COPY %4:ac
+  %101:ac, dead %72:cc, %74:vc = SBCImag8 %101:ac(tied-def 0), %99:imag8, %72:cc(tied-def 1)
+  GBR %bb.1, %74:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %101:ac = EORImm %101:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %104:cv_gpr_lsb = LDImm1 0
+  CmpBrZero %bb.4, undef $n, 1, %101:ac, implicit-def dead $c
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %102:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %102:cv_gpr_lsb = LDImm1 0
+  JMP %bb.6
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %52:cc = CMPImag8 %5:gpr, %7:imag8
+  %103:ac, dead %52:cc, %54:vc = SBCImag8 %103:ac(tied-def 0), %8:imag8, %52:cc(tied-def 1)
+  GBR %bb.7, %54:vc, 1, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  %103:ac = EORImm %103:ac(tied-def 0), -128
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  JMP %bb.9
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x40000000), %bb.11(0x40000000); %bb.10(50.00%), %bb.11(50.00%)
+
+  CmpBrZero %bb.10, undef $n, 1, %103:ac, implicit-def dead $c
+  JMP %bb.11
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  %104:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.10, %bb.11
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+
+  %107:ac = LDImm 1
+  %105:ac = LDImm 1
+  GBR %bb.14, %102:cv_gpr_lsb, 1, implicit-def dead $c
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+
+  %105:ac = LDImm 0
+  JMP %bb.14
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+
+  %106:imag8 = COPY %107:ac
+  GBR %bb.16, %104:cv_gpr_lsb, 1, implicit-def dead $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %87:gpr = LDImm 0
+  %106:imag8 = COPY %87:gpr
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.14
+  successors: %bb.17(0x40000000), %bb.19(0x40000000); %bb.17(50.00%), %bb.19(50.00%)
+
+  %105:ac = ANDImag8 %105:ac(tied-def 0), %106:imag8
+  %43:imag8 = COPY %105:ac
+  CmpBrImag8 %bb.17, undef $z, 1, %4:ac, %8:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.18(0x40000000), %bb.19(0x40000000); %bb.18(50.00%), %bb.19(50.00%)
+
+  CmpBrImag8 %bb.18, undef $z, 1, %3:gpr, %7:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.17
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  %107:ac = LDImm 0
+  JMP %bb.20
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.16
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  JMP %bb.20
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.18, %bb.19
+
+  %107:ac = ANDImag8 %107:ac(tied-def 0), %43:imag8
+  $a = COPY %107:ac
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:gpr = COPY $a
+  %4:ac = COPY $x
+  %7:imag8 = COPY $rc4
+  %8:imag8 = COPY $rc5
+  %5:gpr = COPY $rc2
+  %103:ac = COPY $rc3
+  %100:imag8 = COPY %5:gpr
+  %72:cc = CMPImag8 %3:gpr, %100:imag8
+  %99:imag8 = COPY %103:ac
+  %101:ac = COPY %4:ac
+  %101:ac, dead %72:cc, %74:vc = SBCImag8 %101:ac(tied-def 0), %99:imag8, %72:cc(tied-def 1)
+  GBR %bb.1, %74:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %101:ac = EORImm %101:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %104:cv_gpr_lsb = LDImm1 0
+  CmpBrZero %bb.4, undef $n, 1, %101:ac, implicit-def dead $c
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %102:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %102:cv_gpr_lsb = LDImm1 0
+  JMP %bb.6
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %52:cc = CMPImag8 %5:gpr, %7:imag8
+  %103:ac, dead %52:cc, %54:vc = SBCImag8 %103:ac(tied-def 0), %8:imag8, %52:cc(tied-def 1)
+  GBR %bb.7, %54:vc, 1, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  %103:ac = EORImm %103:ac(tied-def 0), -128
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  JMP %bb.9
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x40000000), %bb.11(0x40000000); %bb.10(50.00%), %bb.11(50.00%)
+
+  CmpBrZero %bb.10, undef $n, 1, %103:ac, implicit-def dead $c
+  JMP %bb.11
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  %104:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.10, %bb.11
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+
+  %107:ac = LDImm 1
+  %105:ac = LDImm 1
+  GBR %bb.14, %102:cv_gpr_lsb, 1, implicit-def dead $c
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+
+  %105:ac = LDImm 0
+  JMP %bb.14
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+
+  %106:imag8 = COPY %107:ac
+  GBR %bb.16, %104:cv_gpr_lsb, 1, implicit-def dead $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %87:gpr = LDImm 0
+  %106:imag8 = COPY %87:gpr
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.14
+  successors: %bb.17(0x40000000), %bb.19(0x40000000); %bb.17(50.00%), %bb.19(50.00%)
+
+  %105:ac = ANDImag8 %105:ac(tied-def 0), %106:imag8
+  %43:imag8 = COPY %105:ac
+  CmpBrImag8 %bb.17, undef $z, 1, %4:ac, %8:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.18(0x40000000), %bb.19(0x40000000); %bb.18(50.00%), %bb.19(50.00%)
+
+  CmpBrImag8 %bb.18, undef $z, 1, %3:gpr, %7:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.17
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  %107:ac = LDImm 0
+  JMP %bb.20
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.16
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  JMP %bb.20
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.18, %bb.19
+
+  %107:ac = ANDImag8 %107:ac(tied-def 0), %43:imag8
+  $a = COPY %107:ac
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on compare_flags omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on compare_flags omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on compare_flags omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on compare_flags omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on compare_flags omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on compare_flags omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on compare_flags omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %109:gpr = COPY $a
+  %112:anyi8 = COPY $x
+  %7:imag8 = COPY $rc4
+  %8:imag8 = COPY $rc5
+  %5:gpr = COPY $rc2
+  %116:anyi8 = COPY $rc3
+  %100:imag8 = COPY %5:gpr
+  %108:anyi8 = COPY %109:gpr
+  %72:cc = CMPImag8 %109:gpr, %100:imag8
+  %114:anyi8 = COPY %116:anyi8
+  %99:imag8 = COPY %116:anyi8
+  %111:anyi8 = COPY %112:anyi8
+  %101:ac = COPY %112:anyi8
+  %101:ac, dead %72:cc, %74:vc = SBCImag8 %101:ac(tied-def 0), %99:imag8, %72:cc(tied-def 1)
+  GBR %bb.1, %74:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %101:ac = EORImm %101:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  CmpBrZero %bb.4, undef $n, 1, %101:ac, implicit-def dead $c
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %131:cv_gpr_lsb = LDImm1 0
+  %135:cv_gpr_lsb = LDImm1 -1
+  %134:anyi1 = COPY %135:cv_gpr_lsb
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %131:cv_gpr_lsb = LDImm1 0
+  %136:cv_gpr_lsb = LDImm1 0
+  %134:anyi1 = COPY %136:cv_gpr_lsb
+  JMP %bb.6
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %52:cc = CMPImag8 %5:gpr, %7:imag8
+  %115:ac = COPY %114:anyi8
+  %115:ac, dead %52:cc, %54:vc = SBCImag8 %115:ac(tied-def 0), %8:imag8, %52:cc(tied-def 1)
+  GBR %bb.7, %54:vc, 1, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  %115:ac = EORImm %115:ac(tied-def 0), -128
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  JMP %bb.9
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x40000000), %bb.11(0x40000000); %bb.10(50.00%), %bb.11(50.00%)
+
+  %132:cv_gpr_lsb = COPY %131:cv_gpr_lsb
+  CmpBrZero %bb.10, undef $n, 1, %115:ac, implicit-def dead $c
+  JMP %bb.11
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  %132:cv_gpr_lsb = LDImm1 -1
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.10, %bb.11
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+
+  %117:gpr = LDImm 1
+  %105:ac = LDImm 1
+  %128:anyi1 = COPY %134:anyi1
+  GBR %bb.14, %128:anyi1, 1, implicit-def dead $c
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+
+  %105:ac = LDImm 0
+  JMP %bb.14
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+
+  %119:anyi8 = COPY %117:gpr
+  %124:gpr = COPY %119:anyi8
+  %106:imag8 = COPY %119:anyi8
+  GBR %bb.16, %132:cv_gpr_lsb, 1, implicit-def dead $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+
+  %87:gpr = LDImm 0
+  %106:imag8 = COPY %87:gpr
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.14
+  successors: %bb.17(0x40000000), %bb.19(0x40000000); %bb.17(50.00%), %bb.19(50.00%)
+
+  %105:ac = ANDImag8 %105:ac(tied-def 0), %106:imag8
+  %43:imag8 = COPY %105:ac
+  %113:gpr = COPY %111:anyi8
+  CmpBrImag8 %bb.17, undef $z, 1, %113:gpr, %8:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.18(0x40000000), %bb.19(0x40000000); %bb.18(50.00%), %bb.19(50.00%)
+
+  %110:gpr = COPY %108:anyi8
+  CmpBrImag8 %bb.18, undef $z, 1, %110:gpr, %7:imag8, implicit-def dead $c
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.17
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  %124:gpr = LDImm 0
+  JMP %bb.20
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.16
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+
+  JMP %bb.20
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.18, %bb.19
+
+  %121:ac = COPY %124:gpr
+  %121:ac = ANDImag8 %121:ac(tied-def 0), %43:imag8
+  $a = COPY %121:ac
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  renamable $y = COPY $rc2
+  renamable $rc2 = COPY renamable $y
+  renamable $rc7 = COPY renamable $a
+  renamable $c = CMPImag8 killed renamable $a, killed renamable $rc2
+  renamable $rc8 = COPY renamable $rc3
+  renamable $rc2 = COPY killed renamable $rc3
+  renamable $rc6 = COPY renamable $x
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  CmpBrZero %bb.4, undef $n, 1, killed renamable $a, implicit-def dead $c
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $xlsb = LDImm1 0
+  renamable $alsb = LDImm1 -1
+  renamable $rc2lsb = COPY killed renamable $alsb
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $xlsb = LDImm1 0
+  renamable $alsb = LDImm1 0
+  renamable $rc2lsb = COPY killed renamable $alsb
+  JMP %bb.6
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $xlsb, $y, $rc4, $rc5, $rc6, $rc7, $rc8, $rc2lsb
+  renamable $c = CMPImag8 killed renamable $y, renamable $rc4
+  renamable $a = COPY killed renamable $rc8
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), renamable $rc5, killed renamable $c(tied-def 1)
+  GBR %bb.7, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+  liveins: $a, $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+  liveins: $a, $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  JMP %bb.9
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x40000000), %bb.11(0x40000000); %bb.10(50.00%), %bb.11(50.00%)
+  liveins: $a, $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $v = COPY killed renamable $xlsb
+  CmpBrZero %bb.10, undef $n, 1, killed renamable $a, implicit-def dead $c
+  JMP %bb.11
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+  liveins: $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $v = LDImm1 -1
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+  liveins: $v, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.10, %bb.11
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+  liveins: $v, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $y = LDImm 1
+  renamable $a = LDImm 1
+  renamable $xlsb = COPY killed renamable $rc2lsb
+  GBR %bb.14, killed renamable $xlsb, 1, implicit-def dead $c
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+  liveins: $v, $y, $rc4, $rc5, $rc6, $rc7
+  renamable $a = LDImm 0
+  JMP %bb.14
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+  liveins: $a, $v, $y, $rc4, $rc5, $rc6, $rc7
+  renamable $rc2 = COPY killed renamable $y
+  renamable $y = COPY renamable $rc2
+  GBR %bb.16, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7
+  renamable $x = LDImm 0
+  renamable $rc2 = COPY killed renamable $x
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.14
+  successors: %bb.17(0x40000000), %bb.19(0x40000000); %bb.17(50.00%), %bb.19(50.00%)
+  liveins: $a, $y, $rc2, $rc4, $rc5, $rc6, $rc7
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  renamable $rc2 = COPY killed renamable $a
+  renamable $x = COPY killed renamable $rc6
+  CmpBrImag8 %bb.17, undef $z, 1, killed renamable $x, killed renamable $rc5, implicit-def dead $c
+  JMP %bb.19
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.18(0x40000000), %bb.19(0x40000000); %bb.18(50.00%), %bb.19(50.00%)
+  liveins: $y, $rc2, $rc4, $rc7
+  renamable $x = COPY killed renamable $rc7
+  CmpBrImag8 %bb.18, undef $z, 1, killed renamable $x, killed renamable $rc4, implicit-def dead $c
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.17
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+  liveins: $rc2
+  renamable $y = LDImm 0
+  JMP %bb.20
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.16
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+  liveins: $y, $rc2
+  JMP %bb.20
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.18, %bb.19
+  liveins: $y, $rc2
+  renamable $a = COPY killed renamable $y
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on compare_flags omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on compare_flags omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  renamable $y = COPY $rc2
+  renamable $rc7 = COPY renamable $a
+  renamable $c = CMPImag8 killed renamable $a, killed renamable $rc2
+  renamable $rc8 = COPY renamable $rc3
+  renamable $rc6 = COPY renamable $x
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), $rc3, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  CmpBrZero %bb.4, undef $n, 1, killed renamable $a, implicit-def dead $c
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $xlsb = LDImm1 0
+  renamable $alsb = LDImm1 -1
+  renamable $rc2lsb = COPY killed renamable $alsb
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $xlsb = LDImm1 0
+  renamable $alsb = LDImm1 0
+  renamable $rc2lsb = COPY killed renamable $alsb
+  JMP %bb.6
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $xlsb, $y, $rc4, $rc5, $rc6, $rc7, $rc8, $rc2lsb
+  renamable $c = CMPImag8 killed renamable $y, renamable $rc4
+  renamable $a = COPY killed renamable $rc8
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), renamable $rc5, killed renamable $c(tied-def 1)
+  GBR %bb.7, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+  liveins: $a, $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+  liveins: $a, $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  JMP %bb.9
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x40000000), %bb.11(0x40000000); %bb.10(50.00%), %bb.11(50.00%)
+  liveins: $a, $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $v = COPY killed renamable $xlsb
+  CmpBrZero %bb.10, undef $n, 1, killed renamable $a, implicit-def dead $c
+  JMP %bb.11
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+  liveins: $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $v = LDImm1 -1
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+  liveins: $v, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.10, %bb.11
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+  liveins: $v, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $y = LDImm 1
+  renamable $a = LDImm 1
+  GBR %bb.14, $rc2lsb, 1, implicit-def dead $c
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+  liveins: $v, $y, $rc4, $rc5, $rc6, $rc7
+  renamable $a = LDImm 0
+  JMP %bb.14
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+  liveins: $a, $v, $y, $rc4, $rc5, $rc6, $rc7
+  renamable $rc2 = COPY renamable $y
+  GBR %bb.16, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7
+  renamable $x = LDImm 0
+  renamable $rc2 = COPY killed renamable $x
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.14
+  successors: %bb.17(0x40000000), %bb.19(0x40000000); %bb.17(50.00%), %bb.19(50.00%)
+  liveins: $a, $y, $rc2, $rc4, $rc5, $rc6, $rc7
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  renamable $rc2 = COPY killed renamable $a
+  renamable $x = COPY killed renamable $rc6
+  CmpBrImag8 %bb.17, undef $z, 1, killed renamable $x, killed renamable $rc5, implicit-def dead $c
+  JMP %bb.19
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.18(0x40000000), %bb.19(0x40000000); %bb.18(50.00%), %bb.19(50.00%)
+  liveins: $y, $rc2, $rc4, $rc7
+  renamable $x = COPY killed renamable $rc7
+  CmpBrImag8 %bb.18, undef $z, 1, killed renamable $x, killed renamable $rc4, implicit-def dead $c
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.17
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+  liveins: $rc2
+  renamable $y = LDImm 0
+  JMP %bb.20
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.16
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+  liveins: $y, $rc2
+  JMP %bb.20
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.18, %bb.19
+  liveins: $y, $rc2
+  renamable $a = COPY killed renamable $y
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on compare_flags omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on compare_flags omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on compare_flags omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  renamable $y = COPY $rc2
+  renamable $rc7 = COPY renamable $a
+  renamable $c = CMPImag8 killed renamable $a, killed renamable $rc2
+  renamable $rc8 = COPY renamable $rc3
+  renamable $rc6 = COPY renamable $x
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), $rc3, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  CmpBrZero %bb.4, undef $n, 1, killed renamable $a, implicit-def dead $c
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $xlsb = LDImm1 0
+  renamable $alsb = LDImm1 -1
+  renamable $rc2lsb = COPY killed renamable $alsb
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $xlsb = LDImm1 0
+  renamable $alsb = LDImm1 0
+  renamable $rc2lsb = COPY killed renamable $alsb
+  JMP %bb.6
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $xlsb, $y, $rc4, $rc5, $rc6, $rc7, $rc8, $rc2lsb
+  renamable $c = CMPImag8 killed renamable $y, renamable $rc4
+  renamable $a = COPY killed renamable $rc8
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), renamable $rc5, killed renamable $c(tied-def 1)
+  GBR %bb.7, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+  liveins: $a, $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.9
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.6
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+  liveins: $a, $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  JMP %bb.9
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x40000000), %bb.11(0x40000000); %bb.10(50.00%), %bb.11(50.00%)
+  liveins: $a, $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  CmpBrZero %bb.10, undef $n, 1, killed renamable $a, implicit-def dead $c
+  JMP %bb.11
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+  liveins: $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $v = LDImm1 -1
+  JMP %bb.12
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.9
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+  liveins: $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $v = COPY killed renamable $xlsb
+  JMP %bb.12
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.10, %bb.11
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+  liveins: $v, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $y = LDImm 1
+  renamable $a = LDImm 1
+  GBR %bb.14, $rc2lsb, 1, implicit-def dead $c
+  JMP %bb.13
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+  liveins: $v, $y, $rc4, $rc5, $rc6, $rc7
+  renamable $a = LDImm 0
+  JMP %bb.14
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.16(0x40000000), %bb.15(0x40000000); %bb.16(50.00%), %bb.15(50.00%)
+  liveins: $a, $v, $y, $rc4, $rc5, $rc6, $rc7
+  renamable $rc2 = COPY renamable $y
+  GBR %bb.16, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.15
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x80000000); %bb.16(100.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7
+  renamable $x = LDImm 0
+  renamable $rc2 = COPY killed renamable $x
+  JMP %bb.16
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15, %bb.14
+  successors: %bb.17(0x40000000), %bb.19(0x40000000); %bb.17(50.00%), %bb.19(50.00%)
+  liveins: $a, $y, $rc2, $rc4, $rc5, $rc6, $rc7
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  renamable $rc2 = COPY killed renamable $a
+  renamable $x = COPY killed renamable $rc6
+  CmpBrImag8 %bb.17, undef $z, 1, killed renamable $x, killed renamable $rc5, implicit-def dead $c
+  JMP %bb.19
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16
+  successors: %bb.18(0x40000000), %bb.19(0x40000000); %bb.18(50.00%), %bb.19(50.00%)
+  liveins: $y, $rc2, $rc4, $rc7
+  renamable $x = COPY killed renamable $rc7
+  CmpBrImag8 %bb.18, undef $z, 1, killed renamable $x, killed renamable $rc4, implicit-def dead $c
+  JMP %bb.19
+
+bb.18 (%ir-block.3):
+; predecessors: %bb.17
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+  liveins: $rc2
+  renamable $y = LDImm 0
+  JMP %bb.20
+
+bb.19 (%ir-block.3):
+; predecessors: %bb.17, %bb.16
+  successors: %bb.20(0x80000000); %bb.20(100.00%)
+  liveins: $y, $rc2
+  JMP %bb.20
+
+bb.20 (%ir-block.3):
+; predecessors: %bb.18, %bb.19
+  liveins: $y, $rc2
+  renamable $a = COPY killed renamable $y
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on compare_flags omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on compare_flags omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on compare_flags omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on compare_flags omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on compare_flags omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on compare_flags omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on compare_flags omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on compare_flags omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on compare_flags omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on compare_flags omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on compare_flags omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on compare_flags omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on compare_flags omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  renamable $y = COPY $rc2
+  renamable $rc7 = COPY renamable $a
+  renamable $c = CMPImag8 killed renamable $a, killed renamable $rc2
+  renamable $rc8 = COPY renamable $rc3
+  renamable $rc6 = COPY renamable $x
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), $rc3, killed renamable $c(tied-def 1)
+  GBR %bb.2, killed renamable $v, 0, implicit-def $c
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  CmpBrZero %bb.4, undef $n, 0, killed renamable $a, implicit-def $c
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $xlsb = LDImm1 0
+  renamable $alsb = LDImm1 -1
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $y, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $xlsb = LDImm1 0
+  renamable $alsb = LDImm1 0
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.4, %bb.3
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $xlsb, $y, $rc4, $rc5, $rc6, $rc7, $rc8, $alsb
+  renamable $rc2lsb = COPY killed renamable $alsb
+  renamable $c = CMPImag8 killed renamable $y, renamable $rc4
+  renamable $a = COPY killed renamable $rc8
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), renamable $rc5, killed renamable $c(tied-def 1)
+  GBR %bb.7, killed renamable $v, 0, implicit-def $c
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $a, $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6, %bb.5
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $a, $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  CmpBrZero %bb.9, undef $n, 0, killed renamable $a, implicit-def $c
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $v = LDImm1 -1
+  JMP %bb.10
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $xlsb, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $v = COPY killed renamable $xlsb
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.8, %bb.9
+  successors: %bb.12(0x40000000), %bb.11(0x40000000); %bb.12(50.00%), %bb.11(50.00%)
+  liveins: $v, $rc4, $rc5, $rc6, $rc7, $rc2lsb
+  renamable $y = LDImm 1
+  renamable $a = LDImm 1
+  GBR %bb.12, $rc2lsb, 1, implicit-def $c
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.10
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+  liveins: $v, $y, $rc4, $rc5, $rc6, $rc7
+  renamable $a = LDImm 0
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.11, %bb.10
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+  liveins: $a, $v, $y, $rc4, $rc5, $rc6, $rc7
+  renamable $rc2 = COPY renamable $y
+  GBR %bb.14, killed renamable $v, 1, implicit-def $c
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+  liveins: $a, $y, $rc4, $rc5, $rc6, $rc7
+  renamable $x = LDImm 0
+  renamable $rc2 = COPY killed renamable $x
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.15(0x40000000), %bb.17(0x40000000); %bb.15(50.00%), %bb.17(50.00%)
+  liveins: $a, $y, $rc2, $rc4, $rc5, $rc6, $rc7
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  renamable $rc2 = COPY killed renamable $a
+  renamable $x = COPY killed renamable $rc6
+  CmpBrImag8 %bb.17, undef $z, 0, killed renamable $x, killed renamable $rc5, implicit-def $c
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x40000000), %bb.17(0x40000000); %bb.16(50.00%), %bb.17(50.00%)
+  liveins: $y, $rc2, $rc4, $rc7
+  renamable $x = COPY killed renamable $rc7
+  CmpBrImag8 %bb.17, undef $z, 0, killed renamable $x, killed renamable $rc4, implicit-def $c
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15
+  successors: %bb.17(0x80000000); %bb.17(100.00%)
+  liveins: $rc2
+  renamable $y = LDImm 0
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16, %bb.14, %bb.15
+  liveins: $y, $rc2
+  renamable $a = COPY killed renamable $y
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  RTS implicit $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on compare_flags omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on compare_flags omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on compare_flags omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  renamable $y = COPY $rc2
+  renamable $rc7 = COPY renamable $a
+  renamable $c = CMPImag8 killed renamable $a, killed renamable $rc2
+  renamable $rc6 = COPY renamable $x
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), $rc3, killed renamable $c(tied-def 1)
+  GBR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y, $a
+  CmpBrZero %bb.4, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y
+  dead renamable $xlsb = LDImm1 0
+  renamable $alsb = LDImm1 -1
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y
+  dead renamable $xlsb = LDImm1 0
+  renamable $alsb = LDImm1 0
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.4, %bb.3
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y, $alsb
+  renamable $rc2lsb = COPY killed renamable $alsb
+  renamable $c = CMPImag8 killed renamable $y, renamable $rc4
+  renamable $a = COPY killed $rc3
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), renamable $rc5, killed renamable $c(tied-def 1)
+  GBR %bb.7, killed renamable $v, 0, implicit-def dead $c
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6, %bb.5
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5, $a
+  CmpBrZero %bb.9, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5
+  renamable $v = LDImm1 -1
+  JMP %bb.10
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5
+  $v = LDImm1 0
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.8, %bb.9
+  successors: %bb.12(0x40000000), %bb.11(0x40000000); %bb.12(50.00%), %bb.11(50.00%)
+  liveins: $rc6, $v, $rc2lsb, $rc4, $rc7, $rc5
+  renamable $y = LDImm 1
+  renamable $a = LDImm 1
+  GBR %bb.12, killed $rc2lsb, 1, implicit-def dead $c
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.10
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $v
+  renamable $a = LDImm 0
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.11, %bb.10
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $a, $v
+  renamable $rc2 = COPY renamable $y
+  GBR %bb.14, killed renamable $v, 1, implicit-def dead $c
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $a
+  renamable $x = LDImm 0
+  renamable $rc2 = COPY killed renamable $x
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.15(0x40000000), %bb.17(0x40000000); %bb.15(50.00%), %bb.17(50.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $a, $rc2
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  renamable $rc2 = COPY killed renamable $a
+  renamable $x = COPY killed renamable $rc6
+  CmpBrImag8 %bb.17, undef $z, 0, killed renamable $x, killed renamable $rc5, implicit-def dead $c
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x40000000), %bb.17(0x40000000); %bb.16(50.00%), %bb.17(50.00%)
+  liveins: $rc2, $y, $rc4, $rc7
+  renamable $x = COPY killed renamable $rc7
+  CmpBrImag8 %bb.17, undef $z, 0, killed renamable $x, killed renamable $rc4, implicit-def dead $c
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15
+  successors: %bb.17(0x80000000); %bb.17(100.00%)
+  liveins: $rc2
+  renamable $y = LDImm 0
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16, %bb.14, %bb.15
+  liveins: $rc2, $y
+  renamable $a = COPY killed renamable $y
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  RTS implicit killed $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  $y = LDImag8 $rc2
+  $rc7 = STImag8 $a
+  renamable $c = CMPImag8 killed renamable $a, killed renamable $rc2
+  $rc6 = STImag8 $x
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), $rc3, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.4, killed $n, 0
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y
+  dead $x = LDImm 0
+  $a = LDImm 1
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y
+  dead $x = LDImm 0
+  $a = LDImm 0
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.4, %bb.3
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y, $alsb
+  $rc2 = STImag8 $a
+  renamable $c = CMPImag8 killed renamable $y, renamable $rc4
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), renamable $rc5, killed renamable $c(tied-def 1)
+  BR %bb.7, killed renamable $v, 0, implicit-def dead $c
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6, %bb.5
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.9, killed $n, 0
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5
+  $v = BITAbs undef $a, &__set_v
+  JMP %bb.10
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5
+  $v = CLV
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.8, %bb.9
+  successors: %bb.12(0x40000000), %bb.11(0x40000000); %bb.12(50.00%), %bb.11(50.00%)
+  liveins: $rc6, $v, $rc2lsb, $rc4, $rc7, $rc5
+  renamable $y = LDImm 1
+  renamable $a = LDImm 1
+  CmpZero $rc2, implicit-def $c, implicit-def $z
+  BR %bb.12, killed $z, 0, implicit-def dead $c
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.10
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $v
+  renamable $a = LDImm 0
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.11, %bb.10
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $a, $v
+  $rc2 = STImag8 $y
+  BR %bb.14, killed renamable $v, 1, implicit-def dead $c
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $a
+  renamable $x = LDImm 0
+  $rc2 = STImag8 $x
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.15(0x40000000), %bb.17(0x40000000); %bb.15(50.00%), %bb.17(50.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $a, $rc2
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  $rc2 = STImag8 $a
+  $x = LDImag8 $rc6
+  dead $c = CMPImag8 killed renamable $x, killed renamable $rc5, implicit-def dead $c, implicit-def $z
+  BR %bb.17, killed $z, 0
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x40000000), %bb.17(0x40000000); %bb.16(50.00%), %bb.17(50.00%)
+  liveins: $rc2, $y, $rc4, $rc7
+  $x = LDImag8 $rc7
+  dead $c = CMPImag8 killed renamable $x, killed renamable $rc4, implicit-def dead $c, implicit-def $z
+  BR %bb.17, killed $z, 0
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15
+  successors: %bb.17(0x80000000); %bb.17(100.00%)
+  liveins: $rc2
+  renamable $y = LDImm 0
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16, %bb.14, %bb.15
+  liveins: $rc2, $y
+  $a = T_A $y
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  RTS implicit killed $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on compare_flags omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on compare_flags omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on compare_flags omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on compare_flags omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  $y = LDImag8 $rc2
+  $rc7 = STImag8 $a
+  renamable $c = CMPImag8 killed renamable $a, killed renamable $rc2
+  $rc6 = STImag8 $x
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), $rc3, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y, $a
+  dead $x = TA $a, implicit-def $nz
+  BR %bb.4, killed $n, 0
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y
+  dead $x = LDImm 0
+  $a = LDImm 1
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y
+  $x = LDImm 0
+  $a = T_A $x
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.4, %bb.3
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y, $alsb
+  $rc2 = STImag8 $a
+  renamable $c = CMPImag8 killed renamable $y, renamable $rc4
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), renamable $rc5, killed renamable $c(tied-def 1)
+  BR %bb.7, killed renamable $v, 0, implicit-def dead $c
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6, %bb.5
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5, $a
+  dead $x = TA $a, implicit-def $nz
+  BR %bb.9, killed $n, 0
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5
+  $v = BITAbs undef $a, &__set_v
+  JMP %bb.10
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5
+  $v = CLV
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.8, %bb.9
+  successors: %bb.12(0x40000000), %bb.11(0x40000000); %bb.12(50.00%), %bb.11(50.00%)
+  liveins: $rc6, $v, $rc2lsb, $rc4, $rc7, $rc5
+  renamable $y = LDImm 1
+  renamable $a = T_A $y
+  dead $x = LDImag8 $rc2, implicit-def $nz
+  BR %bb.12, killed $z, 0, implicit-def dead $c
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.10
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $v
+  renamable $a = LDImm 0
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.11, %bb.10
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $a, $v
+  $rc2 = STImag8 $y
+  BR %bb.14, killed renamable $v, 1, implicit-def dead $c
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $a
+  renamable $x = LDImm 0
+  $rc2 = STImag8 $x
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.15(0x40000000), %bb.17(0x40000000); %bb.15(50.00%), %bb.17(50.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $a, $rc2
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  $rc2 = STImag8 $a
+  $x = LDImag8 $rc6
+  dead $c = CMPImag8 killed renamable $x, killed renamable $rc5, implicit-def dead $c, implicit-def $z
+  BR %bb.17, killed $z, 0
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x40000000), %bb.17(0x40000000); %bb.16(50.00%), %bb.17(50.00%)
+  liveins: $rc2, $y, $rc4, $rc7
+  $x = LDImag8 $rc7
+  dead $c = CMPImag8 killed renamable $x, killed renamable $rc4, implicit-def dead $c, implicit-def $z
+  BR %bb.17, killed $z, 0
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15
+  successors: %bb.17(0x80000000); %bb.17(100.00%)
+  liveins: $rc2
+  renamable $y = LDImm 0
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16, %bb.14, %bb.15
+  liveins: $rc2, $y
+  $a = T_A $y
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  RTS implicit killed $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on compare_flags omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on compare_flags omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on compare_flags omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on compare_flags omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on compare_flags omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on compare_flags ***
+# Machine code for function compare_flags: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  $y = LDImag8 $rc2
+  $rc7 = STImag8 $a
+  renamable $c = CMPImag8 killed renamable $a, killed renamable $rc2
+  $rc6 = STImag8 $x
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), $rc3, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y, $a
+  dead $x = TA $a, implicit-def $nz
+  BR %bb.4, killed $n, 0
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y
+  dead $x = LDImm 0
+  $a = LDImm 1
+  JMP %bb.5
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y
+  $x = LDImm 0
+  $a = T_A $x
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.4, %bb.3
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc6, $rc4, $rc7, $rc5, $rc3, $y, $alsb
+  $rc2 = STImag8 $a
+  renamable $c = CMPImag8 killed renamable $y, renamable $rc4
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, renamable $v = SBCImag8 killed renamable $a(tied-def 0), renamable $rc5, killed renamable $c(tied-def 1)
+  BR %bb.7, killed renamable $v, 0
+
+bb.6 (%ir-block.3):
+; predecessors: %bb.5
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.7 (%ir-block.3):
+; predecessors: %bb.6, %bb.5
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5, $a
+  dead $x = TA $a, implicit-def $nz
+  BR %bb.9, killed $n, 0
+
+bb.8 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5
+  $v = BITAbs undef $a, &__set_v
+  JMP %bb.10
+
+bb.9 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $rc6, $rc2lsb, $rc4, $rc7, $rc5
+  $v = CLV
+
+bb.10 (%ir-block.3):
+; predecessors: %bb.8, %bb.9
+  successors: %bb.12(0x40000000), %bb.11(0x40000000); %bb.12(50.00%), %bb.11(50.00%)
+  liveins: $rc6, $v, $rc2lsb, $rc4, $rc7, $rc5
+  renamable $y = LDImm 1
+  renamable $a = T_A $y
+  dead $x = LDImag8 $rc2, implicit-def $nz
+  BR %bb.12, killed $z, 0
+
+bb.11 (%ir-block.3):
+; predecessors: %bb.10
+  successors: %bb.12(0x80000000); %bb.12(100.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $v
+  renamable $a = LDImm 0
+
+bb.12 (%ir-block.3):
+; predecessors: %bb.11, %bb.10
+  successors: %bb.14(0x40000000), %bb.13(0x40000000); %bb.14(50.00%), %bb.13(50.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $a, $v
+  $rc2 = STImag8 $y
+  BR %bb.14, killed renamable $v, 1
+
+bb.13 (%ir-block.3):
+; predecessors: %bb.12
+  successors: %bb.14(0x80000000); %bb.14(100.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $a
+  renamable $x = LDImm 0
+  $rc2 = STImag8 $x
+
+bb.14 (%ir-block.3):
+; predecessors: %bb.13, %bb.12
+  successors: %bb.15(0x40000000), %bb.17(0x40000000); %bb.15(50.00%), %bb.17(50.00%)
+  liveins: $rc6, $y, $rc4, $rc7, $rc5, $a, $rc2
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  $rc2 = STImag8 $a
+  $x = LDImag8 $rc6
+  dead $c = CMPImag8 killed renamable $x, killed renamable $rc5, implicit-def dead $c, implicit-def $z
+  BR %bb.17, killed $z, 0
+
+bb.15 (%ir-block.3):
+; predecessors: %bb.14
+  successors: %bb.16(0x40000000), %bb.17(0x40000000); %bb.16(50.00%), %bb.17(50.00%)
+  liveins: $rc2, $y, $rc4, $rc7
+  $x = LDImag8 $rc7
+  dead $c = CMPImag8 killed renamable $x, killed renamable $rc4, implicit-def dead $c, implicit-def $z
+  BR %bb.17, killed $z, 0
+
+bb.16 (%ir-block.3):
+; predecessors: %bb.15
+  successors: %bb.17(0x80000000); %bb.17(100.00%)
+  liveins: $rc2
+  renamable $y = LDImm 0
+
+bb.17 (%ir-block.3):
+; predecessors: %bb.16, %bb.14, %bb.15
+  liveins: $rc2, $y
+  $a = T_A $y
+  renamable $a = ANDImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  RTS implicit killed $a
+
+# End machine code for function compare_flags.
+
+*** IR Dump After Insert fentry calls (fentry-insert) on compare_flags omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on compare_flags omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on compare_flags omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on compare_flags omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on compare_flags omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on compare_flags omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on compare_flags omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on compare_flags omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on compare_flags omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on compare_flags omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on compare_flags omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on compare_flags omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on compare_flags omitted because no change ***

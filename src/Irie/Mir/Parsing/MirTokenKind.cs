@@ -15,6 +15,7 @@ internal enum MirTokenKind
     RBrace,
     LBracket,
     RBracket,
+    Plus,
 
     // Value-carrying
     Identifier,    // word not otherwise classified (type names, opcode parts, class names)

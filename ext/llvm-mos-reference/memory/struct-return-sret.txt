@@ -1,0 +1,2679 @@
+*** IR Dump At Start ***
+; ModuleID = './memory/struct-return-sret.c'
+source_filename = "./memory/struct-return-sret.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+%struct.big = type { i16, i16, i16, i16, i16 }
+
+; Function Attrs: nounwind optsize
+define dso_local void @make_big(ptr dead_on_unwind noalias writable sret(%struct.big) align 1 %0, i16 noundef %1) #0 {
+  %3 = alloca ptr, align 1
+  %4 = alloca i16, align 1
+  store ptr %0, ptr %3, align 1
+  store i16 %1, ptr %4, align 1, !tbaa !2
+  %5 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 0
+  %6 = load i16, ptr %4, align 1, !tbaa !2
+  store i16 %6, ptr %5, align 1, !tbaa !6
+  %7 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 1
+  %8 = load i16, ptr %4, align 1, !tbaa !2
+  %9 = add nsw i16 %8, 1
+  store i16 %9, ptr %7, align 1, !tbaa !8
+  %10 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 2
+  %11 = load i16, ptr %4, align 1, !tbaa !2
+  %12 = add nsw i16 %11, 2
+  store i16 %12, ptr %10, align 1, !tbaa !9
+  %13 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 3
+  %14 = load i16, ptr %4, align 1, !tbaa !2
+  %15 = add nsw i16 %14, 3
+  store i16 %15, ptr %13, align 1, !tbaa !10
+  %16 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 4
+  %17 = load i16, ptr %4, align 1, !tbaa !2
+  %18 = add nsw i16 %17, 4
+  store i16 %18, ptr %16, align 1, !tbaa !11
+  ret void
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = !{!7, !3, i64 0}
+!7 = !{!"big", !3, i64 0, !3, i64 2, !3, i64 4, !3, i64 6, !3, i64 8}
+!8 = !{!7, !3, i64 2}
+!9 = !{!7, !3, i64 4}
+!10 = !{!7, !3, i64 6}
+!11 = !{!7, !3, i64 8}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on make_big omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on make_big omitted because no change ***
+*** IR Dump After SimplifyCFGPass on make_big omitted because no change ***
+*** IR Dump After SROAPass on make_big ***
+; Function Attrs: nounwind optsize
+define dso_local void @make_big(ptr dead_on_unwind noalias writable sret(%struct.big) align 1 %0, i16 noundef %1) #0 {
+  %3 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 0
+  store i16 %1, ptr %3, align 1, !tbaa !6
+  %4 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 1
+  %5 = add nsw i16 %1, 1
+  store i16 %5, ptr %4, align 1, !tbaa !8
+  %6 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 2
+  %7 = add nsw i16 %1, 2
+  store i16 %7, ptr %6, align 1, !tbaa !9
+  %8 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 3
+  %9 = add nsw i16 %1, 3
+  store i16 %9, ptr %8, align 1, !tbaa !10
+  %10 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 4
+  %11 = add nsw i16 %1, 4
+  store i16 %11, ptr %10, align 1, !tbaa !11
+  ret void
+}
+*** IR Dump After EarlyCSEPass on make_big ***
+; Function Attrs: nounwind optsize
+define dso_local void @make_big(ptr dead_on_unwind noalias writable sret(%struct.big) align 1 %0, i16 noundef %1) #0 {
+  store i16 %1, ptr %0, align 1, !tbaa !6
+  %3 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 1
+  %4 = add nsw i16 %1, 1
+  store i16 %4, ptr %3, align 1, !tbaa !8
+  %5 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 2
+  %6 = add nsw i16 %1, 2
+  store i16 %6, ptr %5, align 1, !tbaa !9
+  %7 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 3
+  %8 = add nsw i16 %1, 3
+  store i16 %8, ptr %7, align 1, !tbaa !10
+  %9 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 4
+  %10 = add nsw i16 %1, 4
+  store i16 %10, ptr %9, align 1, !tbaa !11
+  ret void
+}
+*** IR Pass PassManager<Function> on make_big ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './memory/struct-return-sret.c'
+source_filename = "./memory/struct-return-sret.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+%struct.big = type { i16, i16, i16, i16, i16 }
+
+; Function Attrs: nounwind optsize
+define dso_local void @make_big(ptr dead_on_unwind noalias writable sret(%struct.big) align 1 %0, i16 noundef %1) local_unnamed_addr #0 {
+  store i16 %1, ptr %0, align 1, !tbaa !6
+  %3 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 1
+  %4 = add nsw i16 %1, 1
+  store i16 %4, ptr %3, align 1, !tbaa !8
+  %5 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 2
+  %6 = add nsw i16 %1, 2
+  store i16 %6, ptr %5, align 1, !tbaa !9
+  %7 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 3
+  %8 = add nsw i16 %1, 3
+  store i16 %8, ptr %7, align 1, !tbaa !10
+  %9 = getelementptr inbounds nuw %struct.big, ptr %0, i32 0, i32 4
+  %10 = add nsw i16 %1, 4
+  store i16 %10, ptr %9, align 1, !tbaa !11
+  ret void
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = !{!7, !3, i64 0}
+!7 = !{!"big", !3, i64 0, !3, i64 2, !3, i64 4, !3, i64 6, !3, i64 8}
+!8 = !{!7, !3, i64 2}
+!9 = !{!7, !3, i64 4}
+!10 = !{!7, !3, i64 6}
+!11 = !{!7, !3, i64 8}
+*** IR Dump After PromotePass on make_big omitted because no change ***
+*** IR Dump After InstCombinePass on make_big ***
+; Function Attrs: nounwind optsize
+define dso_local void @make_big(ptr dead_on_unwind noalias writable sret(%struct.big) align 1 %0, i16 noundef %1) local_unnamed_addr #0 {
+  store i16 %1, ptr %0, align 1, !tbaa !6
+  %3 = getelementptr inbounds nuw i8, ptr %0, i16 2
+  %4 = add nsw i16 %1, 1
+  store i16 %4, ptr %3, align 1, !tbaa !8
+  %5 = getelementptr inbounds nuw i8, ptr %0, i16 4
+  %6 = add nsw i16 %1, 2
+  store i16 %6, ptr %5, align 1, !tbaa !9
+  %7 = getelementptr inbounds nuw i8, ptr %0, i16 6
+  %8 = add nsw i16 %1, 3
+  store i16 %8, ptr %7, align 1, !tbaa !10
+  %9 = getelementptr inbounds nuw i8, ptr %0, i16 8
+  %10 = add nsw i16 %1, 4
+  store i16 %10, ptr %9, align 1, !tbaa !11
+  ret void
+}
+*** IR Dump After SimplifyCFGPass on make_big omitted because no change ***
+*** IR Pass PassManager<Function> on make_big ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on make_big omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (make_big) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (make_big) ***
+; Function Attrs: nounwind optsize
+define dso_local void @make_big(ptr dead_on_unwind noalias writable writeonly sret(%struct.big) align 1 captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  store i16 %1, ptr %0, align 1, !tbaa !6
+  %3 = getelementptr inbounds nuw i8, ptr %0, i16 2
+  %4 = add nsw i16 %1, 1
+  store i16 %4, ptr %3, align 1, !tbaa !8
+  %5 = getelementptr inbounds nuw i8, ptr %0, i16 4
+  %6 = add nsw i16 %1, 2
+  store i16 %6, ptr %5, align 1, !tbaa !9
+  %7 = getelementptr inbounds nuw i8, ptr %0, i16 6
+  %8 = add nsw i16 %1, 3
+  store i16 %8, ptr %7, align 1, !tbaa !10
+  %9 = getelementptr inbounds nuw i8, ptr %0, i16 8
+  %10 = add nsw i16 %1, 4
+  store i16 %10, ptr %9, align 1, !tbaa !11
+  ret void
+}
+*** IR Dump After SROAPass on make_big omitted because no change ***
+*** IR Dump After EarlyCSEPass on make_big omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on make_big omitted because no change ***
+*** IR Dump After JumpThreadingPass on make_big omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on make_big omitted because no change ***
+*** IR Dump After SimplifyCFGPass on make_big omitted because no change ***
+*** IR Dump After InstCombinePass on make_big omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on make_big omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on make_big omitted because no change ***
+*** IR Dump After TailCallElimPass on make_big omitted because no change ***
+*** IR Dump After SimplifyCFGPass on make_big omitted because no change ***
+*** IR Dump After ReassociatePass on make_big omitted because no change ***
+*** IR Dump After ConstraintEliminationPass on make_big omitted because no change ***
+*** IR Dump After LoopSimplifyPass on make_big omitted because no change ***
+*** IR Dump After LCSSAPass on make_big omitted because no change ***
+*** IR Pass PassManager<Function> on make_big ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on make_big ignored ***
+*** IR Dump After SimplifyCFGPass on make_big omitted because no change ***
+*** IR Dump After InstCombinePass on make_big omitted because no change ***
+*** IR Dump After LoopSimplifyPass on make_big omitted because no change ***
+*** IR Dump After LCSSAPass on make_big omitted because no change ***
+*** IR Pass PassManager<Function> on make_big ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on make_big ignored ***
+*** IR Dump After SROAPass on make_big omitted because no change ***
+*** IR Dump After VectorCombinePass on make_big omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on make_big omitted because no change ***
+*** IR Dump After GVNPass on make_big omitted because no change ***
+*** IR Dump After SCCPPass on make_big omitted because no change ***
+*** IR Dump After BDCEPass on make_big omitted because no change ***
+*** IR Dump After InstCombinePass on make_big omitted because no change ***
+*** IR Dump After JumpThreadingPass on make_big omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on make_big omitted because no change ***
+*** IR Dump After ADCEPass on make_big omitted because no change ***
+*** IR Dump After MemCpyOptPass on make_big omitted because no change ***
+*** IR Dump After DSEPass on make_big omitted because no change ***
+*** IR Dump After MoveAutoInitPass on make_big omitted because no change ***
+*** IR Dump After LoopSimplifyPass on make_big omitted because no change ***
+*** IR Dump After LCSSAPass on make_big omitted because no change ***
+*** IR Pass PassManager<Function> on make_big ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on make_big ignored ***
+*** IR Dump After CoroElidePass on make_big omitted because no change ***
+*** IR Dump After SimplifyCFGPass on make_big omitted because no change ***
+*** IR Dump After InstCombinePass on make_big omitted because no change ***
+*** IR Pass PassManager<Function> on make_big ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (make_big) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (make_big) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(argmem: write)
+define dso_local void @make_big(ptr dead_on_unwind noalias writable writeonly sret(%struct.big) align 1 captures(none) initializes((0, 10)) %0, i16 noundef %1) local_unnamed_addr #0 {
+  store i16 %1, ptr %0, align 1, !tbaa !6
+  %3 = getelementptr inbounds nuw i8, ptr %0, i16 2
+  %4 = add nsw i16 %1, 1
+  store i16 %4, ptr %3, align 1, !tbaa !8
+  %5 = getelementptr inbounds nuw i8, ptr %0, i16 4
+  %6 = add nsw i16 %1, 2
+  store i16 %6, ptr %5, align 1, !tbaa !9
+  %7 = getelementptr inbounds nuw i8, ptr %0, i16 6
+  %8 = add nsw i16 %1, 3
+  store i16 %8, ptr %7, align 1, !tbaa !10
+  %9 = getelementptr inbounds nuw i8, ptr %0, i16 8
+  %10 = add nsw i16 %1, 4
+  store i16 %10, ptr %9, align 1, !tbaa !11
+  ret void
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on make_big omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (make_big) ignored ***
+*** IR Dump After CoroSplitPass on (make_big) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (make_big) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (make_big) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (make_big) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on make_big omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on make_big omitted because no change ***
+*** IR Dump After Float2IntPass on make_big omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on make_big omitted because no change ***
+*** IR Dump After LoopSimplifyPass on make_big omitted because no change ***
+*** IR Dump After LCSSAPass on make_big omitted because no change ***
+*** IR Pass PassManager<Function> on make_big ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on make_big ignored ***
+*** IR Dump After LoopDistributePass on make_big omitted because no change ***
+*** IR Dump After InjectTLIMappings on make_big omitted because no change ***
+*** IR Dump After LoopVectorizePass on make_big omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on make_big omitted because no change ***
+*** IR Dump After InferAlignmentPass on make_big omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on make_big omitted because no change ***
+*** IR Dump After InstCombinePass on make_big omitted because no change ***
+*** IR Dump After SimplifyCFGPass on make_big omitted because no change ***
+*** IR Dump After SLPVectorizerPass on make_big omitted because no change ***
+*** IR Dump After VectorCombinePass on make_big omitted because no change ***
+*** IR Dump After InstCombinePass on make_big omitted because no change ***
+*** IR Dump After LoopUnrollPass on make_big omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on make_big omitted because no change ***
+*** IR Dump After SROAPass on make_big omitted because no change ***
+*** IR Dump After InferAlignmentPass on make_big omitted because no change ***
+*** IR Dump After InstCombinePass on make_big omitted because no change ***
+*** IR Dump After LoopSimplifyPass on make_big omitted because no change ***
+*** IR Dump After LCSSAPass on make_big omitted because no change ***
+*** IR Pass PassManager<Function> on make_big ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on make_big ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on make_big omitted because no change ***
+*** IR Dump After LoopSinkPass on make_big omitted because no change ***
+*** IR Dump After InstSimplifyPass on make_big omitted because no change ***
+*** IR Dump After DivRemPairsPass on make_big omitted because no change ***
+*** IR Dump After MergeICmpsPass on make_big omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on make_big omitted because no change ***
+*** IR Dump After TailCallElimPass on make_big omitted because no change ***
+*** IR Dump After SimplifyCFGPass on make_big omitted because no change ***
+*** IR Pass PassManager<Function> on make_big ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on make_big omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on make_big omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on make_big ***
+# Machine code for function make_big: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:_(p0) = COPY $rs1
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %1:_(s16) = G_MERGE_VALUES %2:_(s8), %3:_(s8)
+  %6:_(s16) = G_CONSTANT i16 1
+  %10:_(s16) = G_CONSTANT i16 2
+  %14:_(s16) = G_CONSTANT i16 3
+  %18:_(s16) = G_CONSTANT i16 4
+  G_STORE %1:_(s16), %0:_(p0) :: (store (s16) into %ir.0, align 1, !tbaa !6)
+  %4:_(s16) = G_CONSTANT i16 2
+  %5:_(p0) = nuw nusw inbounds G_PTR_ADD %0:_, %4:_(s16)
+  %7:_(s16) = nsw G_ADD %1:_, %6:_
+  G_STORE %7:_(s16), %5:_(p0) :: (store (s16) into %ir.3, align 1, !tbaa !8)
+  %8:_(s16) = G_CONSTANT i16 4
+  %9:_(p0) = nuw nusw inbounds G_PTR_ADD %0:_, %8:_(s16)
+  %11:_(s16) = nsw G_ADD %1:_, %10:_
+  G_STORE %11:_(s16), %9:_(p0) :: (store (s16) into %ir.5, align 1, !tbaa !9)
+  %12:_(s16) = G_CONSTANT i16 6
+  %13:_(p0) = nuw nusw inbounds G_PTR_ADD %0:_, %12:_(s16)
+  %15:_(s16) = nsw G_ADD %1:_, %14:_
+  G_STORE %15:_(s16), %13:_(p0) :: (store (s16) into %ir.7, align 1, !tbaa !10)
+  %16:_(s16) = G_CONSTANT i16 8
+  %17:_(p0) = nuw nusw inbounds G_PTR_ADD %0:_, %16:_(s16)
+  %19:_(s16) = nsw G_ADD %1:_, %18:_
+  G_STORE %19:_(s16), %17:_(p0) :: (store (s16) into %ir.9, align 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on make_big omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on make_big omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on make_big omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on make_big omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on make_big omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on make_big omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on make_big omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on make_big ***
+# Machine code for function make_big: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:_(p0) = COPY $rs1
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %92:_(s8) = G_CONSTANT i8 2
+  %44:_(s8) = G_CONSTANT i8 0
+  %110:_(s8) = G_CONSTANT i8 3
+  %70:_(s8) = G_CONSTANT i8 4
+  G_STORE_INDIR_IDX %2:_(s8), %0:_(p0), %44:_ :: (store (s8) into %ir.0, !tbaa !6)
+  %23:_(s8) = G_CONSTANT i8 1
+  G_STORE_INDIR_IDX %3:_(s8), %0:_(p0), %23:_ :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %97:_(s16) = G_PTRTOINT %0:_(p0)
+  %99:_(s8), %100:_(s8) = G_UNMERGE_VALUES %97:_(s16)
+  %33:_(s1) = G_CONSTANT i1 false
+  %103:_(s8), %104:_(s1) = G_UADDE %99:_, %92:_, %33:_
+  %105:_(s8), %106:_(s1) = G_UADDE %100:_, %44:_, %104:_
+  %98:_(s16) = G_MERGE_VALUES %103:_(s8), %105:_(s8)
+  %5:_(p0) = G_INTTOPTR %98:_(s16)
+  %95:_(s8), %96:_(s8) = G_INC %2:_(s8), %3:_(s8)
+  G_STORE_INDIR_IDX %95:_(s8), %0:_(p0), %92:_ :: (store (s8) into %ir.3, !tbaa !8)
+  G_STORE_INDIR_IDX %96:_(s8), %5:_(p0), %23:_ :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %79:_(s16) = G_PTRTOINT %0:_(p0)
+  %81:_(s8), %82:_(s8) = G_UNMERGE_VALUES %79:_(s16)
+  %85:_(s8), %86:_(s1) = G_UADDE %81:_, %70:_, %33:_
+  %87:_(s8), %88:_(s1) = G_UADDE %82:_, %44:_, %86:_
+  %80:_(s16) = G_MERGE_VALUES %85:_(s8), %87:_(s8)
+  %9:_(p0) = G_INTTOPTR %80:_(s16)
+  %75:_(s8), %76:_(s1) = G_UADDE %2:_, %92:_, %33:_
+  %77:_(s8), %78:_(s1) = G_UADDE %3:_, %44:_, %76:_
+  G_STORE_INDIR_IDX %75:_(s8), %0:_(p0), %70:_ :: (store (s8) into %ir.5, !tbaa !9)
+  G_STORE_INDIR_IDX %77:_(s8), %9:_(p0), %23:_ :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %48:_(s8) = G_CONSTANT i8 6
+  %57:_(s16) = G_PTRTOINT %0:_(p0)
+  %59:_(s8), %60:_(s8) = G_UNMERGE_VALUES %57:_(s16)
+  %63:_(s8), %64:_(s1) = G_UADDE %59:_, %48:_, %33:_
+  %65:_(s8), %66:_(s1) = G_UADDE %60:_, %44:_, %64:_
+  %58:_(s16) = G_MERGE_VALUES %63:_(s8), %65:_(s8)
+  %13:_(p0) = G_INTTOPTR %58:_(s16)
+  %53:_(s8), %54:_(s1) = G_UADDE %2:_, %110:_, %33:_
+  %55:_(s8), %56:_(s1) = G_UADDE %3:_, %44:_, %54:_
+  G_STORE_INDIR_IDX %53:_(s8), %0:_(p0), %48:_ :: (store (s8) into %ir.7, !tbaa !10)
+  G_STORE_INDIR_IDX %55:_(s8), %13:_(p0), %23:_ :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %24:_(s8) = G_CONSTANT i8 8
+  %34:_(s16) = G_PTRTOINT %0:_(p0)
+  %36:_(s8), %37:_(s8) = G_UNMERGE_VALUES %34:_(s16)
+  %40:_(s8), %41:_(s1) = G_UADDE %36:_, %24:_, %33:_
+  %42:_(s8), %43:_(s1) = G_UADDE %37:_, %44:_, %41:_
+  %35:_(s16) = G_MERGE_VALUES %40:_(s8), %42:_(s8)
+  %17:_(p0) = G_INTTOPTR %35:_(s16)
+  %29:_(s8), %30:_(s1) = G_UADDE %2:_, %70:_, %33:_
+  %31:_(s8), %32:_(s1) = G_UADDE %3:_, %44:_, %30:_
+  G_STORE_INDIR_IDX %29:_(s8), %0:_(p0), %24:_ :: (store (s8) into %ir.9, !tbaa !11)
+  G_STORE_INDIR_IDX %31:_(s8), %17:_(p0), %23:_ :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on make_big omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on make_big omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on make_big omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on make_big omitted because no change ***
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on make_big omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on make_big ***
+# Machine code for function make_big: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:any(p0) = COPY $rs1
+  %2:any(s8) = COPY $a
+  %3:any(s8) = COPY $x
+  %92:any(s8) = G_CONSTANT i8 2
+  %44:any(s8) = G_CONSTANT i8 0
+  %110:any(s8) = G_CONSTANT i8 3
+  %70:any(s8) = G_CONSTANT i8 4
+  G_STORE_INDIR_IDX %2:any(s8), %0:any(p0), %44:any :: (store (s8) into %ir.0, !tbaa !6)
+  %23:any(s8) = G_CONSTANT i8 1
+  G_STORE_INDIR_IDX %3:any(s8), %0:any(p0), %23:any :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %97:any(s16) = G_PTRTOINT %0:any(p0)
+  %99:any(s8), %100:any(s8) = G_UNMERGE_VALUES %97:any(s16)
+  %33:any(s1) = G_CONSTANT i1 false
+  %103:any(s8), %104:any(s1) = G_UADDE %99:any, %92:any, %33:any
+  %105:any(s8), %106:any(s1) = G_UADDE %100:any, %44:any, %104:any
+  %98:any(s16) = G_MERGE_VALUES %103:any(s8), %105:any(s8)
+  %5:any(p0) = G_INTTOPTR %98:any(s16)
+  %95:any(s8), %96:any(s8) = G_INC %2:any(s8), %3:any(s8)
+  G_STORE_INDIR_IDX %95:any(s8), %0:any(p0), %92:any :: (store (s8) into %ir.3, !tbaa !8)
+  G_STORE_INDIR_IDX %96:any(s8), %5:any(p0), %23:any :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %79:any(s16) = G_PTRTOINT %0:any(p0)
+  %81:any(s8), %82:any(s8) = G_UNMERGE_VALUES %79:any(s16)
+  %85:any(s8), %86:any(s1) = G_UADDE %81:any, %70:any, %33:any
+  %87:any(s8), %88:any(s1) = G_UADDE %82:any, %44:any, %86:any
+  %80:any(s16) = G_MERGE_VALUES %85:any(s8), %87:any(s8)
+  %9:any(p0) = G_INTTOPTR %80:any(s16)
+  %75:any(s8), %76:any(s1) = G_UADDE %2:any, %92:any, %33:any
+  %77:any(s8), %78:any(s1) = G_UADDE %3:any, %44:any, %76:any
+  G_STORE_INDIR_IDX %75:any(s8), %0:any(p0), %70:any :: (store (s8) into %ir.5, !tbaa !9)
+  G_STORE_INDIR_IDX %77:any(s8), %9:any(p0), %23:any :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %48:any(s8) = G_CONSTANT i8 6
+  %57:any(s16) = G_PTRTOINT %0:any(p0)
+  %59:any(s8), %60:any(s8) = G_UNMERGE_VALUES %57:any(s16)
+  %63:any(s8), %64:any(s1) = G_UADDE %59:any, %48:any, %33:any
+  %65:any(s8), %66:any(s1) = G_UADDE %60:any, %44:any, %64:any
+  %58:any(s16) = G_MERGE_VALUES %63:any(s8), %65:any(s8)
+  %13:any(p0) = G_INTTOPTR %58:any(s16)
+  %53:any(s8), %54:any(s1) = G_UADDE %2:any, %110:any, %33:any
+  %55:any(s8), %56:any(s1) = G_UADDE %3:any, %44:any, %54:any
+  G_STORE_INDIR_IDX %53:any(s8), %0:any(p0), %48:any :: (store (s8) into %ir.7, !tbaa !10)
+  G_STORE_INDIR_IDX %55:any(s8), %13:any(p0), %23:any :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %24:any(s8) = G_CONSTANT i8 8
+  %34:any(s16) = G_PTRTOINT %0:any(p0)
+  %36:any(s8), %37:any(s8) = G_UNMERGE_VALUES %34:any(s16)
+  %40:any(s8), %41:any(s1) = G_UADDE %36:any, %24:any, %33:any
+  %42:any(s8), %43:any(s1) = G_UADDE %37:any, %44:any, %41:any
+  %35:any(s16) = G_MERGE_VALUES %40:any(s8), %42:any(s8)
+  %17:any(p0) = G_INTTOPTR %35:any(s16)
+  %29:any(s8), %30:any(s1) = G_UADDE %2:any, %70:any, %33:any
+  %31:any(s8), %32:any(s1) = G_UADDE %3:any, %44:any, %30:any
+  G_STORE_INDIR_IDX %29:any(s8), %0:any(p0), %24:any :: (store (s8) into %ir.9, !tbaa !11)
+  G_STORE_INDIR_IDX %31:any(s8), %17:any(p0), %23:any :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Localizer (localizer) on make_big ***
+# Machine code for function make_big: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:any(p0) = COPY $rs1
+  %2:any(s8) = COPY $a
+  %3:any(s8) = COPY $x
+  %44:any(s8) = G_CONSTANT i8 0
+  G_STORE_INDIR_IDX %2:any(s8), %0:any(p0), %44:any :: (store (s8) into %ir.0, !tbaa !6)
+  %23:any(s8) = G_CONSTANT i8 1
+  G_STORE_INDIR_IDX %3:any(s8), %0:any(p0), %23:any :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %97:any(s16) = G_PTRTOINT %0:any(p0)
+  %99:any(s8), %100:any(s8) = G_UNMERGE_VALUES %97:any(s16)
+  %33:any(s1) = G_CONSTANT i1 false
+  %92:any(s8) = G_CONSTANT i8 2
+  %103:any(s8), %104:any(s1) = G_UADDE %99:any, %92:any, %33:any
+  %105:any(s8), %106:any(s1) = G_UADDE %100:any, %44:any, %104:any
+  %98:any(s16) = G_MERGE_VALUES %103:any(s8), %105:any(s8)
+  %95:any(s8), %96:any(s8) = G_INC %2:any(s8), %3:any(s8)
+  G_STORE_INDIR_IDX %95:any(s8), %0:any(p0), %92:any :: (store (s8) into %ir.3, !tbaa !8)
+  %5:any(p0) = G_INTTOPTR %98:any(s16)
+  G_STORE_INDIR_IDX %96:any(s8), %5:any(p0), %23:any :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %79:any(s16) = G_PTRTOINT %0:any(p0)
+  %81:any(s8), %82:any(s8) = G_UNMERGE_VALUES %79:any(s16)
+  %70:any(s8) = G_CONSTANT i8 4
+  %85:any(s8), %86:any(s1) = G_UADDE %81:any, %70:any, %33:any
+  %87:any(s8), %88:any(s1) = G_UADDE %82:any, %44:any, %86:any
+  %80:any(s16) = G_MERGE_VALUES %85:any(s8), %87:any(s8)
+  %75:any(s8), %76:any(s1) = G_UADDE %2:any, %92:any, %33:any
+  %77:any(s8), %78:any(s1) = G_UADDE %3:any, %44:any, %76:any
+  G_STORE_INDIR_IDX %75:any(s8), %0:any(p0), %70:any :: (store (s8) into %ir.5, !tbaa !9)
+  %9:any(p0) = G_INTTOPTR %80:any(s16)
+  G_STORE_INDIR_IDX %77:any(s8), %9:any(p0), %23:any :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %57:any(s16) = G_PTRTOINT %0:any(p0)
+  %59:any(s8), %60:any(s8) = G_UNMERGE_VALUES %57:any(s16)
+  %48:any(s8) = G_CONSTANT i8 6
+  %63:any(s8), %64:any(s1) = G_UADDE %59:any, %48:any, %33:any
+  %65:any(s8), %66:any(s1) = G_UADDE %60:any, %44:any, %64:any
+  %58:any(s16) = G_MERGE_VALUES %63:any(s8), %65:any(s8)
+  %110:any(s8) = G_CONSTANT i8 3
+  %53:any(s8), %54:any(s1) = G_UADDE %2:any, %110:any, %33:any
+  %55:any(s8), %56:any(s1) = G_UADDE %3:any, %44:any, %54:any
+  G_STORE_INDIR_IDX %53:any(s8), %0:any(p0), %48:any :: (store (s8) into %ir.7, !tbaa !10)
+  %13:any(p0) = G_INTTOPTR %58:any(s16)
+  G_STORE_INDIR_IDX %55:any(s8), %13:any(p0), %23:any :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %34:any(s16) = G_PTRTOINT %0:any(p0)
+  %36:any(s8), %37:any(s8) = G_UNMERGE_VALUES %34:any(s16)
+  %24:any(s8) = G_CONSTANT i8 8
+  %40:any(s8), %41:any(s1) = G_UADDE %36:any, %24:any, %33:any
+  %42:any(s8), %43:any(s1) = G_UADDE %37:any, %44:any, %41:any
+  %35:any(s16) = G_MERGE_VALUES %40:any(s8), %42:any(s8)
+  %29:any(s8), %30:any(s1) = G_UADDE %2:any, %70:any, %33:any
+  %31:any(s8), %32:any(s1) = G_UADDE %3:any, %44:any, %30:any
+  G_STORE_INDIR_IDX %29:any(s8), %0:any(p0), %24:any :: (store (s8) into %ir.9, !tbaa !11)
+  %17:any(p0) = G_INTTOPTR %35:any(s16)
+  G_STORE_INDIR_IDX %31:any(s8), %17:any(p0), %23:any :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on make_big omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on make_big ***
+# Machine code for function make_big: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %2:ac = COPY $a
+  %3:ac = COPY $x
+  %44:yc = LDImm 0
+  STIndirIdx %2:ac, %0:imag16, %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %23:yc = LDImm 1
+  STIndirIdx %3:ac, %0:imag16, %23:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %99:ac = COPY %0.sublo:imag16
+  %100:ac = COPY %0.subhi:imag16
+  %33:cc = LDImm1 0
+  %92:yc = LDImm 2
+  %103:ac, %104:cc, %124:vc = ADCImm %99:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %105:ac, %106:cc, %123:vc = ADCImm %100:ac(tied-def 0), 0, %104:cc(tied-def 1)
+  %98:imag16 = REG_SEQUENCE %103:ac, %subreg.sublo, %105:ac, %subreg.subhi
+  %95:ac, %96:ac = IncMB %2:ac(tied-def 0), %3:ac(tied-def 1), implicit-def $c, implicit-def $v
+  STIndirIdx %95:ac, %0:imag16, %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  STIndirIdx %96:ac, %98:imag16, %23:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %81:ac = COPY %0.sublo:imag16
+  %82:ac = COPY %0.subhi:imag16
+  %70:yc = LDImm 4
+  %85:ac, %86:cc, %122:vc = ADCImm %81:ac(tied-def 0), 4, %33:cc(tied-def 1)
+  %87:ac, %88:cc, %121:vc = ADCImm %82:ac(tied-def 0), 0, %86:cc(tied-def 1)
+  %80:imag16 = REG_SEQUENCE %85:ac, %subreg.sublo, %87:ac, %subreg.subhi
+  %75:ac, %76:cc, %120:vc = ADCImm %2:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %77:ac, %78:cc, %119:vc = ADCImm %3:ac(tied-def 0), 0, %76:cc(tied-def 1)
+  STIndirIdx %75:ac, %0:imag16, %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  STIndirIdx %77:ac, %80:imag16, %23:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %59:ac = COPY %0.sublo:imag16
+  %60:ac = COPY %0.subhi:imag16
+  %48:yc = LDImm 6
+  %63:ac, %64:cc, %118:vc = ADCImm %59:ac(tied-def 0), 6, %33:cc(tied-def 1)
+  %65:ac, %66:cc, %117:vc = ADCImm %60:ac(tied-def 0), 0, %64:cc(tied-def 1)
+  %58:imag16 = REG_SEQUENCE %63:ac, %subreg.sublo, %65:ac, %subreg.subhi
+  %53:ac, %54:cc, %116:vc = ADCImm %2:ac(tied-def 0), 3, %33:cc(tied-def 1)
+  %55:ac, %56:cc, %115:vc = ADCImm %3:ac(tied-def 0), 0, %54:cc(tied-def 1)
+  STIndirIdx %53:ac, %0:imag16, %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  STIndirIdx %55:ac, %58:imag16, %23:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %36:ac = COPY %0.sublo:imag16
+  %37:ac = COPY %0.subhi:imag16
+  %24:yc = LDImm 8
+  %40:ac, %41:cc, %114:vc = ADCImm %36:ac(tied-def 0), 8, %33:cc(tied-def 1)
+  %42:ac, %43:cc, %113:vc = ADCImm %37:ac(tied-def 0), 0, %41:cc(tied-def 1)
+  %35:imag16 = REG_SEQUENCE %40:ac, %subreg.sublo, %42:ac, %subreg.subhi
+  %29:ac, %30:cc, %112:vc = ADCImm %2:ac(tied-def 0), 4, %33:cc(tied-def 1)
+  %31:ac, %32:cc, %111:vc = ADCImm %3:ac(tied-def 0), 0, %30:cc(tied-def 1)
+  STIndirIdx %29:ac, %0:imag16, %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  STIndirIdx %31:ac, %35:imag16, %23:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After ResetMachineFunction on make_big omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on make_big omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on make_big omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on make_big omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on make_big omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on make_big omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on make_big omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on make_big omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on make_big omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on make_big omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on make_big omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on make_big omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on make_big omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on make_big omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on make_big omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on make_big omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on make_big omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on make_big omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on make_big omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on make_big ***
+# Machine code for function make_big: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %2:ac = COPY $a
+  %3:ac = COPY $x
+  %44:yc = LDImm 0
+  STIndirIdx %2:ac, %0:imag16, %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %23:yc = LDImm 1
+  STIndirIdx %3:ac, %0:imag16, %23:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %99:ac = COPY %0.sublo:imag16
+  %100:ac = COPY %0.subhi:imag16
+  %33:cc = LDImm1 0
+  %92:yc = LDImm 2
+  %103:ac, %104:cc, %124:vc = ADCImm %99:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %105:ac, %106:cc, %123:vc = ADCImm %100:ac(tied-def 0), 0, %104:cc(tied-def 1)
+  %98:imag16 = REG_SEQUENCE %103:ac, %subreg.sublo, %105:ac, %subreg.subhi
+  %95:ac, %96:ac = IncMB %2:ac(tied-def 0), %3:ac(tied-def 1), implicit-def $c, implicit-def $v
+  STIndirIdx %95:ac, %0:imag16, %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  STIndirIdx %96:ac, %98:imag16, %23:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %70:yc = LDImm 4
+  %85:ac, %86:cc, %122:vc = ADCImm %99:ac(tied-def 0), 4, %33:cc(tied-def 1)
+  %87:ac, %88:cc, %121:vc = ADCImm %100:ac(tied-def 0), 0, %86:cc(tied-def 1)
+  %80:imag16 = REG_SEQUENCE %85:ac, %subreg.sublo, %87:ac, %subreg.subhi
+  %75:ac, %76:cc, %120:vc = ADCImm %2:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %77:ac, %78:cc, %119:vc = ADCImm %3:ac(tied-def 0), 0, %76:cc(tied-def 1)
+  STIndirIdx %75:ac, %0:imag16, %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  STIndirIdx %77:ac, %80:imag16, %23:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %48:yc = LDImm 6
+  %63:ac, %64:cc, %118:vc = ADCImm %99:ac(tied-def 0), 6, %33:cc(tied-def 1)
+  %65:ac, %66:cc, %117:vc = ADCImm %100:ac(tied-def 0), 0, %64:cc(tied-def 1)
+  %58:imag16 = REG_SEQUENCE %63:ac, %subreg.sublo, %65:ac, %subreg.subhi
+  %53:ac, %54:cc, %116:vc = ADCImm %2:ac(tied-def 0), 3, %33:cc(tied-def 1)
+  %55:ac, %56:cc, %115:vc = ADCImm %3:ac(tied-def 0), 0, %54:cc(tied-def 1)
+  STIndirIdx %53:ac, %0:imag16, %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  STIndirIdx %55:ac, %58:imag16, %23:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %24:yc = LDImm 8
+  %40:ac, %41:cc, %114:vc = ADCImm %99:ac(tied-def 0), 8, %33:cc(tied-def 1)
+  %42:ac, %43:cc, %113:vc = ADCImm %100:ac(tied-def 0), 0, %41:cc(tied-def 1)
+  %35:imag16 = REG_SEQUENCE %40:ac, %subreg.sublo, %42:ac, %subreg.subhi
+  %29:ac, %30:cc, %112:vc = ADCImm %2:ac(tied-def 0), 4, %33:cc(tied-def 1)
+  %31:ac, %32:cc, %111:vc = ADCImm %3:ac(tied-def 0), 0, %30:cc(tied-def 1)
+  STIndirIdx %29:ac, %0:imag16, %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  STIndirIdx %31:ac, %35:imag16, %23:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on make_big omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on make_big ***
+# Machine code for function make_big: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %2:ac = COPY $a
+  %3:ac = COPY $x
+  %44:yc = LDImm 0
+  STIndirIdx %2:ac, %0:imag16, %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %23:yc = LDImm 1
+  STIndirIdx %3:ac, %0:imag16, %23:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %99:ac = COPY %0.sublo:imag16
+  %100:ac = COPY %0.subhi:imag16
+  %33:cc = LDImm1 0
+  %92:yc = LDImm 2
+  %103:ac, %104:cc, %124:vc = ADCImm %99:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %105:ac, %106:cc, %123:vc = ADCImm %100:ac(tied-def 0), 0, %104:cc(tied-def 1)
+  %98:imag16 = REG_SEQUENCE %103:ac, %subreg.sublo, %105:ac, %subreg.subhi
+  %125:anyi8 = COPY %2:ac
+  %127:anyi8 = COPY %3:ac
+  %126:anyi8, %128:anyi8 = IncMB %125:anyi8(tied-def 0), %127:anyi8(tied-def 1), implicit-def $c, implicit-def $v
+  %95:ac = COPY %126:anyi8
+  %96:ac = COPY %128:anyi8
+  STIndirIdx %95:ac, %0:imag16, %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  STIndirIdx %96:ac, %98:imag16, %23:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %70:yc = LDImm 4
+  %85:ac, %86:cc, %122:vc = ADCImm %99:ac(tied-def 0), 4, %33:cc(tied-def 1)
+  %87:ac, %88:cc, %121:vc = ADCImm %100:ac(tied-def 0), 0, %86:cc(tied-def 1)
+  %80:imag16 = REG_SEQUENCE %85:ac, %subreg.sublo, %87:ac, %subreg.subhi
+  %75:ac, %76:cc, %120:vc = ADCImm %2:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %77:ac, %78:cc, %119:vc = ADCImm %3:ac(tied-def 0), 0, %76:cc(tied-def 1)
+  STIndirIdx %75:ac, %0:imag16, %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  STIndirIdx %77:ac, %80:imag16, %23:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %48:yc = LDImm 6
+  %63:ac, %64:cc, %118:vc = ADCImm %99:ac(tied-def 0), 6, %33:cc(tied-def 1)
+  %65:ac, %66:cc, %117:vc = ADCImm %100:ac(tied-def 0), 0, %64:cc(tied-def 1)
+  %58:imag16 = REG_SEQUENCE %63:ac, %subreg.sublo, %65:ac, %subreg.subhi
+  %53:ac, %54:cc, %116:vc = ADCImm %2:ac(tied-def 0), 3, %33:cc(tied-def 1)
+  %55:ac, %56:cc, %115:vc = ADCImm %3:ac(tied-def 0), 0, %54:cc(tied-def 1)
+  STIndirIdx %53:ac, %0:imag16, %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  STIndirIdx %55:ac, %58:imag16, %23:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %24:yc = LDImm 8
+  %40:ac, %41:cc, %114:vc = ADCImm %99:ac(tied-def 0), 8, %33:cc(tied-def 1)
+  %42:ac, %43:cc, %113:vc = ADCImm %100:ac(tied-def 0), 0, %41:cc(tied-def 1)
+  %35:imag16 = REG_SEQUENCE %40:ac, %subreg.sublo, %42:ac, %subreg.subhi
+  %29:ac, %30:cc, %112:vc = ADCImm %2:ac(tied-def 0), 4, %33:cc(tied-def 1)
+  %31:ac, %32:cc, %111:vc = ADCImm %3:ac(tied-def 0), 0, %30:cc(tied-def 1)
+  STIndirIdx %29:ac, %0:imag16, %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  STIndirIdx %31:ac, %35:imag16, %23:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on make_big ***
+# Machine code for function make_big: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %2:ac = COPY $a
+  %3:ac = COPY $x
+  %44:yc = LDImm 0
+  STIndirIdx %2:ac, %0:imag16, %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %23:yc = LDImm 1
+  STIndirIdx %3:ac, %0:imag16, %23:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %99:ac = COPY %0.sublo:imag16
+  %100:ac = COPY %0.subhi:imag16
+  %33:cc = LDImm1 0
+  %92:yc = LDImm 2
+  %103:ac, %104:cc, dead %124:vc = ADCImm %99:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %105:ac, dead %106:cc, dead %123:vc = ADCImm %100:ac(tied-def 0), 0, %104:cc(tied-def 1)
+  %98:imag16 = REG_SEQUENCE %103:ac, %subreg.sublo, %105:ac, %subreg.subhi
+  %125:anyi8 = COPY %2:ac
+  %127:anyi8 = COPY %3:ac
+  %126:anyi8, %128:anyi8 = IncMB %125:anyi8(tied-def 0), %127:anyi8(tied-def 1), implicit-def $c, implicit-def $v
+  %95:ac = COPY %126:anyi8
+  %96:ac = COPY %128:anyi8
+  STIndirIdx %95:ac, %0:imag16, %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  STIndirIdx %96:ac, %98:imag16, %23:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %70:yc = LDImm 4
+  %85:ac, %86:cc, dead %122:vc = ADCImm %99:ac(tied-def 0), 4, %33:cc(tied-def 1)
+  %87:ac, dead %88:cc, dead %121:vc = ADCImm %100:ac(tied-def 0), 0, %86:cc(tied-def 1)
+  %80:imag16 = REG_SEQUENCE %85:ac, %subreg.sublo, %87:ac, %subreg.subhi
+  %75:ac, %76:cc, dead %120:vc = ADCImm %2:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %77:ac, dead %78:cc, dead %119:vc = ADCImm %3:ac(tied-def 0), 0, %76:cc(tied-def 1)
+  STIndirIdx %75:ac, %0:imag16, %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  STIndirIdx %77:ac, %80:imag16, %23:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %48:yc = LDImm 6
+  %63:ac, %64:cc, dead %118:vc = ADCImm %99:ac(tied-def 0), 6, %33:cc(tied-def 1)
+  %65:ac, dead %66:cc, dead %117:vc = ADCImm %100:ac(tied-def 0), 0, %64:cc(tied-def 1)
+  %58:imag16 = REG_SEQUENCE %63:ac, %subreg.sublo, %65:ac, %subreg.subhi
+  %53:ac, %54:cc, dead %116:vc = ADCImm %2:ac(tied-def 0), 3, %33:cc(tied-def 1)
+  %55:ac, dead %56:cc, dead %115:vc = ADCImm %3:ac(tied-def 0), 0, %54:cc(tied-def 1)
+  STIndirIdx %53:ac, %0:imag16, %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  STIndirIdx %55:ac, %58:imag16, %23:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %24:yc = LDImm 8
+  %40:ac, %41:cc, dead %114:vc = ADCImm %99:ac(tied-def 0), 8, %33:cc(tied-def 1)
+  %42:ac, dead %43:cc, dead %113:vc = ADCImm %100:ac(tied-def 0), 0, %41:cc(tied-def 1)
+  %35:imag16 = REG_SEQUENCE %40:ac, %subreg.sublo, %42:ac, %subreg.subhi
+  %29:ac, %30:cc, dead %112:vc = ADCImm %2:ac(tied-def 0), 4, %33:cc(tied-def 1)
+  %31:ac, dead %32:cc, dead %111:vc = ADCImm %3:ac(tied-def 0), 0, %30:cc(tied-def 1)
+  STIndirIdx %29:ac, %0:imag16, %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  STIndirIdx %31:ac, %35:imag16, %23:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Init Undef Pass (init-undef) on make_big omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on make_big omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on make_big ***
+# Machine code for function make_big: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %2:ac = COPY $a
+  %3:ac = COPY $x
+  %44:yc = LDImm 0
+  STIndirIdx %2:ac, %0:imag16, %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %23:yc = LDImm 1
+  STIndirIdx %3:ac, %0:imag16, %23:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %99:ac = COPY %0.sublo:imag16
+  %100:ac = COPY %0.subhi:imag16
+  %33:cc = LDImm1 0
+  %92:yc = LDImm 2
+  %103:ac, %104:cc, dead %124:vc = ADCImm %99:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %105:ac, dead %106:cc, dead %123:vc = ADCImm %100:ac(tied-def 0), 0, %104:cc(tied-def 1)
+  %98:imag16 = REG_SEQUENCE %103:ac, %subreg.sublo, %105:ac, %subreg.subhi
+  %125:anyi8 = COPY %2:ac
+  %127:anyi8 = COPY %3:ac
+  %126:anyi8, %128:anyi8 = IncMB %125:anyi8(tied-def 0), %127:anyi8(tied-def 1), implicit-def $c, implicit-def $v
+  %95:ac = COPY %126:anyi8
+  %96:ac = COPY %128:anyi8
+  STIndirIdx %95:ac, %0:imag16, %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  STIndirIdx %96:ac, %98:imag16, %23:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %70:yc = LDImm 4
+  %85:ac, %86:cc, dead %122:vc = ADCImm %99:ac(tied-def 0), 4, %33:cc(tied-def 1)
+  %87:ac, dead %88:cc, dead %121:vc = ADCImm %100:ac(tied-def 0), 0, %86:cc(tied-def 1)
+  %80:imag16 = REG_SEQUENCE %85:ac, %subreg.sublo, %87:ac, %subreg.subhi
+  %75:ac, %76:cc, dead %120:vc = ADCImm %2:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %77:ac, dead %78:cc, dead %119:vc = ADCImm %3:ac(tied-def 0), 0, %76:cc(tied-def 1)
+  STIndirIdx %75:ac, %0:imag16, %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  STIndirIdx %77:ac, %80:imag16, %23:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %48:yc = LDImm 6
+  %63:ac, %64:cc, dead %118:vc = ADCImm %99:ac(tied-def 0), 6, %33:cc(tied-def 1)
+  %65:ac, dead %66:cc, dead %117:vc = ADCImm %100:ac(tied-def 0), 0, %64:cc(tied-def 1)
+  %58:imag16 = REG_SEQUENCE %63:ac, %subreg.sublo, %65:ac, %subreg.subhi
+  %53:ac, %54:cc, dead %116:vc = ADCImm %2:ac(tied-def 0), 3, %33:cc(tied-def 1)
+  %55:ac, dead %56:cc, dead %115:vc = ADCImm %3:ac(tied-def 0), 0, %54:cc(tied-def 1)
+  STIndirIdx %53:ac, %0:imag16, %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  STIndirIdx %55:ac, %58:imag16, %23:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %24:yc = LDImm 8
+  %40:ac, %41:cc, dead %114:vc = ADCImm %99:ac(tied-def 0), 8, %33:cc(tied-def 1)
+  %42:ac, dead %43:cc, dead %113:vc = ADCImm %100:ac(tied-def 0), 0, %41:cc(tied-def 1)
+  %35:imag16 = REG_SEQUENCE %40:ac, %subreg.sublo, %42:ac, %subreg.subhi
+  %29:ac, %30:cc, dead %112:vc = ADCImm %2:ac(tied-def 0), 4, %33:cc(tied-def 1)
+  %31:ac, dead %32:cc, dead %111:vc = ADCImm %3:ac(tied-def 0), 0, %30:cc(tied-def 1)
+  STIndirIdx %29:ac, %0:imag16, %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  STIndirIdx %31:ac, %35:imag16, %23:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Live Variable Analysis (livevars) on make_big ***
+# Machine code for function make_big: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY killed $rs1
+  %2:ac = COPY killed $a
+  %3:ac = COPY killed $x
+  %44:yc = LDImm 0
+  STIndirIdx %2:ac, %0:imag16, killed %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %23:yc = LDImm 1
+  STIndirIdx %3:ac, %0:imag16, %23:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %99:ac = COPY %0.sublo:imag16
+  %100:ac = COPY %0.subhi:imag16
+  %33:cc = LDImm1 0
+  %92:yc = LDImm 2
+  %103:ac, %104:cc, dead %124:vc = ADCImm %99:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %105:ac, dead %106:cc, dead %123:vc = ADCImm %100:ac(tied-def 0), 0, killed %104:cc(tied-def 1)
+  %98:imag16 = REG_SEQUENCE killed %103:ac, %subreg.sublo, killed %105:ac, %subreg.subhi
+  %125:anyi8 = COPY %2:ac
+  %127:anyi8 = COPY %3:ac
+  %126:anyi8, %128:anyi8 = IncMB killed %125:anyi8(tied-def 0), killed %127:anyi8(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  %95:ac = COPY killed %126:anyi8
+  %96:ac = COPY killed %128:anyi8
+  STIndirIdx killed %95:ac, %0:imag16, killed %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  STIndirIdx killed %96:ac, killed %98:imag16, %23:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %70:yc = LDImm 4
+  %85:ac, %86:cc, dead %122:vc = ADCImm %99:ac(tied-def 0), 4, %33:cc(tied-def 1)
+  %87:ac, dead %88:cc, dead %121:vc = ADCImm %100:ac(tied-def 0), 0, killed %86:cc(tied-def 1)
+  %80:imag16 = REG_SEQUENCE killed %85:ac, %subreg.sublo, killed %87:ac, %subreg.subhi
+  %75:ac, %76:cc, dead %120:vc = ADCImm %2:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %77:ac, dead %78:cc, dead %119:vc = ADCImm %3:ac(tied-def 0), 0, killed %76:cc(tied-def 1)
+  STIndirIdx killed %75:ac, %0:imag16, killed %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  STIndirIdx killed %77:ac, killed %80:imag16, %23:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %48:yc = LDImm 6
+  %63:ac, %64:cc, dead %118:vc = ADCImm %99:ac(tied-def 0), 6, %33:cc(tied-def 1)
+  %65:ac, dead %66:cc, dead %117:vc = ADCImm %100:ac(tied-def 0), 0, killed %64:cc(tied-def 1)
+  %58:imag16 = REG_SEQUENCE killed %63:ac, %subreg.sublo, killed %65:ac, %subreg.subhi
+  %53:ac, %54:cc, dead %116:vc = ADCImm %2:ac(tied-def 0), 3, %33:cc(tied-def 1)
+  %55:ac, dead %56:cc, dead %115:vc = ADCImm %3:ac(tied-def 0), 0, killed %54:cc(tied-def 1)
+  STIndirIdx killed %53:ac, %0:imag16, killed %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  STIndirIdx killed %55:ac, killed %58:imag16, %23:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %24:yc = LDImm 8
+  %40:ac, %41:cc, dead %114:vc = ADCImm killed %99:ac(tied-def 0), 8, %33:cc(tied-def 1)
+  %42:ac, dead %43:cc, dead %113:vc = ADCImm killed %100:ac(tied-def 0), 0, killed %41:cc(tied-def 1)
+  %35:imag16 = REG_SEQUENCE killed %40:ac, %subreg.sublo, killed %42:ac, %subreg.subhi
+  %29:ac, %30:cc, dead %112:vc = ADCImm killed %2:ac(tied-def 0), 4, killed %33:cc(tied-def 1)
+  %31:ac, dead %32:cc, dead %111:vc = ADCImm killed %3:ac(tied-def 0), 0, killed %30:cc(tied-def 1)
+  STIndirIdx killed %29:ac, killed %0:imag16, killed %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  STIndirIdx killed %31:ac, killed %35:imag16, killed %23:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on make_big omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on make_big omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY killed $rs1
+  %2:ac = COPY killed $a
+  %3:ac = COPY killed $x
+  %44:yc = LDImm 0
+  STIndirIdx %2:ac, %0:imag16, killed %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %23:yc = LDImm 1
+  STIndirIdx %3:ac, %0:imag16, %23:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %99:ac = COPY %0.sublo:imag16
+  %100:ac = COPY %0.subhi:imag16
+  %33:cc = LDImm1 0
+  %92:yc = LDImm 2
+  %103:ac, %104:cc, dead %124:vc = ADCImm %99:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %105:ac, dead %106:cc, dead %123:vc = ADCImm %100:ac(tied-def 0), 0, killed %104:cc(tied-def 1)
+  %98:imag16 = REG_SEQUENCE killed %103:ac, %subreg.sublo, killed %105:ac, %subreg.subhi
+  %125:anyi8 = COPY %2:ac
+  %127:anyi8 = COPY %3:ac
+  %126:anyi8, %128:anyi8 = IncMB killed %125:anyi8(tied-def 0), killed %127:anyi8(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  %95:ac = COPY killed %126:anyi8
+  %96:ac = COPY killed %128:anyi8
+  STIndirIdx killed %95:ac, %0:imag16, killed %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  STIndirIdx killed %96:ac, killed %98:imag16, %23:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %70:yc = LDImm 4
+  %85:ac, %86:cc, dead %122:vc = ADCImm %99:ac(tied-def 0), 4, %33:cc(tied-def 1)
+  %87:ac, dead %88:cc, dead %121:vc = ADCImm %100:ac(tied-def 0), 0, killed %86:cc(tied-def 1)
+  %80:imag16 = REG_SEQUENCE killed %85:ac, %subreg.sublo, killed %87:ac, %subreg.subhi
+  %75:ac, %76:cc, dead %120:vc = ADCImm %2:ac(tied-def 0), 2, %33:cc(tied-def 1)
+  %77:ac, dead %78:cc, dead %119:vc = ADCImm %3:ac(tied-def 0), 0, killed %76:cc(tied-def 1)
+  STIndirIdx killed %75:ac, %0:imag16, killed %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  STIndirIdx killed %77:ac, killed %80:imag16, %23:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %48:yc = LDImm 6
+  %63:ac, %64:cc, dead %118:vc = ADCImm %99:ac(tied-def 0), 6, %33:cc(tied-def 1)
+  %65:ac, dead %66:cc, dead %117:vc = ADCImm %100:ac(tied-def 0), 0, killed %64:cc(tied-def 1)
+  %58:imag16 = REG_SEQUENCE killed %63:ac, %subreg.sublo, killed %65:ac, %subreg.subhi
+  %53:ac, %54:cc, dead %116:vc = ADCImm %2:ac(tied-def 0), 3, %33:cc(tied-def 1)
+  %55:ac, dead %56:cc, dead %115:vc = ADCImm %3:ac(tied-def 0), 0, killed %54:cc(tied-def 1)
+  STIndirIdx killed %53:ac, %0:imag16, killed %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  STIndirIdx killed %55:ac, killed %58:imag16, %23:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %24:yc = LDImm 8
+  %40:ac, %41:cc, dead %114:vc = ADCImm killed %99:ac(tied-def 0), 8, %33:cc(tied-def 1)
+  %42:ac, dead %43:cc, dead %113:vc = ADCImm killed %100:ac(tied-def 0), 0, killed %41:cc(tied-def 1)
+  %35:imag16 = REG_SEQUENCE killed %40:ac, %subreg.sublo, killed %42:ac, %subreg.subhi
+  %29:ac, %30:cc, dead %112:vc = ADCImm killed %2:ac(tied-def 0), 4, killed %33:cc(tied-def 1)
+  %31:ac, dead %32:cc, dead %111:vc = ADCImm killed %3:ac(tied-def 0), 0, killed %30:cc(tied-def 1)
+  STIndirIdx killed %29:ac, killed %0:imag16, killed %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  STIndirIdx killed %31:ac, killed %35:imag16, killed %23:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY killed $rs1
+  %2:ac = COPY killed $a
+  %3:ac = COPY killed $x
+  %44:yc = LDImm 0
+  STIndirIdx %2:ac, %0:imag16, killed %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %23:yc = LDImm 1
+  STIndirIdx %3:ac, %0:imag16, %23:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %99:ac = COPY %0.sublo:imag16
+  %100:ac = COPY %0.subhi:imag16
+  %33:cc = LDImm1 0
+  %92:yc = LDImm 2
+  %104:cc = COPY %33:cc
+  %103:ac = COPY %99:ac
+  %103:ac, %104:cc, dead %124:vc = ADCImm %103:ac(tied-def 0), 2, %104:cc(tied-def 1)
+  %105:ac = COPY %100:ac
+  %106:cc = COPY killed %104:cc
+  %105:ac, dead %106:cc, dead %123:vc = ADCImm %105:ac(tied-def 0), 0, %106:cc(tied-def 1)
+  undef %98.sublo:imag16 = COPY killed %103:ac
+  %98.subhi:imag16 = COPY killed %105:ac
+  %125:anyi8 = COPY %2:ac
+  %127:anyi8 = COPY %3:ac
+  %126:anyi8 = COPY killed %125:anyi8
+  %128:anyi8 = COPY killed %127:anyi8
+  %126:anyi8, %128:anyi8 = IncMB %126:anyi8(tied-def 0), %128:anyi8(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  %95:ac = COPY killed %126:anyi8
+  %96:ac = COPY killed %128:anyi8
+  STIndirIdx killed %95:ac, %0:imag16, killed %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  STIndirIdx killed %96:ac, killed %98:imag16, %23:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %70:yc = LDImm 4
+  %86:cc = COPY %33:cc
+  %85:ac = COPY %99:ac
+  %85:ac, %86:cc, dead %122:vc = ADCImm %85:ac(tied-def 0), 4, %86:cc(tied-def 1)
+  %87:ac = COPY %100:ac
+  %88:cc = COPY killed %86:cc
+  %87:ac, dead %88:cc, dead %121:vc = ADCImm %87:ac(tied-def 0), 0, %88:cc(tied-def 1)
+  undef %80.sublo:imag16 = COPY killed %85:ac
+  %80.subhi:imag16 = COPY killed %87:ac
+  %76:cc = COPY %33:cc
+  %75:ac = COPY %2:ac
+  %75:ac, %76:cc, dead %120:vc = ADCImm %75:ac(tied-def 0), 2, %76:cc(tied-def 1)
+  %78:cc = COPY killed %76:cc
+  %77:ac = COPY %3:ac
+  %77:ac, dead %78:cc, dead %119:vc = ADCImm %77:ac(tied-def 0), 0, %78:cc(tied-def 1)
+  STIndirIdx killed %75:ac, %0:imag16, killed %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  STIndirIdx killed %77:ac, killed %80:imag16, %23:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %48:yc = LDImm 6
+  %64:cc = COPY %33:cc
+  %63:ac = COPY %99:ac
+  %63:ac, %64:cc, dead %118:vc = ADCImm %63:ac(tied-def 0), 6, %64:cc(tied-def 1)
+  %65:ac = COPY %100:ac
+  %66:cc = COPY killed %64:cc
+  %65:ac, dead %66:cc, dead %117:vc = ADCImm %65:ac(tied-def 0), 0, %66:cc(tied-def 1)
+  undef %58.sublo:imag16 = COPY killed %63:ac
+  %58.subhi:imag16 = COPY killed %65:ac
+  %54:cc = COPY %33:cc
+  %53:ac = COPY %2:ac
+  %53:ac, %54:cc, dead %116:vc = ADCImm %53:ac(tied-def 0), 3, %54:cc(tied-def 1)
+  %56:cc = COPY killed %54:cc
+  %55:ac = COPY %3:ac
+  %55:ac, dead %56:cc, dead %115:vc = ADCImm %55:ac(tied-def 0), 0, %56:cc(tied-def 1)
+  STIndirIdx killed %53:ac, %0:imag16, killed %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  STIndirIdx killed %55:ac, killed %58:imag16, %23:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %24:yc = LDImm 8
+  %41:cc = COPY %33:cc
+  %40:ac = COPY killed %99:ac
+  %40:ac, %41:cc, dead %114:vc = ADCImm %40:ac(tied-def 0), 8, %41:cc(tied-def 1)
+  %42:ac = COPY killed %100:ac
+  %43:cc = COPY killed %41:cc
+  %42:ac, dead %43:cc, dead %113:vc = ADCImm %42:ac(tied-def 0), 0, %43:cc(tied-def 1)
+  undef %35.sublo:imag16 = COPY killed %40:ac
+  %35.subhi:imag16 = COPY killed %42:ac
+  %30:cc = COPY killed %33:cc
+  %29:ac = COPY killed %2:ac
+  %29:ac, %30:cc, dead %112:vc = ADCImm %29:ac(tied-def 0), 4, %30:cc(tied-def 1)
+  %32:cc = COPY killed %30:cc
+  %31:ac = COPY killed %3:ac
+  %31:ac, dead %32:cc, dead %111:vc = ADCImm %31:ac(tied-def 0), 0, %32:cc(tied-def 1)
+  STIndirIdx killed %29:ac, killed %0:imag16, killed %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  STIndirIdx killed %31:ac, killed %35:imag16, killed %23:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Slot index numbering (slotindexes) on make_big omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %2:ac = COPY $a
+  %3:ac = COPY $x
+  %44:yc = LDImm 0
+  STIndirIdx %2:ac, %0:imag16, %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %23:yc = LDImm 1
+  STIndirIdx %3:ac, %0:imag16, %23:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %99:ac = COPY %0.sublo:imag16
+  %100:ac = COPY %0.subhi:imag16
+  %33:cc = LDImm1 0
+  %92:yc = LDImm 2
+  %104:cc = COPY %33:cc
+  %103:ac = COPY %99:ac
+  %103:ac, %104:cc, dead %124:vc = ADCImm %103:ac(tied-def 0), 2, %104:cc(tied-def 1)
+  %105:ac = COPY %100:ac
+  %106:cc = COPY %104:cc
+  %105:ac, dead %106:cc, dead %123:vc = ADCImm %105:ac(tied-def 0), 0, %106:cc(tied-def 1)
+  undef %98.sublo:imag16 = COPY %103:ac
+  %98.subhi:imag16 = COPY %105:ac
+  %125:anyi8 = COPY %2:ac
+  %127:anyi8 = COPY %3:ac
+  %126:anyi8 = COPY %125:anyi8
+  %128:anyi8 = COPY %127:anyi8
+  %126:anyi8, %128:anyi8 = IncMB %126:anyi8(tied-def 0), %128:anyi8(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  %95:ac = COPY %126:anyi8
+  %96:ac = COPY %128:anyi8
+  STIndirIdx %95:ac, %0:imag16, %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  STIndirIdx %96:ac, %98:imag16, %23:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %70:yc = LDImm 4
+  %86:cc = COPY %33:cc
+  %85:ac = COPY %99:ac
+  %85:ac, %86:cc, dead %122:vc = ADCImm %85:ac(tied-def 0), 4, %86:cc(tied-def 1)
+  %87:ac = COPY %100:ac
+  %88:cc = COPY %86:cc
+  %87:ac, dead %88:cc, dead %121:vc = ADCImm %87:ac(tied-def 0), 0, %88:cc(tied-def 1)
+  undef %80.sublo:imag16 = COPY %85:ac
+  %80.subhi:imag16 = COPY %87:ac
+  %76:cc = COPY %33:cc
+  %75:ac = COPY %2:ac
+  %75:ac, %76:cc, dead %120:vc = ADCImm %75:ac(tied-def 0), 2, %76:cc(tied-def 1)
+  %78:cc = COPY %76:cc
+  %77:ac = COPY %3:ac
+  %77:ac, dead %78:cc, dead %119:vc = ADCImm %77:ac(tied-def 0), 0, %78:cc(tied-def 1)
+  STIndirIdx %75:ac, %0:imag16, %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  STIndirIdx %77:ac, %80:imag16, %23:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %48:yc = LDImm 6
+  %64:cc = COPY %33:cc
+  %63:ac = COPY %99:ac
+  %63:ac, %64:cc, dead %118:vc = ADCImm %63:ac(tied-def 0), 6, %64:cc(tied-def 1)
+  %65:ac = COPY %100:ac
+  %66:cc = COPY %64:cc
+  %65:ac, dead %66:cc, dead %117:vc = ADCImm %65:ac(tied-def 0), 0, %66:cc(tied-def 1)
+  undef %58.sublo:imag16 = COPY %63:ac
+  %58.subhi:imag16 = COPY %65:ac
+  %54:cc = COPY %33:cc
+  %53:ac = COPY %2:ac
+  %53:ac, %54:cc, dead %116:vc = ADCImm %53:ac(tied-def 0), 3, %54:cc(tied-def 1)
+  %56:cc = COPY %54:cc
+  %55:ac = COPY %3:ac
+  %55:ac, dead %56:cc, dead %115:vc = ADCImm %55:ac(tied-def 0), 0, %56:cc(tied-def 1)
+  STIndirIdx %53:ac, %0:imag16, %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  STIndirIdx %55:ac, %58:imag16, %23:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %24:yc = LDImm 8
+  %41:cc = COPY %33:cc
+  %40:ac = COPY %99:ac
+  %40:ac, %41:cc, dead %114:vc = ADCImm %40:ac(tied-def 0), 8, %41:cc(tied-def 1)
+  %42:ac = COPY %100:ac
+  %43:cc = COPY %41:cc
+  %42:ac, dead %43:cc, dead %113:vc = ADCImm %42:ac(tied-def 0), 0, %43:cc(tied-def 1)
+  undef %35.sublo:imag16 = COPY %40:ac
+  %35.subhi:imag16 = COPY %42:ac
+  %30:cc = COPY %33:cc
+  %29:ac = COPY %2:ac
+  %29:ac, %30:cc, dead %112:vc = ADCImm %29:ac(tied-def 0), 4, %30:cc(tied-def 1)
+  %32:cc = COPY %30:cc
+  %31:ac = COPY %3:ac
+  %31:ac, dead %32:cc, dead %111:vc = ADCImm %31:ac(tied-def 0), 0, %32:cc(tied-def 1)
+  STIndirIdx %29:ac, %0:imag16, %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  STIndirIdx %31:ac, %35:imag16, %23:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Register Coalescer (register-coalescer) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %29:ac = COPY $a
+  %31:ac = COPY $x
+  %44:yc = LDImm 0
+  STIndirIdx %29:ac, %0:imag16, %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %23:yc = LDImm 1
+  STIndirIdx %31:ac, %0:imag16, %23:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %40:ac = COPY %0.sublo:imag16
+  %42:ac = COPY %0.subhi:imag16
+  %32:cc = LDImm1 0
+  %92:yc = LDImm 2
+  %106:cc = LDImm1 0
+  %103:ac = COPY %40:ac
+  %103:ac, %106:cc, dead %124:vc = ADCImm %103:ac(tied-def 0), 2, %106:cc(tied-def 1)
+  %105:ac = COPY %42:ac
+  %105:ac, dead %106:cc, dead %123:vc = ADCImm %105:ac(tied-def 0), 0, %106:cc(tied-def 1)
+  undef %98.sublo:imag16 = COPY %103:ac
+  %98.subhi:imag16 = COPY %105:ac
+  %126:ac = COPY %29:ac
+  %128:ac = COPY %31:ac
+  %126:ac, %128:ac = IncMB %126:ac(tied-def 0), %128:ac(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STIndirIdx %126:ac, %0:imag16, %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  STIndirIdx %128:ac, %98:imag16, %23:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %70:yc = LDImm 4
+  %88:cc = LDImm1 0
+  %85:ac = COPY %40:ac
+  %85:ac, %88:cc, dead %122:vc = ADCImm %85:ac(tied-def 0), 4, %88:cc(tied-def 1)
+  %87:ac = COPY %42:ac
+  %87:ac, dead %88:cc, dead %121:vc = ADCImm %87:ac(tied-def 0), 0, %88:cc(tied-def 1)
+  undef %80.sublo:imag16 = COPY %85:ac
+  %80.subhi:imag16 = COPY %87:ac
+  %78:cc = LDImm1 0
+  %75:ac = COPY %29:ac
+  %75:ac, %78:cc, dead %120:vc = ADCImm %75:ac(tied-def 0), 2, %78:cc(tied-def 1)
+  %77:ac = COPY %31:ac
+  %77:ac, dead %78:cc, dead %119:vc = ADCImm %77:ac(tied-def 0), 0, %78:cc(tied-def 1)
+  STIndirIdx %75:ac, %0:imag16, %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  STIndirIdx %77:ac, %80:imag16, %23:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %48:yc = LDImm 6
+  %66:cc = LDImm1 0
+  %63:ac = COPY %40:ac
+  %63:ac, %66:cc, dead %118:vc = ADCImm %63:ac(tied-def 0), 6, %66:cc(tied-def 1)
+  %65:ac = COPY %42:ac
+  %65:ac, dead %66:cc, dead %117:vc = ADCImm %65:ac(tied-def 0), 0, %66:cc(tied-def 1)
+  undef %58.sublo:imag16 = COPY %63:ac
+  %58.subhi:imag16 = COPY %65:ac
+  %56:cc = LDImm1 0
+  %53:ac = COPY %29:ac
+  %53:ac, %56:cc, dead %116:vc = ADCImm %53:ac(tied-def 0), 3, %56:cc(tied-def 1)
+  %55:ac = COPY %31:ac
+  %55:ac, dead %56:cc, dead %115:vc = ADCImm %55:ac(tied-def 0), 0, %56:cc(tied-def 1)
+  STIndirIdx %53:ac, %0:imag16, %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  STIndirIdx %55:ac, %58:imag16, %23:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %24:yc = LDImm 8
+  %43:cc = LDImm1 0
+  %40:ac, %43:cc, dead %114:vc = ADCImm %40:ac(tied-def 0), 8, %43:cc(tied-def 1)
+  %42:ac, dead %43:cc, dead %113:vc = ADCImm %42:ac(tied-def 0), 0, %43:cc(tied-def 1)
+  undef %35.sublo:imag16 = COPY %40:ac
+  %35.subhi:imag16 = COPY %42:ac
+  %29:ac, %32:cc, dead %112:vc = ADCImm %29:ac(tied-def 0), 4, %32:cc(tied-def 1)
+  %31:ac, dead %32:cc, dead %111:vc = ADCImm %31:ac(tied-def 0), 0, %32:cc(tied-def 1)
+  STIndirIdx %29:ac, %0:imag16, %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  STIndirIdx %31:ac, %35:imag16, %23:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Register Coalescer (register-coalescer) on make_big omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on make_big omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on make_big omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %29:ac = COPY $a
+  %31:ac = COPY $x
+  %0:imag16 = COPY $rs1
+  %44:yc = LDImm 0
+  STIndirIdx %29:ac, %0:imag16, %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %23:yc = LDImm 1
+  STIndirIdx %31:ac, %0:imag16, %23:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %92:yc = LDImm 2
+  %126:ac = COPY %29:ac
+  %128:ac = COPY %31:ac
+  %126:ac, %128:ac = IncMB %126:ac(tied-def 0), %128:ac(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STIndirIdx %126:ac, %0:imag16, %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  %78:cc = LDImm1 0
+  %75:ac = COPY %29:ac
+  %75:ac, %78:cc, dead %120:vc = ADCImm %75:ac(tied-def 0), 2, %78:cc(tied-def 1)
+  %70:yc = LDImm 4
+  STIndirIdx %75:ac, %0:imag16, %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  %56:cc = LDImm1 0
+  %53:ac = COPY %29:ac
+  %53:ac, %56:cc, dead %116:vc = ADCImm %53:ac(tied-def 0), 3, %56:cc(tied-def 1)
+  %48:yc = LDImm 6
+  STIndirIdx %53:ac, %0:imag16, %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  %32:cc = LDImm1 0
+  %29:ac, %32:cc, dead %112:vc = ADCImm %29:ac(tied-def 0), 4, %32:cc(tied-def 1)
+  %24:yc = LDImm 8
+  STIndirIdx %29:ac, %0:imag16, %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  %40:ac = COPY %0.sublo:imag16
+  %106:cc = LDImm1 0
+  %103:ac = COPY %40:ac
+  %103:ac, %106:cc, dead %124:vc = ADCImm %103:ac(tied-def 0), 2, %106:cc(tied-def 1)
+  %42:ac = COPY %0.subhi:imag16
+  %105:ac = COPY %42:ac
+  %105:ac, dead %106:cc, dead %123:vc = ADCImm %105:ac(tied-def 0), 0, %106:cc(tied-def 1)
+  undef %98.sublo:imag16 = COPY %103:ac
+  %98.subhi:imag16 = COPY %105:ac
+  STIndirIdx %128:ac, %98:imag16, %23:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %88:cc = LDImm1 0
+  %85:ac = COPY %40:ac
+  %85:ac, %88:cc, dead %122:vc = ADCImm %85:ac(tied-def 0), 4, %88:cc(tied-def 1)
+  %87:ac = COPY %42:ac
+  %87:ac, dead %88:cc, dead %121:vc = ADCImm %87:ac(tied-def 0), 0, %88:cc(tied-def 1)
+  undef %80.sublo:imag16 = COPY %85:ac
+  %80.subhi:imag16 = COPY %87:ac
+  %77:ac = COPY %31:ac
+  %77:ac, dead %78:cc, dead %119:vc = ADCImm %77:ac(tied-def 0), 0, %78:cc(tied-def 1)
+  STIndirIdx %77:ac, %80:imag16, %23:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %66:cc = LDImm1 0
+  %63:ac = COPY %40:ac
+  %63:ac, %66:cc, dead %118:vc = ADCImm %63:ac(tied-def 0), 6, %66:cc(tied-def 1)
+  %65:ac = COPY %42:ac
+  %65:ac, dead %66:cc, dead %117:vc = ADCImm %65:ac(tied-def 0), 0, %66:cc(tied-def 1)
+  undef %58.sublo:imag16 = COPY %63:ac
+  %58.subhi:imag16 = COPY %65:ac
+  %55:ac = COPY %31:ac
+  %55:ac, dead %56:cc, dead %115:vc = ADCImm %55:ac(tied-def 0), 0, %56:cc(tied-def 1)
+  STIndirIdx %55:ac, %58:imag16, %23:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %43:cc = LDImm1 0
+  %40:ac, %43:cc, dead %114:vc = ADCImm %40:ac(tied-def 0), 8, %43:cc(tied-def 1)
+  %42:ac, dead %43:cc, dead %113:vc = ADCImm %42:ac(tied-def 0), 0, %43:cc(tied-def 1)
+  undef %35.sublo:imag16 = COPY %40:ac
+  %35.subhi:imag16 = COPY %42:ac
+  %31:ac, dead %32:cc, dead %111:vc = ADCImm %31:ac(tied-def 0), 0, %32:cc(tied-def 1)
+  STIndirIdx %31:ac, %35:imag16, %23:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %29:ac = COPY $a
+  %31:ac = COPY $x
+  %0:imag16 = COPY $rs1
+  %44:yc = LDImm 0
+  STIndirIdx %29:ac, %0:imag16, %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %23:yc = LDImm 1
+  STIndirIdx %31:ac, %0:imag16, %23:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %92:yc = LDImm 2
+  %126:ac = COPY %29:ac
+  %128:ac = COPY %31:ac
+  %126:ac, %128:ac = IncMB %126:ac(tied-def 0), %128:ac(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STIndirIdx %126:ac, %0:imag16, %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  %78:cc = LDImm1 0
+  %75:ac = COPY %29:ac
+  %75:ac, %78:cc, dead %120:vc = ADCImm %75:ac(tied-def 0), 2, %78:cc(tied-def 1)
+  %70:yc = LDImm 4
+  STIndirIdx %75:ac, %0:imag16, %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  %56:cc = LDImm1 0
+  %53:ac = COPY %29:ac
+  %53:ac, %56:cc, dead %116:vc = ADCImm %53:ac(tied-def 0), 3, %56:cc(tied-def 1)
+  %48:yc = LDImm 6
+  STIndirIdx %53:ac, %0:imag16, %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  %32:cc = LDImm1 0
+  %29:ac, %32:cc, dead %112:vc = ADCImm %29:ac(tied-def 0), 4, %32:cc(tied-def 1)
+  %24:yc = LDImm 8
+  STIndirIdx %29:ac, %0:imag16, %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  %40:ac = COPY %0.sublo:imag16
+  %106:cc = LDImm1 0
+  %103:ac = COPY %40:ac
+  %103:ac, %106:cc, dead %124:vc = ADCImm %103:ac(tied-def 0), 2, %106:cc(tied-def 1)
+  %42:ac = COPY %0.subhi:imag16
+  %105:ac = COPY %42:ac
+  %105:ac, dead %106:cc, dead %123:vc = ADCImm %105:ac(tied-def 0), 0, %106:cc(tied-def 1)
+  undef %98.sublo:imag16 = COPY %103:ac
+  %98.subhi:imag16 = COPY %105:ac
+  STIndirIdx %128:ac, %98:imag16, %23:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %88:cc = LDImm1 0
+  %85:ac = COPY %40:ac
+  %85:ac, %88:cc, dead %122:vc = ADCImm %85:ac(tied-def 0), 4, %88:cc(tied-def 1)
+  %87:ac = COPY %42:ac
+  %87:ac, dead %88:cc, dead %121:vc = ADCImm %87:ac(tied-def 0), 0, %88:cc(tied-def 1)
+  undef %80.sublo:imag16 = COPY %85:ac
+  %80.subhi:imag16 = COPY %87:ac
+  %77:ac = COPY %31:ac
+  %77:ac, dead %78:cc, dead %119:vc = ADCImm %77:ac(tied-def 0), 0, %78:cc(tied-def 1)
+  STIndirIdx %77:ac, %80:imag16, %23:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %66:cc = LDImm1 0
+  %63:ac = COPY %40:ac
+  %63:ac, %66:cc, dead %118:vc = ADCImm %63:ac(tied-def 0), 6, %66:cc(tied-def 1)
+  %65:ac = COPY %42:ac
+  %65:ac, dead %66:cc, dead %117:vc = ADCImm %65:ac(tied-def 0), 0, %66:cc(tied-def 1)
+  undef %58.sublo:imag16 = COPY %63:ac
+  %58.subhi:imag16 = COPY %65:ac
+  %55:ac = COPY %31:ac
+  %55:ac, dead %56:cc, dead %115:vc = ADCImm %55:ac(tied-def 0), 0, %56:cc(tied-def 1)
+  STIndirIdx %55:ac, %58:imag16, %23:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %43:cc = LDImm1 0
+  %40:ac, %43:cc, dead %114:vc = ADCImm %40:ac(tied-def 0), 8, %43:cc(tied-def 1)
+  %42:ac, dead %43:cc, dead %113:vc = ADCImm %42:ac(tied-def 0), 0, %43:cc(tied-def 1)
+  undef %35.sublo:imag16 = COPY %40:ac
+  %35.subhi:imag16 = COPY %42:ac
+  %31:ac, dead %32:cc, dead %111:vc = ADCImm %31:ac(tied-def 0), 0, %32:cc(tied-def 1)
+  STIndirIdx %31:ac, %35:imag16, %23:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on make_big omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on make_big omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on make_big omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on make_big omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on make_big omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on make_big omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on make_big omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  %142:anyi8 = COPY $a
+  %163:anyi8 = COPY $x
+  %0:imag16 = COPY $rs1
+  %44:yc = LDImm 0
+  %143:ac = COPY %142:anyi8
+  STIndirIdx %143:ac, %0:imag16, %44:yc :: (store (s8) into %ir.0, !tbaa !6)
+  %134:yc = LDImm 1
+  %164:ac = COPY %163:anyi8
+  STIndirIdx %164:ac, %0:imag16, %134:yc :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  %139:gpr = LDImm 1
+  %138:anyi8 = COPY %139:gpr
+  %131:anyi8 = COPY %164:ac
+  %92:yc = LDImm 2
+  %126:ac = COPY %142:anyi8
+  %144:anyi8 = COPY %131:anyi8
+  %126:ac, %144:anyi8 = IncMB %126:ac(tied-def 0), %144:anyi8(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STIndirIdx %126:ac, %0:imag16, %92:yc :: (store (s8) into %ir.3, !tbaa !8)
+  %147:cc = LDImm1 0
+  %75:ac = COPY %142:anyi8
+  %75:ac, %147:cc, dead %120:vc = ADCImm %75:ac(tied-def 0), 2, %147:cc(tied-def 1)
+  %148:anyi1 = COPY %147:cc
+  %70:yc = LDImm 4
+  STIndirIdx %75:ac, %0:imag16, %70:yc :: (store (s8) into %ir.5, !tbaa !9)
+  %151:cc = LDImm1 0
+  %53:ac = COPY %142:anyi8
+  %53:ac, %151:cc, dead %116:vc = ADCImm %53:ac(tied-def 0), 3, %151:cc(tied-def 1)
+  %154:anyi1 = COPY %151:cc
+  %48:yc = LDImm 6
+  STIndirIdx %53:ac, %0:imag16, %48:yc :: (store (s8) into %ir.7, !tbaa !10)
+  %153:cc = LDImm1 0
+  %141:ac = COPY %142:anyi8
+  %141:ac, %153:cc, dead %112:vc = ADCImm %141:ac(tied-def 0), 4, %153:cc(tied-def 1)
+  %156:anyi1 = COPY %153:cc
+  %24:yc = LDImm 8
+  STIndirIdx %141:ac, %0:imag16, %24:yc :: (store (s8) into %ir.9, !tbaa !11)
+  %158:anyi8 = COPY %0.sublo:imag16
+  %106:cc = LDImm1 0
+  %166:ac = COPY %158:anyi8
+  %166:ac, %106:cc, dead %124:vc = ADCImm %166:ac(tied-def 0), 2, %106:cc(tied-def 1)
+  %165:anyi8 = COPY %166:ac
+  %160:anyi8 = COPY %0.subhi:imag16
+  %105:ac = COPY %160:anyi8
+  %105:ac, dead %106:cc, dead %123:vc = ADCImm %105:ac(tied-def 0), 0, %106:cc(tied-def 1)
+  undef %98.sublo:imag16 = COPY %165:anyi8
+  %98.subhi:imag16 = COPY %105:ac
+  %136:yc = COPY %138:anyi8
+  %145:ac = COPY %144:anyi8
+  STIndirIdx %145:ac, %98:imag16, %136:yc :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  %88:cc = LDImm1 0
+  %170:ac = COPY %158:anyi8
+  %170:ac, %88:cc, dead %122:vc = ADCImm %170:ac(tied-def 0), 4, %88:cc(tied-def 1)
+  %169:anyi8 = COPY %170:ac
+  %87:ac = COPY %160:anyi8
+  %87:ac, dead %88:cc, dead %121:vc = ADCImm %87:ac(tied-def 0), 0, %88:cc(tied-def 1)
+  undef %80.sublo:imag16 = COPY %169:anyi8
+  %80.subhi:imag16 = COPY %87:ac
+  %77:ac = COPY %131:anyi8
+  %149:cc = COPY %148:anyi1
+  %77:ac, dead %149:cc, dead %119:vc = ADCImm %77:ac(tied-def 0), 0, %149:cc(tied-def 1)
+  STIndirIdx %77:ac, %80:imag16, %136:yc :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  %66:cc = LDImm1 0
+  %168:ac = COPY %158:anyi8
+  %168:ac, %66:cc, dead %118:vc = ADCImm %168:ac(tied-def 0), 6, %66:cc(tied-def 1)
+  %167:anyi8 = COPY %168:ac
+  %65:ac = COPY %160:anyi8
+  %65:ac, dead %66:cc, dead %117:vc = ADCImm %65:ac(tied-def 0), 0, %66:cc(tied-def 1)
+  undef %58.sublo:imag16 = COPY %167:anyi8
+  %58.subhi:imag16 = COPY %65:ac
+  %55:ac = COPY %131:anyi8
+  %155:cc = COPY %154:anyi1
+  %55:ac, dead %155:cc, dead %115:vc = ADCImm %55:ac(tied-def 0), 0, %155:cc(tied-def 1)
+  STIndirIdx %55:ac, %58:imag16, %136:yc :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  %137:yc = COPY %136:yc
+  %43:cc = LDImm1 0
+  %172:ac = COPY %158:anyi8
+  %172:ac, %43:cc, dead %114:vc = ADCImm %172:ac(tied-def 0), 8, %43:cc(tied-def 1)
+  %171:anyi8 = COPY %172:ac
+  %161:ac = COPY %160:anyi8
+  %161:ac, dead %43:cc, dead %113:vc = ADCImm %161:ac(tied-def 0), 0, %43:cc(tied-def 1)
+  %162:anyi8 = COPY %161:ac
+  undef %35.sublo:imag16 = COPY %171:anyi8
+  %35.subhi:imag16 = COPY %162:anyi8
+  %130:ac = COPY %131:anyi8
+  %157:cc = COPY %156:anyi1
+  %130:ac, dead %157:cc, dead %111:vc = ADCImm %130:ac(tied-def 0), 0, %157:cc(tied-def 1)
+  STIndirIdx %130:ac, %35:imag16, %137:yc :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  renamable $rc5 = COPY $a
+  renamable $y = LDImm 0
+  renamable $a = COPY renamable $rc5
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0, !tbaa !6)
+  renamable $y = LDImm 1
+  renamable $a = COPY killed renamable $x
+  STIndirIdx renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  renamable $x = LDImm 1
+  renamable $rc4 = COPY killed renamable $x
+  renamable $x = COPY killed renamable $a
+  renamable $y = LDImm 2
+  renamable $a = COPY renamable $rc5
+  renamable $rc6 = COPY renamable $x
+  renamable $a, renamable $rc6 = IncMB killed renamable $a(tied-def 0), killed renamable $rc6(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.3, !tbaa !8)
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  renamable $rc7lsb = COPY killed renamable $c
+  renamable $y = LDImm 4
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.5, !tbaa !9)
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 3, killed renamable $c(tied-def 1)
+  renamable $rc8lsb = COPY killed renamable $c
+  renamable $y = LDImm 6
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.7, !tbaa !10)
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  renamable $rc5lsb = COPY killed renamable $c
+  renamable $y = LDImm 8
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.9, !tbaa !11)
+  renamable $rc9 = COPY renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $rc10 = COPY killed renamable $rc3
+  renamable $a = COPY renamable $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  renamable $y = COPY killed renamable $rc4
+  renamable $a = COPY killed renamable $rc6
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY renamable $x
+  renamable $c = COPY killed renamable $rc7lsb
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 6, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY renamable $x
+  renamable $c = COPY killed renamable $rc8lsb
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 8, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $c = COPY killed renamable $rc5lsb
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, killed renamable $y :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on make_big omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on make_big omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  renamable $rc5 = COPY $a
+  renamable $y = LDImm 0
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0, !tbaa !6)
+  renamable $y = LDImm 1
+  renamable $a = COPY killed renamable $x
+  STIndirIdx renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  renamable $x = LDImm 1
+  renamable $rc4 = COPY killed renamable $x
+  renamable $x = COPY killed renamable $a
+  renamable $y = LDImm 2
+  renamable $a = COPY renamable $rc5
+  renamable $rc6 = COPY renamable $x
+  renamable $a, renamable $rc6 = IncMB killed renamable $a(tied-def 0), killed renamable $rc6(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.3, !tbaa !8)
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  renamable $rc7lsb = COPY killed renamable $c
+  renamable $y = LDImm 4
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.5, !tbaa !9)
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 3, killed renamable $c(tied-def 1)
+  renamable $rc8lsb = COPY killed renamable $c
+  renamable $y = LDImm 6
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.7, !tbaa !10)
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  renamable $rc5lsb = COPY killed renamable $c
+  renamable $y = LDImm 8
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.9, !tbaa !11)
+  renamable $rc9 = COPY renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a = COPY $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $rc10 = COPY renamable $rc3
+  renamable $a = COPY $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  renamable $y = COPY killed renamable $rc4
+  renamable $a = COPY killed renamable $rc6
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY renamable $x
+  renamable $c = COPY killed renamable $rc7lsb
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 6, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY renamable $x
+  renamable $c = COPY killed renamable $rc8lsb
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 8, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $c = COPY killed renamable $rc5lsb
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, killed renamable $y :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on make_big omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on make_big omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on make_big omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on make_big omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on make_big omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on make_big omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on make_big omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on make_big omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on make_big omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on make_big omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on make_big omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on make_big omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on make_big omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on make_big omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on make_big omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on make_big omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on make_big omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on make_big omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on make_big omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on make_big omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on make_big omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  renamable $rc5 = COPY $a
+  renamable $y = LDImm 0
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0, !tbaa !6)
+  renamable $y = LDImm 1
+  renamable $a = COPY killed renamable $x
+  STIndirIdx renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  renamable $x = LDImm 1
+  renamable $rc4 = COPY killed renamable $x
+  renamable $x = COPY killed renamable $a
+  renamable $y = LDImm 2
+  renamable $a = COPY renamable $rc5
+  renamable $rc6 = COPY renamable $x
+  renamable $a, renamable $rc6 = IncMB killed renamable $a(tied-def 0), killed renamable $rc6(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.3, !tbaa !8)
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  renamable $rc7lsb = COPY killed renamable $c
+  renamable $y = LDImm 4
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.5, !tbaa !9)
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 3, killed renamable $c(tied-def 1)
+  renamable $rc8lsb = COPY killed renamable $c
+  renamable $y = LDImm 6
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.7, !tbaa !10)
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  renamable $rc5lsb = COPY killed renamable $c
+  renamable $y = LDImm 8
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.9, !tbaa !11)
+  renamable $rc9 = COPY renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $rc10 = COPY renamable $rc3
+  renamable $a = COPY killed $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  renamable $y = COPY killed renamable $rc4
+  renamable $a = COPY killed renamable $rc6
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY renamable $x
+  renamable $c = COPY killed renamable $rc7lsb
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 6, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY renamable $x
+  renamable $c = COPY killed renamable $rc8lsb
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 8, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $c = COPY killed renamable $rc5lsb
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, killed renamable $y :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  $rc5 = STImag8 $a
+  renamable $y = LDImm 0
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0, !tbaa !6)
+  renamable $y = LDImm 1
+  $a = T_A $x
+  STIndirIdx renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  renamable $x = LDImm 1
+  $rc4 = STImag8 $x
+  $x = TA $a
+  renamable $y = LDImm 2
+  $a = LDImag8 $rc5
+  $rc6 = STImag8 $x
+  renamable $a, renamable $rc6 = IncMB killed renamable $a(tied-def 0), killed renamable $rc6(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.3, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  %0:gpr = SelectImm $c, 1, 0
+  $rc7 = STImag8 %0:gpr
+  renamable $y = LDImm 4
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.5, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 3, killed renamable $c(tied-def 1)
+  %1:gpr = SelectImm $c, 1, 0
+  $rc8 = STImag8 %1:gpr
+  renamable $y = LDImm 6
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.7, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  %2:gpr = SelectImm $c, 1, 0
+  $rc5 = STImag8 %2:gpr
+  renamable $y = LDImm 8
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.9, !tbaa !11)
+  %3:gpr = LDImag8 $rc2
+  $rc9 = STImag8 %3:gpr
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  %4:gpr = LDImag8 $rc3
+  $rc10 = STImag8 %4:gpr
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc6
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  %5:gpr = LDImag8 $rc7
+  $c = CMPImm %5:gpr, 1
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 6, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  %6:gpr = LDImag8 $rc8
+  $c = CMPImm %6:gpr, 1
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 8, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  %7:gpr = LDImag8 $rc5
+  $c = CMPImm %7:gpr, 1
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, killed renamable $y :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rs1
+  $rc5 = STImag8 $a
+  renamable $y = LDImm 0
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0, !tbaa !6)
+  renamable $y = LDImm 1
+  $a = T_A $x
+  STIndirIdx renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  renamable $x = LDImm 1
+  $rc4 = STImag8 $x
+  $x = TA $a
+  renamable $y = LDImm 2
+  $a = LDImag8 $rc5
+  $rc6 = STImag8 $x
+  renamable $a, renamable $rc6 = IncMB killed renamable $a(tied-def 0), killed renamable $rc6(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.3, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $y = SelectImm $c, 1, 0
+  $rc7 = STImag8 killed $y
+  renamable $y = LDImm 4
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.5, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 3, killed renamable $c(tied-def 1)
+  $y = SelectImm $c, 1, 0
+  $rc8 = STImag8 killed $y
+  renamable $y = LDImm 6
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.7, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $y = SelectImm $c, 1, 0
+  $rc5 = STImag8 killed $y
+  renamable $y = LDImm 8
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.9, !tbaa !11)
+  $y = LDImag8 $rc2
+  $rc9 = STImag8 killed $y
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $y = LDImag8 $rc3
+  $rc10 = STImag8 killed $y
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc6
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc7
+  $c = CMPImm killed $y, 1
+  $y = LDImag8 $rc17
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 6, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc8
+  $c = CMPImm killed $y, 1
+  $y = LDImag8 $rc17
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 8, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $x = LDImag8 $rc5
+  $c = CMPImm killed $x, 1
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, killed renamable $y :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  $rc5 = STImag8 $a
+  renamable $y = LDImm 0
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0, !tbaa !6)
+  renamable $y = LDImm 1
+  $a = T_A $x
+  STIndirIdx renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  renamable $x = LDImm 1
+  $rc4 = STImag8 $x
+  $x = TA $a
+  renamable $y = LDImm 2
+  $a = LDImag8 $rc5
+  $rc6 = STImag8 $x
+  renamable $a = IncNMOS killed renamable $a(tied-def 0), implicit-def $c, implicit-def $v, implicit-def $z
+  BR %bb.2, $z, -1
+  JMP %bb.1
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.1(0x80000000); %bb.1(100.00%)
+  liveins: $a, $x, $y, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1
+  renamable $rc6 = IncNMOS killed renamable $rc6(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.1
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0, %bb.2
+  successors: %bb.4(0x40000000), %bb.3(0x40000000); %bb.4(50.00%), %bb.3(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rc6, $rs1, $x, $rc4, $rc5, $a, $y
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.3, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.3, $c, 1
+
+bb.4 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $rc5, $a, $rc6
+  $y = LDImm 0
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.4, %bb.1
+  successors: %bb.6(0x40000000), %bb.5(0x40000000); %bb.6(50.00%), %bb.5(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $rc5, $a, $rc6, $y
+  $rc7 = STImag8 killed $y
+  renamable $y = LDImm 4
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.5, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 3, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.5, $c, 1
+
+bb.6 (%ir-block.2):
+; predecessors: %bb.3
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $a, $rc7, $rc6, $rc5
+  $y = LDImm 0
+
+bb.5 (%ir-block.2):
+; predecessors: %bb.6, %bb.3
+  successors: %bb.8(0x40000000), %bb.7(0x40000000); %bb.8(50.00%), %bb.7(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $a, $rc7, $rc6, $rc5, $y
+  $rc8 = STImag8 killed $y
+  renamable $y = LDImm 6
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.7, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.7, $c, 1
+
+bb.8 (%ir-block.2):
+; predecessors: %bb.5
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc8, $rc7, $rc6, $rc4, $a
+  $y = LDImm 0
+
+bb.7 (%ir-block.2):
+; predecessors: %bb.8, %bb.5
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc8, $rc7, $rc6, $rc4, $a, $y
+  $rc5 = STImag8 killed $y
+  renamable $y = LDImm 8
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.9, !tbaa !11)
+  $y = LDImag8 $rc2
+  $rc9 = STImag8 killed $y
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $y = LDImag8 $rc3
+  $rc10 = STImag8 killed $y
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc6
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc7
+  $c = CMPImm killed $y, 1
+  $y = LDImag8 $rc17
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 6, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc8
+  $c = CMPImm killed $y, 1
+  $y = LDImag8 $rc17
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 8, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $x = LDImag8 $rc5
+  $c = CMPImm killed $x, 1
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, killed renamable $y :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  $rc5 = STImag8 $a
+  renamable $y = LDImm 0
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0, !tbaa !6)
+  renamable $y = LDImm 1
+  $a = T_A $x
+  STIndirIdx renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  renamable $x = LDImm 1
+  $rc4 = STImag8 $x
+  $x = TA $a
+  renamable $y = LDImm 2
+  $a = LDImag8 $rc5
+  $rc6 = STImag8 $x
+  $c = LDCImm 0
+  $a, $c, $v = ADCImm killed $a(tied-def 0), 1, $c(tied-def 1), implicit-def $nz
+  BR %bb.2, $z, -1
+  JMP %bb.1
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.1(0x80000000); %bb.1(100.00%)
+  liveins: $a, $x, $y, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1
+  renamable $rc6 = INC killed renamable $rc6(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.1
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0, %bb.2
+  successors: %bb.4(0x40000000), %bb.3(0x40000000); %bb.4(50.00%), %bb.3(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rc6, $rs1, $x, $rc4, $rc5, $a, $y
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.3, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.3, $c, 1
+
+bb.4 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $rc5, $a, $rc6
+  $y = LDImm 0
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.4, %bb.1
+  successors: %bb.6(0x40000000), %bb.5(0x40000000); %bb.6(50.00%), %bb.5(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $rc5, $a, $rc6, $y
+  $rc7 = STImag8 killed $y
+  renamable $y = LDImm 4
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.5, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 3, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.5, $c, 1
+
+bb.6 (%ir-block.2):
+; predecessors: %bb.3
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $a, $rc7, $rc6, $rc5
+  $y = LDImm 0
+
+bb.5 (%ir-block.2):
+; predecessors: %bb.6, %bb.3
+  successors: %bb.8(0x40000000), %bb.7(0x40000000); %bb.8(50.00%), %bb.7(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $a, $rc7, $rc6, $rc5, $y
+  $rc8 = STImag8 killed $y
+  renamable $y = LDImm 6
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.7, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.7, $c, 1
+
+bb.8 (%ir-block.2):
+; predecessors: %bb.5
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc8, $rc7, $rc6, $rc4, $a
+  $y = LDImm 0
+
+bb.7 (%ir-block.2):
+; predecessors: %bb.8, %bb.5
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc8, $rc7, $rc6, $rc4, $a, $y
+  $rc5 = STImag8 killed $y
+  renamable $y = LDImm 8
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.9, !tbaa !11)
+  $y = LDImag8 $rc2
+  $rc9 = STImag8 killed $y
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $y = LDImag8 $rc3
+  $rc10 = STImag8 killed $y
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc6
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc7
+  $c = CMPImm killed $y, 1
+  $y = LDImag8 $rc17
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 6, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc8
+  $c = CMPImm killed $y, 1
+  $y = LDImag8 $rc17
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 8, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $x = LDImag8 $rc5
+  $c = CMPImm killed $x, 1
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, killed renamable $y :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on make_big omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  $rc5 = STImag8 $a
+  renamable $y = LDImm 0
+  STIndirIdx killed renamable $a, renamable $rs1, renamable $y :: (store (s8) into %ir.0, !tbaa !6)
+  renamable $y = INC $y(tied-def 0)
+  $a = T_A $x
+  STIndirIdx renamable $a, renamable $rs1, renamable $y :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  renamable $x = LDImm 1
+  $rc4 = STImag8 $x
+  $x = TA $a
+  renamable $y = INC killed $y(tied-def 0)
+  $a = LDImag8 $rc5
+  $rc6 = STImag8 $x
+  $c = LDCImm 0
+  $a, $c, $v = ADCImm killed $a(tied-def 0), 1, $c(tied-def 1), implicit-def $nz
+  BR %bb.2, $z, -1
+  JMP %bb.1
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.1(0x80000000); %bb.1(100.00%)
+  liveins: $a, $x, $y, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1
+  renamable $rc6 = INC killed renamable $rc6(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.1
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0, %bb.2
+  successors: %bb.4(0x40000000), %bb.3(0x40000000); %bb.4(50.00%), %bb.3(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rc6, $rs1, $x, $rc4, $rc5, $a, $y
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.3, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.3, $c, 1
+
+bb.4 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $rc5, $a, $rc6
+  $y = LDImm 0
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.4, %bb.1
+  successors: %bb.6(0x40000000), %bb.5(0x40000000); %bb.6(50.00%), %bb.5(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $rc5, $a, $rc6, $y
+  $rc7 = STImag8 killed $y
+  renamable $y = LDImm 4
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.5, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 3, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.5, $c, 1
+
+bb.6 (%ir-block.2):
+; predecessors: %bb.3
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $a, $rc7, $rc6, $rc5
+  $y = LDImm 0
+
+bb.5 (%ir-block.2):
+; predecessors: %bb.6, %bb.3
+  successors: %bb.8(0x40000000), %bb.7(0x40000000); %bb.8(50.00%), %bb.7(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $a, $rc7, $rc6, $rc5, $y
+  $rc8 = STImag8 killed $y
+  renamable $y = LDImm 6
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.7, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.7, $c, 1
+
+bb.8 (%ir-block.2):
+; predecessors: %bb.5
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc8, $rc7, $rc6, $rc4, $a
+  $y = LDImm 0
+
+bb.7 (%ir-block.2):
+; predecessors: %bb.8, %bb.5
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc8, $rc7, $rc6, $rc4, $a, $y
+  $rc5 = STImag8 killed $y
+  renamable $y = LDImm 8
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.9, !tbaa !11)
+  $y = LDImag8 $rc2
+  $rc9 = STImag8 killed $y
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $y = LDImag8 $rc3
+  $rc10 = STImag8 killed $y
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc6
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc7
+  $c = CMPImm killed $y, 1
+  $y = LDImag8 $rc17
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 6, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc8
+  $c = CMPImm killed $y, 1
+  $y = LDImag8 $rc17
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 8, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $x = LDImag8 $rc5
+  $c = CMPImm killed $x, 1
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, killed renamable $y :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on make_big omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on make_big omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on make_big omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on make_big omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on make_big omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  $rc5 = STImag8 $a
+  renamable $y = LDImm 0
+  STIndirIdx killed renamable $a, renamable $rs1, renamable $y :: (store (s8) into %ir.0, !tbaa !6)
+  renamable $y = INC $y(tied-def 0)
+  $a = T_A $x
+  STIndirIdx renamable $a, renamable $rs1, renamable $y :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  renamable $x = LDImm 1
+  $rc4 = STImag8 $x
+  $x = TA $a
+  renamable $y = INC killed $y(tied-def 0)
+  $a = LDImag8 $rc5
+  $rc6 = STImag8 $x
+  $c = LDCImm 0
+  $a, $c, $v = ADCImm killed $a(tied-def 0), 1, $c(tied-def 1), implicit-def $nz
+  BR %bb.1, $z, 0
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.1(0x80000000); %bb.1(100.00%)
+  liveins: $a, $x, $y, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1
+  renamable $rc6 = INC killed renamable $rc6(tied-def 0), implicit-def $c, implicit-def $v
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0, %bb.2
+  successors: %bb.4(0x40000000), %bb.3(0x40000000); %bb.4(50.00%), %bb.3(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rc6, $rs1, $x, $rc4, $rc5, $a, $y
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.3, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.3, $c, 1
+
+bb.4 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $rc5, $a, $rc6
+  $y = LDImm 0
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.4, %bb.1
+  successors: %bb.6(0x40000000), %bb.5(0x40000000); %bb.6(50.00%), %bb.5(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $rc5, $a, $rc6, $y
+  $rc7 = STImag8 killed $y
+  renamable $y = LDImm 4
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.5, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 3, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.5, $c, 1
+
+bb.6 (%ir-block.2):
+; predecessors: %bb.3
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $a, $rc7, $rc6, $rc5
+  $y = LDImm 0
+
+bb.5 (%ir-block.2):
+; predecessors: %bb.6, %bb.3
+  successors: %bb.8(0x40000000), %bb.7(0x40000000); %bb.8(50.00%), %bb.7(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $a, $rc7, $rc6, $rc5, $y
+  $rc8 = STImag8 killed $y
+  renamable $y = LDImm 6
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.7, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.7, $c, 1
+
+bb.8 (%ir-block.2):
+; predecessors: %bb.5
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc8, $rc7, $rc6, $rc4, $a
+  $y = LDImm 0
+
+bb.7 (%ir-block.2):
+; predecessors: %bb.8, %bb.5
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc8, $rc7, $rc6, $rc4, $a, $y
+  $rc5 = STImag8 killed $y
+  renamable $y = LDImm 8
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.9, !tbaa !11)
+  $y = LDImag8 $rc2
+  $rc9 = STImag8 killed $y
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $y = LDImag8 $rc3
+  $rc10 = STImag8 killed $y
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc6
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc7
+  $c = CMPImm killed $y, 1
+  $y = LDImag8 $rc17
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 6, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc8
+  $c = CMPImm killed $y, 1
+  $y = LDImag8 $rc17
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 8, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $x = LDImag8 $rc5
+  $c = CMPImm killed $x, 1
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, killed renamable $y :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Insert fentry calls (fentry-insert) on make_big omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on make_big omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on make_big omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on make_big ***
+# Machine code for function make_big: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.2(0x40000000), %bb.1(0x40000000); %bb.2(50.00%), %bb.1(50.00%)
+  liveins: $a, $x, $rs1
+  $rc5 = STImag8 $a
+  renamable $y = LDImm 0
+  STIndirIdx killed renamable $a, renamable $rs1, renamable $y :: (store (s8) into %ir.0, !tbaa !6)
+  renamable $y = INC $y(tied-def 0)
+  $a = T_A $x
+  STIndirIdx renamable $a, renamable $rs1, renamable $y :: (store (s8) into %ir.0 + 1, !tbaa !6)
+  renamable $x = LDImm 1
+  $rc4 = STImag8 $x
+  $x = TA $a
+  renamable $y = INC killed $y(tied-def 0)
+  $a = LDImag8 $rc5
+  $rc6 = STImag8 $x
+  $c = LDCImm 0
+  $a, $c, $v = ADCImm killed $a(tied-def 0), 1, $c(tied-def 1), implicit-def $nz
+  BR %bb.2, $z, 0
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $a, $x, $y, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1
+  renamable $rc6 = INC killed renamable $rc6(tied-def 0), implicit-def $c, implicit-def $v
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0, %bb.1
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rc6, $rs1, $x, $rc4, $rc5, $a, $y
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.3, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.4, $c, 1
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $rc5, $a, $rc6
+  $y = LDImm 0
+
+bb.4 (%ir-block.2):
+; predecessors: %bb.3, %bb.2
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $rc5, $a, $rc6, $y
+  $rc7 = STImag8 killed $y
+  renamable $y = LDImm 4
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.5, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 3, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.6, $c, 1
+
+bb.5 (%ir-block.2):
+; predecessors: %bb.4
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $a, $rc7, $rc6, $rc5
+  $y = LDImm 0
+
+bb.6 (%ir-block.2):
+; predecessors: %bb.5, %bb.4
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc4, $a, $rc7, $rc6, $rc5, $y
+  $rc8 = STImag8 killed $y
+  renamable $y = LDImm 6
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.7, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $y = LDImm 1
+  BR %bb.8, $c, 1
+
+bb.7 (%ir-block.2):
+; predecessors: %bb.6
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc8, $rc7, $rc6, $rc4, $a
+  $y = LDImm 0
+
+bb.8 (%ir-block.2):
+; predecessors: %bb.7, %bb.6
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1, $x, $rc8, $rc7, $rc6, $rc4, $a, $y
+  $rc5 = STImag8 killed $y
+  renamable $y = LDImm 8
+  STIndirIdx killed renamable $a, renamable $rs1, killed renamable $y :: (store (s8) into %ir.9, !tbaa !11)
+  $y = LDImag8 $rc2
+  $rc9 = STImag8 killed $y
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $y = LDImag8 $rc3
+  $rc10 = STImag8 killed $y
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc6
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.3 + 1, !tbaa !8)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 4, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc7
+  $c = CMPImm killed $y, 1
+  $y = LDImag8 $rc17
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.5 + 1, !tbaa !9)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 6, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc8
+  $c = CMPImm killed $y, 1
+  $y = LDImag8 $rc17
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, renamable $y :: (store (s8) into %ir.7 + 1, !tbaa !10)
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc9
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 8, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc10
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = T_A $x
+  $x = LDImag8 $rc5
+  $c = CMPImm killed $x, 1
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  STIndirIdx killed renamable $a, killed renamable $rs1, killed renamable $y :: (store (s8) into %ir.9 + 1, !tbaa !11)
+  RTS
+
+# End machine code for function make_big.
+
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on make_big omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on make_big omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on make_big omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on make_big omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on make_big omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on make_big omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on make_big omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on make_big omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on make_big omitted because no change ***

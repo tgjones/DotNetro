@@ -1,0 +1,473 @@
+*** IR Dump At Start ***
+; ModuleID = './basics/ret-const.c'
+source_filename = "./basics/ret-const.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @ret_const() #0 {
+  ret i16 1234
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on ret_const omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on ret_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on ret_const omitted because no change ***
+*** IR Dump After SROAPass on ret_const omitted because no change ***
+*** IR Dump After EarlyCSEPass on ret_const omitted because no change ***
+*** IR Pass PassManager<Function> on ret_const ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './basics/ret-const.c'
+source_filename = "./basics/ret-const.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @ret_const() local_unnamed_addr #0 {
+  ret i16 1234
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on ret_const omitted because no change ***
+*** IR Dump After InstCombinePass on ret_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on ret_const omitted because no change ***
+*** IR Pass PassManager<Function> on ret_const ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on ret_const omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (ret_const) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (ret_const) omitted because no change ***
+*** IR Dump After SROAPass on ret_const omitted because no change ***
+*** IR Dump After EarlyCSEPass on ret_const omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on ret_const omitted because no change ***
+*** IR Dump After JumpThreadingPass on ret_const omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on ret_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on ret_const omitted because no change ***
+*** IR Dump After InstCombinePass on ret_const omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on ret_const omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on ret_const omitted because no change ***
+*** IR Dump After TailCallElimPass on ret_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on ret_const omitted because no change ***
+*** IR Dump After ReassociatePass on ret_const omitted because no change ***
+*** IR Dump After ConstraintEliminationPass on ret_const omitted because no change ***
+*** IR Dump After LoopSimplifyPass on ret_const omitted because no change ***
+*** IR Dump After LCSSAPass on ret_const omitted because no change ***
+*** IR Pass PassManager<Function> on ret_const ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on ret_const ignored ***
+*** IR Dump After SimplifyCFGPass on ret_const omitted because no change ***
+*** IR Dump After InstCombinePass on ret_const omitted because no change ***
+*** IR Dump After LoopSimplifyPass on ret_const omitted because no change ***
+*** IR Dump After LCSSAPass on ret_const omitted because no change ***
+*** IR Pass PassManager<Function> on ret_const ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on ret_const ignored ***
+*** IR Dump After SROAPass on ret_const omitted because no change ***
+*** IR Dump After VectorCombinePass on ret_const omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on ret_const omitted because no change ***
+*** IR Dump After GVNPass on ret_const omitted because no change ***
+*** IR Dump After SCCPPass on ret_const omitted because no change ***
+*** IR Dump After BDCEPass on ret_const omitted because no change ***
+*** IR Dump After InstCombinePass on ret_const omitted because no change ***
+*** IR Dump After JumpThreadingPass on ret_const omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on ret_const omitted because no change ***
+*** IR Dump After ADCEPass on ret_const omitted because no change ***
+*** IR Dump After MemCpyOptPass on ret_const omitted because no change ***
+*** IR Dump After DSEPass on ret_const omitted because no change ***
+*** IR Dump After MoveAutoInitPass on ret_const omitted because no change ***
+*** IR Dump After LoopSimplifyPass on ret_const omitted because no change ***
+*** IR Dump After LCSSAPass on ret_const omitted because no change ***
+*** IR Pass PassManager<Function> on ret_const ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on ret_const ignored ***
+*** IR Dump After CoroElidePass on ret_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on ret_const omitted because no change ***
+*** IR Dump After InstCombinePass on ret_const omitted because no change ***
+*** IR Pass PassManager<Function> on ret_const ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (ret_const) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (ret_const) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local noundef i16 @ret_const() local_unnamed_addr #0 {
+  ret i16 1234
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on ret_const omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (ret_const) ignored ***
+*** IR Dump After CoroSplitPass on (ret_const) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (ret_const) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (ret_const) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (ret_const) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on ret_const omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on ret_const omitted because no change ***
+*** IR Dump After Float2IntPass on ret_const omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on ret_const omitted because no change ***
+*** IR Dump After LoopSimplifyPass on ret_const omitted because no change ***
+*** IR Dump After LCSSAPass on ret_const omitted because no change ***
+*** IR Pass PassManager<Function> on ret_const ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on ret_const ignored ***
+*** IR Dump After LoopDistributePass on ret_const omitted because no change ***
+*** IR Dump After InjectTLIMappings on ret_const omitted because no change ***
+*** IR Dump After LoopVectorizePass on ret_const omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on ret_const omitted because no change ***
+*** IR Dump After InferAlignmentPass on ret_const omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on ret_const omitted because no change ***
+*** IR Dump After InstCombinePass on ret_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on ret_const omitted because no change ***
+*** IR Dump After SLPVectorizerPass on ret_const omitted because no change ***
+*** IR Dump After VectorCombinePass on ret_const omitted because no change ***
+*** IR Dump After InstCombinePass on ret_const omitted because no change ***
+*** IR Dump After LoopUnrollPass on ret_const omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on ret_const omitted because no change ***
+*** IR Dump After SROAPass on ret_const omitted because no change ***
+*** IR Dump After InferAlignmentPass on ret_const omitted because no change ***
+*** IR Dump After InstCombinePass on ret_const omitted because no change ***
+*** IR Dump After LoopSimplifyPass on ret_const omitted because no change ***
+*** IR Dump After LCSSAPass on ret_const omitted because no change ***
+*** IR Pass PassManager<Function> on ret_const ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on ret_const ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on ret_const omitted because no change ***
+*** IR Dump After LoopSinkPass on ret_const omitted because no change ***
+*** IR Dump After InstSimplifyPass on ret_const omitted because no change ***
+*** IR Dump After DivRemPairsPass on ret_const omitted because no change ***
+*** IR Dump After MergeICmpsPass on ret_const omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on ret_const omitted because no change ***
+*** IR Dump After TailCallElimPass on ret_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on ret_const omitted because no change ***
+*** IR Pass PassManager<Function> on ret_const ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on ret_const omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on ret_const omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on ret_const ***
+# Machine code for function ret_const: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.0):
+  %0:_(s16) = G_CONSTANT i16 1234
+  %1:_(s8), %2:_(s8) = G_UNMERGE_VALUES %0:_(s16)
+  $a = COPY %1:_(s8)
+  $x = COPY %2:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on ret_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on ret_const omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on ret_const omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on ret_const ***
+# Machine code for function ret_const: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.0):
+  %1:_(s8) = G_CONSTANT i8 -46
+  %2:_(s8) = G_CONSTANT i8 4
+  $a = COPY %1:_(s8)
+  $x = COPY %2:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on ret_const omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on ret_const omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on ret_const omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on ret_const ***
+# Machine code for function ret_const: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.0):
+  %1:_(s8) = G_CONSTANT i8 -46
+  %2:_(s8) = G_CONSTANT i8 4
+  $a = COPY %1:_(s8)
+  $x = COPY %2:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on ret_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on ret_const omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on ret_const omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on ret_const omitted because no change ***
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on ret_const omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on ret_const ***
+# Machine code for function ret_const: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.0):
+  %1:any(s8) = G_CONSTANT i8 -46
+  %2:any(s8) = G_CONSTANT i8 4
+  $a = COPY %1:any(s8)
+  $x = COPY %2:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Localizer (localizer) on ret_const ***
+# Machine code for function ret_const: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.0):
+  %1:any(s8) = G_CONSTANT i8 -46
+  $a = COPY %1:any(s8)
+  %2:any(s8) = G_CONSTANT i8 4
+  $x = COPY %2:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on ret_const omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on ret_const ***
+# Machine code for function ret_const: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.0):
+  %1:gpr = LDImm -46
+  $a = COPY %1:gpr
+  %2:gpr = LDImm 4
+  $x = COPY %2:gpr
+  RTS implicit $a, implicit $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After ResetMachineFunction on ret_const omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on ret_const omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on ret_const omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on ret_const omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on ret_const omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on ret_const omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on ret_const omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on ret_const omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on ret_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on ret_const omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on ret_const omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on ret_const omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on ret_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on ret_const omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on ret_const omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on ret_const omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on ret_const omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on ret_const omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on ret_const omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on ret_const omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on ret_const omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on ret_const omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on ret_const omitted because no change ***
+*** IR Dump After Init Undef Pass (init-undef) on ret_const omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on ret_const omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on ret_const ***
+# Machine code for function ret_const: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.0):
+  %1:gpr = LDImm -46
+  $a = COPY %1:gpr
+  %2:gpr = LDImm 4
+  $x = COPY %2:gpr
+  RTS implicit $a, implicit $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Live Variable Analysis (livevars) on ret_const ***
+# Machine code for function ret_const: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.0):
+  %1:gpr = LDImm -46
+  $a = COPY killed %1:gpr
+  %2:gpr = LDImm 4
+  $x = COPY killed %2:gpr
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on ret_const omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on ret_const omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on ret_const ***
+# Machine code for function ret_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.0):
+  %1:gpr = LDImm -46
+  $a = COPY killed %1:gpr
+  %2:gpr = LDImm 4
+  $x = COPY killed %2:gpr
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on ret_const ***
+# Machine code for function ret_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.0):
+  %1:gpr = LDImm -46
+  $a = COPY killed %1:gpr
+  %2:gpr = LDImm 4
+  $x = COPY killed %2:gpr
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Slot index numbering (slotindexes) on ret_const omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on ret_const ***
+# Machine code for function ret_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.0):
+  %1:gpr = LDImm -46
+  $a = COPY %1:gpr
+  %2:gpr = LDImm 4
+  $x = COPY %2:gpr
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Register Coalescer (register-coalescer) on ret_const omitted because no change ***
+*** IR Dump After Register Coalescer (register-coalescer) on ret_const omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on ret_const omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on ret_const omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on ret_const ***
+# Machine code for function ret_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.0):
+  %1:gpr = LDImm -46
+  %2:gpr = LDImm 4
+  $x = COPY %2:gpr
+  $a = COPY %1:gpr
+  RTS implicit $a, implicit killed $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on ret_const ***
+# Machine code for function ret_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.0):
+  %1:gpr = LDImm -46
+  %2:gpr = LDImm 4
+  $x = COPY %2:gpr
+  $a = COPY %1:gpr
+  RTS implicit $a, implicit killed $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on ret_const omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on ret_const omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on ret_const omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on ret_const omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on ret_const omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on ret_const omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on ret_const omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on ret_const ***
+# Machine code for function ret_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.0):
+  %1:gpr = LDImm -46
+  %2:gpr = LDImm 4
+  $x = COPY %2:gpr
+  $a = COPY %1:gpr
+  RTS implicit $a, implicit $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on ret_const ***
+# Machine code for function ret_const: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.0):
+  renamable $a = LDImm -46
+  renamable $x = LDImm 4
+  RTS implicit $a, implicit $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on ret_const omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on ret_const omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on ret_const omitted because no change ***
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on ret_const omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on ret_const omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on ret_const omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on ret_const omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on ret_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on ret_const omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on ret_const omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on ret_const omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on ret_const omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on ret_const omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on ret_const omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on ret_const omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on ret_const omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on ret_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on ret_const omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on ret_const omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on ret_const omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on ret_const omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on ret_const omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on ret_const omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on ret_const omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on ret_const ***
+# Machine code for function ret_const: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.0):
+  renamable $a = LDImm -46
+  renamable $x = LDImm 4
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function ret_const.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on ret_const omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on ret_const omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on ret_const omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on ret_const omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on ret_const omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on ret_const omitted because no change ***
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on ret_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on ret_const omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on ret_const omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on ret_const omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on ret_const omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on ret_const omitted because no change ***
+*** IR Dump After Insert fentry calls (fentry-insert) on ret_const omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on ret_const omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on ret_const omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on ret_const omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on ret_const omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on ret_const omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on ret_const omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on ret_const omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on ret_const omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on ret_const omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on ret_const omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on ret_const omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on ret_const omitted because no change ***

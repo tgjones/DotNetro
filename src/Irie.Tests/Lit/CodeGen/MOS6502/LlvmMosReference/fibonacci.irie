@@ -1,0 +1,94 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/realistic/fibonacci
+; Iterative Fibonacci: a loop carrying a value pair rotated each iteration
+; (a, b = b, a + b) -- a copy-cycle-in-a-loop mixing coalescing pressure with
+; back-edge liveness.
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Compare against ext/llvm-mos-reference/realistic/fibonacci.s; close gaps via irie-report.
+
+; CHECK:     fibonacci:
+; CHECK:     STA \$0B
+; CHECK:     STX \$0A
+; CHECK:     LDA \#\$00
+; CHECK:     STA \$07
+; CHECK:     LDA \#\$00
+; CHECK:     STA \$06
+; CHECK:     LDA \#\$01
+; CHECK:     STA \$09
+; CHECK:     LDA \#\$00
+; CHECK:     STA \$08
+; CHECK:     LDA \#\$00
+; CHECK:     STA \$05
+; CHECK:     LDA \#\$00
+; CHECK:     STA \$04
+; CHECK:     JMP \.bb1
+; CHECK:     \.bb1:
+; CHECK:     LDA \$05
+; CHECK:     STA \$03
+; CHECK:     LDA \$04
+; CHECK:     LDX \$0B
+; CHECK:     STX \$0C
+; CHECK:     LDX \$0A
+; CHECK:     EOR \#\$80
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     EOR \#\$80
+; CHECK:     STA \$02
+; CHECK:     TYA
+; CHECK:     CMP \$02
+; CHECK:     BCC \.bb2
+; CHECK:     BNE \.bb3
+; CHECK:     LDA \$03
+; CHECK:     CMP \$0C
+; CHECK:     BCC \.bb2
+; CHECK:     JMP \.bb3
+; CHECK:     \.bb2:
+; CHECK:     CLC
+; CHECK:     LDA \$07
+; CHECK:     ADC \$09
+; CHECK:     TAY
+; CHECK:     LDA \$06
+; CHECK:     ADC \$08
+; CHECK:     TAX
+; CHECK:     LDA \#\$01
+; CHECK:     STA \$03
+; CHECK:     LDA \#\$00
+; CHECK:     STA \$02
+; CHECK:     CLC
+; CHECK:     LDA \$05
+; CHECK:     ADC \$03
+; CHECK:     STA \$05
+; CHECK:     LDA \$04
+; CHECK:     ADC \$02
+; CHECK:     STA \$04
+; CHECK:     LDA \$09
+; CHECK:     STA \$07
+; CHECK:     LDA \$08
+; CHECK:     STA \$06
+; CHECK:     STY \$09
+; CHECK:     STX \$08
+; CHECK:     JMP \.bb1
+; CHECK:     \.bb3:
+; CHECK:     LDA \$07
+; CHECK:     LDX \$06
+; CHECK:     RTS
+
+func @fibonacci : (i16) -> i16 {
+bb0(%0 : i16):
+    %1 : i16 = arith.constant 0
+    %2 : i16 = arith.constant 1
+    %3 : i16 = arith.constant 0
+    cf.br bb1(%1, %2, %3)
+bb1(%4 : i16, %5 : i16, %6 : i16):
+    %7 : i1 = arith.cmpi slt, %6, %0
+    cf.cond_br %7, bb2(), bb3()
+bb2():
+    %8 : i16 = arith.addi %4, %5
+    %9 : i16 = arith.constant 1
+    %10 : i16 = arith.addi %6, %9
+    cf.br bb1(%5, %8, %10)
+bb3():
+    core.return %4
+}

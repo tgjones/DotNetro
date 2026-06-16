@@ -1,0 +1,48 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/control-flow/select
+; cond ? a : b as a diamond with a merge-block phi (also covers
+; coalescing/redundant-copy). Exercises PhiElimination + cross-block
+; allocation.
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Compare against ext/llvm-mos-reference/control-flow/select.s; close gaps via irie-report.
+
+; CHECK:     select_val:
+; CHECK:     LDY \#\$00
+; CHECK:     STY \$07
+; CHECK:     LDY \#\$00
+; CHECK:     STY \$06
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     CMP \$06
+; CHECK:     BNE \.bb1
+; CHECK:     TYA
+; CHECK:     CMP \$07
+; CHECK:     BNE \.bb1
+; CHECK:     JMP \.bb2
+; CHECK:     \.bb1:
+; CHECK:     JMP \.bb3
+; CHECK:     \.bb2:
+; CHECK:     LDA \$04
+; CHECK:     STA \$02
+; CHECK:     LDA \$05
+; CHECK:     STA \$03
+; CHECK:     JMP \.bb3
+; CHECK:     \.bb3:
+; CHECK:     LDA \$02
+; CHECK:     LDX \$03
+; CHECK:     RTS
+
+func @select_val : (i16, i16, i16) -> i16 {
+bb0(%0 : i16, %1 : i16, %2 : i16):
+    %3 : i16 = arith.constant 0
+    %4 : i1 = arith.cmpi ne, %0, %3
+    cf.cond_br %4, bb1(), bb2()
+bb1():
+    cf.br bb3(%1)
+bb2():
+    cf.br bb3(%2)
+bb3(%5 : i16):
+    core.return %5
+}

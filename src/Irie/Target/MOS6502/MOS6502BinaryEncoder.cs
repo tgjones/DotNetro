@@ -190,11 +190,11 @@ public sealed class MOS6502BinaryEncoder
                 break;
 
             case MachineCodeOperand.ExternalRef ext when ext.Half == SymbolHalf.LowByte:
-                WriteByte(bytes, bytePos + 1, ResolveSymbol(ext.Name, addr) & 0xFF);
+                WriteByte(bytes, bytePos + 1, (ResolveSymbol(ext.Name, addr) + ext.Offset) & 0xFF);
                 break;
 
             case MachineCodeOperand.ExternalRef ext when ext.Half == SymbolHalf.HighByte:
-                WriteByte(bytes, bytePos + 1, (ResolveSymbol(ext.Name, addr) >> 8) & 0xFF);
+                WriteByte(bytes, bytePos + 1, ((ResolveSymbol(ext.Name, addr) + ext.Offset) >> 8) & 0xFF);
                 break;
 
             default:
@@ -233,7 +233,7 @@ public sealed class MOS6502BinaryEncoder
                 break;
 
             case MachineCodeOperand.ExternalRef ext when ext.Half == SymbolHalf.Full:
-                WriteLE16(bytes, bytePos + 1, ResolveSymbol(ext.Name, addr));
+                WriteLE16(bytes, bytePos + 1, ResolveSymbol(ext.Name, addr) + ext.Offset);
                 break;
 
             case MachineCodeOperand.ExternalRef ext:

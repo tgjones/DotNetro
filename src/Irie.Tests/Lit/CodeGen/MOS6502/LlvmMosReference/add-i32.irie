@@ -1,0 +1,30 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/basics/add-i32
+; i32 add = a 4-byte carry chain; abundant zero-page slots hold operand bytes
+; while $a is reused per ADC.
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Compare against ext/llvm-mos-reference/basics/add-i32.s; close gaps via irie-report.
+
+; CHECK:     add_i32:
+; CHECK:     CLC
+; CHECK:     ADC \$04
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC \$05
+; CHECK:     TAX
+; CHECK:     LDA \$02
+; CHECK:     ADC \$06
+; CHECK:     STA \$02
+; CHECK:     LDA \$03
+; CHECK:     ADC \$07
+; CHECK:     STA \$03
+; CHECK:     TYA
+; CHECK:     RTS
+
+func @add_i32 : (i32, i32) -> i32 {
+bb0(%0 : i32, %1 : i32):
+    %2 : i32 = arith.addi %0, %1
+    core.return %2
+}

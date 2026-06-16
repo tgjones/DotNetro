@@ -1,0 +1,24 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/basics/sub-i16
+; Subtraction is non-commutative: the minuend is pinned to $a, so operand
+; order is fixed (unlike add).
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Compare against ext/llvm-mos-reference/basics/sub-i16.s; close gaps via irie-report.
+
+; CHECK:     sub_i16:
+; CHECK:     SEC
+; CHECK:     SBC \$02
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     SBC \$03
+; CHECK:     TAX
+; CHECK:     TYA
+; CHECK:     RTS
+
+func @sub_i16 : (i16, i16) -> i16 {
+bb0(%0 : i16, %1 : i16):
+    %2 : i16 = arith.subi %0, %1
+    core.return %2
+}

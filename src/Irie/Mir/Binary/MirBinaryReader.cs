@@ -148,7 +148,7 @@ internal static class MirBinaryReader
             OperandTag.PhysicalReg => new PhysicalReg(reader.ReadInt32(), reader.ReadBoolean(), reader.ReadBoolean()),
             OperandTag.Immediate   => new Immediate(reader.ReadInt64()),
             OperandTag.BlockTarget => ReadBlockTarget(reader, function),
-            OperandTag.Symbol      => new Symbol(reader.ReadString()),
+            OperandTag.Symbol      => new Symbol(reader.ReadString(), reader.ReadInt32()),
             _ => throw new InvalidDataException($"Unknown operand tag: {(byte)tag}"),
         };
     }

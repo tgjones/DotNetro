@@ -1,0 +1,548 @@
+*** IR Dump At Start ***
+; ModuleID = './constraints/inc-dec.c'
+source_filename = "./constraints/inc-dec.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local zeroext i8 @inc_dec(i8 noundef zeroext %0, i8 noundef zeroext %1) #0 {
+  %3 = alloca i8, align 1
+  %4 = alloca i8, align 1
+  store i8 %0, ptr %3, align 1, !tbaa !6
+  store i8 %1, ptr %4, align 1, !tbaa !6
+  %5 = load i8, ptr %3, align 1, !tbaa !6
+  %6 = add i8 %5, 1
+  store i8 %6, ptr %3, align 1, !tbaa !6
+  %7 = load i8, ptr %4, align 1, !tbaa !6
+  %8 = add i8 %7, -1
+  store i8 %8, ptr %4, align 1, !tbaa !6
+  %9 = load i8, ptr %3, align 1, !tbaa !6
+  %10 = zext i8 %9 to i16
+  %11 = load i8, ptr %4, align 1, !tbaa !6
+  %12 = zext i8 %11 to i16
+  %13 = add nsw i16 %10, %12
+  %14 = trunc i16 %13 to i8
+  ret i8 %14
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = !{!4, !4, i64 0}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on inc_dec omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on inc_dec omitted because no change ***
+*** IR Dump After SimplifyCFGPass on inc_dec omitted because no change ***
+*** IR Dump After SROAPass on inc_dec ***
+; Function Attrs: nounwind optsize
+define dso_local zeroext i8 @inc_dec(i8 noundef zeroext %0, i8 noundef zeroext %1) #0 {
+  %3 = add i8 %0, 1
+  %4 = add i8 %1, -1
+  %5 = zext i8 %3 to i16
+  %6 = zext i8 %4 to i16
+  %7 = add nsw i16 %5, %6
+  %8 = trunc i16 %7 to i8
+  ret i8 %8
+}
+*** IR Dump After EarlyCSEPass on inc_dec omitted because no change ***
+*** IR Pass PassManager<Function> on inc_dec ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] ***
+; ModuleID = './constraints/inc-dec.c'
+source_filename = "./constraints/inc-dec.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local zeroext i8 @inc_dec(i8 noundef zeroext %0, i8 noundef zeroext %1) #0 {
+  %3 = add i8 %0, 1
+  %4 = add i8 %1, -1
+  %5 = zext i8 %3 to i16
+  %6 = zext i8 %4 to i16
+  %7 = add nuw nsw i16 %5, %6
+  %8 = trunc i16 %7 to i8
+  ret i8 %8
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './constraints/inc-dec.c'
+source_filename = "./constraints/inc-dec.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local zeroext i8 @inc_dec(i8 noundef zeroext %0, i8 noundef zeroext %1) local_unnamed_addr #0 {
+  %3 = add i8 %0, 1
+  %4 = add i8 %1, -1
+  %5 = zext i8 %3 to i16
+  %6 = zext i8 %4 to i16
+  %7 = add nuw nsw i16 %5, %6
+  %8 = trunc i16 %7 to i8
+  ret i8 %8
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on inc_dec omitted because no change ***
+*** IR Dump After InstCombinePass on inc_dec ***
+; Function Attrs: nounwind optsize
+define dso_local zeroext i8 @inc_dec(i8 noundef zeroext %0, i8 noundef zeroext %1) local_unnamed_addr #0 {
+  %3 = add i8 %0, %1
+  ret i8 %3
+}
+*** IR Dump After SimplifyCFGPass on inc_dec omitted because no change ***
+*** IR Pass PassManager<Function> on inc_dec ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on inc_dec omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (inc_dec) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (inc_dec) omitted because no change ***
+*** IR Dump After SROAPass on inc_dec omitted because no change ***
+*** IR Dump After EarlyCSEPass on inc_dec omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on inc_dec omitted because no change ***
+*** IR Dump After JumpThreadingPass on inc_dec omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on inc_dec omitted because no change ***
+*** IR Dump After SimplifyCFGPass on inc_dec omitted because no change ***
+*** IR Dump After InstCombinePass on inc_dec omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on inc_dec omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on inc_dec omitted because no change ***
+*** IR Dump After TailCallElimPass on inc_dec omitted because no change ***
+*** IR Dump After SimplifyCFGPass on inc_dec omitted because no change ***
+*** IR Dump After ReassociatePass on inc_dec ***
+; Function Attrs: nounwind optsize
+define dso_local zeroext i8 @inc_dec(i8 noundef zeroext %0, i8 noundef zeroext %1) local_unnamed_addr #0 {
+  %3 = add i8 %1, %0
+  ret i8 %3
+}
+*** IR Dump After ConstraintEliminationPass on inc_dec omitted because no change ***
+*** IR Dump After LoopSimplifyPass on inc_dec omitted because no change ***
+*** IR Dump After LCSSAPass on inc_dec omitted because no change ***
+*** IR Pass PassManager<Function> on inc_dec ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on inc_dec ignored ***
+*** IR Dump After SimplifyCFGPass on inc_dec omitted because no change ***
+*** IR Dump After InstCombinePass on inc_dec omitted because no change ***
+*** IR Dump After LoopSimplifyPass on inc_dec omitted because no change ***
+*** IR Dump After LCSSAPass on inc_dec omitted because no change ***
+*** IR Pass PassManager<Function> on inc_dec ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on inc_dec ignored ***
+*** IR Dump After SROAPass on inc_dec omitted because no change ***
+*** IR Dump After VectorCombinePass on inc_dec omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on inc_dec omitted because no change ***
+*** IR Dump After GVNPass on inc_dec omitted because no change ***
+*** IR Dump After SCCPPass on inc_dec omitted because no change ***
+*** IR Dump After BDCEPass on inc_dec omitted because no change ***
+*** IR Dump After InstCombinePass on inc_dec omitted because no change ***
+*** IR Dump After JumpThreadingPass on inc_dec omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on inc_dec omitted because no change ***
+*** IR Dump After ADCEPass on inc_dec omitted because no change ***
+*** IR Dump After MemCpyOptPass on inc_dec omitted because no change ***
+*** IR Dump After DSEPass on inc_dec omitted because no change ***
+*** IR Dump After MoveAutoInitPass on inc_dec omitted because no change ***
+*** IR Dump After LoopSimplifyPass on inc_dec omitted because no change ***
+*** IR Dump After LCSSAPass on inc_dec omitted because no change ***
+*** IR Pass PassManager<Function> on inc_dec ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on inc_dec ignored ***
+*** IR Dump After CoroElidePass on inc_dec omitted because no change ***
+*** IR Dump After SimplifyCFGPass on inc_dec omitted because no change ***
+*** IR Dump After InstCombinePass on inc_dec omitted because no change ***
+*** IR Pass PassManager<Function> on inc_dec ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (inc_dec) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (inc_dec) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local noundef zeroext i8 @inc_dec(i8 noundef zeroext %0, i8 noundef zeroext %1) local_unnamed_addr #0 {
+  %3 = add i8 %1, %0
+  ret i8 %3
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on inc_dec omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (inc_dec) ignored ***
+*** IR Dump After CoroSplitPass on (inc_dec) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (inc_dec) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (inc_dec) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (inc_dec) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on inc_dec omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on inc_dec omitted because no change ***
+*** IR Dump After Float2IntPass on inc_dec omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on inc_dec omitted because no change ***
+*** IR Dump After LoopSimplifyPass on inc_dec omitted because no change ***
+*** IR Dump After LCSSAPass on inc_dec omitted because no change ***
+*** IR Pass PassManager<Function> on inc_dec ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on inc_dec ignored ***
+*** IR Dump After LoopDistributePass on inc_dec omitted because no change ***
+*** IR Dump After InjectTLIMappings on inc_dec omitted because no change ***
+*** IR Dump After LoopVectorizePass on inc_dec omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on inc_dec omitted because no change ***
+*** IR Dump After InferAlignmentPass on inc_dec omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on inc_dec omitted because no change ***
+*** IR Dump After InstCombinePass on inc_dec omitted because no change ***
+*** IR Dump After SimplifyCFGPass on inc_dec omitted because no change ***
+*** IR Dump After SLPVectorizerPass on inc_dec omitted because no change ***
+*** IR Dump After VectorCombinePass on inc_dec omitted because no change ***
+*** IR Dump After InstCombinePass on inc_dec omitted because no change ***
+*** IR Dump After LoopUnrollPass on inc_dec omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on inc_dec omitted because no change ***
+*** IR Dump After SROAPass on inc_dec omitted because no change ***
+*** IR Dump After InferAlignmentPass on inc_dec omitted because no change ***
+*** IR Dump After InstCombinePass on inc_dec omitted because no change ***
+*** IR Dump After LoopSimplifyPass on inc_dec omitted because no change ***
+*** IR Dump After LCSSAPass on inc_dec omitted because no change ***
+*** IR Pass PassManager<Function> on inc_dec ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on inc_dec ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on inc_dec omitted because no change ***
+*** IR Dump After LoopSinkPass on inc_dec omitted because no change ***
+*** IR Dump After InstSimplifyPass on inc_dec omitted because no change ***
+*** IR Dump After DivRemPairsPass on inc_dec omitted because no change ***
+*** IR Dump After MergeICmpsPass on inc_dec omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on inc_dec omitted because no change ***
+*** IR Dump After TailCallElimPass on inc_dec omitted because no change ***
+*** IR Dump After SimplifyCFGPass on inc_dec omitted because no change ***
+*** IR Pass PassManager<Function> on inc_dec ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on inc_dec omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on inc_dec omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on inc_dec ***
+# Machine code for function inc_dec: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x
+  %0:_(s8) = COPY $a
+  %1:_(s8) = COPY $x
+  %2:_(s8) = G_ADD %1:_, %0:_
+  $a = COPY %2:_(s8)
+  RTS implicit $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on inc_dec omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on inc_dec omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on inc_dec omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on inc_dec omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on inc_dec omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on inc_dec omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on inc_dec omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on inc_dec ***
+# Machine code for function inc_dec: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x
+  %0:_(s8) = COPY $a
+  %1:_(s8) = COPY $x
+  %2:_(s8) = G_ADD %1:_, %0:_
+  $a = COPY %2:_(s8)
+  RTS implicit $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on inc_dec omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on inc_dec omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on inc_dec omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on inc_dec omitted because no change ***
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on inc_dec omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on inc_dec ***
+# Machine code for function inc_dec: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x
+  %0:any(s8) = COPY $a
+  %1:any(s8) = COPY $x
+  %2:any(s8) = G_ADD %1:any, %0:any
+  $a = COPY %2:any(s8)
+  RTS implicit $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After Localizer (localizer) on inc_dec omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on inc_dec omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on inc_dec ***
+# Machine code for function inc_dec: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x
+  %0:imag8 = COPY $a
+  %1:ac = COPY $x
+  %5:cc = LDCImm 0
+  %2:ac, dead %4:cc, dead %3:vc = ADCImag8 %1:ac(tied-def 0), %0:imag8, %5:cc
+  $a = COPY %2:ac
+  RTS implicit $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After ResetMachineFunction on inc_dec omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on inc_dec omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on inc_dec omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on inc_dec omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on inc_dec omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on inc_dec omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on inc_dec omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on inc_dec omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on inc_dec omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on inc_dec omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on inc_dec omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on inc_dec omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on inc_dec omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on inc_dec omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on inc_dec omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on inc_dec omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on inc_dec omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on inc_dec omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on inc_dec omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on inc_dec omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on inc_dec omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on inc_dec omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on inc_dec omitted because no change ***
+*** IR Dump After Init Undef Pass (init-undef) on inc_dec omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on inc_dec omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on inc_dec ***
+# Machine code for function inc_dec: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x
+  %0:imag8 = COPY $a
+  %1:ac = COPY $x
+  %5:cc = LDCImm 0
+  %2:ac, dead %4:cc, dead %3:vc = ADCImag8 %1:ac(tied-def 0), %0:imag8, %5:cc
+  $a = COPY %2:ac
+  RTS implicit $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After Live Variable Analysis (livevars) on inc_dec ***
+# Machine code for function inc_dec: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x
+  %0:imag8 = COPY killed $a
+  %1:ac = COPY killed $x
+  %5:cc = LDCImm 0
+  %2:ac, dead %4:cc, dead %3:vc = ADCImag8 killed %1:ac(tied-def 0), killed %0:imag8, killed %5:cc
+  $a = COPY killed %2:ac
+  RTS implicit killed $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on inc_dec omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on inc_dec omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on inc_dec ***
+# Machine code for function inc_dec: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x
+  %0:imag8 = COPY killed $a
+  %1:ac = COPY killed $x
+  %5:cc = LDCImm 0
+  %2:ac, dead %4:cc, dead %3:vc = ADCImag8 killed %1:ac(tied-def 0), killed %0:imag8, killed %5:cc
+  $a = COPY killed %2:ac
+  RTS implicit killed $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on inc_dec ***
+# Machine code for function inc_dec: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x
+  %0:ac = COPY killed $a
+  %1:imag8 = COPY killed $x
+  %5:cc = LDCImm 0
+  %2:ac = COPY killed %0:ac
+  %2:ac, dead %4:cc, dead %3:vc = ADCImag8 %2:ac(tied-def 0), killed %1:imag8, killed %5:cc
+  $a = COPY killed %2:ac
+  RTS implicit killed $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After Slot index numbering (slotindexes) on inc_dec omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on inc_dec ***
+# Machine code for function inc_dec: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x
+  %0:ac = COPY $a
+  %1:imag8 = COPY $x
+  %5:cc = LDCImm 0
+  %2:ac = COPY %0:ac
+  %2:ac, dead %4:cc, dead %3:vc = ADCImag8 %2:ac(tied-def 0), %1:imag8, %5:cc
+  $a = COPY %2:ac
+  RTS implicit $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After Register Coalescer (register-coalescer) on inc_dec ***
+# Machine code for function inc_dec: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x
+  %2:ac = COPY $a
+  %1:imag8 = COPY $x
+  %5:cc = LDCImm 0
+  %2:ac, dead %4:cc, dead %3:vc = ADCImag8 %2:ac(tied-def 0), %1:imag8, %5:cc
+  $a = COPY %2:ac
+  RTS implicit $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After Register Coalescer (register-coalescer) on inc_dec omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on inc_dec omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on inc_dec omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on inc_dec omitted because no change ***
+*** IR Dump After Debug Variable Analysis (livedebugvars) on inc_dec ***
+# Machine code for function inc_dec: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x
+  %2:ac = COPY $a
+  %1:imag8 = COPY $x
+  %5:cc = LDCImm 0
+  %2:ac, dead %4:cc, dead %3:vc = ADCImag8 %2:ac(tied-def 0), %1:imag8, %5:cc
+  $a = COPY %2:ac
+  RTS implicit $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on inc_dec omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on inc_dec omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on inc_dec omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on inc_dec omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on inc_dec omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on inc_dec omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on inc_dec omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on inc_dec omitted because no change ***
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on inc_dec ***
+# Machine code for function inc_dec: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x
+  renamable $rc2 = COPY $x
+  renamable $c = LDCImm 0
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  RTS implicit $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on inc_dec omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on inc_dec omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on inc_dec omitted because no change ***
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on inc_dec omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on inc_dec omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on inc_dec omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on inc_dec omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on inc_dec omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on inc_dec omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on inc_dec omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on inc_dec omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on inc_dec omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on inc_dec omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on inc_dec omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on inc_dec omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on inc_dec omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on inc_dec omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on inc_dec omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on inc_dec omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on inc_dec omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on inc_dec omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on inc_dec omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on inc_dec omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on inc_dec omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on inc_dec ***
+# Machine code for function inc_dec: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x
+  renamable $rc2 = COPY killed $x
+  renamable $c = LDCImm 0
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  RTS implicit killed $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on inc_dec ***
+# Machine code for function inc_dec: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x
+  $rc2 = STImag8 $x
+  renamable $c = LDCImm 0
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  RTS implicit killed $a
+
+# End machine code for function inc_dec.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on inc_dec omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on inc_dec omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on inc_dec omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on inc_dec omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on inc_dec omitted because no change ***
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on inc_dec omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on inc_dec omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on inc_dec omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on inc_dec omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on inc_dec omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on inc_dec omitted because no change ***
+*** IR Dump After Insert fentry calls (fentry-insert) on inc_dec omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on inc_dec omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on inc_dec omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on inc_dec omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on inc_dec omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on inc_dec omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on inc_dec omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on inc_dec omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on inc_dec omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on inc_dec omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on inc_dec omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on inc_dec omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on inc_dec omitted because no change ***

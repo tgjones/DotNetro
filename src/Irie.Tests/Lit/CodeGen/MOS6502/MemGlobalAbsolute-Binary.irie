@@ -1,0 +1,32 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+; RUN-bin: @iriec --target mos6502 --emit=bin --origin=0x1000 @file | @irie-mc --hex-dump
+
+; A 16-bit load+store of a global resolves to ABSOLUTE addressing (lda/sta of the
+; symbol directly), not a runtime zero-page pointer + (zp),Y. The high byte uses
+; a symbol with a +1 offset (g+1), which must round-trip through asm text AND the
+; binary encoder. (Stage A of notes/mos6502-absolute-addressing-plan.md.)
+
+; CHECK:     load_store_global:
+; CHECK:     LDA g
+; CHECK:     LDA g\+1
+; CHECK:     STA g
+; CHECK:     STA g\+1
+; CHECK:     RTS
+
+; Layout at $1000: the 18-byte function, then g (2 bytes) at $1012/$1013.
+;   AD 12 10  LDA $1012 (g)        A8  TAY
+;   AD 13 10  LDA $1013 (g+1)      AA  TAX     <- +1 offset applied
+;   98  TYA   8D 12 10  STA $1012 (g)
+;   8A  TXA   8D 13 10  STA $1013 (g+1)
+;   98  TYA   60  RTS
+; CHECK-bin: 00000000: AD 12 10 A8 AD 13 10 AA  98 8D 12 10 8A 8D 13 10
+; CHECK-bin: 00000010: 98 60 00 00
+
+global @g : i16 = bytes "\x00\x00"
+func @load_store_global : () -> i16 {
+bb0():
+    %0 : i16 = mem.symbol @g
+    %1 : i16 = mem.load.i16 %0
+    mem.store.i16 %0, %1
+    core.return %1
+}

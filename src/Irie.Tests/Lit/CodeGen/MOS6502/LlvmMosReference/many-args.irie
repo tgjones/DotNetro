@@ -1,0 +1,56 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/basics/many-args
+; Six i16 args consume all CC_MOS live-in slots ($a, $x, $zp2..$zp11); the
+; chained adds free them one at a time.
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Compare against ext/llvm-mos-reference/basics/many-args.s; close gaps via irie-report.
+
+; CHECK:     many_args:
+; CHECK:     CLC
+; CHECK:     ADC \$02
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC \$03
+; CHECK:     TAX
+; CHECK:     CLC
+; CHECK:     TYA
+; CHECK:     ADC \$04
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC \$05
+; CHECK:     TAX
+; CHECK:     CLC
+; CHECK:     TYA
+; CHECK:     ADC \$06
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC \$07
+; CHECK:     TAX
+; CHECK:     CLC
+; CHECK:     TYA
+; CHECK:     ADC \$08
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC \$09
+; CHECK:     TAX
+; CHECK:     CLC
+; CHECK:     TYA
+; CHECK:     ADC \$0A
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC \$0B
+; CHECK:     TAX
+; CHECK:     TYA
+; CHECK:     RTS
+
+func @many_args : (i16, i16, i16, i16, i16, i16) -> i16 {
+bb0(%0 : i16, %1 : i16, %2 : i16, %3 : i16, %4 : i16, %5 : i16):
+    %6 : i16 = arith.addi %0, %1
+    %7 : i16 = arith.addi %6, %2
+    %8 : i16 = arith.addi %7, %3
+    %9 : i16 = arith.addi %8, %4
+    %10 : i16 = arith.addi %9, %5
+    core.return %10
+}

@@ -1,0 +1,16 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/basics/identity-i8
+; The i8 arg arrives in $a and is also the i8 return register, so the ideal
+; result is (near) no moves.
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Compare against ext/llvm-mos-reference/basics/identity-i8.s; close gaps via irie-report.
+
+; CHECK:     identity_i8:
+; CHECK:     RTS
+
+func @identity_i8 : (i8) -> i8 {
+bb0(%0 : i8):
+    core.return %0
+}

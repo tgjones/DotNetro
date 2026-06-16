@@ -536,7 +536,18 @@ internal sealed class MirParser
             {
                 tokens.Advance(); // consume '@'
                 var nameToken = tokens.Expect(MirTokenKind.Identifier);
-                return new Symbol(nameToken.Text!);
+                var offset = 0;
+                if (tokens.Current.Kind == MirTokenKind.Plus)
+                {
+                    tokens.Advance(); // consume '+'
+                    offset = (int)tokens.Expect(MirTokenKind.Integer).IntValue!.Value;
+                }
+                else if (tokens.Current.Kind == MirTokenKind.Integer)
+                {
+                    // A negative literal lexes as a signed Integer (e.g. `@name-1`).
+                    offset = (int)tokens.Advance().IntValue!.Value;
+                }
+                return new Symbol(nameToken.Text!, offset);
             }
 
             case MirTokenKind.Identifier when tokens.Current.Text is "implicit" or "implicit-def":

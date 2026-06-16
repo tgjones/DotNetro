@@ -1,0 +1,1461 @@
+*** IR Dump At Start ***
+; ModuleID = './pressure/pressure-i16.c'
+source_filename = "./pressure/pressure-i16.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @pressure_i16(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) #0 {
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  %7 = alloca i16, align 1
+  %8 = alloca i16, align 1
+  %9 = alloca i16, align 1
+  %10 = alloca i16, align 1
+  %11 = alloca i16, align 1
+  %12 = alloca i16, align 1
+  store i16 %0, ptr %5, align 1, !tbaa !2
+  store i16 %1, ptr %6, align 1, !tbaa !2
+  store i16 %2, ptr %7, align 1, !tbaa !2
+  store i16 %3, ptr %8, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %9) #2
+  %13 = load i16, ptr %5, align 1, !tbaa !2
+  %14 = load i16, ptr %6, align 1, !tbaa !2
+  %15 = add nsw i16 %13, %14
+  store i16 %15, ptr %9, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %10) #2
+  %16 = load i16, ptr %7, align 1, !tbaa !2
+  %17 = load i16, ptr %8, align 1, !tbaa !2
+  %18 = add nsw i16 %16, %17
+  store i16 %18, ptr %10, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %11) #2
+  %19 = load i16, ptr %5, align 1, !tbaa !2
+  %20 = load i16, ptr %7, align 1, !tbaa !2
+  %21 = add nsw i16 %19, %20
+  store i16 %21, ptr %11, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %12) #2
+  %22 = load i16, ptr %6, align 1, !tbaa !2
+  %23 = load i16, ptr %8, align 1, !tbaa !2
+  %24 = add nsw i16 %22, %23
+  store i16 %24, ptr %12, align 1, !tbaa !2
+  %25 = load i16, ptr %9, align 1, !tbaa !2
+  %26 = load i16, ptr %10, align 1, !tbaa !2
+  %27 = xor i16 %25, %26
+  %28 = load i16, ptr %11, align 1, !tbaa !2
+  %29 = load i16, ptr %12, align 1, !tbaa !2
+  %30 = xor i16 %28, %29
+  %31 = add nsw i16 %27, %30
+  call void @llvm.lifetime.end.p0(ptr %12) #2
+  call void @llvm.lifetime.end.p0(ptr %11) #2
+  call void @llvm.lifetime.end.p0(ptr %10) #2
+  call void @llvm.lifetime.end.p0(ptr %9) #2
+  ret i16 %31
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] ***
+; ModuleID = './pressure/pressure-i16.c'
+source_filename = "./pressure/pressure-i16.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @pressure_i16(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) #0 {
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  %7 = alloca i16, align 1
+  %8 = alloca i16, align 1
+  %9 = alloca i16, align 1
+  %10 = alloca i16, align 1
+  %11 = alloca i16, align 1
+  %12 = alloca i16, align 1
+  store i16 %0, ptr %5, align 1, !tbaa !2
+  store i16 %1, ptr %6, align 1, !tbaa !2
+  store i16 %2, ptr %7, align 1, !tbaa !2
+  store i16 %3, ptr %8, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %9) #2
+  %13 = load i16, ptr %5, align 1, !tbaa !2
+  %14 = load i16, ptr %6, align 1, !tbaa !2
+  %15 = add nsw i16 %13, %14
+  store i16 %15, ptr %9, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %10) #2
+  %16 = load i16, ptr %7, align 1, !tbaa !2
+  %17 = load i16, ptr %8, align 1, !tbaa !2
+  %18 = add nsw i16 %16, %17
+  store i16 %18, ptr %10, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %11) #2
+  %19 = load i16, ptr %5, align 1, !tbaa !2
+  %20 = load i16, ptr %7, align 1, !tbaa !2
+  %21 = add nsw i16 %19, %20
+  store i16 %21, ptr %11, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %12) #2
+  %22 = load i16, ptr %6, align 1, !tbaa !2
+  %23 = load i16, ptr %8, align 1, !tbaa !2
+  %24 = add nsw i16 %22, %23
+  store i16 %24, ptr %12, align 1, !tbaa !2
+  %25 = load i16, ptr %9, align 1, !tbaa !2
+  %26 = load i16, ptr %10, align 1, !tbaa !2
+  %27 = xor i16 %25, %26
+  %28 = load i16, ptr %11, align 1, !tbaa !2
+  %29 = load i16, ptr %12, align 1, !tbaa !2
+  %30 = xor i16 %28, %29
+  %31 = add nsw i16 %27, %30
+  call void @llvm.lifetime.end.p0(ptr %12) #2
+  call void @llvm.lifetime.end.p0(ptr %11) #2
+  call void @llvm.lifetime.end.p0(ptr %10) #2
+  call void @llvm.lifetime.end.p0(ptr %9) #2
+  ret i16 %31
+}
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on pressure_i16 omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on pressure_i16 omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_i16 omitted because no change ***
+*** IR Dump After SROAPass on pressure_i16 ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @pressure_i16(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) #0 {
+  %5 = add nsw i16 %0, %1
+  %6 = add nsw i16 %2, %3
+  %7 = add nsw i16 %0, %2
+  %8 = add nsw i16 %1, %3
+  %9 = xor i16 %5, %6
+  %10 = xor i16 %7, %8
+  %11 = add nsw i16 %9, %10
+  ret i16 %11
+}
+*** IR Dump After EarlyCSEPass on pressure_i16 omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_i16 ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './pressure/pressure-i16.c'
+source_filename = "./pressure/pressure-i16.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @pressure_i16(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) local_unnamed_addr #0 {
+  %5 = add nsw i16 %0, %1
+  %6 = add nsw i16 %2, %3
+  %7 = add nsw i16 %0, %2
+  %8 = add nsw i16 %1, %3
+  %9 = xor i16 %5, %6
+  %10 = xor i16 %7, %8
+  %11 = add nsw i16 %9, %10
+  ret i16 %11
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on pressure_i16 omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_i16 omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_i16 omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_i16 ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on pressure_i16 omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (pressure_i16) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (pressure_i16) omitted because no change ***
+*** IR Dump After SROAPass on pressure_i16 omitted because no change ***
+*** IR Dump After EarlyCSEPass on pressure_i16 omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on pressure_i16 omitted because no change ***
+*** IR Dump After JumpThreadingPass on pressure_i16 omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on pressure_i16 omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_i16 omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_i16 omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on pressure_i16 omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on pressure_i16 omitted because no change ***
+*** IR Dump After TailCallElimPass on pressure_i16 omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_i16 omitted because no change ***
+*** IR Dump After ReassociatePass on pressure_i16 ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @pressure_i16(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) local_unnamed_addr #0 {
+  %5 = add nsw i16 %1, %0
+  %6 = add nsw i16 %3, %2
+  %7 = add nsw i16 %2, %0
+  %8 = add nsw i16 %3, %1
+  %9 = xor i16 %6, %5
+  %10 = xor i16 %8, %7
+  %11 = add nsw i16 %9, %10
+  ret i16 %11
+}
+*** IR Dump After ConstraintEliminationPass on pressure_i16 omitted because no change ***
+*** IR Dump After LoopSimplifyPass on pressure_i16 omitted because no change ***
+*** IR Dump After LCSSAPass on pressure_i16 omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_i16 ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on pressure_i16 ignored ***
+*** IR Dump After SimplifyCFGPass on pressure_i16 omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_i16 omitted because no change ***
+*** IR Dump After LoopSimplifyPass on pressure_i16 omitted because no change ***
+*** IR Dump After LCSSAPass on pressure_i16 omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_i16 ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on pressure_i16 ignored ***
+*** IR Dump After SROAPass on pressure_i16 omitted because no change ***
+*** IR Dump After VectorCombinePass on pressure_i16 omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on pressure_i16 omitted because no change ***
+*** IR Dump After GVNPass on pressure_i16 omitted because no change ***
+*** IR Dump After SCCPPass on pressure_i16 omitted because no change ***
+*** IR Dump After BDCEPass on pressure_i16 omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_i16 omitted because no change ***
+*** IR Dump After JumpThreadingPass on pressure_i16 omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on pressure_i16 omitted because no change ***
+*** IR Dump After ADCEPass on pressure_i16 omitted because no change ***
+*** IR Dump After MemCpyOptPass on pressure_i16 omitted because no change ***
+*** IR Dump After DSEPass on pressure_i16 omitted because no change ***
+*** IR Dump After MoveAutoInitPass on pressure_i16 omitted because no change ***
+*** IR Dump After LoopSimplifyPass on pressure_i16 omitted because no change ***
+*** IR Dump After LCSSAPass on pressure_i16 omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_i16 ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on pressure_i16 ignored ***
+*** IR Dump After CoroElidePass on pressure_i16 omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_i16 omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_i16 omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_i16 ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (pressure_i16) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (pressure_i16) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local i16 @pressure_i16(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) local_unnamed_addr #0 {
+  %5 = add nsw i16 %1, %0
+  %6 = add nsw i16 %3, %2
+  %7 = add nsw i16 %2, %0
+  %8 = add nsw i16 %3, %1
+  %9 = xor i16 %6, %5
+  %10 = xor i16 %8, %7
+  %11 = add nsw i16 %9, %10
+  ret i16 %11
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on pressure_i16 omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (pressure_i16) ignored ***
+*** IR Dump After CoroSplitPass on (pressure_i16) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (pressure_i16) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (pressure_i16) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (pressure_i16) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on pressure_i16 omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on pressure_i16 omitted because no change ***
+*** IR Dump After Float2IntPass on pressure_i16 omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on pressure_i16 omitted because no change ***
+*** IR Dump After LoopSimplifyPass on pressure_i16 omitted because no change ***
+*** IR Dump After LCSSAPass on pressure_i16 omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_i16 ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on pressure_i16 ignored ***
+*** IR Dump After LoopDistributePass on pressure_i16 omitted because no change ***
+*** IR Dump After InjectTLIMappings on pressure_i16 omitted because no change ***
+*** IR Dump After LoopVectorizePass on pressure_i16 omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on pressure_i16 omitted because no change ***
+*** IR Dump After InferAlignmentPass on pressure_i16 omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on pressure_i16 omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_i16 omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_i16 omitted because no change ***
+*** IR Dump After SLPVectorizerPass on pressure_i16 omitted because no change ***
+*** IR Dump After VectorCombinePass on pressure_i16 omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_i16 omitted because no change ***
+*** IR Dump After LoopUnrollPass on pressure_i16 omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on pressure_i16 omitted because no change ***
+*** IR Dump After SROAPass on pressure_i16 omitted because no change ***
+*** IR Dump After InferAlignmentPass on pressure_i16 omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_i16 omitted because no change ***
+*** IR Dump After LoopSimplifyPass on pressure_i16 omitted because no change ***
+*** IR Dump After LCSSAPass on pressure_i16 omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_i16 ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on pressure_i16 ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on pressure_i16 omitted because no change ***
+*** IR Dump After LoopSinkPass on pressure_i16 omitted because no change ***
+*** IR Dump After InstSimplifyPass on pressure_i16 omitted because no change ***
+*** IR Dump After DivRemPairsPass on pressure_i16 omitted because no change ***
+*** IR Dump After MergeICmpsPass on pressure_i16 omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on pressure_i16 omitted because no change ***
+*** IR Dump After TailCallElimPass on pressure_i16 omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_i16 omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_i16 ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on pressure_i16 omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on pressure_i16 omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on pressure_i16 ***
+# Machine code for function pressure_i16: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:_(s8) = COPY $a
+  %5:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %4:_(s8), %5:_(s8)
+  %6:_(s8) = COPY $rc2
+  %7:_(s8) = COPY $rc3
+  %1:_(s16) = G_MERGE_VALUES %6:_(s8), %7:_(s8)
+  %8:_(s8) = COPY $rc4
+  %9:_(s8) = COPY $rc5
+  %2:_(s16) = G_MERGE_VALUES %8:_(s8), %9:_(s8)
+  %10:_(s8) = COPY $rc6
+  %11:_(s8) = COPY $rc7
+  %3:_(s16) = G_MERGE_VALUES %10:_(s8), %11:_(s8)
+  %12:_(s16) = nsw G_ADD %1:_, %0:_
+  %13:_(s16) = nsw G_ADD %3:_, %2:_
+  %14:_(s16) = nsw G_ADD %2:_, %0:_
+  %15:_(s16) = nsw G_ADD %3:_, %1:_
+  %16:_(s16) = G_XOR %13:_, %12:_
+  %17:_(s16) = G_XOR %15:_, %14:_
+  %18:_(s16) = nsw G_ADD %16:_, %17:_
+  %19:_(s8), %20:_(s8) = G_UNMERGE_VALUES %18:_(s16)
+  $a = COPY %19:_(s8)
+  $x = COPY %20:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on pressure_i16 omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_i16 omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on pressure_i16 omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on pressure_i16 omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on pressure_i16 omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on pressure_i16 omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on pressure_i16 omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on pressure_i16 ***
+# Machine code for function pressure_i16: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:_(s8) = COPY $a
+  %5:_(s8) = COPY $x
+  %6:_(s8) = COPY $rc2
+  %7:_(s8) = COPY $rc3
+  %8:_(s8) = COPY $rc4
+  %9:_(s8) = COPY $rc5
+  %10:_(s8) = COPY $rc6
+  %11:_(s8) = COPY $rc7
+  %29:_(s1) = G_CONSTANT i1 false
+  %70:_(s8), %71:_(s1) = G_UADDE %6:_, %4:_, %29:_
+  %72:_(s8), %73:_(s1) = G_UADDE %7:_, %5:_, %71:_
+  %62:_(s8), %63:_(s1) = G_UADDE %10:_, %8:_, %29:_
+  %64:_(s8), %65:_(s1) = G_UADDE %11:_, %9:_, %63:_
+  %54:_(s8), %55:_(s1) = G_UADDE %8:_, %4:_, %29:_
+  %56:_(s8), %57:_(s1) = G_UADDE %9:_, %5:_, %55:_
+  %46:_(s8), %47:_(s1) = G_UADDE %10:_, %6:_, %29:_
+  %48:_(s8), %49:_(s1) = G_UADDE %11:_, %7:_, %47:_
+  %40:_(s8) = G_XOR %62:_, %70:_
+  %41:_(s8) = G_XOR %64:_, %72:_
+  %34:_(s8) = G_XOR %46:_, %54:_
+  %35:_(s8) = G_XOR %48:_, %56:_
+  %25:_(s8), %26:_(s1) = G_UADDE %40:_, %34:_, %29:_
+  %27:_(s8), %28:_(s1) = G_UADDE %41:_, %35:_, %26:_
+  $a = COPY %25:_(s8)
+  $x = COPY %27:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on pressure_i16 omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_i16 omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on pressure_i16 omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on pressure_i16 omitted because no change ***
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on pressure_i16 omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on pressure_i16 ***
+# Machine code for function pressure_i16: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:any(s8) = COPY $a
+  %5:any(s8) = COPY $x
+  %6:any(s8) = COPY $rc2
+  %7:any(s8) = COPY $rc3
+  %8:any(s8) = COPY $rc4
+  %9:any(s8) = COPY $rc5
+  %10:any(s8) = COPY $rc6
+  %11:any(s8) = COPY $rc7
+  %29:any(s1) = G_CONSTANT i1 false
+  %70:any(s8), %71:any(s1) = G_UADDE %6:any, %4:any, %29:any
+  %72:any(s8), %73:any(s1) = G_UADDE %7:any, %5:any, %71:any
+  %62:any(s8), %63:any(s1) = G_UADDE %10:any, %8:any, %29:any
+  %64:any(s8), %65:any(s1) = G_UADDE %11:any, %9:any, %63:any
+  %54:any(s8), %55:any(s1) = G_UADDE %8:any, %4:any, %29:any
+  %56:any(s8), %57:any(s1) = G_UADDE %9:any, %5:any, %55:any
+  %46:any(s8), %47:any(s1) = G_UADDE %10:any, %6:any, %29:any
+  %48:any(s8), %49:any(s1) = G_UADDE %11:any, %7:any, %47:any
+  %40:any(s8) = G_XOR %62:any, %70:any
+  %41:any(s8) = G_XOR %64:any, %72:any
+  %34:any(s8) = G_XOR %46:any, %54:any
+  %35:any(s8) = G_XOR %48:any, %56:any
+  %25:any(s8), %26:any(s1) = G_UADDE %40:any, %34:any, %29:any
+  %27:any(s8), %28:any(s1) = G_UADDE %41:any, %35:any, %26:any
+  $a = COPY %25:any(s8)
+  $x = COPY %27:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Localizer (localizer) on pressure_i16 omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on pressure_i16 omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on pressure_i16 ***
+# Machine code for function pressure_i16: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %8:ac = COPY $rc4
+  %9:ac = COPY $rc5
+  %10:ac = COPY $rc6
+  %11:ac = COPY $rc7
+  %29:cc = LDImm1 0
+  %93:ac = COPY %6:imag8
+  %92:ac, %71:cc, %91:vc = ADCImag8 %93:ac(tied-def 0), %4:imag8, %29:cc
+  %70:imag8 = COPY %92:ac
+  %90:ac = COPY %7:imag8
+  %89:ac, %73:cc, %88:vc = ADCImag8 %90:ac(tied-def 0), %5:imag8, %71:cc
+  %72:imag8 = COPY %89:ac
+  %87:imag8 = COPY %8:ac
+  %62:ac, %63:cc, %86:vc = ADCImag8 %10:ac(tied-def 0), %87:imag8, %29:cc
+  %85:imag8 = COPY %9:ac
+  %64:ac, %65:cc, %84:vc = ADCImag8 %11:ac(tied-def 0), %85:imag8, %63:cc
+  %83:ac, %55:cc, %82:vc = ADCImag8 %8:ac(tied-def 0), %4:imag8, %29:cc
+  %54:imag8 = COPY %83:ac
+  %81:ac, %57:cc, %80:vc = ADCImag8 %9:ac(tied-def 0), %5:imag8, %55:cc
+  %56:imag8 = COPY %81:ac
+  %46:ac, %47:cc, %79:vc = ADCImag8 %10:ac(tied-def 0), %6:imag8, %29:cc
+  %48:ac, %49:cc, %78:vc = ADCImag8 %11:ac(tied-def 0), %7:imag8, %47:cc
+  %40:ac = EORImag8 %62:ac(tied-def 0), %70:imag8
+  %41:ac = EORImag8 %64:ac(tied-def 0), %72:imag8
+  %77:ac = EORImag8 %46:ac(tied-def 0), %54:imag8
+  %34:imag8 = COPY %77:ac
+  %76:ac = EORImag8 %48:ac(tied-def 0), %56:imag8
+  %35:imag8 = COPY %76:ac
+  %25:ac, %26:cc, %75:vc = ADCImag8 %40:ac(tied-def 0), %34:imag8, %29:cc
+  %27:ac, %28:cc, %74:vc = ADCImag8 %41:ac(tied-def 0), %35:imag8, %26:cc
+  $a = COPY %25:ac
+  $x = COPY %27:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After ResetMachineFunction on pressure_i16 omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on pressure_i16 omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on pressure_i16 omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on pressure_i16 omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on pressure_i16 omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on pressure_i16 omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on pressure_i16 omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on pressure_i16 omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on pressure_i16 omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on pressure_i16 omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on pressure_i16 omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on pressure_i16 omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on pressure_i16 omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on pressure_i16 omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on pressure_i16 omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on pressure_i16 omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on pressure_i16 ***
+# Machine code for function pressure_i16: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %8:ac = COPY $rc4
+  %9:ac = COPY $rc5
+  %10:ac = COPY $rc6
+  %11:ac = COPY $rc7
+  %29:cc = LDImm1 0
+  %93:ac = COPY %6:imag8
+  %92:ac, %71:cc, dead %91:vc = ADCImag8 %93:ac(tied-def 0), %4:imag8, %29:cc
+  %70:imag8 = COPY %92:ac
+  %90:ac = COPY %7:imag8
+  %89:ac, dead %73:cc, dead %88:vc = ADCImag8 %90:ac(tied-def 0), %5:imag8, %71:cc
+  %72:imag8 = COPY %89:ac
+  %87:imag8 = COPY %8:ac
+  %62:ac, %63:cc, dead %86:vc = ADCImag8 %10:ac(tied-def 0), %87:imag8, %29:cc
+  %85:imag8 = COPY %9:ac
+  %64:ac, dead %65:cc, dead %84:vc = ADCImag8 %11:ac(tied-def 0), %85:imag8, %63:cc
+  %83:ac, %55:cc, dead %82:vc = ADCImag8 %8:ac(tied-def 0), %4:imag8, %29:cc
+  %54:imag8 = COPY %83:ac
+  %81:ac, dead %57:cc, dead %80:vc = ADCImag8 %9:ac(tied-def 0), %5:imag8, %55:cc
+  %56:imag8 = COPY %81:ac
+  %46:ac, %47:cc, dead %79:vc = ADCImag8 %10:ac(tied-def 0), %6:imag8, %29:cc
+  %48:ac, dead %49:cc, dead %78:vc = ADCImag8 %11:ac(tied-def 0), %7:imag8, %47:cc
+  %40:ac = EORImag8 %62:ac(tied-def 0), %70:imag8
+  %41:ac = EORImag8 %64:ac(tied-def 0), %72:imag8
+  %77:ac = EORImag8 %46:ac(tied-def 0), %54:imag8
+  %34:imag8 = COPY %77:ac
+  %76:ac = EORImag8 %48:ac(tied-def 0), %56:imag8
+  %35:imag8 = COPY %76:ac
+  %25:ac, %26:cc, dead %75:vc = ADCImag8 %40:ac(tied-def 0), %34:imag8, %29:cc
+  %27:ac, dead %28:cc, dead %74:vc = ADCImag8 %41:ac(tied-def 0), %35:imag8, %26:cc
+  $a = COPY %25:ac
+  $x = COPY %27:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Init Undef Pass (init-undef) on pressure_i16 omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on pressure_i16 omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on pressure_i16 ***
+# Machine code for function pressure_i16: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %8:ac = COPY $rc4
+  %9:ac = COPY $rc5
+  %10:ac = COPY $rc6
+  %11:ac = COPY $rc7
+  %29:cc = LDImm1 0
+  %93:ac = COPY %6:imag8
+  %92:ac, %71:cc, dead %91:vc = ADCImag8 %93:ac(tied-def 0), %4:imag8, %29:cc
+  %70:imag8 = COPY %92:ac
+  %90:ac = COPY %7:imag8
+  %89:ac, dead %73:cc, dead %88:vc = ADCImag8 %90:ac(tied-def 0), %5:imag8, %71:cc
+  %72:imag8 = COPY %89:ac
+  %87:imag8 = COPY %8:ac
+  %62:ac, %63:cc, dead %86:vc = ADCImag8 %10:ac(tied-def 0), %87:imag8, %29:cc
+  %85:imag8 = COPY %9:ac
+  %64:ac, dead %65:cc, dead %84:vc = ADCImag8 %11:ac(tied-def 0), %85:imag8, %63:cc
+  %83:ac, %55:cc, dead %82:vc = ADCImag8 %8:ac(tied-def 0), %4:imag8, %29:cc
+  %54:imag8 = COPY %83:ac
+  %81:ac, dead %57:cc, dead %80:vc = ADCImag8 %9:ac(tied-def 0), %5:imag8, %55:cc
+  %56:imag8 = COPY %81:ac
+  %46:ac, %47:cc, dead %79:vc = ADCImag8 %10:ac(tied-def 0), %6:imag8, %29:cc
+  %48:ac, dead %49:cc, dead %78:vc = ADCImag8 %11:ac(tied-def 0), %7:imag8, %47:cc
+  %40:ac = EORImag8 %62:ac(tied-def 0), %70:imag8
+  %41:ac = EORImag8 %64:ac(tied-def 0), %72:imag8
+  %77:ac = EORImag8 %46:ac(tied-def 0), %54:imag8
+  %34:imag8 = COPY %77:ac
+  %76:ac = EORImag8 %48:ac(tied-def 0), %56:imag8
+  %35:imag8 = COPY %76:ac
+  %25:ac, %26:cc, dead %75:vc = ADCImag8 %40:ac(tied-def 0), %34:imag8, %29:cc
+  %27:ac, dead %28:cc, dead %74:vc = ADCImag8 %41:ac(tied-def 0), %35:imag8, %26:cc
+  $a = COPY %25:ac
+  $x = COPY %27:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Live Variable Analysis (livevars) on pressure_i16 ***
+# Machine code for function pressure_i16: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY killed $a
+  %5:imag8 = COPY killed $x
+  %6:imag8 = COPY killed $rc2
+  %7:imag8 = COPY killed $rc3
+  %8:ac = COPY killed $rc4
+  %9:ac = COPY killed $rc5
+  %10:ac = COPY killed $rc6
+  %11:ac = COPY killed $rc7
+  %29:cc = LDImm1 0
+  %93:ac = COPY %6:imag8
+  %92:ac, %71:cc, dead %91:vc = ADCImag8 killed %93:ac(tied-def 0), %4:imag8, %29:cc
+  %70:imag8 = COPY killed %92:ac
+  %90:ac = COPY %7:imag8
+  %89:ac, dead %73:cc, dead %88:vc = ADCImag8 killed %90:ac(tied-def 0), %5:imag8, killed %71:cc
+  %72:imag8 = COPY killed %89:ac
+  %87:imag8 = COPY %8:ac
+  %62:ac, %63:cc, dead %86:vc = ADCImag8 %10:ac(tied-def 0), killed %87:imag8, %29:cc
+  %85:imag8 = COPY %9:ac
+  %64:ac, dead %65:cc, dead %84:vc = ADCImag8 %11:ac(tied-def 0), killed %85:imag8, killed %63:cc
+  %83:ac, %55:cc, dead %82:vc = ADCImag8 killed %8:ac(tied-def 0), killed %4:imag8, %29:cc
+  %54:imag8 = COPY killed %83:ac
+  %81:ac, dead %57:cc, dead %80:vc = ADCImag8 killed %9:ac(tied-def 0), killed %5:imag8, killed %55:cc
+  %56:imag8 = COPY killed %81:ac
+  %46:ac, %47:cc, dead %79:vc = ADCImag8 killed %10:ac(tied-def 0), killed %6:imag8, %29:cc
+  %48:ac, dead %49:cc, dead %78:vc = ADCImag8 killed %11:ac(tied-def 0), killed %7:imag8, killed %47:cc
+  %40:ac = EORImag8 killed %62:ac(tied-def 0), killed %70:imag8
+  %41:ac = EORImag8 killed %64:ac(tied-def 0), killed %72:imag8
+  %77:ac = EORImag8 killed %46:ac(tied-def 0), killed %54:imag8
+  %34:imag8 = COPY killed %77:ac
+  %76:ac = EORImag8 killed %48:ac(tied-def 0), killed %56:imag8
+  %35:imag8 = COPY killed %76:ac
+  %25:ac, %26:cc, dead %75:vc = ADCImag8 killed %40:ac(tied-def 0), killed %34:imag8, killed %29:cc
+  %27:ac, dead %28:cc, dead %74:vc = ADCImag8 killed %41:ac(tied-def 0), killed %35:imag8, killed %26:cc
+  $a = COPY killed %25:ac
+  $x = COPY killed %27:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on pressure_i16 omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY killed $a
+  %5:imag8 = COPY killed $x
+  %6:imag8 = COPY killed $rc2
+  %7:imag8 = COPY killed $rc3
+  %8:ac = COPY killed $rc4
+  %9:ac = COPY killed $rc5
+  %10:ac = COPY killed $rc6
+  %11:ac = COPY killed $rc7
+  %29:cc = LDImm1 0
+  %93:ac = COPY %6:imag8
+  %92:ac, %71:cc, dead %91:vc = ADCImag8 killed %93:ac(tied-def 0), %4:imag8, %29:cc
+  %70:imag8 = COPY killed %92:ac
+  %90:ac = COPY %7:imag8
+  %89:ac, dead %73:cc, dead %88:vc = ADCImag8 killed %90:ac(tied-def 0), %5:imag8, killed %71:cc
+  %72:imag8 = COPY killed %89:ac
+  %87:imag8 = COPY %8:ac
+  %62:ac, %63:cc, dead %86:vc = ADCImag8 %10:ac(tied-def 0), killed %87:imag8, %29:cc
+  %85:imag8 = COPY %9:ac
+  %64:ac, dead %65:cc, dead %84:vc = ADCImag8 %11:ac(tied-def 0), killed %85:imag8, killed %63:cc
+  %83:ac, %55:cc, dead %82:vc = ADCImag8 killed %8:ac(tied-def 0), killed %4:imag8, %29:cc
+  %54:imag8 = COPY killed %83:ac
+  %81:ac, dead %57:cc, dead %80:vc = ADCImag8 killed %9:ac(tied-def 0), killed %5:imag8, killed %55:cc
+  %56:imag8 = COPY killed %81:ac
+  %46:ac, %47:cc, dead %79:vc = ADCImag8 killed %10:ac(tied-def 0), killed %6:imag8, %29:cc
+  %48:ac, dead %49:cc, dead %78:vc = ADCImag8 killed %11:ac(tied-def 0), killed %7:imag8, killed %47:cc
+  %40:ac = EORImag8 killed %62:ac(tied-def 0), killed %70:imag8
+  %41:ac = EORImag8 killed %64:ac(tied-def 0), killed %72:imag8
+  %77:ac = EORImag8 killed %46:ac(tied-def 0), killed %54:imag8
+  %34:imag8 = COPY killed %77:ac
+  %76:ac = EORImag8 killed %48:ac(tied-def 0), killed %56:imag8
+  %35:imag8 = COPY killed %76:ac
+  %25:ac, %26:cc, dead %75:vc = ADCImag8 killed %40:ac(tied-def 0), killed %34:imag8, killed %29:cc
+  %27:ac, dead %28:cc, dead %74:vc = ADCImag8 killed %41:ac(tied-def 0), killed %35:imag8, killed %26:cc
+  $a = COPY killed %25:ac
+  $x = COPY killed %27:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY killed $a
+  %5:imag8 = COPY killed $x
+  %6:imag8 = COPY killed $rc2
+  %7:imag8 = COPY killed $rc3
+  %8:ac = COPY killed $rc4
+  %9:ac = COPY killed $rc5
+  %10:ac = COPY killed $rc6
+  %11:ac = COPY killed $rc7
+  %29:cc = LDImm1 0
+  %93:ac = COPY %6:imag8
+  %92:ac = COPY killed %93:ac
+  %92:ac, %71:cc, dead %91:vc = ADCImag8 %92:ac(tied-def 0), %4:imag8, %29:cc
+  %70:imag8 = COPY killed %92:ac
+  %90:ac = COPY %7:imag8
+  %89:ac = COPY killed %90:ac
+  %89:ac, dead %73:cc, dead %88:vc = ADCImag8 %89:ac(tied-def 0), %5:imag8, killed %71:cc
+  %72:imag8 = COPY killed %89:ac
+  %87:imag8 = COPY %8:ac
+  %62:ac = COPY %10:ac
+  %62:ac, %63:cc, dead %86:vc = ADCImag8 %62:ac(tied-def 0), killed %87:imag8, %29:cc
+  %85:imag8 = COPY %9:ac
+  %64:ac = COPY %11:ac
+  %64:ac, dead %65:cc, dead %84:vc = ADCImag8 %64:ac(tied-def 0), killed %85:imag8, killed %63:cc
+  %83:ac = COPY killed %8:ac
+  %83:ac, %55:cc, dead %82:vc = ADCImag8 %83:ac(tied-def 0), killed %4:imag8, %29:cc
+  %54:imag8 = COPY killed %83:ac
+  %81:ac = COPY killed %9:ac
+  %81:ac, dead %57:cc, dead %80:vc = ADCImag8 %81:ac(tied-def 0), killed %5:imag8, killed %55:cc
+  %56:imag8 = COPY killed %81:ac
+  %46:ac = COPY killed %10:ac
+  %46:ac, %47:cc, dead %79:vc = ADCImag8 %46:ac(tied-def 0), killed %6:imag8, %29:cc
+  %48:ac = COPY killed %11:ac
+  %48:ac, dead %49:cc, dead %78:vc = ADCImag8 %48:ac(tied-def 0), killed %7:imag8, killed %47:cc
+  %40:ac = COPY killed %62:ac
+  %40:ac = EORImag8 %40:ac(tied-def 0), killed %70:imag8
+  %41:ac = COPY killed %64:ac
+  %41:ac = EORImag8 %41:ac(tied-def 0), killed %72:imag8
+  %77:ac = COPY killed %46:ac
+  %77:ac = EORImag8 %77:ac(tied-def 0), killed %54:imag8
+  %34:imag8 = COPY killed %77:ac
+  %76:ac = COPY killed %48:ac
+  %76:ac = EORImag8 %76:ac(tied-def 0), killed %56:imag8
+  %35:imag8 = COPY killed %76:ac
+  %25:ac = COPY killed %40:ac
+  %25:ac, %26:cc, dead %75:vc = ADCImag8 %25:ac(tied-def 0), killed %34:imag8, killed %29:cc
+  %27:ac = COPY killed %41:ac
+  %27:ac, dead %28:cc, dead %74:vc = ADCImag8 %27:ac(tied-def 0), killed %35:imag8, killed %26:cc
+  $a = COPY killed %25:ac
+  $x = COPY killed %27:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Slot index numbering (slotindexes) on pressure_i16 omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %8:ac = COPY $rc4
+  %9:ac = COPY $rc5
+  %10:ac = COPY $rc6
+  %11:ac = COPY $rc7
+  %29:cc = LDImm1 0
+  %93:ac = COPY %6:imag8
+  %92:ac = COPY %93:ac
+  %92:ac, %71:cc, dead %91:vc = ADCImag8 %92:ac(tied-def 0), %4:imag8, %29:cc
+  %70:imag8 = COPY %92:ac
+  %90:ac = COPY %7:imag8
+  %89:ac = COPY %90:ac
+  %89:ac, dead %73:cc, dead %88:vc = ADCImag8 %89:ac(tied-def 0), %5:imag8, %71:cc
+  %72:imag8 = COPY %89:ac
+  %87:imag8 = COPY %8:ac
+  %62:ac = COPY %10:ac
+  %62:ac, %63:cc, dead %86:vc = ADCImag8 %62:ac(tied-def 0), %87:imag8, %29:cc
+  %85:imag8 = COPY %9:ac
+  %64:ac = COPY %11:ac
+  %64:ac, dead %65:cc, dead %84:vc = ADCImag8 %64:ac(tied-def 0), %85:imag8, %63:cc
+  %83:ac = COPY %8:ac
+  %83:ac, %55:cc, dead %82:vc = ADCImag8 %83:ac(tied-def 0), %4:imag8, %29:cc
+  %54:imag8 = COPY %83:ac
+  %81:ac = COPY %9:ac
+  %81:ac, dead %57:cc, dead %80:vc = ADCImag8 %81:ac(tied-def 0), %5:imag8, %55:cc
+  %56:imag8 = COPY %81:ac
+  %46:ac = COPY %10:ac
+  %46:ac, %47:cc, dead %79:vc = ADCImag8 %46:ac(tied-def 0), %6:imag8, %29:cc
+  %48:ac = COPY %11:ac
+  %48:ac, dead %49:cc, dead %78:vc = ADCImag8 %48:ac(tied-def 0), %7:imag8, %47:cc
+  %40:ac = COPY %62:ac
+  %40:ac = EORImag8 %40:ac(tied-def 0), %70:imag8
+  %41:ac = COPY %64:ac
+  %41:ac = EORImag8 %41:ac(tied-def 0), %72:imag8
+  %77:ac = COPY %46:ac
+  %77:ac = EORImag8 %77:ac(tied-def 0), %54:imag8
+  %34:imag8 = COPY %77:ac
+  %76:ac = COPY %48:ac
+  %76:ac = EORImag8 %76:ac(tied-def 0), %56:imag8
+  %35:imag8 = COPY %76:ac
+  %25:ac = COPY %40:ac
+  %25:ac, %26:cc, dead %75:vc = ADCImag8 %25:ac(tied-def 0), %34:imag8, %29:cc
+  %27:ac = COPY %41:ac
+  %27:ac, dead %28:cc, dead %74:vc = ADCImag8 %27:ac(tied-def 0), %35:imag8, %26:cc
+  $a = COPY %25:ac
+  $x = COPY %27:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Register Coalescer (register-coalescer) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %83:ac = COPY $rc4
+  %81:ac = COPY $rc5
+  %77:ac = COPY $rc6
+  %76:ac = COPY $rc7
+  %29:cc = LDImm1 0
+  %92:ac = COPY %6:imag8
+  %92:ac, %71:cc, dead %91:vc = ADCImag8 %92:ac(tied-def 0), %4:imag8, %29:cc
+  %70:imag8 = COPY %92:ac
+  %89:ac = COPY %7:imag8
+  %89:ac, dead %73:cc, dead %88:vc = ADCImag8 %89:ac(tied-def 0), %5:imag8, %71:cc
+  %72:imag8 = COPY %89:ac
+  %87:imag8 = COPY %83:ac
+  %40:ac = COPY %77:ac
+  %40:ac, %63:cc, dead %86:vc = ADCImag8 %40:ac(tied-def 0), %87:imag8, %29:cc
+  %85:imag8 = COPY %81:ac
+  %41:ac = COPY %76:ac
+  %41:ac, dead %65:cc, dead %84:vc = ADCImag8 %41:ac(tied-def 0), %85:imag8, %63:cc
+  %83:ac, %55:cc, dead %82:vc = ADCImag8 %83:ac(tied-def 0), %4:imag8, %29:cc
+  %54:imag8 = COPY %83:ac
+  %81:ac, dead %57:cc, dead %80:vc = ADCImag8 %81:ac(tied-def 0), %5:imag8, %55:cc
+  %56:imag8 = COPY %81:ac
+  %77:ac, %47:cc, dead %79:vc = ADCImag8 %77:ac(tied-def 0), %6:imag8, %29:cc
+  %76:ac, dead %49:cc, dead %78:vc = ADCImag8 %76:ac(tied-def 0), %7:imag8, %47:cc
+  %40:ac = EORImag8 %40:ac(tied-def 0), %70:imag8
+  %41:ac = EORImag8 %41:ac(tied-def 0), %72:imag8
+  %77:ac = EORImag8 %77:ac(tied-def 0), %54:imag8
+  %34:imag8 = COPY %77:ac
+  %76:ac = EORImag8 %76:ac(tied-def 0), %56:imag8
+  %35:imag8 = COPY %76:ac
+  %40:ac, %26:cc, dead %75:vc = ADCImag8 %40:ac(tied-def 0), %34:imag8, %29:cc
+  %41:ac, dead %28:cc, dead %74:vc = ADCImag8 %41:ac(tied-def 0), %35:imag8, %26:cc
+  $a = COPY %40:ac
+  $x = COPY %41:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Register Coalescer (register-coalescer) on pressure_i16 omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %83:ac = COPY $rc4
+  %81:ac = COPY $rc5
+  %77:ac = COPY $rc6
+  %76:ac = COPY $rc7
+  %29:cc = LDImm1 0
+  %92:ac = COPY %6:imag8
+  %92:ac, %71:cc, dead %91:vc = ADCImag8 %92:ac(tied-def 0), %4:imag8, %29:cc
+  %70:imag8 = COPY %92:ac
+  %89:ac = COPY %7:imag8
+  %89:ac, dead %73:cc, dead %88:vc = ADCImag8 %89:ac(tied-def 0), %5:imag8, %71:cc
+  %72:imag8 = COPY %89:ac
+  %87:imag8 = COPY %83:ac
+  %40:ac = COPY %77:ac
+  %85:imag8 = COPY %81:ac
+  %40:ac, %63:cc, dead %86:vc = ADCImag8 %40:ac(tied-def 0), %87:imag8, %29:cc
+  %41:ac = COPY %76:ac
+  %41:ac, dead %65:cc, dead %84:vc = ADCImag8 %41:ac(tied-def 0), %85:imag8, %63:cc
+  %83:ac, %55:cc, dead %82:vc = ADCImag8 %83:ac(tied-def 0), %4:imag8, %29:cc
+  %54:imag8 = COPY %83:ac
+  %81:ac, dead %57:cc, dead %80:vc = ADCImag8 %81:ac(tied-def 0), %5:imag8, %55:cc
+  %56:imag8 = COPY %81:ac
+  %77:ac, %47:cc, dead %79:vc = ADCImag8 %77:ac(tied-def 0), %6:imag8, %29:cc
+  %76:ac, dead %49:cc, dead %78:vc = ADCImag8 %76:ac(tied-def 0), %7:imag8, %47:cc
+  %77:ac = EORImag8 %77:ac(tied-def 0), %54:imag8
+  %34:imag8 = COPY %77:ac
+  %40:ac = EORImag8 %40:ac(tied-def 0), %70:imag8
+  %41:ac = EORImag8 %41:ac(tied-def 0), %72:imag8
+  %76:ac = EORImag8 %76:ac(tied-def 0), %56:imag8
+  %35:imag8 = COPY %76:ac
+  %40:ac, %26:cc, dead %75:vc = ADCImag8 %40:ac(tied-def 0), %34:imag8, %29:cc
+  %41:ac, dead %28:cc, dead %74:vc = ADCImag8 %41:ac(tied-def 0), %35:imag8, %26:cc
+  $x = COPY %41:ac
+  $a = COPY %40:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %83:ac = COPY $rc4
+  %81:ac = COPY $rc5
+  %77:ac = COPY $rc6
+  %76:ac = COPY $rc7
+  %29:cc = LDImm1 0
+  %92:ac = COPY %6:imag8
+  %92:ac, %71:cc, dead %91:vc = ADCImag8 %92:ac(tied-def 0), %4:imag8, %29:cc
+  %70:imag8 = COPY %92:ac
+  %89:ac = COPY %7:imag8
+  %89:ac, dead %73:cc, dead %88:vc = ADCImag8 %89:ac(tied-def 0), %5:imag8, %71:cc
+  %72:imag8 = COPY %89:ac
+  %87:imag8 = COPY %83:ac
+  %40:ac = COPY %77:ac
+  %85:imag8 = COPY %81:ac
+  %40:ac, %63:cc, dead %86:vc = ADCImag8 %40:ac(tied-def 0), %87:imag8, %29:cc
+  %41:ac = COPY %76:ac
+  %41:ac, dead %65:cc, dead %84:vc = ADCImag8 %41:ac(tied-def 0), %85:imag8, %63:cc
+  %83:ac, %55:cc, dead %82:vc = ADCImag8 %83:ac(tied-def 0), %4:imag8, %29:cc
+  %54:imag8 = COPY %83:ac
+  %81:ac, dead %57:cc, dead %80:vc = ADCImag8 %81:ac(tied-def 0), %5:imag8, %55:cc
+  %56:imag8 = COPY %81:ac
+  %77:ac, %47:cc, dead %79:vc = ADCImag8 %77:ac(tied-def 0), %6:imag8, %29:cc
+  %76:ac, dead %49:cc, dead %78:vc = ADCImag8 %76:ac(tied-def 0), %7:imag8, %47:cc
+  %77:ac = EORImag8 %77:ac(tied-def 0), %54:imag8
+  %34:imag8 = COPY %77:ac
+  %40:ac = EORImag8 %40:ac(tied-def 0), %70:imag8
+  %41:ac = EORImag8 %41:ac(tied-def 0), %72:imag8
+  %76:ac = EORImag8 %76:ac(tied-def 0), %56:imag8
+  %35:imag8 = COPY %76:ac
+  %40:ac, %26:cc, dead %75:vc = ADCImag8 %40:ac(tied-def 0), %34:imag8, %29:cc
+  %41:ac, dead %28:cc, dead %74:vc = ADCImag8 %41:ac(tied-def 0), %35:imag8, %26:cc
+  $x = COPY %41:ac
+  $a = COPY %40:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on pressure_i16 omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on pressure_i16 omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on pressure_i16 omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on pressure_i16 omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on pressure_i16 omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on pressure_i16 omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %128:anyi8 = COPY $rc4
+  %126:anyi8 = COPY $rc5
+  %111:anyi8 = COPY $rc6
+  %96:anyi8 = COPY $rc7
+  %95:cc = LDImm1 0
+  %92:ac = COPY %6:imag8
+  %92:ac, %71:cc, dead %91:vc = ADCImag8 %92:ac(tied-def 0), %4:imag8, %95:cc
+  %102:cv_gpr_lsb = LDImm1 0
+  %101:anyi1 = COPY %102:cv_gpr_lsb
+  %70:imag8 = COPY %92:ac
+  %89:ac = COPY %7:imag8
+  %89:ac, dead %73:cc, dead %88:vc = ADCImag8 %89:ac(tied-def 0), %5:imag8, %71:cc
+  %72:imag8 = COPY %89:ac
+  %87:imag8 = COPY %128:anyi8
+  %108:ac = COPY %111:anyi8
+  %85:imag8 = COPY %126:anyi8
+  %103:cc = COPY %101:anyi1
+  %108:ac, %63:cc, dead %86:vc = ADCImag8 %108:ac(tied-def 0), %87:imag8, %103:cc
+  %123:anyi8 = COPY %108:ac
+  %117:ac = COPY %96:anyi8
+  %117:ac, dead %65:cc, dead %84:vc = ADCImag8 %117:ac(tied-def 0), %85:imag8, %63:cc
+  %118:anyi8 = COPY %117:ac
+  %104:cc = COPY %101:anyi1
+  %129:ac = COPY %128:anyi8
+  %129:ac, %55:cc, dead %82:vc = ADCImag8 %129:ac(tied-def 0), %4:imag8, %104:cc
+  %54:imag8 = COPY %129:ac
+  %127:ac = COPY %126:anyi8
+  %127:ac, dead %57:cc, dead %80:vc = ADCImag8 %127:ac(tied-def 0), %5:imag8, %55:cc
+  %56:imag8 = COPY %127:ac
+  %105:cc = COPY %101:anyi1
+  %112:ac = COPY %111:anyi8
+  %112:ac, %47:cc, dead %79:vc = ADCImag8 %112:ac(tied-def 0), %6:imag8, %105:cc
+  %113:anyi8 = COPY %112:ac
+  %97:ac = COPY %96:anyi8
+  %97:ac, dead %49:cc, dead %78:vc = ADCImag8 %97:ac(tied-def 0), %7:imag8, %47:cc
+  %99:anyi8 = COPY %97:ac
+  %110:ac = COPY %113:anyi8
+  %110:ac = EORImag8 %110:ac(tied-def 0), %54:imag8
+  %34:imag8 = COPY %110:ac
+  %124:ac = COPY %123:anyi8
+  %124:ac = EORImag8 %124:ac(tied-def 0), %70:imag8
+  %125:anyi8 = COPY %124:ac
+  %119:ac = COPY %118:anyi8
+  %119:ac = EORImag8 %119:ac(tied-def 0), %72:imag8
+  %121:anyi8 = COPY %119:ac
+  %98:ac = COPY %99:anyi8
+  %98:ac = EORImag8 %98:ac(tied-def 0), %56:imag8
+  %100:anyi8 = COPY %98:ac
+  %35:imag8 = COPY %100:anyi8
+  %106:cc = COPY %101:anyi1
+  %131:ac = COPY %125:anyi8
+  %131:ac, %26:cc, dead %75:vc = ADCImag8 %131:ac(tied-def 0), %34:imag8, %106:cc
+  %130:anyi8 = COPY %131:ac
+  %120:ac = COPY %121:anyi8
+  %120:ac, dead %28:cc, dead %74:vc = ADCImag8 %120:ac(tied-def 0), %35:imag8, %26:cc
+  %122:anyi8 = COPY %120:ac
+  $x = COPY %122:anyi8
+  $a = COPY %130:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $rc8 = COPY $a
+  renamable $rc9 = COPY $x
+  renamable $x = COPY $rc7
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc8, killed renamable $c
+  renamable $ylsb = LDImm1 0
+  renamable $rc10lsb = COPY killed renamable $ylsb
+  renamable $rc14 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc9, killed renamable $c
+  renamable $rc13 = COPY killed renamable $a
+  renamable $rc11 = COPY renamable $rc4
+  renamable $a = COPY renamable $rc6
+  renamable $rc7 = COPY renamable $rc5
+  renamable $c = COPY renamable $rc10lsb
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc11, killed renamable $c
+  renamable $rc12 = COPY killed renamable $a
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc7, killed renamable $c
+  renamable $rc11 = COPY killed renamable $a
+  renamable $c = COPY renamable $rc10lsb
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc9, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $c = COPY renamable $rc10lsb
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $y
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc8
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc12
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc14
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc11
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc13
+  renamable $rc4 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc7
+  renamable $rc3 = COPY killed renamable $a
+  renamable $c = COPY killed renamable $rc10lsb
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on pressure_i16 omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $rc8 = COPY $a
+  renamable $rc9 = COPY $x
+  renamable $x = COPY $rc7
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc8, killed renamable $c
+  renamable $ylsb = LDImm1 0
+  renamable $rc10lsb = COPY renamable $ylsb
+  renamable $rc14 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc9, killed renamable $c
+  renamable $rc13 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc6
+  renamable $c = COPY $ylsb
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), $rc4, killed renamable $c
+  renamable $rc12 = COPY killed renamable $a
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), $rc5, killed renamable $c
+  renamable $rc11 = COPY killed renamable $a
+  renamable $c = COPY $ylsb
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc9, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $c = COPY $ylsb
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $y
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc8
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc12
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc14
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc11
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc13
+  renamable $rc4 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc7
+  renamable $rc3 = COPY killed renamable $a
+  renamable $c = COPY killed renamable $rc10lsb
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on pressure_i16 omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on pressure_i16 omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on pressure_i16 omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on pressure_i16 omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_i16 omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on pressure_i16 omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on pressure_i16 omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on pressure_i16 omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on pressure_i16 omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on pressure_i16 omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on pressure_i16 omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on pressure_i16 omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on pressure_i16 omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $rc8 = COPY $a
+  renamable $rc9 = COPY $x
+  renamable $x = COPY $rc7
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc8, killed renamable $c
+  renamable $ylsb = LDImm1 0
+  renamable $rc10lsb = COPY renamable $ylsb
+  renamable $rc14 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc9, killed renamable $c
+  renamable $rc13 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc6
+  renamable $c = COPY $ylsb
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), $rc4, killed renamable $c
+  renamable $rc12 = COPY killed renamable $a
+  renamable $a = COPY $rc7
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), $rc5, killed renamable $c
+  renamable $rc11 = COPY killed renamable $a
+  renamable $c = COPY $ylsb
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc9, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $c = COPY $ylsb
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $y
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc8
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc12
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc14
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc11
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc13
+  renamable $rc4 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc7
+  renamable $rc3 = COPY killed renamable $a
+  renamable $c = COPY killed renamable $rc10lsb
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $rc8 = COPY killed $a
+  renamable $rc9 = COPY killed $x
+  renamable $x = COPY $rc7
+  renamable $c = LDImm1 0
+  renamable $a = COPY renamable $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc8, killed renamable $c
+  renamable $ylsb = LDImm1 0
+  renamable $rc10lsb = COPY killed renamable $ylsb
+  renamable $rc14 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc9, killed renamable $c
+  renamable $rc13 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc6
+  $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), $rc4, killed renamable $c
+  renamable $rc12 = COPY killed renamable $a
+  renamable $a = COPY killed $rc7
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), $rc5, killed renamable $c
+  renamable $rc11 = COPY killed renamable $a
+  $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc9, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $y
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc8
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc12
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc14
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc11
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc13
+  renamable $rc4 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc7
+  renamable $rc3 = COPY killed renamable $a
+  renamable $c = COPY killed renamable $rc10lsb
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  $rc8 = STImag8 $a
+  $rc9 = STImag8 $x
+  $x = LDImag8 $rc7
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc8, killed renamable $c
+  $y = LDImm 0
+  $rc10 = STImag8 $y
+  $rc14 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc9, killed renamable $c
+  $rc13 = STImag8 $a
+  $a = LDImag8 $rc6
+  $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), $rc4, killed renamable $c
+  $rc12 = STImag8 $a
+  $a = LDImag8 $rc7
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), $rc5, killed renamable $c
+  $rc11 = STImag8 $a
+  $c = LDCImm 0
+  $a = LDImag8 $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  $rc8 = STImag8 $a
+  $a = LDImag8 $rc5
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc9, killed renamable $c
+  $rc7 = STImag8 $a
+  $c = LDCImm 0
+  $a = LDImag8 $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $y = TA $a
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc3 = STImag8 $a
+  $a = T_A $y
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc8
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc12
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc14
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc11
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc13
+  $rc4 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc7
+  $rc3 = STImag8 $a
+  %0:gpr = LDImag8 $rc10
+  $c = CMPImm %0:gpr, 1
+  $a = LDImag8 $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $y = TA $a
+  $a = LDImag8 $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = TA $a
+  $a = T_A $y
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on pressure_i16 ***
+# Machine code for function pressure_i16: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  $rc8 = STImag8 $a
+  $rc9 = STImag8 $x
+  $x = LDImag8 $rc7
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc2
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc8, killed renamable $c
+  $y = LDImm 0
+  $rc10 = STImag8 $y
+  $rc14 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc9, killed renamable $c
+  $rc13 = STImag8 $a
+  $a = LDImag8 $rc6
+  $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), $rc4, killed renamable $c
+  $rc12 = STImag8 $a
+  $a = LDImag8 $rc7
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), $rc5, killed renamable $c
+  $rc11 = STImag8 $a
+  $c = LDCImm 0
+  $a = LDImag8 $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  $rc8 = STImag8 $a
+  $a = LDImag8 $rc5
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc9, killed renamable $c
+  $rc7 = STImag8 $a
+  $c = LDCImm 0
+  $a = LDImag8 $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $y = TA $a
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc3 = STImag8 $a
+  $a = T_A $y
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc8
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc12
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc14
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc11
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc13
+  $rc4 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a = EORImag8 killed renamable $a(tied-def 0), killed renamable $rc7
+  $rc3 = STImag8 $a
+  $x = LDImag8 $rc10
+  $c = CMPImm killed $x, 1
+  $a = LDImag8 $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $y = TA $a
+  $a = LDImag8 $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = TA $a
+  $a = T_A $y
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function pressure_i16.
+
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on pressure_i16 omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on pressure_i16 omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on pressure_i16 omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on pressure_i16 omitted because no change ***
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on pressure_i16 omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on pressure_i16 omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on pressure_i16 omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on pressure_i16 omitted because no change ***
+*** IR Dump After Insert fentry calls (fentry-insert) on pressure_i16 omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on pressure_i16 omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on pressure_i16 omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on pressure_i16 omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on pressure_i16 omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on pressure_i16 omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on pressure_i16 omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on pressure_i16 omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on pressure_i16 omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on pressure_i16 omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on pressure_i16 omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on pressure_i16 omitted because no change ***

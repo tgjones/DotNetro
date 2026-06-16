@@ -1,0 +1,62 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/control-flow/if-else
+; Absolute difference a>b ? a-b : b-a (written a<b ? b-a : a-b): a diamond
+; whose two arms subtract in opposite orders and merge via a phi (cross-block
+; liveness + phi coalescing).
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Compare against ext/llvm-mos-reference/control-flow/if-else.s; close gaps via irie-report.
+
+; CHECK:     abs_diff:
+; CHECK:     STA \$05
+; CHECK:     STX \$04
+; CHECK:     LDY \$02
+; CHECK:     STY \$07
+; CHECK:     LDY \$03
+; CHECK:     STY \$06
+; CHECK:     STA \$08
+; CHECK:     TXA
+; CHECK:     LDX \$08
+; CHECK:     CMP \$06
+; CHECK:     BCC \.bb1
+; CHECK:     BNE \.bb2
+; CHECK:     TXA
+; CHECK:     CMP \$07
+; CHECK:     BCC \.bb1
+; CHECK:     JMP \.bb2
+; CHECK:     \.bb1:
+; CHECK:     SEC
+; CHECK:     LDA \$02
+; CHECK:     SBC \$05
+; CHECK:     TAY
+; CHECK:     LDA \$03
+; CHECK:     SBC \$04
+; CHECK:     TAX
+; CHECK:     JMP \.bb3
+; CHECK:     \.bb2:
+; CHECK:     SEC
+; CHECK:     LDA \$05
+; CHECK:     SBC \$02
+; CHECK:     TAY
+; CHECK:     LDA \$04
+; CHECK:     SBC \$03
+; CHECK:     TAX
+; CHECK:     JMP \.bb3
+; CHECK:     \.bb3:
+; CHECK:     TYA
+; CHECK:     RTS
+
+func @abs_diff : (i16, i16) -> i16 {
+bb0(%0 : i16, %1 : i16):
+    %2 : i1 = arith.cmpi ult, %0, %1
+    cf.cond_br %2, bb1(), bb2()
+bb1():
+    %3 : i16 = arith.subi %1, %0
+    cf.br bb3(%3)
+bb2():
+    %4 : i16 = arith.subi %0, %1
+    cf.br bb3(%4)
+bb3(%5 : i16):
+    core.return %5
+}

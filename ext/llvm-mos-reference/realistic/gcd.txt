@@ -1,0 +1,2273 @@
+*** IR Dump At Start ***
+; ModuleID = './realistic/gcd.c'
+source_filename = "./realistic/gcd.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) #0 {
+  %3 = alloca i16, align 1
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  store i16 %0, ptr %3, align 1, !tbaa !2
+  store i16 %1, ptr %4, align 1, !tbaa !2
+  br label %6
+
+6:                                                ; preds = %9, %2
+  %7 = load i16, ptr %4, align 1, !tbaa !2
+  %8 = icmp ne i16 %7, 0
+  br i1 %8, label %9, label %15
+
+9:                                                ; preds = %6
+  call void @llvm.lifetime.start.p0(ptr %5) #2
+  %10 = load i16, ptr %4, align 1, !tbaa !2
+  store i16 %10, ptr %5, align 1, !tbaa !2
+  %11 = load i16, ptr %3, align 1, !tbaa !2
+  %12 = load i16, ptr %4, align 1, !tbaa !2
+  %13 = srem i16 %11, %12
+  store i16 %13, ptr %4, align 1, !tbaa !2
+  %14 = load i16, ptr %5, align 1, !tbaa !2
+  store i16 %14, ptr %3, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %5) #2
+  br label %6, !llvm.loop !6
+
+15:                                               ; preds = %6
+  %16 = load i16, ptr %3, align 1, !tbaa !2
+  ret i16 %16
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = distinct !{!6, !7}
+!7 = !{!"llvm.loop.mustprogress"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] ***
+; ModuleID = './realistic/gcd.c'
+source_filename = "./realistic/gcd.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) #0 {
+  %3 = alloca i16, align 1
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  store i16 %0, ptr %3, align 1, !tbaa !2
+  store i16 %1, ptr %4, align 1, !tbaa !2
+  br label %6
+
+6:                                                ; preds = %9, %2
+  %7 = load i16, ptr %4, align 1, !tbaa !2
+  %8 = icmp ne i16 %7, 0
+  br i1 %8, label %9, label %15
+
+9:                                                ; preds = %6
+  call void @llvm.lifetime.start.p0(ptr %5) #2
+  %10 = load i16, ptr %4, align 1, !tbaa !2
+  store i16 %10, ptr %5, align 1, !tbaa !2
+  %11 = load i16, ptr %3, align 1, !tbaa !2
+  %12 = load i16, ptr %4, align 1, !tbaa !2
+  %13 = srem i16 %11, %12
+  store i16 %13, ptr %4, align 1, !tbaa !2
+  %14 = load i16, ptr %5, align 1, !tbaa !2
+  store i16 %14, ptr %3, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %5) #2
+  br label %6, !llvm.loop !6
+
+15:                                               ; preds = %6
+  %16 = load i16, ptr %3, align 1, !tbaa !2
+  ret i16 %16
+}
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = distinct !{!6, !7}
+!7 = !{!"llvm.loop.mustprogress"}
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on gcd omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on gcd omitted because no change ***
+*** IR Dump After SimplifyCFGPass on gcd omitted because no change ***
+*** IR Dump After SROAPass on gcd ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) #0 {
+  br label %3
+
+3:                                                ; preds = %7, %2
+  %4 = phi i16 [ %1, %2 ], [ %8, %7 ]
+  %5 = phi i16 [ %0, %2 ], [ %4, %7 ]
+  %6 = icmp ne i16 %4, 0
+  br i1 %6, label %7, label %9
+
+7:                                                ; preds = %3
+  %8 = srem i16 %5, %4
+  br label %3, !llvm.loop !6
+
+9:                                                ; preds = %3
+  ret i16 %5
+}
+*** IR Dump After EarlyCSEPass on gcd omitted because no change ***
+*** IR Pass PassManager<Function> on gcd ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './realistic/gcd.c'
+source_filename = "./realistic/gcd.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  br label %3
+
+3:                                                ; preds = %7, %2
+  %4 = phi i16 [ %1, %2 ], [ %8, %7 ]
+  %5 = phi i16 [ %0, %2 ], [ %4, %7 ]
+  %6 = icmp ne i16 %4, 0
+  br i1 %6, label %7, label %9
+
+7:                                                ; preds = %3
+  %8 = srem i16 %5, %4
+  br label %3, !llvm.loop !6
+
+9:                                                ; preds = %3
+  ret i16 %5
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = distinct !{!6, !7}
+!7 = !{!"llvm.loop.mustprogress"}
+*** IR Dump After PromotePass on gcd omitted because no change ***
+*** IR Dump After InstCombinePass on gcd ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  br label %3
+
+3:                                                ; preds = %7, %2
+  %4 = phi i16 [ %1, %2 ], [ %8, %7 ]
+  %5 = phi i16 [ %0, %2 ], [ %4, %7 ]
+  %6 = icmp eq i16 %4, 0
+  br i1 %6, label %9, label %7
+
+7:                                                ; preds = %3
+  %8 = srem i16 %5, %4
+  br label %3, !llvm.loop !6
+
+9:                                                ; preds = %3
+  ret i16 %5
+}
+*** IR Dump After SimplifyCFGPass on gcd omitted because no change ***
+*** IR Pass PassManager<Function> on gcd ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on gcd omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (gcd) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (gcd) omitted because no change ***
+*** IR Dump After SROAPass on gcd omitted because no change ***
+*** IR Dump After EarlyCSEPass on gcd omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on gcd omitted because no change ***
+*** IR Dump After JumpThreadingPass on gcd omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on gcd omitted because no change ***
+*** IR Dump After SimplifyCFGPass on gcd omitted because no change ***
+*** IR Dump After InstCombinePass on gcd omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on gcd omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on gcd omitted because no change ***
+*** IR Dump After TailCallElimPass on gcd omitted because no change ***
+*** IR Dump After SimplifyCFGPass on gcd omitted because no change ***
+*** IR Dump After ReassociatePass on gcd omitted because no change ***
+*** IR Dump After ConstraintEliminationPass on gcd omitted because no change ***
+*** IR Dump After LoopSimplifyPass on gcd omitted because no change ***
+*** IR Dump After LCSSAPass on gcd ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  br label %3
+
+3:                                                ; preds = %7, %2
+  %4 = phi i16 [ %1, %2 ], [ %8, %7 ]
+  %5 = phi i16 [ %0, %2 ], [ %4, %7 ]
+  %6 = icmp eq i16 %4, 0
+  br i1 %6, label %9, label %7
+
+7:                                                ; preds = %3
+  %8 = srem i16 %5, %4
+  br label %3, !llvm.loop !6
+
+9:                                                ; preds = %3
+  %10 = phi i16 [ %5, %3 ]
+  ret i16 %10
+}
+*** IR Pass PassManager<Function> on gcd ignored ***
+*** IR Dump After LoopInstSimplifyPass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Dump After LoopSimplifyCFGPass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Dump After LICMPass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Dump After LoopRotatePass on loop %<unnamed loop> in function gcd ***
+
+; Preheader:
+4:                                                ; preds = %2
+  br label %5
+
+; Loop:
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %0, %4 ], [ %7, %5 ]
+  %7 = phi i16 [ %1, %4 ], [ %8, %5 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+; Exit blocks
+10:                                               ; preds = %5
+  %11 = phi i16 [ %7, %5 ]
+  br label %12
+*** IR Dump After LICMPass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Dump After SimpleLoopUnswitchPass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Pass PassManager<Loop, LoopAnalysisManager, LoopStandardAnalysisResults &, LPMUpdater &> on loop %<unnamed loop> in function gcd ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on gcd ignored ***
+*** IR Dump After SimplifyCFGPass on gcd ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %9, label %4
+
+4:                                                ; preds = %2, %4
+  %5 = phi i16 [ %6, %4 ], [ %0, %2 ]
+  %6 = phi i16 [ %7, %4 ], [ %1, %2 ]
+  %7 = srem i16 %5, %6
+  %8 = icmp eq i16 %7, 0
+  br i1 %8, label %9, label %4, !llvm.loop !6
+
+9:                                                ; preds = %4, %2
+  %10 = phi i16 [ %0, %2 ], [ %6, %4 ]
+  ret i16 %10
+}
+*** IR Dump After InstCombinePass on gcd omitted because no change ***
+*** IR Dump After LoopSimplifyPass on gcd ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %11, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5
+  br label %11
+
+11:                                               ; preds = %10, %2
+  %12 = phi i16 [ %0, %2 ], [ %7, %10 ]
+  ret i16 %12
+}
+*** IR Dump After LCSSAPass on gcd ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %12, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5
+  %11 = phi i16 [ %7, %5 ]
+  br label %12
+
+12:                                               ; preds = %10, %2
+  %13 = phi i16 [ %0, %2 ], [ %11, %10 ]
+  ret i16 %13
+}
+*** IR Pass PassManager<Function> on gcd ignored ***
+*** IR Dump After LoopIdiomRecognizePass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Dump After IndVarSimplifyPass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Pass ExtraLoopPassManager<llvm::ShouldRunExtraSimpleLoopUnswitch> on loop %<unnamed loop> in function gcd ignored ***
+*** IR Dump After MOSIndexIV on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Dump After IndVarSimplifyPass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Dump After LoopDeletionPass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Dump After LoopFullUnrollPass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Pass PassManager<Loop, LoopAnalysisManager, LoopStandardAnalysisResults &, LPMUpdater &> on loop %<unnamed loop> in function gcd ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on gcd ignored ***
+*** IR Dump After SROAPass on gcd omitted because no change ***
+*** IR Dump After VectorCombinePass on gcd omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on gcd omitted because no change ***
+*** IR Dump After GVNPass on gcd ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %11, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5
+  br label %11
+
+11:                                               ; preds = %10, %2
+  %12 = phi i16 [ %0, %2 ], [ %7, %10 ]
+  ret i16 %12
+}
+*** IR Dump After SCCPPass on gcd omitted because no change ***
+*** IR Dump After BDCEPass on gcd omitted because no change ***
+*** IR Dump After InstCombinePass on gcd omitted because no change ***
+*** IR Dump After JumpThreadingPass on gcd ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %10, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5, %2
+  %11 = phi i16 [ %0, %2 ], [ %7, %5 ]
+  ret i16 %11
+}
+*** IR Dump After CorrelatedValuePropagationPass on gcd omitted because no change ***
+*** IR Dump After ADCEPass on gcd omitted because no change ***
+*** IR Dump After MemCpyOptPass on gcd omitted because no change ***
+*** IR Dump After DSEPass on gcd omitted because no change ***
+*** IR Dump After MoveAutoInitPass on gcd omitted because no change ***
+*** IR Dump After LoopSimplifyPass on gcd ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %11, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5
+  br label %11
+
+11:                                               ; preds = %10, %2
+  %12 = phi i16 [ %0, %2 ], [ %7, %10 ]
+  ret i16 %12
+}
+*** IR Dump After LCSSAPass on gcd ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %12, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5
+  %11 = phi i16 [ %7, %5 ]
+  br label %12
+
+12:                                               ; preds = %10, %2
+  %13 = phi i16 [ %0, %2 ], [ %11, %10 ]
+  ret i16 %13
+}
+*** IR Pass PassManager<Function> on gcd ignored ***
+*** IR Dump After LICMPass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Pass FunctionToLoopPassAdaptor on gcd ignored ***
+*** IR Dump After CoroElidePass on gcd omitted because no change ***
+*** IR Dump After SimplifyCFGPass on gcd ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %9, label %4
+
+4:                                                ; preds = %2, %4
+  %5 = phi i16 [ %6, %4 ], [ %0, %2 ]
+  %6 = phi i16 [ %7, %4 ], [ %1, %2 ]
+  %7 = srem i16 %5, %6
+  %8 = icmp eq i16 %7, 0
+  br i1 %8, label %9, label %4, !llvm.loop !6
+
+9:                                                ; preds = %4, %2
+  %10 = phi i16 [ %0, %2 ], [ %6, %4 ]
+  ret i16 %10
+}
+*** IR Dump After InstCombinePass on gcd omitted because no change ***
+*** IR Pass PassManager<Function> on gcd ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (gcd) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (gcd) ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %9, label %4
+
+4:                                                ; preds = %2, %4
+  %5 = phi i16 [ %6, %4 ], [ %0, %2 ]
+  %6 = phi i16 [ %7, %4 ], [ %1, %2 ]
+  %7 = srem i16 %5, %6
+  %8 = icmp eq i16 %7, 0
+  br i1 %8, label %9, label %4, !llvm.loop !6
+
+9:                                                ; preds = %4, %2
+  %10 = phi i16 [ %0, %2 ], [ %6, %4 ]
+  ret i16 %10
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on gcd omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (gcd) ignored ***
+*** IR Dump After CoroSplitPass on (gcd) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (gcd) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (gcd) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (gcd) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on gcd omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on gcd omitted because no change ***
+*** IR Dump After Float2IntPass on gcd omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on gcd omitted because no change ***
+*** IR Dump After LoopSimplifyPass on gcd ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %11, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5
+  br label %11
+
+11:                                               ; preds = %10, %2
+  %12 = phi i16 [ %0, %2 ], [ %7, %10 ]
+  ret i16 %12
+}
+*** IR Dump After LCSSAPass on gcd ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %12, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5
+  %11 = phi i16 [ %7, %5 ]
+  br label %12
+
+12:                                               ; preds = %10, %2
+  %13 = phi i16 [ %0, %2 ], [ %11, %10 ]
+  ret i16 %13
+}
+*** IR Pass PassManager<Function> on gcd ignored ***
+*** IR Dump After LoopRotatePass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Dump After LoopDeletionPass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Pass PassManager<Loop, LoopAnalysisManager, LoopStandardAnalysisResults &, LPMUpdater &> on loop %<unnamed loop> in function gcd ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on gcd ignored ***
+*** IR Dump After LoopDistributePass on gcd omitted because no change ***
+*** IR Dump After InjectTLIMappings on gcd omitted because no change ***
+*** IR Dump After LoopVectorizePass on gcd omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on gcd omitted because no change ***
+*** IR Dump After InferAlignmentPass on gcd omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on gcd omitted because no change ***
+*** IR Dump After InstCombinePass on gcd ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %11, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5
+  br label %11
+
+11:                                               ; preds = %10, %2
+  %12 = phi i16 [ %0, %2 ], [ %7, %10 ]
+  ret i16 %12
+}
+*** IR Dump After SimplifyCFGPass on gcd ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %9, label %4
+
+4:                                                ; preds = %2, %4
+  %5 = phi i16 [ %6, %4 ], [ %0, %2 ]
+  %6 = phi i16 [ %7, %4 ], [ %1, %2 ]
+  %7 = srem i16 %5, %6
+  %8 = icmp eq i16 %7, 0
+  br i1 %8, label %9, label %4, !llvm.loop !6
+
+9:                                                ; preds = %4, %2
+  %10 = phi i16 [ %0, %2 ], [ %6, %4 ]
+  ret i16 %10
+}
+*** IR Dump After SLPVectorizerPass on gcd omitted because no change ***
+*** IR Dump After VectorCombinePass on gcd omitted because no change ***
+*** IR Dump After InstCombinePass on gcd omitted because no change ***
+*** IR Dump After LoopUnrollPass on gcd ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %12, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5
+  %11 = phi i16 [ %7, %5 ]
+  br label %12
+
+12:                                               ; preds = %10, %2
+  %13 = phi i16 [ %0, %2 ], [ %11, %10 ]
+  ret i16 %13
+}
+*** IR Dump After WarnMissedTransformationsPass on gcd omitted because no change ***
+*** IR Dump After SROAPass on gcd omitted because no change ***
+*** IR Dump After InferAlignmentPass on gcd omitted because no change ***
+*** IR Dump After InstCombinePass on gcd ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %11, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5
+  br label %11
+
+11:                                               ; preds = %10, %2
+  %12 = phi i16 [ %0, %2 ], [ %7, %10 ]
+  ret i16 %12
+}
+*** IR Dump After LoopSimplifyPass on gcd omitted because no change ***
+*** IR Dump After LCSSAPass on gcd ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %12, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5
+  %11 = phi i16 [ %7, %5 ]
+  br label %12
+
+12:                                               ; preds = %10, %2
+  %13 = phi i16 [ %0, %2 ], [ %11, %10 ]
+  ret i16 %13
+}
+*** IR Pass PassManager<Function> on gcd ignored ***
+*** IR Dump After LICMPass on loop %<unnamed loop> in function gcd omitted because no change ***
+*** IR Pass FunctionToLoopPassAdaptor on gcd ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on gcd omitted because no change ***
+*** IR Dump After LoopSinkPass on gcd omitted because no change ***
+*** IR Dump After InstSimplifyPass on gcd ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %11, label %4
+
+4:                                                ; preds = %2
+  br label %5
+
+5:                                                ; preds = %4, %5
+  %6 = phi i16 [ %7, %5 ], [ %0, %4 ]
+  %7 = phi i16 [ %8, %5 ], [ %1, %4 ]
+  %8 = srem i16 %6, %7
+  %9 = icmp eq i16 %8, 0
+  br i1 %9, label %10, label %5, !llvm.loop !6
+
+10:                                               ; preds = %5
+  br label %11
+
+11:                                               ; preds = %10, %2
+  %12 = phi i16 [ %0, %2 ], [ %7, %10 ]
+  ret i16 %12
+}
+*** IR Dump After DivRemPairsPass on gcd omitted because no change ***
+*** IR Dump After MergeICmpsPass on gcd omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on gcd omitted because no change ***
+*** IR Dump After TailCallElimPass on gcd omitted because no change ***
+*** IR Dump After SimplifyCFGPass on gcd ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @gcd(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp eq i16 %1, 0
+  br i1 %3, label %9, label %4
+
+4:                                                ; preds = %2, %4
+  %5 = phi i16 [ %6, %4 ], [ %0, %2 ]
+  %6 = phi i16 [ %7, %4 ], [ %1, %2 ]
+  %7 = srem i16 %5, %6
+  %8 = icmp eq i16 %7, 0
+  br i1 %8, label %9, label %4, !llvm.loop !6
+
+9:                                                ; preds = %4, %2
+  %10 = phi i16 [ %0, %2 ], [ %6, %4 ]
+  ret i16 %10
+}
+*** IR Pass PassManager<Function> on gcd ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on gcd omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on gcd omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on gcd ***
+# Machine code for function gcd: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.2(0x50000000); %bb.4(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %2:_(s8), %3:_(s8)
+  %4:_(s8) = COPY $rc2
+  %5:_(s8) = COPY $rc3
+  %1:_(s16) = G_MERGE_VALUES %4:_(s8), %5:_(s8)
+  %6:_(s16) = G_CONSTANT i16 0
+  %7:_(s1) = G_ICMP intpred(eq), %1:_(s16), %6:_
+  G_BRCOND %7:_(s1), %bb.4
+  G_BR %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.2, %bb.3
+  successors: %bb.4(0x04000000), %bb.3(0x7c000000); %bb.4(3.12%), %bb.3(96.88%)
+
+  %8:_(s16) = G_PHI %9:_(s16), %bb.3, %0:_(s16), %bb.2
+  %9:_(s16) = G_PHI %10:_(s16), %bb.3, %1:_(s16), %bb.2
+  %10:_(s16) = G_SREM %8:_, %9:_
+  %11:_(s1) = G_ICMP intpred(eq), %10:_(s16), %6:_
+  G_BRCOND %11:_(s1), %bb.4
+  G_BR %bb.3
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.1, %bb.3
+
+  %12:_(s16) = G_PHI %0:_(s16), %bb.1, %9:_(s16), %bb.3
+  %13:_(s8), %14:_(s8) = G_UNMERGE_VALUES %12:_(s16)
+  $a = COPY %13:_(s8)
+  $x = COPY %14:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function gcd.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on gcd omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on gcd omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on gcd omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on gcd ***
+# Machine code for function gcd: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.2(0x50000000); %bb.4(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %2:_(s8), %3:_(s8)
+  %4:_(s8) = COPY $rc2
+  %5:_(s8) = COPY $rc3
+  %1:_(s16) = G_MERGE_VALUES %4:_(s8), %5:_(s8)
+  %6:_(s16) = G_CONSTANT i16 0
+  %7:_(s1) = G_ICMP intpred(eq), %1:_(s16), %6:_
+  G_BRCOND %7:_(s1), %bb.4
+  G_BR %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.2, %bb.3
+  successors: %bb.4(0x04000000), %bb.3(0x7c000000); %bb.4(3.12%), %bb.3(96.88%)
+
+  %8:_(s16) = G_PHI %9:_(s16), %bb.3, %0:_(s16), %bb.2
+  %9:_(s16) = G_PHI %10:_(s16), %bb.3, %1:_(s16), %bb.2
+  %10:_(s16) = G_SREM %8:_, %9:_
+  %11:_(s1) = G_ICMP intpred(ne), %10:_(s16), %6:_
+  G_BRCOND %11:_(s1), %bb.3
+  G_BR %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.1, %bb.3
+
+  %12:_(s16) = G_PHI %0:_(s16), %bb.1, %9:_(s16), %bb.3
+  %13:_(s8), %14:_(s8) = G_UNMERGE_VALUES %12:_(s16)
+  $a = COPY %13:_(s8)
+  $x = COPY %14:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function gcd.
+
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on gcd omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on gcd omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on gcd omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on gcd ***
+# Machine code for function gcd: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.2(0x50000000); %bb.4(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %4:_(s8) = COPY $rc2
+  %5:_(s8) = COPY $rc3
+  %7:_(s1) = G_CMPZ %4:_(s8), %5:_(s8)
+  G_BRCOND_IMM %7:_(s1), %bb.4, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.2, %bb.3
+  successors: %bb.4(0x04000000), %bb.3(0x7c000000); %bb.4(3.12%), %bb.3(96.88%)
+
+  %43:_(s8) = G_PHI %37:_(s8), %bb.3, %2:_(s8), %bb.2
+  %44:_(s8) = G_PHI %38:_(s8), %bb.3, %3:_(s8), %bb.2
+  %37:_(s8) = G_PHI %31:_(s8), %bb.3, %4:_(s8), %bb.2
+  %38:_(s8) = G_PHI %32:_(s8), %bb.3, %5:_(s8), %bb.2
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %43:_(s8)
+  $x = COPY %44:_(s8)
+  $rc2 = COPY %37:_(s8)
+  $rc3 = COPY %38:_(s8)
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %31:_(s8) = COPY $a
+  %32:_(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %23:_(s1) = G_CMPZ %31:_(s8), %32:_(s8)
+  G_BRCOND_IMM %23:_(s1), %bb.3, 0
+  G_BR %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.1, %bb.3
+
+  %21:_(s8) = G_PHI %2:_(s8), %bb.1, %37:_(s8), %bb.3
+  %22:_(s8) = G_PHI %3:_(s8), %bb.1, %38:_(s8), %bb.3
+  $a = COPY %21:_(s8)
+  $x = COPY %22:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function gcd.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on gcd omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on gcd omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on gcd omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on gcd omitted because no change ***
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on gcd omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on gcd ***
+# Machine code for function gcd: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.2(0x50000000); %bb.4(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %2:any(s8) = COPY $a
+  %3:any(s8) = COPY $x
+  %4:any(s8) = COPY $rc2
+  %5:any(s8) = COPY $rc3
+  %7:any(s1) = G_CMPZ %4:any(s8), %5:any(s8)
+  G_BRCOND_IMM %7:any(s1), %bb.4, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.2, %bb.3
+  successors: %bb.4(0x04000000), %bb.3(0x7c000000); %bb.4(3.12%), %bb.3(96.88%)
+
+  %43:any(s8) = G_PHI %37:any(s8), %bb.3, %2:any(s8), %bb.2
+  %44:any(s8) = G_PHI %38:any(s8), %bb.3, %3:any(s8), %bb.2
+  %37:any(s8) = G_PHI %31:any(s8), %bb.3, %4:any(s8), %bb.2
+  %38:any(s8) = G_PHI %32:any(s8), %bb.3, %5:any(s8), %bb.2
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %43:any(s8)
+  $x = COPY %44:any(s8)
+  $rc2 = COPY %37:any(s8)
+  $rc3 = COPY %38:any(s8)
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %31:any(s8) = COPY $a
+  %32:any(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %23:any(s1) = G_CMPZ %31:any(s8), %32:any(s8)
+  G_BRCOND_IMM %23:any(s1), %bb.3, 0
+  G_BR %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.1, %bb.3
+
+  %21:any(s8) = G_PHI %2:any(s8), %bb.1, %37:any(s8), %bb.3
+  %22:any(s8) = G_PHI %3:any(s8), %bb.1, %38:any(s8), %bb.3
+  $a = COPY %21:any(s8)
+  $x = COPY %22:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function gcd.
+
+*** IR Dump After Localizer (localizer) on gcd omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on gcd omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on gcd ***
+# Machine code for function gcd: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.2(0x50000000); %bb.4(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY $a
+  %3:anyi8 = COPY $x
+  %4:anyi8 = COPY $rc2
+  %5:anyi8 = COPY $rc3
+  CmpBrZeroMultiByte %bb.4, 1, %4:anyi8, %5:anyi8, implicit-def $c
+  JMP %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.2, %bb.3
+  successors: %bb.4(0x04000000), %bb.3(0x7c000000); %bb.4(3.12%), %bb.3(96.88%)
+
+  %43:anyi8 = PHI %37:anyi8, %bb.3, %2:anyi8, %bb.2
+  %44:anyi8 = PHI %38:anyi8, %bb.3, %3:anyi8, %bb.2
+  %37:anyi8 = PHI %31:anyi8, %bb.3, %4:anyi8, %bb.2
+  %38:anyi8 = PHI %32:anyi8, %bb.3, %5:anyi8, %bb.2
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %43:anyi8
+  $x = COPY %44:anyi8
+  $rc2 = COPY %37:anyi8
+  $rc3 = COPY %38:anyi8
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %31:anyi8 = COPY $a
+  %32:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZeroMultiByte %bb.3, 0, %31:anyi8, %32:anyi8, implicit-def $c
+  JMP %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.1, %bb.3
+
+  %21:anyi8 = PHI %2:anyi8, %bb.1, %37:anyi8, %bb.3
+  %22:anyi8 = PHI %3:anyi8, %bb.1, %38:anyi8, %bb.3
+  $a = COPY %21:anyi8
+  $x = COPY %22:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function gcd.
+
+*** IR Dump After ResetMachineFunction on gcd omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on gcd omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on gcd omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on gcd omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on gcd omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on gcd omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on gcd omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on gcd omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on gcd omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on gcd omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on gcd omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on gcd omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on gcd omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on gcd omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on gcd omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on gcd omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on gcd omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on gcd omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on gcd omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on gcd omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on gcd omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on gcd omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on gcd omitted because no change ***
+*** IR Dump After Init Undef Pass (init-undef) on gcd omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on gcd omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on gcd ***
+# Machine code for function gcd: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  successors: %bb.3(0x30000000), %bb.1(0x50000000); %bb.3(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY $a
+  %3:anyi8 = COPY $x
+  %4:anyi8 = COPY $rc2
+  %5:anyi8 = COPY $rc3
+  CmpBrZeroMultiByte %bb.3, 1, %4:anyi8, %5:anyi8, implicit-def $c
+  JMP %bb.1
+
+bb.1 (%ir-block.4):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+
+  %43:anyi8 = PHI %37:anyi8, %bb.2, %2:anyi8, %bb.1
+  %44:anyi8 = PHI %38:anyi8, %bb.2, %3:anyi8, %bb.1
+  %37:anyi8 = PHI %31:anyi8, %bb.2, %4:anyi8, %bb.1
+  %38:anyi8 = PHI %32:anyi8, %bb.2, %5:anyi8, %bb.1
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %43:anyi8
+  $x = COPY %44:anyi8
+  $rc2 = COPY %37:anyi8
+  $rc3 = COPY %38:anyi8
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %31:anyi8 = COPY $a
+  %32:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZeroMultiByte %bb.2, 0, %31:anyi8, %32:anyi8, implicit-def $c
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.0, %bb.2
+
+  %21:anyi8 = PHI %2:anyi8, %bb.0, %37:anyi8, %bb.2
+  %22:anyi8 = PHI %3:anyi8, %bb.0, %38:anyi8, %bb.2
+  $a = COPY %21:anyi8
+  $x = COPY %22:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function gcd.
+
+*** IR Dump After Live Variable Analysis (livevars) on gcd ***
+# Machine code for function gcd: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  successors: %bb.3(0x30000000), %bb.1(0x50000000); %bb.3(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY killed $a
+  %3:anyi8 = COPY killed $x
+  %4:anyi8 = COPY killed $rc2
+  %5:anyi8 = COPY killed $rc3
+  CmpBrZeroMultiByte %bb.3, 1, %4:anyi8, %5:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.4):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+
+  %43:anyi8 = PHI %37:anyi8, %bb.2, %2:anyi8, %bb.1
+  %44:anyi8 = PHI %38:anyi8, %bb.2, %3:anyi8, %bb.1
+  %37:anyi8 = PHI %31:anyi8, %bb.2, %4:anyi8, %bb.1
+  %38:anyi8 = PHI %32:anyi8, %bb.2, %5:anyi8, %bb.1
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %43:anyi8
+  $x = COPY killed %44:anyi8
+  $rc2 = COPY %37:anyi8
+  $rc3 = COPY %38:anyi8
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %31:anyi8 = COPY killed $a
+  %32:anyi8 = COPY killed $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZeroMultiByte %bb.2, 0, %31:anyi8, %32:anyi8, implicit-def dead $c
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.0, %bb.2
+
+  %21:anyi8 = PHI %2:anyi8, %bb.0, %37:anyi8, %bb.2
+  %22:anyi8 = PHI %3:anyi8, %bb.0, %38:anyi8, %bb.2
+  $a = COPY killed %21:anyi8
+  $x = COPY killed %22:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function gcd.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on gcd omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on gcd omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.1(0x50000000); %bb.4(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY killed $a
+  %3:anyi8 = COPY killed $x
+  %4:anyi8 = COPY killed $rc2
+  %5:anyi8 = COPY killed $rc3
+  CmpBrZeroMultiByte %bb.1, 0, %4:anyi8, %5:anyi8, implicit-def $c
+
+bb.4:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %51:anyi8 = COPY killed %2:anyi8
+  %52:anyi8 = COPY killed %3:anyi8
+  JMP %bb.3
+
+bb.1 (%ir-block.4):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  %47:anyi8 = COPY killed %2:anyi8
+  %48:anyi8 = COPY killed %3:anyi8
+  %49:anyi8 = COPY killed %4:anyi8
+  %50:anyi8 = COPY killed %5:anyi8
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+
+  %38:anyi8 = COPY killed %50:anyi8
+  %37:anyi8 = COPY killed %49:anyi8
+  %44:anyi8 = COPY killed %48:anyi8
+  %43:anyi8 = COPY killed %47:anyi8
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %43:anyi8
+  $x = COPY killed %44:anyi8
+  $rc2 = COPY %37:anyi8
+  $rc3 = COPY %38:anyi8
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %31:anyi8 = COPY killed $a
+  %32:anyi8 = COPY killed $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %47:anyi8 = COPY %37:anyi8
+  %48:anyi8 = COPY %38:anyi8
+  %49:anyi8 = COPY %31:anyi8
+  %50:anyi8 = COPY %32:anyi8
+  %51:anyi8 = COPY killed %37:anyi8
+  %52:anyi8 = COPY killed %38:anyi8
+  CmpBrZeroMultiByte %bb.2, 0, killed %31:anyi8, killed %32:anyi8, implicit-def dead $c
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.4
+
+  %22:anyi8 = COPY killed %52:anyi8
+  %21:anyi8 = COPY killed %51:anyi8
+  $a = COPY killed %21:anyi8
+  $x = COPY killed %22:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function gcd.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.1(0x50000000); %bb.4(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY killed $a
+  %3:anyi8 = COPY killed $x
+  %4:anyi8 = COPY killed $rc2
+  %5:anyi8 = COPY killed $rc3
+  CmpBrZeroMultiByte %bb.1, 0, %4:anyi8, %5:anyi8, implicit-def $c
+
+bb.4:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %51:anyi8 = COPY killed %2:anyi8
+  %52:anyi8 = COPY killed %3:anyi8
+  JMP %bb.3
+
+bb.1 (%ir-block.4):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  %47:anyi8 = COPY killed %2:anyi8
+  %48:anyi8 = COPY killed %3:anyi8
+  %49:anyi8 = COPY killed %4:anyi8
+  %50:anyi8 = COPY killed %5:anyi8
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+
+  %38:anyi8 = COPY killed %50:anyi8
+  %37:anyi8 = COPY killed %49:anyi8
+  %44:anyi8 = COPY killed %48:anyi8
+  %43:anyi8 = COPY killed %47:anyi8
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %43:anyi8
+  $x = COPY killed %44:anyi8
+  $rc2 = COPY %37:anyi8
+  $rc3 = COPY %38:anyi8
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %31:anyi8 = COPY killed $a
+  %32:anyi8 = COPY killed $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %47:anyi8 = COPY %37:anyi8
+  %48:anyi8 = COPY %38:anyi8
+  %49:anyi8 = COPY %31:anyi8
+  %50:anyi8 = COPY %32:anyi8
+  %51:anyi8 = COPY killed %37:anyi8
+  %52:anyi8 = COPY killed %38:anyi8
+  CmpBrZeroMultiByte %bb.2, 0, killed %31:anyi8, killed %32:anyi8, implicit-def dead $c
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.4
+
+  %22:anyi8 = COPY killed %52:anyi8
+  %21:anyi8 = COPY killed %51:anyi8
+  $a = COPY killed %21:anyi8
+  $x = COPY killed %22:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function gcd.
+
+*** IR Dump After Slot index numbering (slotindexes) on gcd omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.1(0x50000000); %bb.4(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY $a
+  %3:anyi8 = COPY $x
+  %4:anyi8 = COPY $rc2
+  %5:anyi8 = COPY $rc3
+  CmpBrZeroMultiByte %bb.1, 0, %4:anyi8, %5:anyi8, implicit-def $c
+
+bb.4:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %51:anyi8 = COPY %2:anyi8
+  %52:anyi8 = COPY %3:anyi8
+  JMP %bb.3
+
+bb.1 (%ir-block.4):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  %47:anyi8 = COPY %2:anyi8
+  %48:anyi8 = COPY %3:anyi8
+  %49:anyi8 = COPY %4:anyi8
+  %50:anyi8 = COPY %5:anyi8
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+
+  %38:anyi8 = COPY %50:anyi8
+  %37:anyi8 = COPY %49:anyi8
+  %44:anyi8 = COPY %48:anyi8
+  %43:anyi8 = COPY %47:anyi8
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %43:anyi8
+  $x = COPY %44:anyi8
+  $rc2 = COPY %37:anyi8
+  $rc3 = COPY %38:anyi8
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %31:anyi8 = COPY $a
+  %32:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %47:anyi8 = COPY %37:anyi8
+  %48:anyi8 = COPY %38:anyi8
+  %49:anyi8 = COPY %31:anyi8
+  %50:anyi8 = COPY %32:anyi8
+  %51:anyi8 = COPY %37:anyi8
+  %52:anyi8 = COPY %38:anyi8
+  CmpBrZeroMultiByte %bb.2, 0, %31:anyi8, %32:anyi8, implicit-def dead $c
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.4
+
+  %22:anyi8 = COPY %52:anyi8
+  %21:anyi8 = COPY %51:anyi8
+  $a = COPY %21:anyi8
+  $x = COPY %22:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function gcd.
+
+*** IR Dump After Register Coalescer (register-coalescer) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.1(0x50000000); %bb.4(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %47:anyi8 = COPY $a
+  %48:anyi8 = COPY $x
+  %49:anyi8 = COPY $rc2
+  %50:anyi8 = COPY $rc3
+  CmpBrZeroMultiByte %bb.1, 0, %49:anyi8, %50:anyi8, implicit-def $c
+
+bb.4:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %51:anyi8 = COPY %47:anyi8
+  %52:anyi8 = COPY %48:anyi8
+  JMP %bb.3
+
+bb.1 (%ir-block.4):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+
+  %52:anyi8 = COPY %50:anyi8
+  %51:anyi8 = COPY %49:anyi8
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %47:anyi8
+  $x = COPY %48:anyi8
+  $rc2 = COPY %51:anyi8
+  $rc3 = COPY %52:anyi8
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %49:anyi8 = COPY $a
+  %50:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %47:anyi8 = COPY %51:anyi8
+  %48:anyi8 = COPY %52:anyi8
+  CmpBrZeroMultiByte %bb.2, 0, %49:anyi8, %50:anyi8, implicit-def dead $c
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.4
+
+  $a = COPY %51:anyi8
+  $x = COPY %52:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function gcd.
+
+*** IR Dump After Register Coalescer (register-coalescer) on gcd omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on gcd omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on gcd omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.1(0x50000000); %bb.4(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %47:anyi8 = COPY $a
+  %48:anyi8 = COPY $x
+  %49:anyi8 = COPY $rc2
+  %50:anyi8 = COPY $rc3
+  CmpBrZeroMultiByte %bb.1, 0, %49:anyi8, %50:anyi8, implicit-def $c
+
+bb.4:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %51:anyi8 = COPY %47:anyi8
+  %52:anyi8 = COPY %48:anyi8
+  JMP %bb.3
+
+bb.1 (%ir-block.4):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+
+  %52:anyi8 = COPY %50:anyi8
+  %51:anyi8 = COPY %49:anyi8
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %51:anyi8
+  $rc3 = COPY %52:anyi8
+  $x = COPY %48:anyi8
+  $a = COPY %47:anyi8
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %49:anyi8 = COPY $a
+  %50:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %47:anyi8 = COPY %51:anyi8
+  %48:anyi8 = COPY %52:anyi8
+  CmpBrZeroMultiByte %bb.2, 0, %49:anyi8, %50:anyi8, implicit-def dead $c
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.4
+
+  $x = COPY %52:anyi8
+  $a = COPY %51:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function gcd.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.1(0x50000000); %bb.4(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  %47:anyi8 = COPY $a
+  %48:anyi8 = COPY $x
+  %49:anyi8 = COPY $rc2
+  %50:anyi8 = COPY $rc3
+  CmpBrZeroMultiByte %bb.1, 0, %49:anyi8, %50:anyi8, implicit-def $c
+
+bb.4:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %51:anyi8 = COPY %47:anyi8
+  %52:anyi8 = COPY %48:anyi8
+  JMP %bb.3
+
+bb.1 (%ir-block.4):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+
+  %52:anyi8 = COPY %50:anyi8
+  %51:anyi8 = COPY %49:anyi8
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %51:anyi8
+  $rc3 = COPY %52:anyi8
+  $x = COPY %48:anyi8
+  $a = COPY %47:anyi8
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %49:anyi8 = COPY $a
+  %50:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %47:anyi8 = COPY %51:anyi8
+  %48:anyi8 = COPY %52:anyi8
+  CmpBrZeroMultiByte %bb.2, 0, %49:anyi8, %50:anyi8, implicit-def dead $c
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.4
+
+  $x = COPY %52:anyi8
+  $a = COPY %51:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function gcd.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on gcd omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on gcd omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on gcd omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on gcd omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on gcd omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on gcd omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on gcd omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on gcd omitted because no change ***
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.1(0x50000000); %bb.4(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  renamable $y = COPY $rc2
+  CmpBrZeroMultiByte %bb.1, 0, renamable $y, renamable $rc3, implicit-def $c
+
+bb.4:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x
+  renamable $rc20 = COPY killed renamable $a
+  renamable $rc21 = COPY killed renamable $x
+  JMP %bb.3
+
+bb.1 (%ir-block.4):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $a, $x, $y, $rc3
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3
+  renamable $rc21 = COPY killed renamable $rc3
+  renamable $rc20 = COPY killed renamable $y
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY renamable $rc20
+  $rc3 = COPY renamable $rc21
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  renamable $y = COPY $a
+  renamable $rc3 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  renamable $a = COPY renamable $rc20
+  renamable $x = COPY renamable $rc21
+  CmpBrZeroMultiByte %bb.2, 0, renamable $y, renamable $rc3, implicit-def dead $c
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.4
+  liveins: $rc20, $rc21
+  $x = COPY killed renamable $rc21
+  $a = COPY killed renamable $rc20
+  RTS implicit $a, implicit $x
+
+# End machine code for function gcd.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on gcd omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on gcd omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.1(0x50000000); %bb.4(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3
+  renamable $y = COPY $rc2
+  CmpBrZeroMultiByte %bb.1, 0, renamable $y, renamable $rc3, implicit-def $c
+
+bb.4:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x
+  renamable $rc20 = COPY killed renamable $a
+  renamable $rc21 = COPY killed renamable $x
+  JMP %bb.3
+
+bb.1 (%ir-block.4):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $a, $x, $y, $rc3
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3
+  renamable $rc21 = COPY renamable $rc3
+  renamable $rc20 = COPY renamable $y
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY $y
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  renamable $y = COPY $a
+  renamable $rc3 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  renamable $a = COPY renamable $rc20
+  renamable $x = COPY renamable $rc21
+  CmpBrZeroMultiByte %bb.2, 0, renamable $y, renamable $rc3, implicit-def dead $c
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.4
+  liveins: $rc20, $rc21
+  $x = COPY killed renamable $rc21
+  $a = COPY killed renamable $rc20
+  RTS implicit $a, implicit $x
+
+# End machine code for function gcd.
+
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on gcd omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on gcd omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on gcd omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on gcd omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on gcd omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on gcd omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on gcd omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on gcd omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on gcd omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on gcd omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on gcd omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on gcd omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.1(0x50000000); %bb.4(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc20, $rc21
+  $rc16 = STImag8 $a
+  $a = frame-setup COPY $rc20
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  renamable $y = COPY $rc2
+  CmpBrZeroMultiByte %bb.1, 0, renamable $y, renamable $rc3, implicit-def $c
+
+bb.4:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x
+  renamable $rc20 = COPY killed renamable $a
+  renamable $rc21 = COPY killed renamable $x
+  JMP %bb.3
+
+bb.1 (%ir-block.4):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $a, $x, $y, $rc3
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3
+  renamable $rc21 = COPY renamable $rc3
+  renamable $rc20 = COPY renamable $y
+  $rc2 = COPY $y
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  renamable $y = COPY $a
+  renamable $rc3 = COPY $x
+  renamable $a = COPY renamable $rc20
+  renamable $x = COPY renamable $rc21
+  CmpBrZeroMultiByte %bb.2, 0, renamable $y, renamable $rc3, implicit-def dead $c
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.4
+  liveins: $rc20, $rc21
+  $x = COPY killed renamable $rc21
+  $a = COPY killed renamable $rc20
+  $rc16 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc20 = frame-destroy COPY killed $a
+  $a = LDImag8 $rc16
+  RTS implicit $a, implicit $x, implicit $rc20, implicit $rc21
+
+# End machine code for function gcd.
+
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on gcd omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on gcd omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on gcd omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on gcd omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc20, $rc21
+  $rc16 = STImag8 $a
+  $a = frame-setup COPY $rc20
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  renamable $y = COPY $rc2
+  CmpBrZeroMultiByte %bb.2, 0, renamable $y, renamable $rc3, implicit-def $c
+
+bb.1:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x
+  renamable $rc20 = COPY killed renamable $a
+  renamable $rc21 = COPY killed renamable $x
+  JMP %bb.3
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.2, %bb.0
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3
+  renamable $rc21 = COPY renamable $rc3
+  renamable $rc20 = COPY renamable $y
+  $rc2 = COPY $y
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  renamable $y = COPY $a
+  renamable $rc3 = COPY $x
+  renamable $a = COPY renamable $rc20
+  renamable $x = COPY renamable $rc21
+  CmpBrZeroMultiByte %bb.2, 0, renamable $y, renamable $rc3, implicit-def $c
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.1
+  liveins: $rc20, $rc21
+  $x = COPY killed renamable $rc21
+  $a = COPY killed renamable $rc20
+  $rc16 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc20 = frame-destroy COPY killed $a
+  $a = LDImag8 $rc16
+  RTS implicit $a, implicit $x, implicit $rc20, implicit $rc21
+
+# End machine code for function gcd.
+
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on gcd omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on gcd omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on gcd omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc20, $rc21
+  $rc16 = STImag8 killed $a
+  $a = frame-setup COPY killed $rc20
+  frame-setup PH killed $a
+  $a = frame-setup COPY killed $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  renamable $y = COPY killed $rc2
+  CmpBrZeroMultiByte %bb.2, 0, renamable $y, renamable $rc3, implicit-def dead $c
+
+bb.1:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $x, $a
+  renamable $rc20 = COPY killed renamable $a
+  renamable $rc21 = COPY killed renamable $x
+  JMP %bb.3
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.2, %bb.0
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+  liveins: $y, $rc3, $a, $x
+  renamable $rc21 = COPY renamable $rc3
+  renamable $rc20 = COPY renamable $y
+  $rc2 = COPY killed $y
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  renamable $y = COPY killed $a
+  renamable $rc3 = COPY killed $x
+  renamable $a = COPY renamable $rc20
+  renamable $x = COPY renamable $rc21
+  CmpBrZeroMultiByte %bb.2, 0, renamable $y, renamable $rc3, implicit-def dead $c
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.1
+  liveins: $rc20, $rc21
+  $x = COPY killed renamable $rc21
+  $a = COPY killed renamable $rc20
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc21 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc20 = frame-destroy COPY killed $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21
+
+# End machine code for function gcd.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc20, $rc21
+  $rc16 = STImag8 killed $a
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $y = LDImag8 $rc2
+  CmpBrZeroMultiByte %bb.2, 0, renamable $y, renamable $rc3, implicit-def dead $c
+
+bb.1:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $x, $a
+  $rc20 = STImag8 $a
+  $rc21 = STImag8 $x
+  JMP %bb.3
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.2, %bb.0
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+  liveins: $y, $rc3, $a, $x
+  %0:gpr = LDImag8 $rc3
+  $rc21 = STImag8 %0:gpr
+  $rc20 = STImag8 $y
+  $rc2 = STImag8 $y
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  $y = TA $a
+  $rc3 = STImag8 $x
+  $a = LDImag8 $rc20
+  $x = LDImag8 $rc21
+  CmpBrZeroMultiByte %bb.2, 0, renamable $y, renamable $rc3, implicit-def dead $c
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.1
+  liveins: $rc20, $rc21
+  $x = LDImag8 $rc21
+  $a = LDImag8 $rc20
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21
+
+# End machine code for function gcd.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc20, $rc21
+  $rc16 = STImag8 killed $a
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $y = LDImag8 $rc2
+  CmpBrZeroMultiByte %bb.2, 0, renamable $y, renamable $rc3, implicit-def dead $c
+
+bb.1:
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $x, $a
+  $rc20 = STImag8 $a
+  $rc21 = STImag8 $x
+  JMP %bb.3
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.2, %bb.0
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+  liveins: $y, $rc3, $a, $x
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc3
+  $rc21 = STImag8 killed $y
+  $y = LDImag8 $rc17
+  $rc20 = STImag8 $y
+  $rc2 = STImag8 $y
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  $y = TA $a
+  $rc3 = STImag8 $x
+  $a = LDImag8 $rc20
+  $x = LDImag8 $rc21
+  CmpBrZeroMultiByte %bb.2, 0, renamable $y, renamable $rc3, implicit-def dead $c
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.2, %bb.1
+  liveins: $rc20, $rc21
+  $x = LDImag8 $rc21
+  $a = LDImag8 $rc20
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21
+
+# End machine code for function gcd.
+
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.2(0x50000000); %bb.4(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc20, $rc21
+  $rc16 = STImag8 killed $a
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $y = LDImag8 $rc2
+  CmpBrZero %bb.2, undef $z, 0, renamable $rc3, implicit-def $c
+  JMP %bb.4
+
+bb.4 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $y, $rc3
+  CmpBrZero %bb.2, undef $z, 0, renamable $y, implicit-def $c
+  JMP %bb.1
+
+bb.1:
+; predecessors: %bb.4
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $x, $a
+  $rc20 = STImag8 $a
+  $rc21 = STImag8 $x
+  JMP %bb.3
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.2, %bb.0, %bb.4, %bb.5
+  successors: %bb.5(0x04000000), %bb.2(0x7c000000); %bb.5(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc3
+  $rc21 = STImag8 killed $y
+  $y = LDImag8 $rc17
+  $rc20 = STImag8 $y
+  $rc2 = STImag8 $y
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  $y = TA $a
+  $rc3 = STImag8 $x
+  $a = LDImag8 $rc20
+  $x = LDImag8 $rc21
+  CmpBrZero %bb.2, undef $z, 0, renamable $rc3, implicit-def $c
+  JMP %bb.5
+
+bb.5 (%ir-block.5):
+; predecessors: %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3, $rc20, $rc21
+  CmpBrZero %bb.2, undef $z, 0, renamable $y, implicit-def $c
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.1, %bb.5
+  liveins: $rc20, $rc21
+  $x = LDImag8 $rc21
+  $a = LDImag8 $rc20
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21
+
+# End machine code for function gcd.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.2(0x50000000); %bb.4(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc20, $rc21
+  $rc16 = STImag8 killed $a
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $y = LDImag8 $rc2
+  CmpZero renamable $rc3, implicit-def $c, implicit-def $c, implicit-def $z
+  BR %bb.2, killed $z, 0
+  JMP %bb.4
+
+bb.4 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $y, $rc3
+  CmpZero renamable $y, implicit-def $c, implicit-def $c, implicit-def $z
+  BR %bb.2, killed $z, 0
+  JMP %bb.1
+
+bb.1:
+; predecessors: %bb.4
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $x, $a
+  $rc20 = STImag8 $a
+  $rc21 = STImag8 $x
+  JMP %bb.3
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.2, %bb.0, %bb.4, %bb.5
+  successors: %bb.5(0x04000000), %bb.2(0x7c000000); %bb.5(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc3
+  $rc21 = STImag8 killed $y
+  $y = LDImag8 $rc17
+  $rc20 = STImag8 $y
+  $rc2 = STImag8 $y
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  $y = TA $a
+  $rc3 = STImag8 $x
+  $a = LDImag8 $rc20
+  $x = LDImag8 $rc21
+  CmpZero renamable $rc3, implicit-def $c, implicit-def $c, implicit-def $z
+  BR %bb.2, killed $z, 0
+  JMP %bb.5
+
+bb.5 (%ir-block.5):
+; predecessors: %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3, $rc20, $rc21
+  CmpZero renamable $y, implicit-def $c, implicit-def $c, implicit-def $z
+  BR %bb.2, killed $z, 0
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.1, %bb.5
+  liveins: $rc20, $rc21
+  $x = LDImag8 $rc21
+  $a = LDImag8 $rc20
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21
+
+# End machine code for function gcd.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on gcd omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.2(0x50000000); %bb.4(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc20, $rc21
+  $rc16 = STImag8 killed $a
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $y = LDImag8 $rc2
+  $rc3 = INC $rc3(tied-def 0)
+  dead $rc3 = DEC $rc3(tied-def 0), implicit-def $nz
+  BR %bb.2, killed $z, 0
+  JMP %bb.4
+
+bb.4 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $y, $rc3
+  dead $c = CMPImm $y, 0, implicit-def $nz
+  BR %bb.2, killed $z, 0
+  JMP %bb.1
+
+bb.1:
+; predecessors: %bb.4
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $x, $a
+  $rc20 = STImag8 $a
+  $rc21 = STImag8 $x
+  JMP %bb.3
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.2, %bb.0, %bb.4, %bb.5
+  successors: %bb.5(0x04000000), %bb.2(0x7c000000); %bb.5(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc3
+  $rc21 = STImag8 killed $y
+  $y = LDImag8 $rc17
+  $rc20 = STImag8 $y
+  $rc2 = STImag8 $y
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  $y = TA $a
+  $rc3 = STImag8 $x
+  $a = LDImag8 $rc20
+  $x = LDImag8 $rc21
+  $rc3 = INC $rc3(tied-def 0)
+  dead $rc3 = DEC $rc3(tied-def 0), implicit-def $nz
+  BR %bb.2, killed $z, 0
+  JMP %bb.5
+
+bb.5 (%ir-block.5):
+; predecessors: %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3, $rc20, $rc21
+  dead $c = CMPImm $y, 0, implicit-def $nz
+  BR %bb.2, killed $z, 0
+  JMP %bb.3
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.1, %bb.5
+  liveins: $rc20, $rc21
+  $x = LDImag8 $rc21
+  $a = LDImag8 $rc20
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21
+
+# End machine code for function gcd.
+
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on gcd omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on gcd omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on gcd omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on gcd omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on gcd omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.4(0x30000000), %bb.2(0x50000000); %bb.4(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc20, $rc21
+  $rc16 = STImag8 killed $a
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $y = LDImag8 $rc2
+  $rc3 = INC $rc3(tied-def 0)
+  dead $rc3 = DEC $rc3(tied-def 0), implicit-def $nz
+  BR %bb.2, killed $z, 0
+
+bb.4 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $y, $rc3
+  dead $c = CMPImm $y, 0, implicit-def $nz
+  BR %bb.1, killed $z, 1
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.2, %bb.0, %bb.4, %bb.5
+  successors: %bb.5(0x04000000), %bb.2(0x7c000000); %bb.5(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc3
+  $rc21 = STImag8 killed $y
+  $y = LDImag8 $rc17
+  $rc20 = STImag8 $y
+  $rc2 = STImag8 $y
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  $y = TA $a
+  $rc3 = STImag8 $x
+  $a = LDImag8 $rc20
+  $x = LDImag8 $rc21
+  $rc3 = INC $rc3(tied-def 0)
+  dead $rc3 = DEC $rc3(tied-def 0), implicit-def $nz
+  BR %bb.2, killed $z, 0
+
+bb.5 (%ir-block.5):
+; predecessors: %bb.2
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3, $rc20, $rc21
+  dead $c = CMPImm $y, 0, implicit-def $nz
+  BR %bb.2, killed $z, 0
+
+bb.3 (%ir-block.10):
+; predecessors: %bb.1, %bb.5
+  liveins: $rc20, $rc21
+  $x = LDImag8 $rc21
+  $a = LDImag8 $rc20
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21
+
+bb.1:
+; predecessors: %bb.4
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $x, $a
+  $rc20 = STImag8 $a
+  $rc21 = STImag8 $x
+  JMP %bb.3
+
+# End machine code for function gcd.
+
+*** IR Dump After Insert fentry calls (fentry-insert) on gcd omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on gcd omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on gcd omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on gcd ***
+# Machine code for function gcd: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc20, $rc21
+  $rc16 = STImag8 killed $a
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $y = LDImag8 $rc2
+  $rc3 = INC $rc3(tied-def 0)
+  dead $rc3 = DEC $rc3(tied-def 0), implicit-def $nz
+  BR %bb.2, killed $z, 0
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.5(0x30000000), %bb.2(0x50000000); %bb.5(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $y, $rc3
+  dead $c = CMPImm $y, 0, implicit-def $nz
+  BR %bb.5, killed $z, 1
+
+bb.2 (%ir-block.5):
+; predecessors: %bb.2, %bb.0, %bb.1, %bb.3
+  successors: %bb.3(0x04000000), %bb.2(0x7c000000); %bb.3(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3
+  $rc17 = STImag8 $y
+  $y = LDImag8 $rc3
+  $rc21 = STImag8 killed $y
+  $y = LDImag8 $rc17
+  $rc20 = STImag8 $y
+  $rc2 = STImag8 $y
+  JSR &__modhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  $y = TA $a
+  $rc3 = STImag8 $x
+  $a = LDImag8 $rc20
+  $x = LDImag8 $rc21
+  $rc3 = INC $rc3(tied-def 0)
+  dead $rc3 = DEC $rc3(tied-def 0), implicit-def $nz
+  BR %bb.2, killed $z, 0
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.2
+  successors: %bb.4(0x04000000), %bb.2(0x7c000000); %bb.4(3.12%), %bb.2(96.88%)
+  liveins: $a, $x, $y, $rc3, $rc20, $rc21
+  dead $c = CMPImm $y, 0, implicit-def $nz
+  BR %bb.2, killed $z, 0
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.5, %bb.3
+  liveins: $rc20, $rc21
+  $x = LDImag8 $rc21
+  $a = LDImag8 $rc20
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21
+
+bb.5:
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+  liveins: $x, $a
+  $rc20 = STImag8 $a
+  $rc21 = STImag8 $x
+  JMP %bb.4
+
+# End machine code for function gcd.
+
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on gcd omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on gcd omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on gcd omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on gcd omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on gcd omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on gcd omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on gcd omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on gcd omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on gcd omitted because no change ***

@@ -176,6 +176,7 @@ internal static class MirBinaryWriter
             case Symbol s:
                 writer.Write((byte)OperandTag.Symbol);
                 writer.Write(s.Name);
+                writer.Write(s.Offset);
                 break;
 
             default:

@@ -1,0 +1,40 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/memory/global-rw
+; Faithful read-modify-write of a global with an arg-supplied delta:
+;   int counter; int global_rw(int delta) { counter += delta; return counter; }
+; via mem.symbol / mem.load.i16 / mem.store.i16 with absolute addressing.
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Compare against ext/llvm-mos-reference/memory/global-rw.s; close gaps via irie-report.
+
+; CHECK:     global_rw:
+; CHECK:     STA \$03
+; CHECK:     STX \$02
+; CHECK:     LDA counter
+; CHECK:     TAY
+; CHECK:     LDA counter\+1
+; CHECK:     TAX
+; CHECK:     CLC
+; CHECK:     TYA
+; CHECK:     ADC \$03
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC \$02
+; CHECK:     TAX
+; CHECK:     TYA
+; CHECK:     STA counter
+; CHECK:     TXA
+; CHECK:     STA counter\+1
+; CHECK:     TYA
+; CHECK:     RTS
+
+global @counter : i16 = bytes "\x00\x00"
+func @global_rw : (i16) -> i16 {
+bb0(%0 : i16):
+    %1 : i16 = mem.symbol @counter
+    %2 : i16 = mem.load.i16 %1
+    %3 : i16 = arith.addi %2, %0
+    mem.store.i16 %1, %3
+    core.return %3
+}

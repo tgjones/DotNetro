@@ -1,0 +1,517 @@
+*** IR Dump At Start ***
+; ModuleID = './widths/truncate.c'
+source_filename = "./widths/truncate.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local zeroext i8 @truncate(i16 noundef %0, i16 noundef %1) #0 {
+  %3 = alloca i16, align 1
+  %4 = alloca i16, align 1
+  store i16 %0, ptr %3, align 1, !tbaa !2
+  store i16 %1, ptr %4, align 1, !tbaa !2
+  %5 = load i16, ptr %3, align 1, !tbaa !2
+  %6 = load i16, ptr %4, align 1, !tbaa !2
+  %7 = add nsw i16 %5, %6
+  %8 = trunc i16 %7 to i8
+  ret i8 %8
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on truncate omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on truncate omitted because no change ***
+*** IR Dump After SimplifyCFGPass on truncate omitted because no change ***
+*** IR Dump After SROAPass on truncate ***
+; Function Attrs: nounwind optsize
+define dso_local zeroext i8 @truncate(i16 noundef %0, i16 noundef %1) #0 {
+  %3 = add nsw i16 %0, %1
+  %4 = trunc i16 %3 to i8
+  ret i8 %4
+}
+*** IR Dump After EarlyCSEPass on truncate omitted because no change ***
+*** IR Pass PassManager<Function> on truncate ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './widths/truncate.c'
+source_filename = "./widths/truncate.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local zeroext i8 @truncate(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = add nsw i16 %0, %1
+  %4 = trunc i16 %3 to i8
+  ret i8 %4
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on truncate omitted because no change ***
+*** IR Dump After InstCombinePass on truncate omitted because no change ***
+*** IR Dump After SimplifyCFGPass on truncate omitted because no change ***
+*** IR Pass PassManager<Function> on truncate ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on truncate omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (truncate) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (truncate) omitted because no change ***
+*** IR Dump After SROAPass on truncate omitted because no change ***
+*** IR Dump After EarlyCSEPass on truncate omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on truncate omitted because no change ***
+*** IR Dump After JumpThreadingPass on truncate omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on truncate omitted because no change ***
+*** IR Dump After SimplifyCFGPass on truncate omitted because no change ***
+*** IR Dump After InstCombinePass on truncate omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on truncate omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on truncate omitted because no change ***
+*** IR Dump After TailCallElimPass on truncate omitted because no change ***
+*** IR Dump After SimplifyCFGPass on truncate omitted because no change ***
+*** IR Dump After ReassociatePass on truncate ***
+; Function Attrs: nounwind optsize
+define dso_local zeroext i8 @truncate(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = add nsw i16 %1, %0
+  %4 = trunc i16 %3 to i8
+  ret i8 %4
+}
+*** IR Dump After ConstraintEliminationPass on truncate omitted because no change ***
+*** IR Dump After LoopSimplifyPass on truncate omitted because no change ***
+*** IR Dump After LCSSAPass on truncate omitted because no change ***
+*** IR Pass PassManager<Function> on truncate ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on truncate ignored ***
+*** IR Dump After SimplifyCFGPass on truncate omitted because no change ***
+*** IR Dump After InstCombinePass on truncate omitted because no change ***
+*** IR Dump After LoopSimplifyPass on truncate omitted because no change ***
+*** IR Dump After LCSSAPass on truncate omitted because no change ***
+*** IR Pass PassManager<Function> on truncate ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on truncate ignored ***
+*** IR Dump After SROAPass on truncate omitted because no change ***
+*** IR Dump After VectorCombinePass on truncate omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on truncate omitted because no change ***
+*** IR Dump After GVNPass on truncate omitted because no change ***
+*** IR Dump After SCCPPass on truncate omitted because no change ***
+*** IR Dump After BDCEPass on truncate omitted because no change ***
+*** IR Dump After InstCombinePass on truncate omitted because no change ***
+*** IR Dump After JumpThreadingPass on truncate omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on truncate omitted because no change ***
+*** IR Dump After ADCEPass on truncate omitted because no change ***
+*** IR Dump After MemCpyOptPass on truncate omitted because no change ***
+*** IR Dump After DSEPass on truncate omitted because no change ***
+*** IR Dump After MoveAutoInitPass on truncate omitted because no change ***
+*** IR Dump After LoopSimplifyPass on truncate omitted because no change ***
+*** IR Dump After LCSSAPass on truncate omitted because no change ***
+*** IR Pass PassManager<Function> on truncate ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on truncate ignored ***
+*** IR Dump After CoroElidePass on truncate omitted because no change ***
+*** IR Dump After SimplifyCFGPass on truncate omitted because no change ***
+*** IR Dump After InstCombinePass on truncate omitted because no change ***
+*** IR Pass PassManager<Function> on truncate ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (truncate) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (truncate) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local zeroext i8 @truncate(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = add nsw i16 %1, %0
+  %4 = trunc i16 %3 to i8
+  ret i8 %4
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on truncate omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (truncate) ignored ***
+*** IR Dump After CoroSplitPass on (truncate) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (truncate) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (truncate) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (truncate) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on truncate omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on truncate omitted because no change ***
+*** IR Dump After Float2IntPass on truncate omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on truncate omitted because no change ***
+*** IR Dump After LoopSimplifyPass on truncate omitted because no change ***
+*** IR Dump After LCSSAPass on truncate omitted because no change ***
+*** IR Pass PassManager<Function> on truncate ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on truncate ignored ***
+*** IR Dump After LoopDistributePass on truncate omitted because no change ***
+*** IR Dump After InjectTLIMappings on truncate omitted because no change ***
+*** IR Dump After LoopVectorizePass on truncate omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on truncate omitted because no change ***
+*** IR Dump After InferAlignmentPass on truncate omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on truncate omitted because no change ***
+*** IR Dump After InstCombinePass on truncate omitted because no change ***
+*** IR Dump After SimplifyCFGPass on truncate omitted because no change ***
+*** IR Dump After SLPVectorizerPass on truncate omitted because no change ***
+*** IR Dump After VectorCombinePass on truncate omitted because no change ***
+*** IR Dump After InstCombinePass on truncate omitted because no change ***
+*** IR Dump After LoopUnrollPass on truncate omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on truncate omitted because no change ***
+*** IR Dump After SROAPass on truncate omitted because no change ***
+*** IR Dump After InferAlignmentPass on truncate omitted because no change ***
+*** IR Dump After InstCombinePass on truncate omitted because no change ***
+*** IR Dump After LoopSimplifyPass on truncate omitted because no change ***
+*** IR Dump After LCSSAPass on truncate omitted because no change ***
+*** IR Pass PassManager<Function> on truncate ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on truncate ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on truncate omitted because no change ***
+*** IR Dump After LoopSinkPass on truncate omitted because no change ***
+*** IR Dump After InstSimplifyPass on truncate omitted because no change ***
+*** IR Dump After DivRemPairsPass on truncate omitted because no change ***
+*** IR Dump After MergeICmpsPass on truncate omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on truncate omitted because no change ***
+*** IR Dump After TailCallElimPass on truncate omitted because no change ***
+*** IR Dump After SimplifyCFGPass on truncate omitted because no change ***
+*** IR Pass PassManager<Function> on truncate ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on truncate omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on truncate omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on truncate ***
+# Machine code for function truncate: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %2:_(s8), %3:_(s8)
+  %4:_(s8) = COPY $rc2
+  %5:_(s8) = COPY $rc3
+  %1:_(s16) = G_MERGE_VALUES %4:_(s8), %5:_(s8)
+  %6:_(s16) = nsw G_ADD %1:_, %0:_
+  %7:_(s8) = G_TRUNC %6:_(s16)
+  $a = COPY %7:_(s8)
+  RTS implicit $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on truncate omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on truncate omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on truncate omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on truncate omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on truncate omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on truncate omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on truncate omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on truncate ***
+# Machine code for function truncate: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:_(s8) = COPY $a
+  %4:_(s8) = COPY $rc2
+  %16:_(s1) = G_CONSTANT i1 false
+  %12:_(s8), %13:_(s1) = G_UADDE %4:_, %2:_, %16:_
+  $a = COPY %12:_(s8)
+  RTS implicit $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on truncate omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on truncate omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on truncate omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on truncate omitted because no change ***
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on truncate omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on truncate ***
+# Machine code for function truncate: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:any(s8) = COPY $a
+  %4:any(s8) = COPY $rc2
+  %16:any(s1) = G_CONSTANT i1 false
+  %12:any(s8), %13:any(s1) = G_UADDE %4:any, %2:any, %16:any
+  $a = COPY %12:any(s8)
+  RTS implicit $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Localizer (localizer) on truncate omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on truncate omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on truncate ***
+# Machine code for function truncate: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:imag8 = COPY $a
+  %4:ac = COPY $rc2
+  %16:cc = LDImm1 0
+  %12:ac, %13:cc, %17:vc = ADCImag8 %4:ac(tied-def 0), %2:imag8, %16:cc
+  $a = COPY %12:ac
+  RTS implicit $a
+
+# End machine code for function truncate.
+
+*** IR Dump After ResetMachineFunction on truncate omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on truncate omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on truncate omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on truncate omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on truncate omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on truncate omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on truncate omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on truncate omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on truncate omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on truncate omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on truncate omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on truncate omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on truncate omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on truncate omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on truncate omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on truncate omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on truncate omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on truncate omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on truncate omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on truncate omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on truncate omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on truncate omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on truncate ***
+# Machine code for function truncate: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:imag8 = COPY $a
+  %4:ac = COPY $rc2
+  %16:cc = LDImm1 0
+  %12:ac, dead %13:cc, dead %17:vc = ADCImag8 %4:ac(tied-def 0), %2:imag8, %16:cc
+  $a = COPY %12:ac
+  RTS implicit $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Init Undef Pass (init-undef) on truncate omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on truncate omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on truncate ***
+# Machine code for function truncate: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:imag8 = COPY $a
+  %4:ac = COPY $rc2
+  %16:cc = LDImm1 0
+  %12:ac, dead %13:cc, dead %17:vc = ADCImag8 %4:ac(tied-def 0), %2:imag8, %16:cc
+  $a = COPY %12:ac
+  RTS implicit $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Live Variable Analysis (livevars) on truncate ***
+# Machine code for function truncate: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:imag8 = COPY killed $a
+  %4:ac = COPY killed $rc2
+  %16:cc = LDImm1 0
+  %12:ac, dead %13:cc, dead %17:vc = ADCImag8 killed %4:ac(tied-def 0), killed %2:imag8, killed %16:cc
+  $a = COPY killed %12:ac
+  RTS implicit killed $a
+
+# End machine code for function truncate.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on truncate omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on truncate omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on truncate ***
+# Machine code for function truncate: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:imag8 = COPY killed $a
+  %4:ac = COPY killed $rc2
+  %16:cc = LDImm1 0
+  %12:ac, dead %13:cc, dead %17:vc = ADCImag8 killed %4:ac(tied-def 0), killed %2:imag8, killed %16:cc
+  $a = COPY killed %12:ac
+  RTS implicit killed $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on truncate ***
+# Machine code for function truncate: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:ac = COPY killed $a
+  %4:imag8 = COPY killed $rc2
+  %16:cc = LDImm1 0
+  %12:ac = COPY killed %2:ac
+  %12:ac, dead %13:cc, dead %17:vc = ADCImag8 %12:ac(tied-def 0), killed %4:imag8, killed %16:cc
+  $a = COPY killed %12:ac
+  RTS implicit killed $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Slot index numbering (slotindexes) on truncate omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on truncate ***
+# Machine code for function truncate: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:ac = COPY $a
+  %4:imag8 = COPY $rc2
+  %16:cc = LDImm1 0
+  %12:ac = COPY %2:ac
+  %12:ac, dead %13:cc, dead %17:vc = ADCImag8 %12:ac(tied-def 0), %4:imag8, %16:cc
+  $a = COPY %12:ac
+  RTS implicit $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Register Coalescer (register-coalescer) on truncate ***
+# Machine code for function truncate: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %12:ac = COPY $a
+  %4:imag8 = COPY $rc2
+  %16:cc = LDImm1 0
+  %12:ac, dead %13:cc, dead %17:vc = ADCImag8 %12:ac(tied-def 0), %4:imag8, %16:cc
+  $a = COPY %12:ac
+  RTS implicit $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Register Coalescer (register-coalescer) on truncate omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on truncate omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on truncate omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on truncate omitted because no change ***
+*** IR Dump After Debug Variable Analysis (livedebugvars) on truncate ***
+# Machine code for function truncate: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %12:ac = COPY $a
+  %4:imag8 = COPY $rc2
+  %16:cc = LDImm1 0
+  %12:ac, dead %13:cc, dead %17:vc = ADCImag8 %12:ac(tied-def 0), %4:imag8, %16:cc
+  $a = COPY %12:ac
+  RTS implicit $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on truncate omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on truncate omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on truncate omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on truncate omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on truncate omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on truncate omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on truncate omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on truncate omitted because no change ***
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on truncate ***
+# Machine code for function truncate: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  renamable $c = LDImm1 0
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  RTS implicit $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on truncate omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on truncate omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on truncate omitted because no change ***
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on truncate omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on truncate omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on truncate omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on truncate omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on truncate omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on truncate omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on truncate omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on truncate omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on truncate omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on truncate omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on truncate omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on truncate omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on truncate omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on truncate omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on truncate omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on truncate omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on truncate omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on truncate omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on truncate omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on truncate omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on truncate omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on truncate ***
+# Machine code for function truncate: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  renamable $c = LDImm1 0
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  RTS implicit killed $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on truncate ***
+# Machine code for function truncate: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  renamable $c = LDCImm 0
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  RTS implicit killed $a
+
+# End machine code for function truncate.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on truncate omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on truncate omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on truncate omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on truncate omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on truncate omitted because no change ***
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on truncate omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on truncate omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on truncate omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on truncate omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on truncate omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on truncate omitted because no change ***
+*** IR Dump After Insert fentry calls (fentry-insert) on truncate omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on truncate omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on truncate omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on truncate omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on truncate omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on truncate omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on truncate omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on truncate omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on truncate omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on truncate omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on truncate omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on truncate omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on truncate omitted because no change ***

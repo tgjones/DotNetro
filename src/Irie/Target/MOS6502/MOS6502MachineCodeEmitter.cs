@@ -120,10 +120,10 @@ public sealed class MOS6502MachineCodeEmitter : Irie.Target.MachineCodeEmitter
     private static MachineCodeOperand EmitSymbolHalf(MirInstruction instr, int index, SymbolHalf half)
     {
         var operand = instr.Operands[index];
-        if (operand is not Symbol(var name))
+        if (operand is not Symbol sym)
             throw new InvalidOperationException(
                 $"MOS6502MachineCodeEmitter: expected a Symbol at operand[{index}] of {(MOS6502Op)instr.Opcode.Code}, got {operand}.");
-        return new MachineCodeOperand.ExternalRef(name, half);
+        return new MachineCodeOperand.ExternalRef(sym.Name, half, sym.Offset);
     }
 
     private static MachineCodeOperand EmitAbsoluteAddress(MirInstruction instr, int index, MirFunction parent)
@@ -131,7 +131,7 @@ public sealed class MOS6502MachineCodeEmitter : Irie.Target.MachineCodeEmitter
         var operand = instr.Operands[index];
         return operand switch
         {
-            Symbol(var name)   => new MachineCodeOperand.ExternalRef(name),
+            Symbol sym         => new MachineCodeOperand.ExternalRef(sym.Name, SymbolHalf.Full, sym.Offset),
             BlockTarget target => new MachineCodeOperand.LabelRef(BlockLabel(parent.Blocks.IndexOf(target.Block))),
             // Immediate carries a literal 16-bit address (e.g. `JSR $FFEE` for an
             // OS call). The assembly writer formats this as `$XXXX`.

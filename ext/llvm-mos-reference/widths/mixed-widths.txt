@@ -1,0 +1,1761 @@
+*** IR Dump At Start ***
+; ModuleID = './widths/mixed-widths.c'
+source_filename = "./widths/mixed-widths.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i32 @mixed_widths(i8 noundef zeroext %0, i16 noundef %1, i32 noundef %2) #0 {
+  %4 = alloca i8, align 1
+  %5 = alloca i16, align 1
+  %6 = alloca i32, align 1
+  %7 = alloca i16, align 1
+  %8 = alloca i32, align 1
+  store i8 %0, ptr %4, align 1, !tbaa !6
+  store i16 %1, ptr %5, align 1, !tbaa !2
+  store i32 %2, ptr %6, align 1, !tbaa !7
+  call void @llvm.lifetime.start.p0(ptr %7) #2
+  %9 = load i8, ptr %4, align 1, !tbaa !6
+  %10 = zext i8 %9 to i16
+  %11 = load i16, ptr %5, align 1, !tbaa !2
+  %12 = add nsw i16 %10, %11
+  store i16 %12, ptr %7, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %8) #2
+  %13 = load i16, ptr %7, align 1, !tbaa !2
+  %14 = sext i16 %13 to i32
+  %15 = load i32, ptr %6, align 1, !tbaa !7
+  %16 = add nsw i32 %14, %15
+  store i32 %16, ptr %8, align 1, !tbaa !7
+  %17 = load i32, ptr %8, align 1, !tbaa !7
+  %18 = load i8, ptr %4, align 1, !tbaa !6
+  %19 = zext i8 %18 to i32
+  %20 = add nsw i32 %17, %19
+  call void @llvm.lifetime.end.p0(ptr %8) #2
+  call void @llvm.lifetime.end.p0(ptr %7) #2
+  ret i32 %20
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = !{!4, !4, i64 0}
+!7 = !{!8, !8, i64 0}
+!8 = !{!"long", !4, i64 0}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] ***
+; ModuleID = './widths/mixed-widths.c'
+source_filename = "./widths/mixed-widths.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i32 @mixed_widths(i8 noundef zeroext %0, i16 noundef %1, i32 noundef %2) #0 {
+  %4 = alloca i8, align 1
+  %5 = alloca i16, align 1
+  %6 = alloca i32, align 1
+  %7 = alloca i16, align 1
+  %8 = alloca i32, align 1
+  store i8 %0, ptr %4, align 1, !tbaa !6
+  store i16 %1, ptr %5, align 1, !tbaa !2
+  store i32 %2, ptr %6, align 1, !tbaa !7
+  call void @llvm.lifetime.start.p0(ptr %7) #2
+  %9 = load i8, ptr %4, align 1, !tbaa !6
+  %10 = zext i8 %9 to i16
+  %11 = load i16, ptr %5, align 1, !tbaa !2
+  %12 = add nsw i16 %10, %11
+  store i16 %12, ptr %7, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %8) #2
+  %13 = load i16, ptr %7, align 1, !tbaa !2
+  %14 = sext i16 %13 to i32
+  %15 = load i32, ptr %6, align 1, !tbaa !7
+  %16 = add nsw i32 %14, %15
+  store i32 %16, ptr %8, align 1, !tbaa !7
+  %17 = load i32, ptr %8, align 1, !tbaa !7
+  %18 = load i8, ptr %4, align 1, !tbaa !6
+  %19 = zext i8 %18 to i32
+  %20 = add nsw i32 %17, %19
+  call void @llvm.lifetime.end.p0(ptr %8) #2
+  call void @llvm.lifetime.end.p0(ptr %7) #2
+  ret i32 %20
+}
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = !{!4, !4, i64 0}
+!7 = !{!8, !8, i64 0}
+!8 = !{!"long", !4, i64 0}
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on mixed_widths omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on mixed_widths omitted because no change ***
+*** IR Dump After SimplifyCFGPass on mixed_widths omitted because no change ***
+*** IR Dump After SROAPass on mixed_widths ***
+; Function Attrs: nounwind optsize
+define dso_local i32 @mixed_widths(i8 noundef zeroext %0, i16 noundef %1, i32 noundef %2) #0 {
+  %4 = zext i8 %0 to i16
+  %5 = add nsw i16 %4, %1
+  %6 = sext i16 %5 to i32
+  %7 = add nsw i32 %6, %2
+  %8 = zext i8 %0 to i32
+  %9 = add nsw i32 %7, %8
+  ret i32 %9
+}
+*** IR Dump After EarlyCSEPass on mixed_widths omitted because no change ***
+*** IR Pass PassManager<Function> on mixed_widths ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './widths/mixed-widths.c'
+source_filename = "./widths/mixed-widths.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i32 @mixed_widths(i8 noundef zeroext %0, i16 noundef %1, i32 noundef %2) local_unnamed_addr #0 {
+  %4 = zext i8 %0 to i16
+  %5 = add nsw i16 %4, %1
+  %6 = sext i16 %5 to i32
+  %7 = add nsw i32 %6, %2
+  %8 = zext i8 %0 to i32
+  %9 = add nsw i32 %7, %8
+  ret i32 %9
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on mixed_widths omitted because no change ***
+*** IR Dump After InstCombinePass on mixed_widths ***
+; Function Attrs: nounwind optsize
+define dso_local i32 @mixed_widths(i8 noundef zeroext %0, i16 noundef %1, i32 noundef %2) local_unnamed_addr #0 {
+  %4 = zext i8 %0 to i16
+  %5 = add nsw i16 %1, %4
+  %6 = sext i16 %5 to i32
+  %7 = add nsw i32 %2, %6
+  %8 = zext i8 %0 to i32
+  %9 = add nsw i32 %7, %8
+  ret i32 %9
+}
+*** IR Dump After SimplifyCFGPass on mixed_widths omitted because no change ***
+*** IR Pass PassManager<Function> on mixed_widths ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on mixed_widths omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (mixed_widths) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (mixed_widths) omitted because no change ***
+*** IR Dump After SROAPass on mixed_widths omitted because no change ***
+*** IR Dump After EarlyCSEPass on mixed_widths omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on mixed_widths omitted because no change ***
+*** IR Dump After JumpThreadingPass on mixed_widths omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on mixed_widths omitted because no change ***
+*** IR Dump After SimplifyCFGPass on mixed_widths omitted because no change ***
+*** IR Dump After InstCombinePass on mixed_widths omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on mixed_widths omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on mixed_widths omitted because no change ***
+*** IR Dump After TailCallElimPass on mixed_widths omitted because no change ***
+*** IR Dump After SimplifyCFGPass on mixed_widths omitted because no change ***
+*** IR Dump After ReassociatePass on mixed_widths ***
+; Function Attrs: nounwind optsize
+define dso_local i32 @mixed_widths(i8 noundef zeroext %0, i16 noundef %1, i32 noundef %2) local_unnamed_addr #0 {
+  %4 = zext i8 %0 to i16
+  %5 = add nsw i16 %1, %4
+  %6 = sext i16 %5 to i32
+  %7 = zext i8 %0 to i32
+  %8 = add i32 %2, %7
+  %9 = add i32 %8, %6
+  ret i32 %9
+}
+*** IR Dump After ConstraintEliminationPass on mixed_widths omitted because no change ***
+*** IR Dump After LoopSimplifyPass on mixed_widths omitted because no change ***
+*** IR Dump After LCSSAPass on mixed_widths omitted because no change ***
+*** IR Pass PassManager<Function> on mixed_widths ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on mixed_widths ignored ***
+*** IR Dump After SimplifyCFGPass on mixed_widths omitted because no change ***
+*** IR Dump After InstCombinePass on mixed_widths omitted because no change ***
+*** IR Dump After LoopSimplifyPass on mixed_widths omitted because no change ***
+*** IR Dump After LCSSAPass on mixed_widths omitted because no change ***
+*** IR Pass PassManager<Function> on mixed_widths ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on mixed_widths ignored ***
+*** IR Dump After SROAPass on mixed_widths omitted because no change ***
+*** IR Dump After VectorCombinePass on mixed_widths omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on mixed_widths omitted because no change ***
+*** IR Dump After GVNPass on mixed_widths omitted because no change ***
+*** IR Dump After SCCPPass on mixed_widths omitted because no change ***
+*** IR Dump After BDCEPass on mixed_widths omitted because no change ***
+*** IR Dump After InstCombinePass on mixed_widths omitted because no change ***
+*** IR Dump After JumpThreadingPass on mixed_widths omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on mixed_widths omitted because no change ***
+*** IR Dump After ADCEPass on mixed_widths omitted because no change ***
+*** IR Dump After MemCpyOptPass on mixed_widths omitted because no change ***
+*** IR Dump After DSEPass on mixed_widths omitted because no change ***
+*** IR Dump After MoveAutoInitPass on mixed_widths omitted because no change ***
+*** IR Dump After LoopSimplifyPass on mixed_widths omitted because no change ***
+*** IR Dump After LCSSAPass on mixed_widths omitted because no change ***
+*** IR Pass PassManager<Function> on mixed_widths ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on mixed_widths ignored ***
+*** IR Dump After CoroElidePass on mixed_widths omitted because no change ***
+*** IR Dump After SimplifyCFGPass on mixed_widths omitted because no change ***
+*** IR Dump After InstCombinePass on mixed_widths omitted because no change ***
+*** IR Pass PassManager<Function> on mixed_widths ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (mixed_widths) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (mixed_widths) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local i32 @mixed_widths(i8 noundef zeroext %0, i16 noundef %1, i32 noundef %2) local_unnamed_addr #0 {
+  %4 = zext i8 %0 to i16
+  %5 = add nsw i16 %1, %4
+  %6 = sext i16 %5 to i32
+  %7 = zext i8 %0 to i32
+  %8 = add i32 %2, %7
+  %9 = add i32 %8, %6
+  ret i32 %9
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on mixed_widths omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (mixed_widths) ignored ***
+*** IR Dump After CoroSplitPass on (mixed_widths) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (mixed_widths) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (mixed_widths) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (mixed_widths) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on mixed_widths omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on mixed_widths omitted because no change ***
+*** IR Dump After Float2IntPass on mixed_widths omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on mixed_widths omitted because no change ***
+*** IR Dump After LoopSimplifyPass on mixed_widths omitted because no change ***
+*** IR Dump After LCSSAPass on mixed_widths omitted because no change ***
+*** IR Pass PassManager<Function> on mixed_widths ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on mixed_widths ignored ***
+*** IR Dump After LoopDistributePass on mixed_widths omitted because no change ***
+*** IR Dump After InjectTLIMappings on mixed_widths omitted because no change ***
+*** IR Dump After LoopVectorizePass on mixed_widths omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on mixed_widths omitted because no change ***
+*** IR Dump After InferAlignmentPass on mixed_widths omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on mixed_widths omitted because no change ***
+*** IR Dump After InstCombinePass on mixed_widths omitted because no change ***
+*** IR Dump After SimplifyCFGPass on mixed_widths omitted because no change ***
+*** IR Dump After SLPVectorizerPass on mixed_widths omitted because no change ***
+*** IR Dump After VectorCombinePass on mixed_widths omitted because no change ***
+*** IR Dump After InstCombinePass on mixed_widths omitted because no change ***
+*** IR Dump After LoopUnrollPass on mixed_widths omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on mixed_widths omitted because no change ***
+*** IR Dump After SROAPass on mixed_widths omitted because no change ***
+*** IR Dump After InferAlignmentPass on mixed_widths omitted because no change ***
+*** IR Dump After InstCombinePass on mixed_widths omitted because no change ***
+*** IR Dump After LoopSimplifyPass on mixed_widths omitted because no change ***
+*** IR Dump After LCSSAPass on mixed_widths omitted because no change ***
+*** IR Pass PassManager<Function> on mixed_widths ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on mixed_widths ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on mixed_widths omitted because no change ***
+*** IR Dump After LoopSinkPass on mixed_widths omitted because no change ***
+*** IR Dump After InstSimplifyPass on mixed_widths omitted because no change ***
+*** IR Dump After DivRemPairsPass on mixed_widths omitted because no change ***
+*** IR Dump After MergeICmpsPass on mixed_widths omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on mixed_widths omitted because no change ***
+*** IR Dump After TailCallElimPass on mixed_widths omitted because no change ***
+*** IR Dump After SimplifyCFGPass on mixed_widths omitted because no change ***
+*** IR Pass PassManager<Function> on mixed_widths ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on mixed_widths omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on mixed_widths omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on mixed_widths ***
+# Machine code for function mixed_widths: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %4:_(s8) = COPY $rc2
+  %1:_(s16) = G_MERGE_VALUES %3:_(s8), %4:_(s8)
+  %5:_(s8) = COPY $rc3
+  %6:_(s8) = COPY $rc4
+  %7:_(s8) = COPY $rc5
+  %8:_(s8) = COPY $rc6
+  %2:_(s32) = G_MERGE_VALUES %5:_(s8), %6:_(s8), %7:_(s8), %8:_(s8)
+  %9:_(s16) = G_ZEXT %0:_(s8)
+  %10:_(s16) = nsw G_ADD %1:_, %9:_
+  %11:_(s32) = G_SEXT %10:_(s16)
+  %12:_(s32) = G_ZEXT %0:_(s8)
+  %13:_(s32) = G_ADD %2:_, %12:_
+  %14:_(s32) = G_ADD %13:_, %11:_
+  %15:_(s8), %16:_(s8), %17:_(s8), %18:_(s8) = G_UNMERGE_VALUES %14:_(s32)
+  $a = COPY %15:_(s8)
+  $x = COPY %16:_(s8)
+  $rc2 = COPY %17:_(s8)
+  $rc3 = COPY %18:_(s8)
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on mixed_widths omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on mixed_widths omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on mixed_widths omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on mixed_widths omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on mixed_widths omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on mixed_widths omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on mixed_widths omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on mixed_widths ***
+# Machine code for function mixed_widths: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %4:_(s8) = COPY $rc2
+  %5:_(s8) = COPY $rc3
+  %6:_(s8) = COPY $rc4
+  %7:_(s8) = COPY $rc5
+  %8:_(s8) = COPY $rc6
+  %60:_(s8) = G_CONSTANT i8 0
+  %35:_(s1) = G_CONSTANT i1 false
+  %56:_(s8), %57:_(s1) = G_UADDE %3:_, %0:_, %35:_
+  %58:_(s8), %59:_(s1) = G_UADDE %4:_, %60:_, %57:_
+  %67:_(s1) = G_CONSTANT i1 true
+  %68:_(s8), %69:_(s1), %70:_, %71:_, %72:_ = G_SBC %58:_, %60:_, %67:_
+  %62:_(s1) = COPY %70:_(s1)
+  %63:_(s8) = G_CONSTANT i8 -1
+  %64:_(s8) = G_SELECT %62:_(s1), %63:_, %60:_
+  %44:_(s8), %45:_(s1) = G_UADDE %5:_, %0:_, %35:_
+  %46:_(s8), %47:_(s1) = G_UADDE %6:_, %60:_, %45:_
+  %48:_(s8), %49:_(s1) = G_UADDE %7:_, %60:_, %47:_
+  %50:_(s8), %51:_(s1) = G_UADDE %8:_, %60:_, %49:_
+  %27:_(s8), %28:_(s1) = G_UADDE %44:_, %56:_, %35:_
+  %29:_(s8), %30:_(s1) = G_UADDE %46:_, %58:_, %28:_
+  %31:_(s8), %32:_(s1) = G_UADDE %48:_, %64:_, %30:_
+  %33:_(s8), %34:_(s1) = G_UADDE %50:_, %64:_, %32:_
+  $a = COPY %27:_(s8)
+  $x = COPY %29:_(s8)
+  $rc2 = COPY %31:_(s8)
+  $rc3 = COPY %33:_(s8)
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on mixed_widths omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on mixed_widths omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on mixed_widths omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on mixed_widths ***
+# Machine code for function mixed_widths: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %4:_(s8) = COPY $rc2
+  %5:_(s8) = COPY $rc3
+  %6:_(s8) = COPY $rc4
+  %7:_(s8) = COPY $rc5
+  %8:_(s8) = COPY $rc6
+  %60:_(s8) = G_CONSTANT i8 0
+  %35:_(s1) = G_CONSTANT i1 false
+  %56:_(s8), %57:_(s1) = G_UADDE %3:_, %0:_, %35:_
+  %58:_(s8), %59:_(s1) = G_UADDE %4:_, %60:_, %57:_
+  %67:_(s1) = G_CONSTANT i1 true
+  %68:_(s8), %69:_(s1), %70:_, %71:_, %72:_ = G_SBC %58:_, %60:_, %67:_
+  %63:_(s8) = G_CONSTANT i8 -1
+  %64:_(s8) = G_SELECT %70:_(s1), %63:_, %60:_
+  %44:_(s8), %45:_(s1) = G_UADDE %5:_, %0:_, %35:_
+  %46:_(s8), %47:_(s1) = G_UADDE %6:_, %60:_, %45:_
+  %48:_(s8), %49:_(s1) = G_UADDE %7:_, %60:_, %47:_
+  %50:_(s8), %51:_(s1) = G_UADDE %8:_, %60:_, %49:_
+  %27:_(s8), %28:_(s1) = G_UADDE %44:_, %56:_, %35:_
+  %29:_(s8), %30:_(s1) = G_UADDE %46:_, %58:_, %28:_
+  %31:_(s8), %32:_(s1) = G_UADDE %48:_, %64:_, %30:_
+  %33:_(s8), %34:_(s1) = G_UADDE %50:_, %64:_, %32:_
+  $a = COPY %27:_(s8)
+  $x = COPY %29:_(s8)
+  $rc2 = COPY %31:_(s8)
+  $rc3 = COPY %33:_(s8)
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on mixed_widths ***
+# Machine code for function mixed_widths: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.3):
+  successors: %bb.2(0x40000000), %bb.3(0x40000000); %bb.2(50.00%), %bb.3(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %4:_(s8) = COPY $rc2
+  %5:_(s8) = COPY $rc3
+  %6:_(s8) = COPY $rc4
+  %7:_(s8) = COPY $rc5
+  %8:_(s8) = COPY $rc6
+  %60:_(s8) = G_CONSTANT i8 0
+  %35:_(s1) = G_CONSTANT i1 false
+  %56:_(s8), %57:_(s1) = G_UADDE %3:_, %0:_, %35:_
+  %58:_(s8), %59:_(s1) = G_UADDE %4:_, %60:_, %57:_
+  %67:_(s1) = G_CONSTANT i1 true
+  %68:_(s8), %69:_(s1), %70:_, %71:_, %72:_ = G_SBC %58:_, %60:_, %67:_
+  G_BRCOND_IMM %70:_(s1), %bb.2, 1
+  G_BR %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %63:_(s8) = G_CONSTANT i8 -1
+  G_BR %bb.4
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2, %bb.3
+
+  %64:_(s8) = G_PHI %63:_(s8), %bb.2, %60:_(s8), %bb.3
+  %44:_(s8), %45:_(s1) = G_UADDE %5:_, %0:_, %35:_
+  %46:_(s8), %47:_(s1) = G_UADDE %6:_, %60:_, %45:_
+  %48:_(s8), %49:_(s1) = G_UADDE %7:_, %60:_, %47:_
+  %50:_(s8), %51:_(s1) = G_UADDE %8:_, %60:_, %49:_
+  %27:_(s8), %28:_(s1) = G_UADDE %44:_, %56:_, %35:_
+  %29:_(s8), %30:_(s1) = G_UADDE %46:_, %58:_, %28:_
+  %31:_(s8), %32:_(s1) = G_UADDE %48:_, %64:_, %30:_
+  %33:_(s8), %34:_(s1) = G_UADDE %50:_, %64:_, %32:_
+  $a = COPY %27:_(s8)
+  $x = COPY %29:_(s8)
+  $rc2 = COPY %31:_(s8)
+  $rc3 = COPY %33:_(s8)
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After RegBankSelect (regbankselect) on mixed_widths ***
+# Machine code for function mixed_widths: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.3):
+  successors: %bb.2(0x40000000), %bb.3(0x40000000); %bb.2(50.00%), %bb.3(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:any(s8) = COPY $a
+  %3:any(s8) = COPY $x
+  %4:any(s8) = COPY $rc2
+  %5:any(s8) = COPY $rc3
+  %6:any(s8) = COPY $rc4
+  %7:any(s8) = COPY $rc5
+  %8:any(s8) = COPY $rc6
+  %60:any(s8) = G_CONSTANT i8 0
+  %35:any(s1) = G_CONSTANT i1 false
+  %56:any(s8), %57:any(s1) = G_UADDE %3:any, %0:any, %35:any
+  %58:any(s8), %59:any(s1) = G_UADDE %4:any, %60:any, %57:any
+  %67:any(s1) = G_CONSTANT i1 true
+  %68:any(s8), %69:any(s1), %70:any, %71:any, %72:any = G_SBC %58:any, %60:any, %67:any
+  G_BRCOND_IMM %70:any(s1), %bb.2, 1
+  G_BR %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %63:any(s8) = G_CONSTANT i8 -1
+  G_BR %bb.4
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2, %bb.3
+
+  %64:any(s8) = G_PHI %63:any(s8), %bb.2, %60:any(s8), %bb.3
+  %44:any(s8), %45:any(s1) = G_UADDE %5:any, %0:any, %35:any
+  %46:any(s8), %47:any(s1) = G_UADDE %6:any, %60:any, %45:any
+  %48:any(s8), %49:any(s1) = G_UADDE %7:any, %60:any, %47:any
+  %50:any(s8), %51:any(s1) = G_UADDE %8:any, %60:any, %49:any
+  %27:any(s8), %28:any(s1) = G_UADDE %44:any, %56:any, %35:any
+  %29:any(s8), %30:any(s1) = G_UADDE %46:any, %58:any, %28:any
+  %31:any(s8), %32:any(s1) = G_UADDE %48:any, %64:any, %30:any
+  %33:any(s8), %34:any(s1) = G_UADDE %50:any, %64:any, %32:any
+  $a = COPY %27:any(s8)
+  $x = COPY %29:any(s8)
+  $rc2 = COPY %31:any(s8)
+  $rc3 = COPY %33:any(s8)
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Localizer (localizer) on mixed_widths ***
+# Machine code for function mixed_widths: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.3):
+  successors: %bb.2(0x40000000), %bb.3(0x40000000); %bb.2(50.00%), %bb.3(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:any(s8) = COPY $a
+  %3:any(s8) = COPY $x
+  %4:any(s8) = COPY $rc2
+  %5:any(s8) = COPY $rc3
+  %6:any(s8) = COPY $rc4
+  %7:any(s8) = COPY $rc5
+  %8:any(s8) = COPY $rc6
+  %35:any(s1) = G_CONSTANT i1 false
+  %56:any(s8), %57:any(s1) = G_UADDE %3:any, %0:any, %35:any
+  %60:any(s8) = G_CONSTANT i8 0
+  %58:any(s8), %59:any(s1) = G_UADDE %4:any, %60:any, %57:any
+  %67:any(s1) = G_CONSTANT i1 true
+  %68:any(s8), %69:any(s1), %70:any, %71:any, %72:any = G_SBC %58:any, %60:any, %67:any
+  G_BRCOND_IMM %70:any(s1), %bb.2, 1
+  G_BR %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %63:any(s8) = G_CONSTANT i8 -1
+  G_BR %bb.4
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %75:any(s8) = G_CONSTANT i8 0
+  G_BR %bb.4
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2, %bb.3
+
+  %64:any(s8) = G_PHI %63:any(s8), %bb.2, %75:any(s8), %bb.3
+  %73:any(s1) = G_CONSTANT i1 false
+  %44:any(s8), %45:any(s1) = G_UADDE %5:any, %0:any, %73:any
+  %74:any(s8) = G_CONSTANT i8 0
+  %46:any(s8), %47:any(s1) = G_UADDE %6:any, %74:any, %45:any
+  %48:any(s8), %49:any(s1) = G_UADDE %7:any, %74:any, %47:any
+  %50:any(s8), %51:any(s1) = G_UADDE %8:any, %74:any, %49:any
+  %27:any(s8), %28:any(s1) = G_UADDE %44:any, %56:any, %73:any
+  %29:any(s8), %30:any(s1) = G_UADDE %46:any, %58:any, %28:any
+  %31:any(s8), %32:any(s1) = G_UADDE %48:any, %64:any, %30:any
+  %33:any(s8), %34:any(s1) = G_UADDE %50:any, %64:any, %32:any
+  $a = COPY %27:any(s8)
+  $x = COPY %29:any(s8)
+  $rc2 = COPY %31:any(s8)
+  $rc3 = COPY %33:any(s8)
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on mixed_widths omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on mixed_widths ***
+# Machine code for function mixed_widths: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.3):
+  successors: %bb.2(0x40000000), %bb.3(0x40000000); %bb.2(50.00%), %bb.3(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:imag8 = COPY $a
+  %3:ac = COPY $x
+  %4:ac = COPY $rc2
+  %5:ac = COPY $rc3
+  %6:ac = COPY $rc4
+  %7:ac = COPY $rc5
+  %8:ac = COPY $rc6
+  %35:cc = LDImm1 0
+  %87:ac, %57:cc, %86:vc = ADCImag8 %3:ac(tied-def 0), %0:imag8, %35:cc
+  %56:imag8 = COPY %87:ac
+  %85:ac, %59:cc, %84:vc = ADCImm %4:ac(tied-def 0), 0, %57:cc(tied-def 1)
+  %58:imag8 = COPY %85:ac
+  CmpBrZero %bb.2, undef $n, 1, %58:imag8, implicit-def $c
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %63:gpr = LDImm -1
+  JMP %bb.4
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %75:gpr = LDImm 0
+  JMP %bb.4
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2, %bb.3
+
+  %64:imag8 = PHI %63:gpr, %bb.2, %75:gpr, %bb.3
+  %73:cc = LDImm1 0
+  %44:ac, %45:cc, %83:vc = ADCImag8 %5:ac(tied-def 0), %0:imag8, %73:cc
+  %46:ac, %47:cc, %82:vc = ADCImm %6:ac(tied-def 0), 0, %45:cc(tied-def 1)
+  %48:ac, %49:cc, %81:vc = ADCImm %7:ac(tied-def 0), 0, %47:cc(tied-def 1)
+  %50:ac, %51:cc, %80:vc = ADCImm %8:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %27:ac, %28:cc, %79:vc = ADCImag8 %44:ac(tied-def 0), %56:imag8, %73:cc
+  %29:ac, %30:cc, %78:vc = ADCImag8 %46:ac(tied-def 0), %58:imag8, %28:cc
+  %31:ac, %32:cc, %77:vc = ADCImag8 %48:ac(tied-def 0), %64:imag8, %30:cc
+  %33:ac, %34:cc, %76:vc = ADCImag8 %50:ac(tied-def 0), %64:imag8, %32:cc
+  $a = COPY %27:ac
+  $x = COPY %29:ac
+  $rc2 = COPY %31:ac
+  $rc3 = COPY %33:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After ResetMachineFunction on mixed_widths omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on mixed_widths omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on mixed_widths omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on mixed_widths omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on mixed_widths omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on mixed_widths omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on mixed_widths omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on mixed_widths omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on mixed_widths omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on mixed_widths omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on mixed_widths omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on mixed_widths omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on mixed_widths omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on mixed_widths omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on mixed_widths omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on mixed_widths omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on mixed_widths omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on mixed_widths ***
+# Machine code for function mixed_widths: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.3):
+  successors: %bb.2(0x40000000), %bb.3(0x40000000); %bb.2(50.00%), %bb.3(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:imag8 = COPY $a
+  %3:ac = COPY $x
+  %4:ac = COPY $rc2
+  %5:ac = COPY $rc3
+  %6:ac = COPY $rc4
+  %7:ac = COPY $rc5
+  %8:ac = COPY $rc6
+  %35:cc = LDImm1 0
+  %87:ac, %57:cc, dead %86:vc = ADCImag8 %3:ac(tied-def 0), %0:imag8, %35:cc
+  %56:imag8 = COPY %87:ac
+  %85:ac, dead %59:cc, dead %84:vc = ADCImm %4:ac(tied-def 0), 0, %57:cc(tied-def 1)
+  %58:imag8 = COPY %85:ac
+  CmpBrZero %bb.2, undef $n, 1, %58:imag8, implicit-def $c
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %63:gpr = LDImm -1
+  JMP %bb.4
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %75:gpr = LDImm 0
+  JMP %bb.4
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2, %bb.3
+
+  %64:imag8 = PHI %63:gpr, %bb.2, %75:gpr, %bb.3
+  %73:cc = LDImm1 0
+  %44:ac, %45:cc, dead %83:vc = ADCImag8 %5:ac(tied-def 0), %0:imag8, %73:cc
+  %46:ac, %47:cc, dead %82:vc = ADCImm %6:ac(tied-def 0), 0, %45:cc(tied-def 1)
+  %48:ac, %49:cc, dead %81:vc = ADCImm %7:ac(tied-def 0), 0, %47:cc(tied-def 1)
+  %50:ac, dead %51:cc, dead %80:vc = ADCImm %8:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %27:ac, %28:cc, dead %79:vc = ADCImag8 %44:ac(tied-def 0), %56:imag8, %73:cc
+  %29:ac, %30:cc, dead %78:vc = ADCImag8 %46:ac(tied-def 0), %58:imag8, %28:cc
+  %31:ac, %32:cc, dead %77:vc = ADCImag8 %48:ac(tied-def 0), %64:imag8, %30:cc
+  %33:ac, dead %34:cc, dead %76:vc = ADCImag8 %50:ac(tied-def 0), %64:imag8, %32:cc
+  $a = COPY %27:ac
+  $x = COPY %29:ac
+  $rc2 = COPY %31:ac
+  $rc3 = COPY %33:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Init Undef Pass (init-undef) on mixed_widths omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on mixed_widths omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on mixed_widths ***
+# Machine code for function mixed_widths: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:imag8 = COPY $a
+  %3:ac = COPY $x
+  %4:ac = COPY $rc2
+  %5:ac = COPY $rc3
+  %6:ac = COPY $rc4
+  %7:ac = COPY $rc5
+  %8:ac = COPY $rc6
+  %35:cc = LDImm1 0
+  %87:ac, %57:cc, dead %86:vc = ADCImag8 %3:ac(tied-def 0), %0:imag8, %35:cc
+  %56:imag8 = COPY %87:ac
+  %85:ac, dead %59:cc, dead %84:vc = ADCImm %4:ac(tied-def 0), 0, %57:cc(tied-def 1)
+  %58:imag8 = COPY %85:ac
+  CmpBrZero %bb.1, undef $n, 1, %58:imag8, implicit-def $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %63:gpr = LDImm -1
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %75:gpr = LDImm 0
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+
+  %64:imag8 = PHI %63:gpr, %bb.1, %75:gpr, %bb.2
+  %73:cc = LDImm1 0
+  %44:ac, %45:cc, dead %83:vc = ADCImag8 %5:ac(tied-def 0), %0:imag8, %73:cc
+  %46:ac, %47:cc, dead %82:vc = ADCImm %6:ac(tied-def 0), 0, %45:cc(tied-def 1)
+  %48:ac, %49:cc, dead %81:vc = ADCImm %7:ac(tied-def 0), 0, %47:cc(tied-def 1)
+  %50:ac, dead %51:cc, dead %80:vc = ADCImm %8:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %27:ac, %28:cc, dead %79:vc = ADCImag8 %44:ac(tied-def 0), %56:imag8, %73:cc
+  %29:ac, %30:cc, dead %78:vc = ADCImag8 %46:ac(tied-def 0), %58:imag8, %28:cc
+  %31:ac, %32:cc, dead %77:vc = ADCImag8 %48:ac(tied-def 0), %64:imag8, %30:cc
+  %33:ac, dead %34:cc, dead %76:vc = ADCImag8 %50:ac(tied-def 0), %64:imag8, %32:cc
+  $a = COPY %27:ac
+  $x = COPY %29:ac
+  $rc2 = COPY %31:ac
+  $rc3 = COPY %33:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Live Variable Analysis (livevars) on mixed_widths ***
+# Machine code for function mixed_widths: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:imag8 = COPY killed $a
+  %3:ac = COPY killed $x
+  %4:ac = COPY killed $rc2
+  %5:ac = COPY killed $rc3
+  %6:ac = COPY killed $rc4
+  %7:ac = COPY killed $rc5
+  %8:ac = COPY killed $rc6
+  %35:cc = LDImm1 0
+  %87:ac, %57:cc, dead %86:vc = ADCImag8 killed %3:ac(tied-def 0), %0:imag8, killed %35:cc
+  %56:imag8 = COPY killed %87:ac
+  %85:ac, dead %59:cc, dead %84:vc = ADCImm killed %4:ac(tied-def 0), 0, killed %57:cc(tied-def 1)
+  %58:imag8 = COPY killed %85:ac
+  CmpBrZero %bb.1, undef $n, 1, %58:imag8, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %63:gpr = LDImm -1
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %75:gpr = LDImm 0
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+
+  %64:imag8 = PHI %63:gpr, %bb.1, %75:gpr, %bb.2
+  %73:cc = LDImm1 0
+  %44:ac, %45:cc, dead %83:vc = ADCImag8 killed %5:ac(tied-def 0), killed %0:imag8, %73:cc
+  %46:ac, %47:cc, dead %82:vc = ADCImm killed %6:ac(tied-def 0), 0, killed %45:cc(tied-def 1)
+  %48:ac, %49:cc, dead %81:vc = ADCImm killed %7:ac(tied-def 0), 0, killed %47:cc(tied-def 1)
+  %50:ac, dead %51:cc, dead %80:vc = ADCImm killed %8:ac(tied-def 0), 0, killed %49:cc(tied-def 1)
+  %27:ac, %28:cc, dead %79:vc = ADCImag8 killed %44:ac(tied-def 0), killed %56:imag8, killed %73:cc
+  %29:ac, %30:cc, dead %78:vc = ADCImag8 killed %46:ac(tied-def 0), killed %58:imag8, killed %28:cc
+  %31:ac, %32:cc, dead %77:vc = ADCImag8 killed %48:ac(tied-def 0), %64:imag8, killed %30:cc
+  %33:ac, dead %34:cc, dead %76:vc = ADCImag8 killed %50:ac(tied-def 0), killed %64:imag8, killed %32:cc
+  $a = COPY killed %27:ac
+  $x = COPY killed %29:ac
+  $rc2 = COPY killed %31:ac
+  $rc3 = COPY killed %33:ac
+  RTS implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on mixed_widths omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:imag8 = COPY killed $a
+  %3:ac = COPY killed $x
+  %4:ac = COPY killed $rc2
+  %5:ac = COPY killed $rc3
+  %6:ac = COPY killed $rc4
+  %7:ac = COPY killed $rc5
+  %8:ac = COPY killed $rc6
+  %35:cc = LDImm1 0
+  %87:ac, %57:cc, dead %86:vc = ADCImag8 killed %3:ac(tied-def 0), %0:imag8, killed %35:cc
+  %56:imag8 = COPY killed %87:ac
+  %85:ac, dead %59:cc, dead %84:vc = ADCImm killed %4:ac(tied-def 0), 0, killed %57:cc(tied-def 1)
+  %58:imag8 = COPY killed %85:ac
+  CmpBrZero %bb.1, undef $n, 1, %58:imag8, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %63:gpr = LDImm -1
+  %88:imag8 = COPY killed %63:gpr
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %75:gpr = LDImm 0
+  %88:imag8 = COPY killed %75:gpr
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+
+  %64:imag8 = COPY killed %88:imag8
+  %73:cc = LDImm1 0
+  %44:ac, %45:cc, dead %83:vc = ADCImag8 killed %5:ac(tied-def 0), killed %0:imag8, %73:cc
+  %46:ac, %47:cc, dead %82:vc = ADCImm killed %6:ac(tied-def 0), 0, killed %45:cc(tied-def 1)
+  %48:ac, %49:cc, dead %81:vc = ADCImm killed %7:ac(tied-def 0), 0, killed %47:cc(tied-def 1)
+  %50:ac, dead %51:cc, dead %80:vc = ADCImm killed %8:ac(tied-def 0), 0, killed %49:cc(tied-def 1)
+  %27:ac, %28:cc, dead %79:vc = ADCImag8 killed %44:ac(tied-def 0), killed %56:imag8, killed %73:cc
+  %29:ac, %30:cc, dead %78:vc = ADCImag8 killed %46:ac(tied-def 0), killed %58:imag8, killed %28:cc
+  %31:ac, %32:cc, dead %77:vc = ADCImag8 killed %48:ac(tied-def 0), %64:imag8, killed %30:cc
+  %33:ac, dead %34:cc, dead %76:vc = ADCImag8 killed %50:ac(tied-def 0), killed %64:imag8, killed %32:cc
+  $a = COPY killed %27:ac
+  $x = COPY killed %29:ac
+  $rc2 = COPY killed %31:ac
+  $rc3 = COPY killed %33:ac
+  RTS implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:imag8 = COPY killed $a
+  %3:ac = COPY killed $x
+  %4:ac = COPY killed $rc2
+  %5:ac = COPY killed $rc3
+  %6:ac = COPY killed $rc4
+  %7:ac = COPY killed $rc5
+  %8:ac = COPY killed $rc6
+  %35:cc = LDImm1 0
+  %87:ac = COPY killed %3:ac
+  %87:ac, %57:cc, dead %86:vc = ADCImag8 %87:ac(tied-def 0), %0:imag8, killed %35:cc
+  %56:imag8 = COPY killed %87:ac
+  %85:ac = COPY killed %4:ac
+  %59:cc = COPY killed %57:cc
+  %85:ac, dead %59:cc, dead %84:vc = ADCImm %85:ac(tied-def 0), 0, %59:cc(tied-def 1)
+  %58:imag8 = COPY killed %85:ac
+  CmpBrZero %bb.1, undef $n, 1, %58:imag8, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %63:gpr = LDImm -1
+  %88:imag8 = COPY killed %63:gpr
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %75:gpr = LDImm 0
+  %88:imag8 = COPY killed %75:gpr
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+
+  %64:imag8 = COPY killed %88:imag8
+  %73:cc = LDImm1 0
+  %44:ac = COPY killed %5:ac
+  %44:ac, %45:cc, dead %83:vc = ADCImag8 %44:ac(tied-def 0), killed %0:imag8, %73:cc
+  %47:cc = COPY killed %45:cc
+  %46:ac = COPY killed %6:ac
+  %46:ac, %47:cc, dead %82:vc = ADCImm %46:ac(tied-def 0), 0, %47:cc(tied-def 1)
+  %49:cc = COPY killed %47:cc
+  %48:ac = COPY killed %7:ac
+  %48:ac, %49:cc, dead %81:vc = ADCImm %48:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %50:ac = COPY killed %8:ac
+  %51:cc = COPY killed %49:cc
+  %50:ac, dead %51:cc, dead %80:vc = ADCImm %50:ac(tied-def 0), 0, %51:cc(tied-def 1)
+  %27:ac = COPY killed %44:ac
+  %27:ac, %28:cc, dead %79:vc = ADCImag8 %27:ac(tied-def 0), killed %56:imag8, killed %73:cc
+  %29:ac = COPY killed %46:ac
+  %29:ac, %30:cc, dead %78:vc = ADCImag8 %29:ac(tied-def 0), killed %58:imag8, killed %28:cc
+  %31:ac = COPY killed %48:ac
+  %31:ac, %32:cc, dead %77:vc = ADCImag8 %31:ac(tied-def 0), %64:imag8, killed %30:cc
+  %33:ac = COPY killed %50:ac
+  %33:ac, dead %34:cc, dead %76:vc = ADCImag8 %33:ac(tied-def 0), killed %64:imag8, killed %32:cc
+  $a = COPY killed %27:ac
+  $x = COPY killed %29:ac
+  $rc2 = COPY killed %31:ac
+  $rc3 = COPY killed %33:ac
+  RTS implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Slot index numbering (slotindexes) on mixed_widths omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:imag8 = COPY $a
+  %3:ac = COPY $x
+  %4:ac = COPY $rc2
+  %5:ac = COPY $rc3
+  %6:ac = COPY $rc4
+  %7:ac = COPY $rc5
+  %8:ac = COPY $rc6
+  %35:cc = LDImm1 0
+  %87:ac = COPY %3:ac
+  %87:ac, %57:cc, dead %86:vc = ADCImag8 %87:ac(tied-def 0), %0:imag8, %35:cc
+  %56:imag8 = COPY %87:ac
+  %85:ac = COPY %4:ac
+  %59:cc = COPY %57:cc
+  %85:ac, dead %59:cc, dead %84:vc = ADCImm %85:ac(tied-def 0), 0, %59:cc(tied-def 1)
+  %58:imag8 = COPY %85:ac
+  CmpBrZero %bb.1, undef $n, 1, %58:imag8, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %63:gpr = LDImm -1
+  %88:imag8 = COPY %63:gpr
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %75:gpr = LDImm 0
+  %88:imag8 = COPY %75:gpr
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+
+  %64:imag8 = COPY %88:imag8
+  %73:cc = LDImm1 0
+  %44:ac = COPY %5:ac
+  %44:ac, %45:cc, dead %83:vc = ADCImag8 %44:ac(tied-def 0), %0:imag8, %73:cc
+  %47:cc = COPY %45:cc
+  %46:ac = COPY %6:ac
+  %46:ac, %47:cc, dead %82:vc = ADCImm %46:ac(tied-def 0), 0, %47:cc(tied-def 1)
+  %49:cc = COPY %47:cc
+  %48:ac = COPY %7:ac
+  %48:ac, %49:cc, dead %81:vc = ADCImm %48:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %50:ac = COPY %8:ac
+  %51:cc = COPY %49:cc
+  %50:ac, dead %51:cc, dead %80:vc = ADCImm %50:ac(tied-def 0), 0, %51:cc(tied-def 1)
+  %27:ac = COPY %44:ac
+  %27:ac, %28:cc, dead %79:vc = ADCImag8 %27:ac(tied-def 0), %56:imag8, %73:cc
+  %29:ac = COPY %46:ac
+  %29:ac, %30:cc, dead %78:vc = ADCImag8 %29:ac(tied-def 0), %58:imag8, %28:cc
+  %31:ac = COPY %48:ac
+  %31:ac, %32:cc, dead %77:vc = ADCImag8 %31:ac(tied-def 0), %64:imag8, %30:cc
+  %33:ac = COPY %50:ac
+  %33:ac, dead %34:cc, dead %76:vc = ADCImag8 %33:ac(tied-def 0), %64:imag8, %32:cc
+  $a = COPY %27:ac
+  $x = COPY %29:ac
+  $rc2 = COPY %31:ac
+  $rc3 = COPY %33:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Register Coalescer (register-coalescer) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:imag8 = COPY $a
+  %87:ac = COPY $x
+  %85:ac = COPY $rc2
+  %27:ac = COPY $rc3
+  %29:ac = COPY $rc4
+  %31:ac = COPY $rc5
+  %33:ac = COPY $rc6
+  %35:cc = LDImm1 0
+  %87:ac, %59:cc, dead %86:vc = ADCImag8 %87:ac(tied-def 0), %0:imag8, %35:cc
+  %56:imag8 = COPY %87:ac
+  %85:ac, dead %59:cc, dead %84:vc = ADCImm %85:ac(tied-def 0), 0, %59:cc(tied-def 1)
+  %58:imag8 = COPY %85:ac
+  CmpBrZero %bb.1, undef $n, 1, %58:imag8, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %63:gpr = LDImm -1
+  %88:imag8 = COPY %63:gpr
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %75:gpr = LDImm 0
+  %88:imag8 = COPY %75:gpr
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+
+  %73:cc = LDImm1 0
+  %27:ac, %49:cc, dead %83:vc = ADCImag8 %27:ac(tied-def 0), %0:imag8, %73:cc
+  %29:ac, %49:cc, dead %82:vc = ADCImm %29:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %31:ac, %49:cc, dead %81:vc = ADCImm %31:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %33:ac, dead %49:cc, dead %80:vc = ADCImm %33:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %27:ac, %28:cc, dead %79:vc = ADCImag8 %27:ac(tied-def 0), %56:imag8, %73:cc
+  %29:ac, %30:cc, dead %78:vc = ADCImag8 %29:ac(tied-def 0), %58:imag8, %28:cc
+  %31:ac, %32:cc, dead %77:vc = ADCImag8 %31:ac(tied-def 0), %88:imag8, %30:cc
+  %33:ac, dead %34:cc, dead %76:vc = ADCImag8 %33:ac(tied-def 0), %88:imag8, %32:cc
+  $a = COPY %27:ac
+  $x = COPY %29:ac
+  $rc2 = COPY %31:ac
+  $rc3 = COPY %33:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Register Coalescer (register-coalescer) on mixed_widths omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:imag8 = COPY $a
+  %87:ac = COPY $x
+  %85:ac = COPY $rc2
+  %27:ac = COPY $rc3
+  %29:ac = COPY $rc4
+  %31:ac = COPY $rc5
+  %33:ac = COPY $rc6
+  %35:cc = LDImm1 0
+  %87:ac, %59:cc, dead %86:vc = ADCImag8 %87:ac(tied-def 0), %0:imag8, %35:cc
+  %56:imag8 = COPY %87:ac
+  %85:ac, dead %59:cc, dead %84:vc = ADCImm %85:ac(tied-def 0), 0, %59:cc(tied-def 1)
+  %58:imag8 = COPY %85:ac
+  CmpBrZero %bb.1, undef $n, 1, %58:imag8, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %63:gpr = LDImm -1
+  %88:imag8 = COPY %63:gpr
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %75:gpr = LDImm 0
+  %88:imag8 = COPY %75:gpr
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+
+  %73:cc = LDImm1 0
+  %27:ac, %49:cc, dead %83:vc = ADCImag8 %27:ac(tied-def 0), %0:imag8, %73:cc
+  %29:ac, %49:cc, dead %82:vc = ADCImm %29:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %31:ac, %49:cc, dead %81:vc = ADCImm %31:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %33:ac, dead %49:cc, dead %80:vc = ADCImm %33:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %27:ac, %28:cc, dead %79:vc = ADCImag8 %27:ac(tied-def 0), %56:imag8, %73:cc
+  %29:ac, %30:cc, dead %78:vc = ADCImag8 %29:ac(tied-def 0), %58:imag8, %28:cc
+  %31:ac, %32:cc, dead %77:vc = ADCImag8 %31:ac(tied-def 0), %88:imag8, %30:cc
+  %33:ac, dead %34:cc, dead %76:vc = ADCImag8 %33:ac(tied-def 0), %88:imag8, %32:cc
+  $rc2 = COPY %31:ac
+  $rc3 = COPY %33:ac
+  $x = COPY %29:ac
+  $a = COPY %27:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:imag8 = COPY $a
+  %87:ac = COPY $x
+  %85:ac = COPY $rc2
+  %27:ac = COPY $rc3
+  %29:ac = COPY $rc4
+  %31:ac = COPY $rc5
+  %33:ac = COPY $rc6
+  %35:cc = LDImm1 0
+  %87:ac, %59:cc, dead %86:vc = ADCImag8 %87:ac(tied-def 0), %0:imag8, %35:cc
+  %56:imag8 = COPY %87:ac
+  %85:ac, dead %59:cc, dead %84:vc = ADCImm %85:ac(tied-def 0), 0, %59:cc(tied-def 1)
+  %58:imag8 = COPY %85:ac
+  CmpBrZero %bb.1, undef $n, 1, %58:imag8, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %63:gpr = LDImm -1
+  %88:imag8 = COPY %63:gpr
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %75:gpr = LDImm 0
+  %88:imag8 = COPY %75:gpr
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+
+  %73:cc = LDImm1 0
+  %27:ac, %49:cc, dead %83:vc = ADCImag8 %27:ac(tied-def 0), %0:imag8, %73:cc
+  %29:ac, %49:cc, dead %82:vc = ADCImm %29:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %31:ac, %49:cc, dead %81:vc = ADCImm %31:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %33:ac, dead %49:cc, dead %80:vc = ADCImm %33:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %27:ac, %28:cc, dead %79:vc = ADCImag8 %27:ac(tied-def 0), %56:imag8, %73:cc
+  %29:ac, %30:cc, dead %78:vc = ADCImag8 %29:ac(tied-def 0), %58:imag8, %28:cc
+  %31:ac, %32:cc, dead %77:vc = ADCImag8 %31:ac(tied-def 0), %88:imag8, %30:cc
+  %33:ac, dead %34:cc, dead %76:vc = ADCImag8 %33:ac(tied-def 0), %88:imag8, %32:cc
+  $rc2 = COPY %31:ac
+  $rc3 = COPY %33:ac
+  $x = COPY %29:ac
+  $a = COPY %27:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on mixed_widths omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on mixed_widths omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on mixed_widths omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on mixed_widths omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on mixed_widths omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on mixed_widths omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  %0:imag8 = COPY $a
+  %87:ac = COPY $x
+  %121:anyi8 = COPY $rc2
+  %89:anyi8 = COPY $rc3
+  %91:anyi8 = COPY $rc4
+  %93:anyi8 = COPY $rc5
+  %95:anyi8 = COPY $rc6
+  %35:cc = LDImm1 0
+  %87:ac, %59:cc, dead %86:vc = ADCImag8 %87:ac(tied-def 0), %0:imag8, %35:cc
+  %56:imag8 = COPY %87:ac
+  %122:ac = COPY %121:anyi8
+  %122:ac, dead %59:cc, dead %84:vc = ADCImm %122:ac(tied-def 0), 0, %59:cc(tied-def 1)
+  %58:imag8 = COPY %122:ac
+  CmpBrZero %bb.1, undef $n, 1, %58:imag8, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %63:gpr = LDImm -1
+  %88:imag8 = COPY %63:gpr
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %75:gpr = LDImm 0
+  %88:imag8 = COPY %75:gpr
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+
+  %98:ac = COPY %89:anyi8
+  %116:cc = LDImm1 0
+  %98:ac, %49:cc, dead %83:vc = ADCImag8 %98:ac(tied-def 0), %0:imag8, %116:cc
+  %99:anyi8 = COPY %98:ac
+  %103:ac = COPY %91:anyi8
+  %103:ac, %49:cc, dead %82:vc = ADCImm %103:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %104:anyi8 = COPY %103:ac
+  %107:ac = COPY %93:anyi8
+  %107:ac, %49:cc, dead %81:vc = ADCImm %107:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %108:anyi8 = COPY %107:ac
+  %120:ac = COPY %95:anyi8
+  %120:ac, dead %49:cc, dead %80:vc = ADCImm %120:ac(tied-def 0), 0, %49:cc(tied-def 1)
+  %123:anyi8 = COPY %120:ac
+  %100:ac = COPY %99:anyi8
+  %117:cc = LDImm1 0
+  %100:ac, %28:cc, dead %79:vc = ADCImag8 %100:ac(tied-def 0), %56:imag8, %117:cc
+  %101:anyi8 = COPY %100:ac
+  %111:anyi8 = COPY %104:anyi8
+  %112:ac = COPY %111:anyi8
+  %112:ac, %30:cc, dead %78:vc = ADCImag8 %112:ac(tied-def 0), %58:imag8, %28:cc
+  %113:anyi8 = COPY %112:ac
+  %109:ac = COPY %108:anyi8
+  %109:ac, %32:cc, dead %77:vc = ADCImag8 %109:ac(tied-def 0), %88:imag8, %30:cc
+  %110:anyi8 = COPY %109:ac
+  %124:ac = COPY %123:anyi8
+  %124:ac, dead %34:cc, dead %76:vc = ADCImag8 %124:ac(tied-def 0), %88:imag8, %32:cc
+  $rc2 = COPY %110:anyi8
+  $rc3 = COPY %124:ac
+  $x = COPY %113:anyi8
+  $a = COPY %101:anyi8
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  renamable $rc7 = COPY $a
+  renamable $a = COPY $x
+  renamable $x = COPY $rc2
+  renamable $y = COPY $rc3
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc7, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  CmpBrZero %bb.1, undef $n, 1, renamable $rc3, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $x = LDImm -1
+  renamable $rc8 = COPY killed renamable $x
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $x = LDImm 0
+  renamable $rc8 = COPY killed renamable $x
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $a = COPY killed renamable $y
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc7, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc4 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc5 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc8, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  $rc3 = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on mixed_widths omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  renamable $rc7 = COPY $a
+  renamable $a = COPY $x
+  renamable $x = COPY $rc2
+  renamable $y = COPY $rc3
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc7, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY renamable $a
+  CmpBrZero %bb.1, undef $n, 1, $a, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $x = LDImm -1
+  renamable $rc8 = COPY killed renamable $x
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $x = LDImm 0
+  renamable $rc8 = COPY killed renamable $x
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.1, %bb.2
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8
+  renamable $a = COPY killed renamable $y
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc7, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc4 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc5 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc8, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  $rc3 = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on mixed_widths omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on mixed_widths omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on mixed_widths omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on mixed_widths omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on mixed_widths omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on mixed_widths omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on mixed_widths omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on mixed_widths omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on mixed_widths omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on mixed_widths omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on mixed_widths omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  renamable $rc7 = COPY $a
+  renamable $a = COPY $x
+  renamable $x = COPY $rc2
+  renamable $y = COPY $rc3
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc7, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY renamable $a
+  CmpBrZero %bb.2, undef $n, 0, $a, implicit-def $c
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $x = LDImm -1
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $x = LDImm 0
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.2, %bb.1
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $x
+  renamable $rc8 = COPY killed renamable $x
+  renamable $a = COPY killed renamable $y
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc7, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc4 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc5 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc8, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  $rc3 = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on mixed_widths omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on mixed_widths omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  renamable $rc7 = COPY killed $a
+  renamable $a = COPY killed $x
+  renamable $x = COPY killed $rc2
+  renamable $y = COPY killed $rc3
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc7, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY renamable $a
+  CmpBrZero %bb.2, undef $n, 0, killed $a, implicit-def dead $c
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc5, $rc6, $rc4, $y, $rc3, $rc2, $rc7
+  renamable $x = LDImm -1
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc5, $rc6, $rc4, $y, $rc3, $rc2, $rc7
+  renamable $x = LDImm 0
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.2, %bb.1
+  liveins: $rc5, $rc6, $rc4, $y, $rc3, $rc2, $rc7, $x
+  renamable $rc8 = COPY killed renamable $x
+  renamable $a = COPY killed renamable $y
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc7, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc4 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc5 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc8, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  $rc3 = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  $rc7 = STImag8 $a
+  $a = T_A $x
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc7, killed renamable $c
+  $rc2 = STImag8 $a
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  CmpZero killed $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.2, killed $n, 0
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc5, $rc6, $rc4, $y, $rc3, $rc2, $rc7
+  renamable $x = LDImm -1
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc5, $rc6, $rc4, $y, $rc3, $rc2, $rc7
+  renamable $x = LDImm 0
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.2, %bb.1
+  liveins: $rc5, $rc6, $rc4, $y, $rc3, $rc2, $rc7, $x
+  $rc8 = STImag8 $x
+  $a = T_A $y
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc7, killed renamable $c
+  $x = TA $a
+  $a = LDImag8 $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc4 = STImag8 $a
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc5 = STImag8 $a
+  $a = LDImag8 $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc6 = STImag8 $a
+  $a = T_A $x
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $y = TA $a
+  $a = LDImag8 $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = TA $a
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc8, killed renamable $c
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  $rc3 = STImag8 $a
+  $a = T_A $y
+  RTS implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on mixed_widths omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on mixed_widths omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on mixed_widths omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on mixed_widths omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on mixed_widths ***
+# Machine code for function mixed_widths: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6
+  $rc7 = STImag8 $a
+  $a = T_A $x
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc7, killed renamable $c
+  $rc2 = STImag8 $a
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1), implicit-def $nz
+  $rc3 = STImag8 $a
+  BR %bb.2, killed $n, 0
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc5, $rc6, $rc4, $y, $rc3, $rc2, $rc7
+  renamable $x = LDImm -1
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc5, $rc6, $rc4, $y, $rc3, $rc2, $rc7
+  renamable $x = LDImm 0
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.2, %bb.1
+  liveins: $rc5, $rc6, $rc4, $y, $rc3, $rc2, $rc7, $x
+  $rc8 = STImag8 $x
+  $a = T_A $y
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc7, killed renamable $c
+  $x = TA $a
+  $a = LDImag8 $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc4 = STImag8 $a
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc5 = STImag8 $a
+  $a = LDImag8 $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc6 = STImag8 $a
+  $a = T_A $x
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $y = TA $a
+  $a = LDImag8 $rc4
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = TA $a
+  $a = LDImag8 $rc5
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc8, killed renamable $c
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  $rc3 = STImag8 $a
+  $a = T_A $y
+  RTS implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3
+
+# End machine code for function mixed_widths.
+
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on mixed_widths omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on mixed_widths omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on mixed_widths omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on mixed_widths omitted because no change ***
+*** IR Dump After Insert fentry calls (fentry-insert) on mixed_widths omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on mixed_widths omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on mixed_widths omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on mixed_widths omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on mixed_widths omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on mixed_widths omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on mixed_widths omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on mixed_widths omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on mixed_widths omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on mixed_widths omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on mixed_widths omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on mixed_widths omitted because no change ***

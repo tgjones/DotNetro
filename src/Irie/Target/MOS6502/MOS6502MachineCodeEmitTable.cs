@@ -124,6 +124,20 @@ public static class MOS6502MachineCodeEmitTable
         // mos6502.jsr.abs @callee — operands[0] = Symbol; rest are implicit.
         [MOS6502Op.JsrAbs] = new EmitRule(MOS6502Opcode.JSR_Absolute, EmitOperandKind.AbsoluteAddress, 0),
 
+        // Absolute-addressed loads/stores of a statically-known symbol. The
+        // Symbol(name, offset) operand encodes as a 2-byte ExternalRef(Full).
+        //
+        // $a = mos6502.lda.abs @sym — def[0]=$a, use[0]=Symbol. Index 1 = use[0].
+        [MOS6502Op.LdaAbs] = new EmitRule(MOS6502Opcode.LDA_Absolute, EmitOperandKind.AbsoluteAddress, 1),
+        // $x = mos6502.ldx.abs @sym / $y = mos6502.ldy.abs @sym — same shape.
+        [MOS6502Op.LdxAbs] = new EmitRule(MOS6502Opcode.LDX_Absolute, EmitOperandKind.AbsoluteAddress, 1),
+        [MOS6502Op.LdyAbs] = new EmitRule(MOS6502Opcode.LDY_Absolute, EmitOperandKind.AbsoluteAddress, 1),
+        // mos6502.sta.abs %val, @sym — use[0]=value (in $a, implicit in opcode),
+        // use[1]=Symbol. Index 1 = use[1], the absolute address.
+        [MOS6502Op.StaAbs] = new EmitRule(MOS6502Opcode.STA_Absolute, EmitOperandKind.AbsoluteAddress, 1),
+        [MOS6502Op.StxAbs] = new EmitRule(MOS6502Opcode.STX_Absolute, EmitOperandKind.AbsoluteAddress, 1),
+        [MOS6502Op.StyAbs] = new EmitRule(MOS6502Opcode.STY_Absolute, EmitOperandKind.AbsoluteAddress, 1),
+
         // $zpN = mos6502.sta.zp $a
         // Operands: def[0]=zp (the address), use[0]=$a.
         // Index 0 = def[0]; the source register is implicit in the opcode.

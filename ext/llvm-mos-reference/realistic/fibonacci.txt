@@ -1,0 +1,3695 @@
+*** IR Dump At Start ***
+; ModuleID = './realistic/fibonacci.c'
+source_filename = "./realistic/fibonacci.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) #0 {
+  %2 = alloca i16, align 1
+  %3 = alloca i16, align 1
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  store i16 %0, ptr %2, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %3) #2
+  store i16 0, ptr %3, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %4) #2
+  store i16 1, ptr %4, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %5) #2
+  store i16 0, ptr %5, align 1, !tbaa !2
+  br label %7
+
+7:                                                ; preds = %18, %1
+  %8 = load i16, ptr %5, align 1, !tbaa !2
+  %9 = load i16, ptr %2, align 1, !tbaa !2
+  %10 = icmp slt i16 %8, %9
+  br i1 %10, label %12, label %11
+
+11:                                               ; preds = %7
+  call void @llvm.lifetime.end.p0(ptr %5) #2
+  br label %21
+
+12:                                               ; preds = %7
+  call void @llvm.lifetime.start.p0(ptr %6) #2
+  %13 = load i16, ptr %3, align 1, !tbaa !2
+  %14 = load i16, ptr %4, align 1, !tbaa !2
+  %15 = add nsw i16 %13, %14
+  store i16 %15, ptr %6, align 1, !tbaa !2
+  %16 = load i16, ptr %4, align 1, !tbaa !2
+  store i16 %16, ptr %3, align 1, !tbaa !2
+  %17 = load i16, ptr %6, align 1, !tbaa !2
+  store i16 %17, ptr %4, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %6) #2
+  br label %18
+
+18:                                               ; preds = %12
+  %19 = load i16, ptr %5, align 1, !tbaa !2
+  %20 = add nsw i16 %19, 1
+  store i16 %20, ptr %5, align 1, !tbaa !2
+  br label %7, !llvm.loop !6
+
+21:                                               ; preds = %11
+  %22 = load i16, ptr %3, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %4) #2
+  call void @llvm.lifetime.end.p0(ptr %3) #2
+  ret i16 %22
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = distinct !{!6, !7}
+!7 = !{!"llvm.loop.mustprogress"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] ***
+; ModuleID = './realistic/fibonacci.c'
+source_filename = "./realistic/fibonacci.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) #0 {
+  %2 = alloca i16, align 1
+  %3 = alloca i16, align 1
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  store i16 %0, ptr %2, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %3) #2
+  store i16 0, ptr %3, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %4) #2
+  store i16 1, ptr %4, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %5) #2
+  store i16 0, ptr %5, align 1, !tbaa !2
+  br label %7
+
+7:                                                ; preds = %18, %1
+  %8 = load i16, ptr %5, align 1, !tbaa !2
+  %9 = load i16, ptr %2, align 1, !tbaa !2
+  %10 = icmp slt i16 %8, %9
+  br i1 %10, label %12, label %11
+
+11:                                               ; preds = %7
+  call void @llvm.lifetime.end.p0(ptr %5) #2
+  br label %21
+
+12:                                               ; preds = %7
+  call void @llvm.lifetime.start.p0(ptr %6) #2
+  %13 = load i16, ptr %3, align 1, !tbaa !2
+  %14 = load i16, ptr %4, align 1, !tbaa !2
+  %15 = add nsw i16 %13, %14
+  store i16 %15, ptr %6, align 1, !tbaa !2
+  %16 = load i16, ptr %4, align 1, !tbaa !2
+  store i16 %16, ptr %3, align 1, !tbaa !2
+  %17 = load i16, ptr %6, align 1, !tbaa !2
+  store i16 %17, ptr %4, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %6) #2
+  br label %18
+
+18:                                               ; preds = %12
+  %19 = load i16, ptr %5, align 1, !tbaa !2
+  %20 = add nsw i16 %19, 1
+  store i16 %20, ptr %5, align 1, !tbaa !2
+  br label %7, !llvm.loop !6
+
+21:                                               ; preds = %11
+  %22 = load i16, ptr %3, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %4) #2
+  call void @llvm.lifetime.end.p0(ptr %3) #2
+  ret i16 %22
+}
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = distinct !{!6, !7}
+!7 = !{!"llvm.loop.mustprogress"}
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on fibonacci omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on fibonacci omitted because no change ***
+*** IR Dump After SimplifyCFGPass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) #0 {
+  %2 = alloca i16, align 1
+  %3 = alloca i16, align 1
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  store i16 %0, ptr %2, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %3) #2
+  store i16 0, ptr %3, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %4) #2
+  store i16 1, ptr %4, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %5) #2
+  store i16 0, ptr %5, align 1, !tbaa !2
+  br label %7
+
+7:                                                ; preds = %13, %1
+  %8 = load i16, ptr %5, align 1, !tbaa !2
+  %9 = load i16, ptr %2, align 1, !tbaa !2
+  %10 = icmp slt i16 %8, %9
+  br i1 %10, label %13, label %11
+
+11:                                               ; preds = %7
+  call void @llvm.lifetime.end.p0(ptr %5) #2
+  %12 = load i16, ptr %3, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %4) #2
+  call void @llvm.lifetime.end.p0(ptr %3) #2
+  ret i16 %12
+
+13:                                               ; preds = %7
+  call void @llvm.lifetime.start.p0(ptr %6) #2
+  %14 = load i16, ptr %3, align 1, !tbaa !2
+  %15 = load i16, ptr %4, align 1, !tbaa !2
+  %16 = add nsw i16 %14, %15
+  store i16 %16, ptr %6, align 1, !tbaa !2
+  %17 = load i16, ptr %4, align 1, !tbaa !2
+  store i16 %17, ptr %3, align 1, !tbaa !2
+  %18 = load i16, ptr %6, align 1, !tbaa !2
+  store i16 %18, ptr %4, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %6) #2
+  %19 = load i16, ptr %5, align 1, !tbaa !2
+  %20 = add nsw i16 %19, 1
+  store i16 %20, ptr %5, align 1, !tbaa !2
+  br label %7, !llvm.loop !6
+}
+*** IR Dump After SROAPass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) #0 {
+  br label %2
+
+2:                                                ; preds = %8, %1
+  %3 = phi i16 [ 1, %1 ], [ %9, %8 ]
+  %4 = phi i16 [ 0, %1 ], [ %10, %8 ]
+  %5 = phi i16 [ 0, %1 ], [ %3, %8 ]
+  %6 = icmp slt i16 %4, %0
+  br i1 %6, label %8, label %7
+
+7:                                                ; preds = %2
+  ret i16 %5
+
+8:                                                ; preds = %2
+  %9 = add nsw i16 %5, %3
+  %10 = add nsw i16 %4, 1
+  br label %2, !llvm.loop !6
+}
+*** IR Dump After EarlyCSEPass on fibonacci omitted because no change ***
+*** IR Pass PassManager<Function> on fibonacci ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './realistic/fibonacci.c'
+source_filename = "./realistic/fibonacci.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  br label %2
+
+2:                                                ; preds = %8, %1
+  %3 = phi i16 [ 1, %1 ], [ %9, %8 ]
+  %4 = phi i16 [ 0, %1 ], [ %10, %8 ]
+  %5 = phi i16 [ 0, %1 ], [ %3, %8 ]
+  %6 = icmp slt i16 %4, %0
+  br i1 %6, label %8, label %7
+
+7:                                                ; preds = %2
+  ret i16 %5
+
+8:                                                ; preds = %2
+  %9 = add nsw i16 %5, %3
+  %10 = add nsw i16 %4, 1
+  br label %2, !llvm.loop !6
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = distinct !{!6, !7}
+!7 = !{!"llvm.loop.mustprogress"}
+*** IR Dump After PromotePass on fibonacci omitted because no change ***
+*** IR Dump After InstCombinePass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  br label %2
+
+2:                                                ; preds = %8, %1
+  %3 = phi i16 [ 1, %1 ], [ %9, %8 ]
+  %4 = phi i16 [ 0, %1 ], [ %10, %8 ]
+  %5 = phi i16 [ 0, %1 ], [ %3, %8 ]
+  %6 = icmp slt i16 %4, %0
+  br i1 %6, label %8, label %7
+
+7:                                                ; preds = %2
+  ret i16 %5
+
+8:                                                ; preds = %2
+  %9 = add nsw i16 %5, %3
+  %10 = add nuw nsw i16 %4, 1
+  br label %2, !llvm.loop !6
+}
+*** IR Dump After SimplifyCFGPass on fibonacci omitted because no change ***
+*** IR Pass PassManager<Function> on fibonacci ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on fibonacci omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (fibonacci) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (fibonacci) omitted because no change ***
+*** IR Dump After SROAPass on fibonacci omitted because no change ***
+*** IR Dump After EarlyCSEPass on fibonacci omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on fibonacci omitted because no change ***
+*** IR Dump After JumpThreadingPass on fibonacci omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on fibonacci omitted because no change ***
+*** IR Dump After SimplifyCFGPass on fibonacci omitted because no change ***
+*** IR Dump After InstCombinePass on fibonacci omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on fibonacci omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on fibonacci omitted because no change ***
+*** IR Dump After TailCallElimPass on fibonacci omitted because no change ***
+*** IR Dump After SimplifyCFGPass on fibonacci omitted because no change ***
+*** IR Dump After ReassociatePass on fibonacci omitted because no change ***
+*** IR Dump After ConstraintEliminationPass on fibonacci omitted because no change ***
+*** IR Dump After LoopSimplifyPass on fibonacci omitted because no change ***
+*** IR Dump After LCSSAPass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  br label %2
+
+2:                                                ; preds = %9, %1
+  %3 = phi i16 [ 1, %1 ], [ %10, %9 ]
+  %4 = phi i16 [ 0, %1 ], [ %11, %9 ]
+  %5 = phi i16 [ 0, %1 ], [ %3, %9 ]
+  %6 = icmp slt i16 %4, %0
+  br i1 %6, label %9, label %7
+
+7:                                                ; preds = %2
+  %8 = phi i16 [ %5, %2 ]
+  ret i16 %8
+
+9:                                                ; preds = %2
+  %10 = add nsw i16 %5, %3
+  %11 = add nuw nsw i16 %4, 1
+  br label %2, !llvm.loop !6
+}
+*** IR Pass PassManager<Function> on fibonacci ignored ***
+*** IR Dump After LoopInstSimplifyPass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Dump After LoopSimplifyCFGPass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Dump After LICMPass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Dump After LoopRotatePass on loop %<unnamed loop> in function fibonacci ***
+
+; Preheader:
+3:                                                ; preds = %1
+  br label %8
+
+; Loop:
+8:                                                ; preds = %3, %8
+  %9 = phi i16 [ 0, %3 ], [ %11, %8 ]
+  %10 = phi i16 [ 0, %3 ], [ %13, %8 ]
+  %11 = phi i16 [ 1, %3 ], [ %12, %8 ]
+  %12 = add nsw i16 %9, %11
+  %13 = add nuw nsw i16 %10, 1
+  %14 = icmp slt i16 %13, %0
+  br i1 %14, label %8, label %4, !llvm.loop !6
+
+; Exit blocks
+4:                                                ; preds = %8
+  %5 = phi i16 [ %11, %8 ]
+  br label %6
+*** IR Dump After LICMPass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Dump After SimpleLoopUnswitchPass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Pass PassManager<Loop, LoopAnalysisManager, LoopStandardAnalysisResults &, LPMUpdater &> on loop %<unnamed loop> in function fibonacci ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on fibonacci ignored ***
+*** IR Dump After SimplifyCFGPass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 0, %0
+  br i1 %2, label %5, label %3
+
+3:                                                ; preds = %5, %1
+  %4 = phi i16 [ 0, %1 ], [ %8, %5 ]
+  ret i16 %4
+
+5:                                                ; preds = %1, %5
+  %6 = phi i16 [ %8, %5 ], [ 0, %1 ]
+  %7 = phi i16 [ %10, %5 ], [ 0, %1 ]
+  %8 = phi i16 [ %9, %5 ], [ 1, %1 ]
+  %9 = add nsw i16 %6, %8
+  %10 = add nuw nsw i16 %7, 1
+  %11 = icmp slt i16 %10, %0
+  br i1 %11, label %5, label %3, !llvm.loop !6
+}
+*** IR Dump After InstCombinePass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %5, label %3
+
+3:                                                ; preds = %5, %1
+  %4 = phi i16 [ 0, %1 ], [ %8, %5 ]
+  ret i16 %4
+
+5:                                                ; preds = %1, %5
+  %6 = phi i16 [ %8, %5 ], [ 0, %1 ]
+  %7 = phi i16 [ %10, %5 ], [ 0, %1 ]
+  %8 = phi i16 [ %9, %5 ], [ 1, %1 ]
+  %9 = add nsw i16 %6, %8
+  %10 = add nuw nsw i16 %7, 1
+  %11 = icmp slt i16 %10, %0
+  br i1 %11, label %5, label %3, !llvm.loop !6
+}
+*** IR Dump After LoopSimplifyPass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %5
+
+3:                                                ; preds = %1
+  br label %7
+
+4:                                                ; preds = %7
+  br label %5
+
+5:                                                ; preds = %4, %1
+  %6 = phi i16 [ 0, %1 ], [ %10, %4 ]
+  ret i16 %6
+
+7:                                                ; preds = %3, %7
+  %8 = phi i16 [ %10, %7 ], [ 0, %3 ]
+  %9 = phi i16 [ %12, %7 ], [ 0, %3 ]
+  %10 = phi i16 [ %11, %7 ], [ 1, %3 ]
+  %11 = add nsw i16 %8, %10
+  %12 = add nuw nsw i16 %9, 1
+  %13 = icmp slt i16 %12, %0
+  br i1 %13, label %7, label %4, !llvm.loop !6
+}
+*** IR Dump After LCSSAPass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %6
+
+3:                                                ; preds = %1
+  br label %8
+
+4:                                                ; preds = %8
+  %5 = phi i16 [ %11, %8 ]
+  br label %6
+
+6:                                                ; preds = %4, %1
+  %7 = phi i16 [ 0, %1 ], [ %5, %4 ]
+  ret i16 %7
+
+8:                                                ; preds = %3, %8
+  %9 = phi i16 [ %11, %8 ], [ 0, %3 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %3 ]
+  %11 = phi i16 [ %12, %8 ], [ 1, %3 ]
+  %12 = add nsw i16 %9, %11
+  %13 = add nuw nsw i16 %10, 1
+  %14 = icmp slt i16 %13, %0
+  br i1 %14, label %8, label %4, !llvm.loop !6
+}
+*** IR Pass PassManager<Function> on fibonacci ignored ***
+*** IR Dump After LoopIdiomRecognizePass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Dump After IndVarSimplifyPass on loop %<unnamed loop> in function fibonacci ***
+
+; Preheader:
+3:                                                ; preds = %1
+  br label %8
+
+; Loop:
+8:                                                ; preds = %3, %8
+  %9 = phi i16 [ %11, %8 ], [ 0, %3 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %3 ]
+  %11 = phi i16 [ %12, %8 ], [ 1, %3 ]
+  %12 = add nsw i16 %9, %11
+  %13 = add nuw nsw i16 %10, 1
+  %14 = icmp ne i16 %13, %0
+  br i1 %14, label %8, label %4, !llvm.loop !6
+
+; Exit blocks
+4:                                                ; preds = %8
+  %5 = phi i16 [ %11, %8 ]
+  br label %6
+*** IR Pass ExtraLoopPassManager<llvm::ShouldRunExtraSimpleLoopUnswitch> on loop %<unnamed loop> in function fibonacci ignored ***
+*** IR Dump After MOSIndexIV on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Dump After IndVarSimplifyPass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Dump After LoopDeletionPass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Dump After LoopFullUnrollPass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Pass PassManager<Loop, LoopAnalysisManager, LoopStandardAnalysisResults &, LPMUpdater &> on loop %<unnamed loop> in function fibonacci ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on fibonacci ignored ***
+*** IR Dump After SROAPass on fibonacci omitted because no change ***
+*** IR Dump After VectorCombinePass on fibonacci omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on fibonacci omitted because no change ***
+*** IR Dump After GVNPass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %5
+
+3:                                                ; preds = %1
+  br label %7
+
+4:                                                ; preds = %7
+  br label %5
+
+5:                                                ; preds = %4, %1
+  %6 = phi i16 [ 0, %1 ], [ %10, %4 ]
+  ret i16 %6
+
+7:                                                ; preds = %3, %7
+  %8 = phi i16 [ %10, %7 ], [ 0, %3 ]
+  %9 = phi i16 [ %12, %7 ], [ 0, %3 ]
+  %10 = phi i16 [ %11, %7 ], [ 1, %3 ]
+  %11 = add nsw i16 %8, %10
+  %12 = add nuw nsw i16 %9, 1
+  %13 = icmp ne i16 %12, %0
+  br i1 %13, label %7, label %4, !llvm.loop !6
+}
+*** IR Dump After SCCPPass on fibonacci omitted because no change ***
+*** IR Dump After BDCEPass on fibonacci omitted because no change ***
+*** IR Dump After InstCombinePass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %5
+
+3:                                                ; preds = %1
+  br label %7
+
+4:                                                ; preds = %7
+  br label %5
+
+5:                                                ; preds = %4, %1
+  %6 = phi i16 [ 0, %1 ], [ %10, %4 ]
+  ret i16 %6
+
+7:                                                ; preds = %3, %7
+  %8 = phi i16 [ %10, %7 ], [ 0, %3 ]
+  %9 = phi i16 [ %12, %7 ], [ 0, %3 ]
+  %10 = phi i16 [ %11, %7 ], [ 1, %3 ]
+  %11 = add nsw i16 %8, %10
+  %12 = add nuw nsw i16 %9, 1
+  %13 = icmp eq i16 %12, %0
+  br i1 %13, label %4, label %7, !llvm.loop !6
+}
+*** IR Dump After JumpThreadingPass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %4
+
+3:                                                ; preds = %1
+  br label %6
+
+4:                                                ; preds = %6, %1
+  %5 = phi i16 [ 0, %1 ], [ %9, %6 ]
+  ret i16 %5
+
+6:                                                ; preds = %3, %6
+  %7 = phi i16 [ %9, %6 ], [ 0, %3 ]
+  %8 = phi i16 [ %11, %6 ], [ 0, %3 ]
+  %9 = phi i16 [ %10, %6 ], [ 1, %3 ]
+  %10 = add nsw i16 %7, %9
+  %11 = add nuw nsw i16 %8, 1
+  %12 = icmp eq i16 %11, %0
+  br i1 %12, label %4, label %6, !llvm.loop !6
+}
+*** IR Dump After CorrelatedValuePropagationPass on fibonacci omitted because no change ***
+*** IR Dump After ADCEPass on fibonacci omitted because no change ***
+*** IR Dump After MemCpyOptPass on fibonacci omitted because no change ***
+*** IR Dump After DSEPass on fibonacci omitted because no change ***
+*** IR Dump After MoveAutoInitPass on fibonacci omitted because no change ***
+*** IR Dump After LoopSimplifyPass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %5
+
+3:                                                ; preds = %1
+  br label %7
+
+4:                                                ; preds = %7
+  br label %5
+
+5:                                                ; preds = %4, %1
+  %6 = phi i16 [ 0, %1 ], [ %10, %4 ]
+  ret i16 %6
+
+7:                                                ; preds = %3, %7
+  %8 = phi i16 [ %10, %7 ], [ 0, %3 ]
+  %9 = phi i16 [ %12, %7 ], [ 0, %3 ]
+  %10 = phi i16 [ %11, %7 ], [ 1, %3 ]
+  %11 = add nsw i16 %8, %10
+  %12 = add nuw nsw i16 %9, 1
+  %13 = icmp eq i16 %12, %0
+  br i1 %13, label %4, label %7, !llvm.loop !6
+}
+*** IR Dump After LCSSAPass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %6
+
+3:                                                ; preds = %1
+  br label %8
+
+4:                                                ; preds = %8
+  %5 = phi i16 [ %11, %8 ]
+  br label %6
+
+6:                                                ; preds = %4, %1
+  %7 = phi i16 [ 0, %1 ], [ %5, %4 ]
+  ret i16 %7
+
+8:                                                ; preds = %3, %8
+  %9 = phi i16 [ %11, %8 ], [ 0, %3 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %3 ]
+  %11 = phi i16 [ %12, %8 ], [ 1, %3 ]
+  %12 = add nsw i16 %9, %11
+  %13 = add nuw nsw i16 %10, 1
+  %14 = icmp eq i16 %13, %0
+  br i1 %14, label %4, label %8, !llvm.loop !6
+}
+*** IR Pass PassManager<Function> on fibonacci ignored ***
+*** IR Dump After LICMPass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Pass FunctionToLoopPassAdaptor on fibonacci ignored ***
+*** IR Dump After CoroElidePass on fibonacci omitted because no change ***
+*** IR Dump After SimplifyCFGPass on fibonacci ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %5, label %3
+
+3:                                                ; preds = %5, %1
+  %4 = phi i16 [ 0, %1 ], [ %8, %5 ]
+  ret i16 %4
+
+5:                                                ; preds = %1, %5
+  %6 = phi i16 [ %8, %5 ], [ 0, %1 ]
+  %7 = phi i16 [ %10, %5 ], [ 0, %1 ]
+  %8 = phi i16 [ %9, %5 ], [ 1, %1 ]
+  %9 = add nsw i16 %6, %8
+  %10 = add nuw nsw i16 %7, 1
+  %11 = icmp eq i16 %10, %0
+  br i1 %11, label %3, label %5, !llvm.loop !6
+}
+*** IR Dump After InstCombinePass on fibonacci omitted because no change ***
+*** IR Pass PassManager<Function> on fibonacci ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (fibonacci) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (fibonacci) ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %5, label %3
+
+3:                                                ; preds = %5, %1
+  %4 = phi i16 [ 0, %1 ], [ %8, %5 ]
+  ret i16 %4
+
+5:                                                ; preds = %1, %5
+  %6 = phi i16 [ %8, %5 ], [ 0, %1 ]
+  %7 = phi i16 [ %10, %5 ], [ 0, %1 ]
+  %8 = phi i16 [ %9, %5 ], [ 1, %1 ]
+  %9 = add nsw i16 %6, %8
+  %10 = add nuw nsw i16 %7, 1
+  %11 = icmp eq i16 %10, %0
+  br i1 %11, label %3, label %5, !llvm.loop !6
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on fibonacci omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (fibonacci) ignored ***
+*** IR Dump After CoroSplitPass on (fibonacci) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (fibonacci) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (fibonacci) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (fibonacci) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on fibonacci omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on fibonacci omitted because no change ***
+*** IR Dump After Float2IntPass on fibonacci omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on fibonacci omitted because no change ***
+*** IR Dump After LoopSimplifyPass on fibonacci ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %5
+
+3:                                                ; preds = %1
+  br label %7
+
+4:                                                ; preds = %7
+  br label %5
+
+5:                                                ; preds = %4, %1
+  %6 = phi i16 [ 0, %1 ], [ %10, %4 ]
+  ret i16 %6
+
+7:                                                ; preds = %3, %7
+  %8 = phi i16 [ %10, %7 ], [ 0, %3 ]
+  %9 = phi i16 [ %12, %7 ], [ 0, %3 ]
+  %10 = phi i16 [ %11, %7 ], [ 1, %3 ]
+  %11 = add nsw i16 %8, %10
+  %12 = add nuw nsw i16 %9, 1
+  %13 = icmp eq i16 %12, %0
+  br i1 %13, label %4, label %7, !llvm.loop !6
+}
+*** IR Dump After LCSSAPass on fibonacci ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %6
+
+3:                                                ; preds = %1
+  br label %8
+
+4:                                                ; preds = %8
+  %5 = phi i16 [ %11, %8 ]
+  br label %6
+
+6:                                                ; preds = %4, %1
+  %7 = phi i16 [ 0, %1 ], [ %5, %4 ]
+  ret i16 %7
+
+8:                                                ; preds = %3, %8
+  %9 = phi i16 [ %11, %8 ], [ 0, %3 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %3 ]
+  %11 = phi i16 [ %12, %8 ], [ 1, %3 ]
+  %12 = add nsw i16 %9, %11
+  %13 = add nuw nsw i16 %10, 1
+  %14 = icmp eq i16 %13, %0
+  br i1 %14, label %4, label %8, !llvm.loop !6
+}
+*** IR Pass PassManager<Function> on fibonacci ignored ***
+*** IR Dump After LoopRotatePass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Dump After LoopDeletionPass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Pass PassManager<Loop, LoopAnalysisManager, LoopStandardAnalysisResults &, LPMUpdater &> on loop %<unnamed loop> in function fibonacci ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on fibonacci ignored ***
+*** IR Dump After LoopDistributePass on fibonacci omitted because no change ***
+*** IR Dump After InjectTLIMappings on fibonacci omitted because no change ***
+*** IR Dump After LoopVectorizePass on fibonacci omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on fibonacci omitted because no change ***
+*** IR Dump After InferAlignmentPass on fibonacci omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on fibonacci omitted because no change ***
+*** IR Dump After InstCombinePass on fibonacci ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %5
+
+3:                                                ; preds = %1
+  br label %7
+
+4:                                                ; preds = %7
+  br label %5
+
+5:                                                ; preds = %4, %1
+  %6 = phi i16 [ 0, %1 ], [ %10, %4 ]
+  ret i16 %6
+
+7:                                                ; preds = %3, %7
+  %8 = phi i16 [ %10, %7 ], [ 0, %3 ]
+  %9 = phi i16 [ %12, %7 ], [ 0, %3 ]
+  %10 = phi i16 [ %11, %7 ], [ 1, %3 ]
+  %11 = add nsw i16 %8, %10
+  %12 = add nuw nsw i16 %9, 1
+  %13 = icmp eq i16 %12, %0
+  br i1 %13, label %4, label %7, !llvm.loop !6
+}
+*** IR Dump After SimplifyCFGPass on fibonacci ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %5, label %3
+
+3:                                                ; preds = %5, %1
+  %4 = phi i16 [ 0, %1 ], [ %8, %5 ]
+  ret i16 %4
+
+5:                                                ; preds = %1, %5
+  %6 = phi i16 [ %8, %5 ], [ 0, %1 ]
+  %7 = phi i16 [ %10, %5 ], [ 0, %1 ]
+  %8 = phi i16 [ %9, %5 ], [ 1, %1 ]
+  %9 = add nsw i16 %6, %8
+  %10 = add nuw nsw i16 %7, 1
+  %11 = icmp eq i16 %10, %0
+  br i1 %11, label %3, label %5, !llvm.loop !6
+}
+*** IR Dump After SLPVectorizerPass on fibonacci omitted because no change ***
+*** IR Dump After VectorCombinePass on fibonacci omitted because no change ***
+*** IR Dump After InstCombinePass on fibonacci omitted because no change ***
+*** IR Dump After LoopUnrollPass on fibonacci ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %6
+
+3:                                                ; preds = %1
+  br label %8
+
+4:                                                ; preds = %8
+  %5 = phi i16 [ %11, %8 ]
+  br label %6
+
+6:                                                ; preds = %4, %1
+  %7 = phi i16 [ 0, %1 ], [ %5, %4 ]
+  ret i16 %7
+
+8:                                                ; preds = %3, %8
+  %9 = phi i16 [ %11, %8 ], [ 0, %3 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %3 ]
+  %11 = phi i16 [ %12, %8 ], [ 1, %3 ]
+  %12 = add nsw i16 %9, %11
+  %13 = add nuw nsw i16 %10, 1
+  %14 = icmp eq i16 %13, %0
+  br i1 %14, label %4, label %8, !llvm.loop !6
+}
+*** IR Dump After WarnMissedTransformationsPass on fibonacci omitted because no change ***
+*** IR Dump After SROAPass on fibonacci omitted because no change ***
+*** IR Dump After InferAlignmentPass on fibonacci omitted because no change ***
+*** IR Dump After InstCombinePass on fibonacci ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %5
+
+3:                                                ; preds = %1
+  br label %7
+
+4:                                                ; preds = %7
+  br label %5
+
+5:                                                ; preds = %4, %1
+  %6 = phi i16 [ 0, %1 ], [ %10, %4 ]
+  ret i16 %6
+
+7:                                                ; preds = %3, %7
+  %8 = phi i16 [ %10, %7 ], [ 0, %3 ]
+  %9 = phi i16 [ %12, %7 ], [ 0, %3 ]
+  %10 = phi i16 [ %11, %7 ], [ 1, %3 ]
+  %11 = add nsw i16 %8, %10
+  %12 = add nuw nsw i16 %9, 1
+  %13 = icmp eq i16 %12, %0
+  br i1 %13, label %4, label %7, !llvm.loop !6
+}
+*** IR Dump After LoopSimplifyPass on fibonacci omitted because no change ***
+*** IR Dump After LCSSAPass on fibonacci ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %6
+
+3:                                                ; preds = %1
+  br label %8
+
+4:                                                ; preds = %8
+  %5 = phi i16 [ %11, %8 ]
+  br label %6
+
+6:                                                ; preds = %4, %1
+  %7 = phi i16 [ 0, %1 ], [ %5, %4 ]
+  ret i16 %7
+
+8:                                                ; preds = %3, %8
+  %9 = phi i16 [ %11, %8 ], [ 0, %3 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %3 ]
+  %11 = phi i16 [ %12, %8 ], [ 1, %3 ]
+  %12 = add nsw i16 %9, %11
+  %13 = add nuw nsw i16 %10, 1
+  %14 = icmp eq i16 %13, %0
+  br i1 %14, label %4, label %8, !llvm.loop !6
+}
+*** IR Pass PassManager<Function> on fibonacci ignored ***
+*** IR Dump After LICMPass on loop %<unnamed loop> in function fibonacci omitted because no change ***
+*** IR Pass FunctionToLoopPassAdaptor on fibonacci ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on fibonacci omitted because no change ***
+*** IR Dump After LoopSinkPass on fibonacci omitted because no change ***
+*** IR Dump After InstSimplifyPass on fibonacci ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %3, label %5
+
+3:                                                ; preds = %1
+  br label %7
+
+4:                                                ; preds = %7
+  br label %5
+
+5:                                                ; preds = %4, %1
+  %6 = phi i16 [ 0, %1 ], [ %10, %4 ]
+  ret i16 %6
+
+7:                                                ; preds = %3, %7
+  %8 = phi i16 [ %10, %7 ], [ 0, %3 ]
+  %9 = phi i16 [ %12, %7 ], [ 0, %3 ]
+  %10 = phi i16 [ %11, %7 ], [ 1, %3 ]
+  %11 = add nsw i16 %8, %10
+  %12 = add nuw nsw i16 %9, 1
+  %13 = icmp eq i16 %12, %0
+  br i1 %13, label %4, label %7, !llvm.loop !6
+}
+*** IR Dump After DivRemPairsPass on fibonacci omitted because no change ***
+*** IR Dump After MergeICmpsPass on fibonacci omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on fibonacci omitted because no change ***
+*** IR Dump After TailCallElimPass on fibonacci omitted because no change ***
+*** IR Dump After SimplifyCFGPass on fibonacci ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local i16 @fibonacci(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sgt i16 %0, 0
+  br i1 %2, label %5, label %3
+
+3:                                                ; preds = %5, %1
+  %4 = phi i16 [ 0, %1 ], [ %8, %5 ]
+  ret i16 %4
+
+5:                                                ; preds = %1, %5
+  %6 = phi i16 [ %8, %5 ], [ 0, %1 ]
+  %7 = phi i16 [ %10, %5 ], [ 0, %1 ]
+  %8 = phi i16 [ %9, %5 ], [ 1, %1 ]
+  %9 = add nsw i16 %6, %8
+  %10 = add nuw nsw i16 %7, 1
+  %11 = icmp eq i16 %10, %0
+  br i1 %11, label %3, label %5, !llvm.loop !6
+}
+*** IR Pass PassManager<Function> on fibonacci ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on fibonacci omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on fibonacci omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.1):
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %1:_(s8), %2:_(s8)
+  %3:_(s16) = G_CONSTANT i16 0
+  %9:_(s16) = G_CONSTANT i16 -1
+  %15:_(s16) = G_CONSTANT i16 1
+  %4:_(s1) = G_ICMP intpred(sgt), %0:_(s16), %3:_
+  G_BRCOND %4:_(s1), %bb.2
+  G_BR %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.1, %bb.4
+
+  %12:_(s16) = G_PHI %3:_(s16), %bb.1, %7:_(s16), %bb.4
+  %13:_(s8), %14:_(s8) = G_UNMERGE_VALUES %12:_(s16)
+  $a = COPY %13:_(s8)
+  $x = COPY %14:_(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.6):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %5:_(s16) = G_PHI %0:_(s16), %bb.2, %10:_(s16), %bb.4
+  %6:_(s16) = G_PHI %3:_(s16), %bb.2, %7:_(s16), %bb.4
+  %7:_(s16) = G_PHI %15:_(s16), %bb.2, %8:_(s16), %bb.4
+  %8:_(s16) = nsw G_ADD %6:_, %7:_
+  %10:_(s16) = G_ADD %5:_, %9:_
+  %11:_(s1) = G_ICMP intpred(eq), %10:_(s16), %3:_
+  G_BRCOND %11:_(s1), %bb.3
+  G_BR %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on fibonacci omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on fibonacci omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on fibonacci omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.1):
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %1:_(s8), %2:_(s8)
+  %3:_(s16) = G_CONSTANT i16 0
+  %9:_(s16) = G_CONSTANT i16 -1
+  %15:_(s16) = G_CONSTANT i16 1
+  %4:_(s1) = G_ICMP intpred(sle), %0:_(s16), %3:_
+  G_BRCOND %4:_(s1), %bb.3
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.1, %bb.4
+
+  %12:_(s16) = G_PHI %3:_(s16), %bb.1, %7:_(s16), %bb.4
+  %13:_(s8), %14:_(s8) = G_UNMERGE_VALUES %12:_(s16)
+  $a = COPY %13:_(s8)
+  $x = COPY %14:_(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.6):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %5:_(s16) = G_PHI %0:_(s16), %bb.2, %10:_(s16), %bb.4
+  %6:_(s16) = G_PHI %3:_(s16), %bb.2, %7:_(s16), %bb.4
+  %7:_(s16) = G_PHI %15:_(s16), %bb.2, %8:_(s16), %bb.4
+  %8:_(s16) = nsw G_ADD %6:_, %7:_
+  %10:_(s16) = G_ADD %5:_, %9:_
+  %11:_(s1) = G_ICMP intpred(eq), %10:_(s16), %3:_
+  G_BRCOND %11:_(s1), %bb.3
+  G_BR %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on fibonacci omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on fibonacci omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on fibonacci omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.1):
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %74:_(s8) = G_CONSTANT i8 0
+  %81:_(s8) = G_CONSTANT i8 1
+  %61:_(s1) = G_CONSTANT i1 true
+  %62:_(s8), %63:_(s1), %64:_, %65:_, %66:_ = G_SBC %1:_, %81:_, %61:_
+  %67:_(s8), %68:_(s1), %69:_, %70:_, %71:_ = G_SBC %2:_, %74:_, %63:_
+  %72:_(s8) = G_CONSTANT i8 -128
+  %73:_(s8) = G_XOR %67:_, %72:_
+  %75:_(s8) = G_SELECT %70:_(s1), %73:_, %67:_
+  %76:_(s8), %77:_(s1), %78:_, %79:_, %80:_ = G_SBC %75:_, %74:_, %61:_
+  %4:_(s1) = COPY %78:_(s1)
+  G_BRCOND_IMM %4:_(s1), %bb.3, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.1, %bb.4
+
+  %22:_(s8) = G_PHI %74:_(s8), %bb.1, %43:_(s8), %bb.4
+  %23:_(s8) = G_PHI %74:_(s8), %bb.1, %44:_(s8), %bb.4
+  $a = COPY %22:_(s8)
+  $x = COPY %23:_(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.6):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %55:_(s8) = G_PHI %1:_(s8), %bb.2, %28:_(s8), %bb.4
+  %56:_(s8) = G_PHI %2:_(s8), %bb.2, %29:_(s8), %bb.4
+  %49:_(s8) = G_PHI %74:_(s8), %bb.2, %43:_(s8), %bb.4
+  %50:_(s8) = G_PHI %74:_(s8), %bb.2, %44:_(s8), %bb.4
+  %43:_(s8) = G_PHI %81:_(s8), %bb.2, %34:_(s8), %bb.4
+  %44:_(s8) = G_PHI %74:_(s8), %bb.2, %36:_(s8), %bb.4
+  %38:_(s1) = G_CONSTANT i1 false
+  %34:_(s8), %35:_(s1) = G_UADDE %49:_, %43:_, %38:_
+  %36:_(s8), %37:_(s1) = G_UADDE %50:_, %44:_, %35:_
+  %28:_(s8), %29:_(s8) = G_DEC %55:_(s8), %56:_(s8)
+  %11:_(s1) = G_CMPZ %28:_(s8), %29:_(s8)
+  G_BRCOND_IMM %11:_(s1), %bb.3, 1
+  G_BR %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on fibonacci omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on fibonacci omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on fibonacci omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.1):
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %74:_(s8) = G_CONSTANT i8 0
+  %81:_(s8) = G_CONSTANT i8 1
+  %61:_(s1) = G_CONSTANT i1 true
+  %62:_(s8), %63:_(s1), %64:_, %65:_, %66:_ = G_SBC %1:_, %81:_, %61:_
+  %67:_(s8), %68:_(s1), %69:_, %70:_, %71:_ = G_SBC %2:_, %74:_, %63:_
+  %72:_(s8) = G_CONSTANT i8 -128
+  %73:_(s8) = G_XOR %67:_, %72:_
+  %75:_(s8) = G_SELECT %70:_(s1), %73:_, %67:_
+  %76:_(s8), %77:_(s1), %78:_, %79:_, %80:_ = G_SBC %75:_, %74:_, %61:_
+  G_BRCOND_IMM %78:_(s1), %bb.3, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.1, %bb.4
+
+  %22:_(s8) = G_PHI %74:_(s8), %bb.1, %43:_(s8), %bb.4
+  %23:_(s8) = G_PHI %74:_(s8), %bb.1, %44:_(s8), %bb.4
+  $a = COPY %22:_(s8)
+  $x = COPY %23:_(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.6):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %55:_(s8) = G_PHI %1:_(s8), %bb.2, %28:_(s8), %bb.4
+  %56:_(s8) = G_PHI %2:_(s8), %bb.2, %29:_(s8), %bb.4
+  %49:_(s8) = G_PHI %74:_(s8), %bb.2, %43:_(s8), %bb.4
+  %50:_(s8) = G_PHI %74:_(s8), %bb.2, %44:_(s8), %bb.4
+  %43:_(s8) = G_PHI %81:_(s8), %bb.2, %34:_(s8), %bb.4
+  %44:_(s8) = G_PHI %74:_(s8), %bb.2, %36:_(s8), %bb.4
+  %38:_(s1) = G_CONSTANT i1 false
+  %34:_(s8), %35:_(s1) = G_UADDE %49:_, %43:_, %38:_
+  %36:_(s8), %37:_(s1) = G_UADDE %50:_, %44:_, %35:_
+  %28:_(s8), %29:_(s8) = G_DEC %55:_(s8), %56:_(s8)
+  %11:_(s1) = G_CMPZ %28:_(s8), %29:_(s8)
+  G_BRCOND_IMM %11:_(s1), %bb.3, 1
+  G_BR %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.1):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %74:_(s8) = G_CONSTANT i8 0
+  %81:_(s8) = G_CONSTANT i8 1
+  %61:_(s1) = G_CONSTANT i1 true
+  %62:_(s8), %63:_(s1), %64:_, %65:_, %66:_ = G_SBC %1:_, %81:_, %61:_
+  %67:_(s8), %68:_(s1), %69:_, %70:_, %71:_ = G_SBC %2:_, %74:_, %63:_
+  G_BRCOND_IMM %70:_(s1), %bb.5, 1
+  G_BR %bb.6
+
+bb.5 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %72:_(s8) = G_CONSTANT i8 -128
+  %73:_(s8) = G_XOR %67:_, %72:_
+  G_BR %bb.7
+
+bb.6 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  G_BR %bb.7
+
+bb.7 (%ir-block.1):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+
+  %75:_(s8) = G_PHI %73:_(s8), %bb.5, %67:_(s8), %bb.6
+  %76:_(s8), %77:_(s1), %78:_, %79:_, %80:_ = G_SBC %75:_, %74:_, %61:_
+  G_BRCOND_IMM %78:_(s1), %bb.3, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.4, %bb.7
+
+  %22:_(s8) = G_PHI %74:_(s8), %bb.7, %43:_(s8), %bb.4
+  %23:_(s8) = G_PHI %74:_(s8), %bb.7, %44:_(s8), %bb.4
+  $a = COPY %22:_(s8)
+  $x = COPY %23:_(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.6):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %55:_(s8) = G_PHI %1:_(s8), %bb.2, %28:_(s8), %bb.4
+  %56:_(s8) = G_PHI %2:_(s8), %bb.2, %29:_(s8), %bb.4
+  %49:_(s8) = G_PHI %74:_(s8), %bb.2, %43:_(s8), %bb.4
+  %50:_(s8) = G_PHI %74:_(s8), %bb.2, %44:_(s8), %bb.4
+  %43:_(s8) = G_PHI %81:_(s8), %bb.2, %34:_(s8), %bb.4
+  %44:_(s8) = G_PHI %74:_(s8), %bb.2, %36:_(s8), %bb.4
+  %38:_(s1) = G_CONSTANT i1 false
+  %34:_(s8), %35:_(s1) = G_UADDE %49:_, %43:_, %38:_
+  %36:_(s8), %37:_(s1) = G_UADDE %50:_, %44:_, %35:_
+  %28:_(s8), %29:_(s8) = G_DEC %55:_(s8), %56:_(s8)
+  %11:_(s1) = G_CMPZ %28:_(s8), %29:_(s8)
+  G_BRCOND_IMM %11:_(s1), %bb.3, 1
+  G_BR %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After RegBankSelect (regbankselect) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.1):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x
+  %1:any(s8) = COPY $a
+  %2:any(s8) = COPY $x
+  %74:any(s8) = G_CONSTANT i8 0
+  %81:any(s8) = G_CONSTANT i8 1
+  %61:any(s1) = G_CONSTANT i1 true
+  %62:any(s8), %63:any(s1), %64:any, %65:any, %66:any = G_SBC %1:any, %81:any, %61:any
+  %67:any(s8), %68:any(s1), %69:any, %70:any, %71:any = G_SBC %2:any, %74:any, %63:any
+  G_BRCOND_IMM %70:any(s1), %bb.5, 1
+  G_BR %bb.6
+
+bb.5 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %72:any(s8) = G_CONSTANT i8 -128
+  %73:any(s8) = G_XOR %67:any, %72:any
+  G_BR %bb.7
+
+bb.6 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  G_BR %bb.7
+
+bb.7 (%ir-block.1):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+
+  %75:any(s8) = G_PHI %73:any(s8), %bb.5, %67:any(s8), %bb.6
+  %76:any(s8), %77:any(s1), %78:any, %79:any, %80:any = G_SBC %75:any, %74:any, %61:any
+  G_BRCOND_IMM %78:any(s1), %bb.3, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.4, %bb.7
+
+  %22:any(s8) = G_PHI %74:any(s8), %bb.7, %43:any(s8), %bb.4
+  %23:any(s8) = G_PHI %74:any(s8), %bb.7, %44:any(s8), %bb.4
+  $a = COPY %22:any(s8)
+  $x = COPY %23:any(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.6):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %55:any(s8) = G_PHI %1:any(s8), %bb.2, %28:any(s8), %bb.4
+  %56:any(s8) = G_PHI %2:any(s8), %bb.2, %29:any(s8), %bb.4
+  %49:any(s8) = G_PHI %74:any(s8), %bb.2, %43:any(s8), %bb.4
+  %50:any(s8) = G_PHI %74:any(s8), %bb.2, %44:any(s8), %bb.4
+  %43:any(s8) = G_PHI %81:any(s8), %bb.2, %34:any(s8), %bb.4
+  %44:any(s8) = G_PHI %74:any(s8), %bb.2, %36:any(s8), %bb.4
+  %38:any(s1) = G_CONSTANT i1 false
+  %34:any(s8), %35:any(s1) = G_UADDE %49:any, %43:any, %38:any
+  %36:any(s8), %37:any(s1) = G_UADDE %50:any, %44:any, %35:any
+  %28:any(s8), %29:any(s8) = G_DEC %55:any(s8), %56:any(s8)
+  %11:any(s1) = G_CMPZ %28:any(s8), %29:any(s8)
+  G_BRCOND_IMM %11:any(s1), %bb.3, 1
+  G_BR %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Localizer (localizer) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.1):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x
+  %1:any(s8) = COPY $a
+  %2:any(s8) = COPY $x
+  %61:any(s1) = G_CONSTANT i1 true
+  %81:any(s8) = G_CONSTANT i8 1
+  %62:any(s8), %63:any(s1), %64:any, %65:any, %66:any = G_SBC %1:any, %81:any, %61:any
+  %74:any(s8) = G_CONSTANT i8 0
+  %67:any(s8), %68:any(s1), %69:any, %70:any, %71:any = G_SBC %2:any, %74:any, %63:any
+  G_BRCOND_IMM %70:any(s1), %bb.5, 1
+  G_BR %bb.6
+
+bb.5 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %72:any(s8) = G_CONSTANT i8 -128
+  %73:any(s8) = G_XOR %67:any, %72:any
+  G_BR %bb.7
+
+bb.6 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  G_BR %bb.7
+
+bb.7 (%ir-block.1):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+
+  %75:any(s8) = G_PHI %73:any(s8), %bb.5, %67:any(s8), %bb.6
+  %82:any(s1) = G_CONSTANT i1 true
+  %84:any(s8) = G_CONSTANT i8 0
+  %76:any(s8), %77:any(s1), %78:any, %79:any, %80:any = G_SBC %75:any, %84:any, %82:any
+  G_BRCOND_IMM %78:any(s1), %bb.3, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %83:any(s8) = G_CONSTANT i8 1
+  %85:any(s8) = G_CONSTANT i8 0
+  G_BR %bb.4
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.4, %bb.7
+
+  %22:any(s8) = G_PHI %84:any(s8), %bb.7, %43:any(s8), %bb.4
+  %23:any(s8) = G_PHI %84:any(s8), %bb.7, %44:any(s8), %bb.4
+  $a = COPY %22:any(s8)
+  $x = COPY %23:any(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.6):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %55:any(s8) = G_PHI %1:any(s8), %bb.2, %28:any(s8), %bb.4
+  %56:any(s8) = G_PHI %2:any(s8), %bb.2, %29:any(s8), %bb.4
+  %49:any(s8) = G_PHI %85:any(s8), %bb.2, %43:any(s8), %bb.4
+  %50:any(s8) = G_PHI %85:any(s8), %bb.2, %44:any(s8), %bb.4
+  %43:any(s8) = G_PHI %83:any(s8), %bb.2, %34:any(s8), %bb.4
+  %44:any(s8) = G_PHI %85:any(s8), %bb.2, %36:any(s8), %bb.4
+  %38:any(s1) = G_CONSTANT i1 false
+  %34:any(s8), %35:any(s1) = G_UADDE %49:any, %43:any, %38:any
+  %36:any(s8), %37:any(s1) = G_UADDE %50:any, %44:any, %35:any
+  %28:any(s8), %29:any(s8) = G_DEC %55:any(s8), %56:any(s8)
+  %11:any(s1) = G_CMPZ %28:any(s8), %29:any(s8)
+  G_BRCOND_IMM %11:any(s1), %bb.3, 1
+  G_BR %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on fibonacci omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %2:ac = COPY $x
+  %63:cc = CMPImm %1:gpr, 1
+  %67:ac, %68:cc, %70:vc = SBCImm %2:ac(tied-def 0), 0, %63:cc(tied-def 1)
+  GBR %bb.5, %70:vc, 1, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %73:ac = EORImm %67:ac(tied-def 0), -128
+  JMP %bb.7
+
+bb.6 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  JMP %bb.7
+
+bb.7 (%ir-block.1):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+
+  %75:anyi8 = PHI %73:ac, %bb.5, %67:ac, %bb.6
+  %84:gpr = LDImm 0
+  CmpBrZero %bb.3, undef $n, 1, %75:anyi8, implicit-def $c
+  JMP %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %83:gpr = LDImm 1
+  %85:gpr = LDImm 0
+  JMP %bb.4
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.4, %bb.7
+
+  %22:anyi8 = PHI %84:gpr, %bb.7, %43:imag8, %bb.4
+  %23:anyi8 = PHI %84:gpr, %bb.7, %44:imag8, %bb.4
+  $a = COPY %22:anyi8
+  $x = COPY %23:anyi8
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.6):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %55:anyi8 = PHI %1:gpr, %bb.2, %28:anyi8, %bb.4
+  %56:anyi8 = PHI %2:ac, %bb.2, %29:anyi8, %bb.4
+  %49:ac = PHI %85:gpr, %bb.2, %43:imag8, %bb.4
+  %50:ac = PHI %85:gpr, %bb.2, %44:imag8, %bb.4
+  %43:imag8 = PHI %83:gpr, %bb.2, %34:ac, %bb.4
+  %44:imag8 = PHI %85:gpr, %bb.2, %36:ac, %bb.4
+  %38:cc = LDImm1 0
+  %34:ac, %35:cc, %88:vc = ADCImag8 %49:ac(tied-def 0), %43:imag8, %38:cc
+  %36:ac, %37:cc, %87:vc = ADCImag8 %50:ac(tied-def 0), %44:imag8, %35:cc
+  early-clobber %86:gpr, %28:anyi8, %29:anyi8 = DecMB %55:anyi8(tied-def 1), %56:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  CmpBrZeroMultiByte %bb.3, 1, %28:anyi8, %29:anyi8, implicit-def $c
+  JMP %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After ResetMachineFunction on fibonacci omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on fibonacci omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on fibonacci omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on fibonacci omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on fibonacci omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on fibonacci omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on fibonacci omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on fibonacci omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on fibonacci omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on fibonacci omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on fibonacci omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on fibonacci omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %2:ac = COPY $x
+  %63:cc = CMPImm %1:gpr, 1
+  %67:ac, %68:cc, %70:vc = SBCImm %2:ac(tied-def 0), 0, %63:cc(tied-def 1)
+  GBR %bb.5, %70:vc, 1, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %73:ac = EORImm %67:ac(tied-def 0), -128
+  JMP %bb.7
+
+bb.6 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  JMP %bb.7
+
+bb.7 (%ir-block.1):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+
+  %75:anyi8 = PHI %73:ac, %bb.5, %67:ac, %bb.6
+  %84:gpr = LDImm 0
+  CmpBrZero %bb.3, undef $n, 1, %75:anyi8, implicit-def $c
+  JMP %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %83:gpr = LDImm 1
+  %85:gpr = LDImm 0
+  %38:cc = LDImm1 0
+  JMP %bb.4
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.4, %bb.7
+
+  %22:anyi8 = PHI %84:gpr, %bb.7, %43:imag8, %bb.4
+  %23:anyi8 = PHI %84:gpr, %bb.7, %44:imag8, %bb.4
+  $a = COPY %22:anyi8
+  $x = COPY %23:anyi8
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.6):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %55:anyi8 = PHI %1:gpr, %bb.2, %28:anyi8, %bb.4
+  %56:anyi8 = PHI %2:ac, %bb.2, %29:anyi8, %bb.4
+  %49:ac = PHI %85:gpr, %bb.2, %43:imag8, %bb.4
+  %50:ac = PHI %85:gpr, %bb.2, %44:imag8, %bb.4
+  %43:imag8 = PHI %83:gpr, %bb.2, %34:ac, %bb.4
+  %44:imag8 = PHI %85:gpr, %bb.2, %36:ac, %bb.4
+  %34:ac, %35:cc, %88:vc = ADCImag8 %49:ac(tied-def 0), %43:imag8, %38:cc
+  %36:ac, %37:cc, %87:vc = ADCImag8 %50:ac(tied-def 0), %44:imag8, %35:cc
+  early-clobber %86:gpr, %28:anyi8, %29:anyi8 = DecMB %55:anyi8(tied-def 1), %56:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  CmpBrZeroMultiByte %bb.3, 1, %28:anyi8, %29:anyi8, implicit-def $c
+  JMP %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on fibonacci omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on fibonacci omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on fibonacci omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on fibonacci omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on fibonacci omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %2:ac = COPY $x
+  %63:cc = CMPImm %1:gpr, 1
+  %67:ac, %68:cc, %70:vc = SBCImm %2:ac(tied-def 0), 0, %63:cc(tied-def 1)
+  GBR %bb.5, %70:vc, 1, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %73:ac = EORImm %67:ac(tied-def 0), -128
+  JMP %bb.7
+
+bb.6 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  JMP %bb.7
+
+bb.7 (%ir-block.1):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.8(0x30000000); %bb.2(62.50%), %bb.8(37.50%)
+
+  %75:anyi8 = PHI %73:ac, %bb.5, %67:ac, %bb.6
+  CmpBrZero %bb.2, undef $n, 0, %75:anyi8, implicit-def $c
+
+bb.8:
+; predecessors: %bb.7
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %84:gpr = LDImm 0
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %83:gpr = LDImm 1
+  %85:gpr = LDImm 0
+  %38:cc = LDImm1 0
+  JMP %bb.4
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+
+  %22:anyi8 = PHI %84:gpr, %bb.8, %43:imag8, %bb.4
+  %23:anyi8 = PHI %84:gpr, %bb.8, %44:imag8, %bb.4
+  $a = COPY %22:anyi8
+  $x = COPY %23:anyi8
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.6):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %55:anyi8 = PHI %1:gpr, %bb.2, %28:anyi8, %bb.4
+  %56:anyi8 = PHI %2:ac, %bb.2, %29:anyi8, %bb.4
+  %49:ac = PHI %85:gpr, %bb.2, %43:imag8, %bb.4
+  %50:ac = PHI %85:gpr, %bb.2, %44:imag8, %bb.4
+  %43:imag8 = PHI %83:gpr, %bb.2, %34:ac, %bb.4
+  %44:imag8 = PHI %85:gpr, %bb.2, %36:ac, %bb.4
+  %34:ac, %35:cc, %88:vc = ADCImag8 %49:ac(tied-def 0), %43:imag8, %38:cc
+  %36:ac, %37:cc, %87:vc = ADCImag8 %50:ac(tied-def 0), %44:imag8, %35:cc
+  early-clobber %86:gpr, %28:anyi8, %29:anyi8 = DecMB %55:anyi8(tied-def 1), %56:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  CmpBrZeroMultiByte %bb.3, 1, %28:anyi8, %29:anyi8, implicit-def $c
+  JMP %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Peephole Optimizations (peephole-opt) on fibonacci omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on fibonacci omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on fibonacci omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %2:ac = COPY $x
+  %63:cc = CMPImm %1:gpr, 1
+  %67:ac, dead %68:cc, %70:vc = SBCImm %2:ac(tied-def 0), 0, %63:cc(tied-def 1)
+  GBR %bb.5, %70:vc, 1, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %73:ac = EORImm %67:ac(tied-def 0), -128
+  JMP %bb.7
+
+bb.6 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  JMP %bb.7
+
+bb.7 (%ir-block.1):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.8(0x30000000); %bb.2(62.50%), %bb.8(37.50%)
+
+  %75:anyi8 = PHI %73:ac, %bb.5, %67:ac, %bb.6
+  CmpBrZero %bb.2, undef $n, 0, %75:anyi8, implicit-def $c
+
+bb.8:
+; predecessors: %bb.7
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %84:gpr = LDImm 0
+  JMP %bb.3
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %83:gpr = LDImm 1
+  %85:gpr = LDImm 0
+  %38:cc = LDImm1 0
+  JMP %bb.4
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+
+  %22:anyi8 = PHI %84:gpr, %bb.8, %43:imag8, %bb.4
+  %23:anyi8 = PHI %84:gpr, %bb.8, %44:imag8, %bb.4
+  $a = COPY %22:anyi8
+  $x = COPY %23:anyi8
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.6):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %55:anyi8 = PHI %1:gpr, %bb.2, %28:anyi8, %bb.4
+  %56:anyi8 = PHI %2:ac, %bb.2, %29:anyi8, %bb.4
+  %49:ac = PHI %85:gpr, %bb.2, %43:imag8, %bb.4
+  %50:ac = PHI %85:gpr, %bb.2, %44:imag8, %bb.4
+  %43:imag8 = PHI %83:gpr, %bb.2, %34:ac, %bb.4
+  %44:imag8 = PHI %85:gpr, %bb.2, %36:ac, %bb.4
+  %34:ac, %35:cc, dead %88:vc = ADCImag8 %49:ac(tied-def 0), %43:imag8, %38:cc
+  %36:ac, dead %37:cc, dead %87:vc = ADCImag8 %50:ac(tied-def 0), %44:imag8, %35:cc
+  dead early-clobber %86:gpr, %28:anyi8, %29:anyi8 = DecMB %55:anyi8(tied-def 1), %56:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  CmpBrZeroMultiByte %bb.3, 1, %28:anyi8, %29:anyi8, implicit-def $c
+  JMP %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Init Undef Pass (init-undef) on fibonacci omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on fibonacci omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %2:ac = COPY $x
+  %63:cc = CMPImm %1:gpr, 1
+  %67:ac, dead %68:cc, %70:vc = SBCImm %2:ac(tied-def 0), 0, %63:cc(tied-def 1)
+  GBR %bb.1, %70:vc, 1, implicit-def $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %73:ac = EORImm %67:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  %75:anyi8 = PHI %73:ac, %bb.1, %67:ac, %bb.2
+  CmpBrZero %bb.5, undef $n, 0, %75:anyi8, implicit-def $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %84:gpr = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %83:gpr = LDImm 1
+  %85:gpr = LDImm 0
+  %38:cc = LDImm1 0
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.7, %bb.4
+
+  %22:anyi8 = PHI %84:gpr, %bb.4, %43:imag8, %bb.7
+  %23:anyi8 = PHI %84:gpr, %bb.4, %44:imag8, %bb.7
+  $a = COPY %22:anyi8
+  $x = COPY %23:anyi8
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %55:anyi8 = PHI %1:gpr, %bb.5, %28:anyi8, %bb.7
+  %56:anyi8 = PHI %2:ac, %bb.5, %29:anyi8, %bb.7
+  %49:ac = PHI %85:gpr, %bb.5, %43:imag8, %bb.7
+  %50:ac = PHI %85:gpr, %bb.5, %44:imag8, %bb.7
+  %43:imag8 = PHI %83:gpr, %bb.5, %34:ac, %bb.7
+  %44:imag8 = PHI %85:gpr, %bb.5, %36:ac, %bb.7
+  %34:ac, %35:cc, dead %88:vc = ADCImag8 %49:ac(tied-def 0), %43:imag8, %38:cc
+  %36:ac, dead %37:cc, dead %87:vc = ADCImag8 %50:ac(tied-def 0), %44:imag8, %35:cc
+  dead early-clobber %86:gpr, %28:anyi8, %29:anyi8 = DecMB %55:anyi8(tied-def 1), %56:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  CmpBrZeroMultiByte %bb.6, 1, %28:anyi8, %29:anyi8, implicit-def $c
+  JMP %bb.7
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Live Variable Analysis (livevars) on fibonacci ***
+# Machine code for function fibonacci: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY killed $a
+  %2:ac = COPY killed $x
+  %63:cc = CMPImm %1:gpr, 1
+  %67:ac, dead %68:cc, %70:vc = SBCImm %2:ac(tied-def 0), 0, killed %63:cc(tied-def 1)
+  GBR %bb.1, killed %70:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %73:ac = EORImm killed %67:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  %75:anyi8 = PHI %73:ac, %bb.1, %67:ac, %bb.2
+  CmpBrZero %bb.5, undef $n, 0, killed %75:anyi8, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %84:gpr = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %83:gpr = LDImm 1
+  %85:gpr = LDImm 0
+  %38:cc = LDImm1 0
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.7, %bb.4
+
+  %22:anyi8 = PHI %84:gpr, %bb.4, %43:imag8, %bb.7
+  %23:anyi8 = PHI %84:gpr, %bb.4, %44:imag8, %bb.7
+  $a = COPY killed %22:anyi8
+  $x = COPY killed %23:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %55:anyi8 = PHI %1:gpr, %bb.5, %28:anyi8, %bb.7
+  %56:anyi8 = PHI %2:ac, %bb.5, %29:anyi8, %bb.7
+  %49:ac = PHI %85:gpr, %bb.5, %43:imag8, %bb.7
+  %50:ac = PHI %85:gpr, %bb.5, %44:imag8, %bb.7
+  %43:imag8 = PHI %83:gpr, %bb.5, %34:ac, %bb.7
+  %44:imag8 = PHI %85:gpr, %bb.5, %36:ac, %bb.7
+  %34:ac, %35:cc, dead %88:vc = ADCImag8 killed %49:ac(tied-def 0), %43:imag8, %38:cc
+  %36:ac, dead %37:cc, dead %87:vc = ADCImag8 killed %50:ac(tied-def 0), %44:imag8, killed %35:cc
+  dead early-clobber %86:gpr, %28:anyi8, %29:anyi8 = DecMB killed %55:anyi8(tied-def 1), killed %56:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  CmpBrZeroMultiByte %bb.6, 1, %28:anyi8, %29:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function fibonacci.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on fibonacci omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on fibonacci omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY killed $a
+  %2:ac = COPY killed $x
+  %63:cc = CMPImm %1:gpr, 1
+  %67:ac, dead %68:cc, %70:vc = SBCImm %2:ac(tied-def 0), 0, killed %63:cc(tied-def 1)
+  GBR %bb.1, killed %70:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %73:ac = EORImm killed %67:ac(tied-def 0), -128
+  %89:anyi8 = COPY killed %73:ac
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %89:anyi8 = COPY killed %67:ac
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  %75:anyi8 = COPY killed %89:anyi8
+  CmpBrZero %bb.5, undef $n, 0, killed %75:anyi8, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %84:gpr = LDImm 0
+  %90:anyi8 = COPY %84:gpr
+  %91:anyi8 = COPY killed %84:gpr
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %83:gpr = LDImm 1
+  %85:gpr = LDImm 0
+  %38:cc = LDImm1 0
+  %92:anyi8 = COPY killed %1:gpr
+  %93:anyi8 = COPY killed %2:ac
+  %94:ac = COPY %85:gpr
+  %95:ac = COPY %85:gpr
+  %96:imag8 = COPY killed %83:gpr
+  %97:imag8 = COPY killed %85:gpr
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.7, %bb.4
+
+  %23:anyi8 = COPY killed %91:anyi8
+  %22:anyi8 = COPY killed %90:anyi8
+  $a = COPY killed %22:anyi8
+  $x = COPY killed %23:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %44:imag8 = COPY killed %97:imag8
+  %43:imag8 = COPY killed %96:imag8
+  %50:ac = COPY killed %95:ac
+  %49:ac = COPY killed %94:ac
+  %56:anyi8 = COPY killed %93:anyi8
+  %55:anyi8 = COPY killed %92:anyi8
+  %34:ac, %35:cc, dead %88:vc = ADCImag8 killed %49:ac(tied-def 0), %43:imag8, %38:cc
+  %36:ac, dead %37:cc, dead %87:vc = ADCImag8 killed %50:ac(tied-def 0), %44:imag8, killed %35:cc
+  dead early-clobber %86:gpr, %28:anyi8, %29:anyi8 = DecMB killed %55:anyi8(tied-def 1), killed %56:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %90:anyi8 = COPY %43:imag8
+  %91:anyi8 = COPY %44:imag8
+  %92:anyi8 = COPY %28:anyi8
+  %93:anyi8 = COPY %29:anyi8
+  %94:ac = COPY killed %43:imag8
+  %95:ac = COPY killed %44:imag8
+  %96:imag8 = COPY killed %34:ac
+  %97:imag8 = COPY killed %36:ac
+  CmpBrZeroMultiByte %bb.6, 1, killed %28:anyi8, killed %29:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY killed $a
+  %2:ac = COPY killed $x
+  %63:cc = CMPImm %1:gpr, 1
+  %67:ac = COPY %2:ac
+  %68:cc = COPY killed %63:cc
+  %67:ac, dead %68:cc, %70:vc = SBCImm %67:ac(tied-def 0), 0, %68:cc(tied-def 1)
+  GBR %bb.1, killed %70:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %73:ac = COPY killed %67:ac
+  %73:ac = EORImm %73:ac(tied-def 0), -128
+  %89:anyi8 = COPY killed %73:ac
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %89:anyi8 = COPY killed %67:ac
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  %75:anyi8 = COPY killed %89:anyi8
+  CmpBrZero %bb.5, undef $n, 0, killed %75:anyi8, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %84:gpr = LDImm 0
+  %90:anyi8 = COPY %84:gpr
+  %91:anyi8 = COPY killed %84:gpr
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %83:gpr = LDImm 1
+  %85:gpr = LDImm 0
+  %38:cc = LDImm1 0
+  %92:anyi8 = COPY killed %1:gpr
+  %93:anyi8 = COPY killed %2:ac
+  %94:ac = COPY %85:gpr
+  %95:ac = COPY %85:gpr
+  %96:imag8 = COPY killed %83:gpr
+  %97:imag8 = COPY killed %85:gpr
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.7, %bb.4
+
+  %23:anyi8 = COPY killed %91:anyi8
+  %22:anyi8 = COPY killed %90:anyi8
+  $a = COPY killed %22:anyi8
+  $x = COPY killed %23:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %44:imag8 = COPY killed %97:imag8
+  %43:imag8 = COPY killed %96:imag8
+  %50:ac = COPY killed %95:ac
+  %49:ac = COPY killed %94:ac
+  %56:anyi8 = COPY killed %93:anyi8
+  %55:anyi8 = COPY killed %92:anyi8
+  %34:ac = COPY killed %49:ac
+  %34:ac, %35:cc, dead %88:vc = ADCImag8 %34:ac(tied-def 0), %43:imag8, %38:cc
+  %36:ac = COPY killed %50:ac
+  %36:ac, dead %37:cc, dead %87:vc = ADCImag8 %36:ac(tied-def 0), %44:imag8, killed %35:cc
+  %29:anyi8 = COPY killed %56:anyi8
+  %28:anyi8 = COPY killed %55:anyi8
+  dead early-clobber %86:gpr, %28:anyi8, %29:anyi8 = DecMB %28:anyi8(tied-def 1), %29:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %90:anyi8 = COPY %43:imag8
+  %91:anyi8 = COPY %44:imag8
+  %92:anyi8 = COPY %28:anyi8
+  %93:anyi8 = COPY %29:anyi8
+  %94:ac = COPY killed %43:imag8
+  %95:ac = COPY killed %44:imag8
+  %96:imag8 = COPY killed %34:ac
+  %97:imag8 = COPY killed %36:ac
+  CmpBrZeroMultiByte %bb.6, 1, killed %28:anyi8, killed %29:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Slot index numbering (slotindexes) on fibonacci omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %2:ac = COPY $x
+  %63:cc = CMPImm %1:gpr, 1
+  %67:ac = COPY %2:ac
+  %68:cc = COPY %63:cc
+  %67:ac, dead %68:cc, %70:vc = SBCImm %67:ac(tied-def 0), 0, %68:cc(tied-def 1)
+  GBR %bb.1, %70:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %73:ac = COPY %67:ac
+  %73:ac = EORImm %73:ac(tied-def 0), -128
+  %89:anyi8 = COPY %73:ac
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %89:anyi8 = COPY %67:ac
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  %75:anyi8 = COPY %89:anyi8
+  CmpBrZero %bb.5, undef $n, 0, %75:anyi8, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %84:gpr = LDImm 0
+  %90:anyi8 = COPY %84:gpr
+  %91:anyi8 = COPY %84:gpr
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %83:gpr = LDImm 1
+  %85:gpr = LDImm 0
+  %38:cc = LDImm1 0
+  %92:anyi8 = COPY %1:gpr
+  %93:anyi8 = COPY %2:ac
+  %94:ac = COPY %85:gpr
+  %95:ac = COPY %85:gpr
+  %96:imag8 = COPY %83:gpr
+  %97:imag8 = COPY %85:gpr
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.7, %bb.4
+
+  %23:anyi8 = COPY %91:anyi8
+  %22:anyi8 = COPY %90:anyi8
+  $a = COPY %22:anyi8
+  $x = COPY %23:anyi8
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %44:imag8 = COPY %97:imag8
+  %43:imag8 = COPY %96:imag8
+  %50:ac = COPY %95:ac
+  %49:ac = COPY %94:ac
+  %56:anyi8 = COPY %93:anyi8
+  %55:anyi8 = COPY %92:anyi8
+  %34:ac = COPY %49:ac
+  %34:ac, %35:cc, dead %88:vc = ADCImag8 %34:ac(tied-def 0), %43:imag8, %38:cc
+  %36:ac = COPY %50:ac
+  %36:ac, dead %37:cc, dead %87:vc = ADCImag8 %36:ac(tied-def 0), %44:imag8, %35:cc
+  %29:anyi8 = COPY %56:anyi8
+  %28:anyi8 = COPY %55:anyi8
+  dead early-clobber %86:gpr, %28:anyi8, %29:anyi8 = DecMB %28:anyi8(tied-def 1), %29:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %90:anyi8 = COPY %43:imag8
+  %91:anyi8 = COPY %44:imag8
+  %92:anyi8 = COPY %28:anyi8
+  %93:anyi8 = COPY %29:anyi8
+  %94:ac = COPY %43:imag8
+  %95:ac = COPY %44:imag8
+  %96:imag8 = COPY %34:ac
+  %97:imag8 = COPY %36:ac
+  CmpBrZeroMultiByte %bb.6, 1, %28:anyi8, %29:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Register Coalescer (register-coalescer) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %93:anyi8 = COPY $x
+  %68:cc = CMPImm %1:gpr, 1
+  %89:ac = COPY %93:anyi8
+  %89:ac, dead %68:cc, %70:vc = SBCImm %89:ac(tied-def 0), 0, %68:cc(tied-def 1)
+  GBR %bb.1, %70:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %89:ac = EORImm %89:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  CmpBrZero %bb.5, undef $n, 0, %89:ac, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %90:gpr = LDImm 0
+  %91:gpr = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %83:gpr = LDImm 1
+  %94:gpr = LDImm 0
+  %38:cc = LDImm1 0
+  %92:anyi8 = COPY %1:gpr
+  %95:gpr = LDImm 0
+  %96:imag8 = COPY %83:gpr
+  %97:imag8 = COPY %94:gpr
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.7, %bb.4
+
+  $a = COPY %90:gpr
+  $x = COPY %91:gpr
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %34:ac = COPY %94:gpr
+  %34:ac, %35:cc, dead %88:vc = ADCImag8 %34:ac(tied-def 0), %96:imag8, %38:cc
+  %36:ac = COPY %95:gpr
+  %36:ac, dead %37:cc, dead %87:vc = ADCImag8 %36:ac(tied-def 0), %97:imag8, %35:cc
+  dead early-clobber %86:gpr, %92:anyi8, %93:anyi8 = DecMB %92:anyi8(tied-def 1), %93:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %90:gpr = COPY %96:imag8
+  %91:gpr = COPY %97:imag8
+  %94:gpr = COPY %96:imag8
+  %95:gpr = COPY %97:imag8
+  %96:imag8 = COPY %34:ac
+  %97:imag8 = COPY %36:ac
+  CmpBrZeroMultiByte %bb.6, 1, %92:anyi8, %93:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Register Coalescer (register-coalescer) on fibonacci omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on fibonacci omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on fibonacci omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %93:anyi8 = COPY $x
+  %68:cc = CMPImm %1:gpr, 1
+  %89:ac = COPY %93:anyi8
+  %89:ac, dead %68:cc, %70:vc = SBCImm %89:ac(tied-def 0), 0, %68:cc(tied-def 1)
+  GBR %bb.1, %70:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %89:ac = EORImm %89:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  CmpBrZero %bb.5, undef $n, 0, %89:ac, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %90:gpr = LDImm 0
+  %91:gpr = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %83:gpr = LDImm 1
+  %94:gpr = LDImm 0
+  %38:cc = LDImm1 0
+  %92:anyi8 = COPY %1:gpr
+  %95:gpr = LDImm 0
+  %96:imag8 = COPY %83:gpr
+  %97:imag8 = COPY %94:gpr
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.7, %bb.4
+
+  $x = COPY %91:gpr
+  $a = COPY %90:gpr
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %34:ac = COPY %94:gpr
+  %34:ac, %35:cc, dead %88:vc = ADCImag8 %34:ac(tied-def 0), %96:imag8, %38:cc
+  %36:ac = COPY %95:gpr
+  %36:ac, dead %37:cc, dead %87:vc = ADCImag8 %36:ac(tied-def 0), %97:imag8, %35:cc
+  dead early-clobber %86:gpr, %92:anyi8, %93:anyi8 = DecMB %92:anyi8(tied-def 1), %93:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %90:gpr = COPY %96:imag8
+  %91:gpr = COPY %97:imag8
+  %94:gpr = COPY %96:imag8
+  %96:imag8 = COPY %34:ac
+  %95:gpr = COPY %97:imag8
+  %97:imag8 = COPY %36:ac
+  CmpBrZeroMultiByte %bb.6, 1, %92:anyi8, %93:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %93:anyi8 = COPY $x
+  %68:cc = CMPImm %1:gpr, 1
+  %89:ac = COPY %93:anyi8
+  %89:ac, dead %68:cc, %70:vc = SBCImm %89:ac(tied-def 0), 0, %68:cc(tied-def 1)
+  GBR %bb.1, %70:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %89:ac = EORImm %89:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  CmpBrZero %bb.5, undef $n, 0, %89:ac, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %90:gpr = LDImm 0
+  %91:gpr = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %83:gpr = LDImm 1
+  %94:gpr = LDImm 0
+  %38:cc = LDImm1 0
+  %92:anyi8 = COPY %1:gpr
+  %95:gpr = LDImm 0
+  %96:imag8 = COPY %83:gpr
+  %97:imag8 = COPY %94:gpr
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.7, %bb.4
+
+  $x = COPY %91:gpr
+  $a = COPY %90:gpr
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %34:ac = COPY %94:gpr
+  %34:ac, %35:cc, dead %88:vc = ADCImag8 %34:ac(tied-def 0), %96:imag8, %38:cc
+  %36:ac = COPY %95:gpr
+  %36:ac, dead %37:cc, dead %87:vc = ADCImag8 %36:ac(tied-def 0), %97:imag8, %35:cc
+  dead early-clobber %86:gpr, %92:anyi8, %93:anyi8 = DecMB %92:anyi8(tied-def 1), %93:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %90:gpr = COPY %96:imag8
+  %91:gpr = COPY %97:imag8
+  %94:gpr = COPY %96:imag8
+  %96:imag8 = COPY %34:ac
+  %95:gpr = COPY %97:imag8
+  %97:imag8 = COPY %36:ac
+  CmpBrZeroMultiByte %bb.6, 1, %92:anyi8, %93:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on fibonacci omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on fibonacci omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on fibonacci omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on fibonacci omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on fibonacci omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on fibonacci omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on fibonacci omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %93:anyi8 = COPY $x
+  %68:cc = CMPImm %1:gpr, 1
+  %89:ac = COPY %93:anyi8
+  %89:ac, dead %68:cc, %70:vc = SBCImm %89:ac(tied-def 0), 0, %68:cc(tied-def 1)
+  GBR %bb.1, %70:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %89:ac = EORImm %89:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  CmpBrZero %bb.5, undef $n, 0, %89:ac, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %108:gpr = LDImm 0
+  %107:anyi8 = COPY %108:gpr
+  %109:gpr = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %92:anyi8 = COPY %1:gpr
+  %95:gpr = LDImm 0
+  %119:gpr = LDImm 1
+  %96:imag8 = COPY %119:gpr
+  %125:gpr = LDImm 0
+  %121:anyi8 = COPY %125:gpr
+  %102:anyi8 = COPY %121:anyi8
+  %97:imag8 = COPY %121:anyi8
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.7, %bb.4
+
+  $x = COPY %109:gpr
+  $a = COPY %107:anyi8
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %113:ac = COPY %102:anyi8
+  %100:cc = LDImm1 0
+  %113:ac, %35:cc, dead %88:vc = ADCImag8 %113:ac(tied-def 0), %96:imag8, %100:cc
+  %112:anyi8 = COPY %113:ac
+  %115:ac = COPY %95:gpr
+  %115:ac, dead %37:cc, dead %87:vc = ADCImag8 %115:ac(tied-def 0), %97:imag8, %35:cc
+  %114:anyi8 = COPY %115:ac
+  dead early-clobber %86:gpr, %92:anyi8, %93:anyi8 = DecMB %92:anyi8(tied-def 1), %93:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %107:anyi8 = COPY %96:imag8
+  %109:gpr = COPY %97:imag8
+  %102:anyi8 = COPY %96:imag8
+  %96:imag8 = COPY %112:anyi8
+  %95:gpr = COPY %97:imag8
+  %97:imag8 = COPY %114:anyi8
+  CmpBrZeroMultiByte %bb.6, 1, %92:anyi8, %93:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  renamable $y = COPY $a
+  renamable $c = CMPImm renamable $y, 1
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+  liveins: $a, $x, $y
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $y
+  renamable $rc2 = COPY killed renamable $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = LDImm 0
+  renamable $rc5 = COPY renamable $a
+  renamable $rc4 = COPY killed renamable $a
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.7, %bb.4
+  liveins: $a, $rc6
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $rc6
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+  liveins: $x, $y, $rc2, $rc3, $rc4, $rc5
+  renamable $a = COPY killed renamable $rc5
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  dead early-clobber renamable $y, renamable $rc2, renamable $x = DecMB killed renamable $rc2(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $rc6 = COPY renamable $rc3
+  renamable $a = COPY renamable $rc4
+  renamable $rc5 = COPY killed renamable $rc3
+  renamable $rc3 = COPY killed renamable $rc7
+  renamable $y = COPY killed renamable $rc4
+  renamable $rc4 = COPY killed renamable $rc8
+  CmpBrZeroMultiByte %bb.6, 1, renamable $rc2, renamable $x, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on fibonacci omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on fibonacci omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  renamable $y = COPY $a
+  renamable $c = CMPImm $a, 1
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+  liveins: $a, $x, $y
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $y
+  renamable $rc2 = COPY killed renamable $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = LDImm 0
+  renamable $rc5 = COPY renamable $a
+  renamable $rc4 = COPY killed renamable $a
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.7, %bb.4
+  liveins: $a, $rc6
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $rc6
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+  liveins: $x, $y, $rc2, $rc3, $rc4, $rc5
+  renamable $a = COPY killed renamable $rc5
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  dead early-clobber renamable $y, renamable $rc2, renamable $x = DecMB killed renamable $rc2(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $rc6 = COPY renamable $rc3
+  renamable $a = COPY renamable $rc4
+  renamable $rc5 = COPY killed renamable $rc3
+  renamable $rc3 = COPY killed renamable $rc7
+  renamable $y = COPY killed renamable $rc4
+  renamable $rc4 = COPY killed renamable $rc8
+  CmpBrZeroMultiByte %bb.6, 1, renamable $rc2, renamable $x, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on fibonacci omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on fibonacci omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on fibonacci omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on fibonacci omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on fibonacci omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on fibonacci omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on fibonacci omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on fibonacci omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on fibonacci omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  renamable $y = COPY $a
+  renamable $c = CMPImm $a, 1
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+  liveins: $a, $x, $y
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $y
+  renamable $rc2 = COPY killed renamable $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = LDImm 0
+  renamable $rc5 = COPY renamable $a
+  renamable $rc4 = COPY killed renamable $a
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+  liveins: $a, $rc6
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $rc6
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.8(0x04000000), %bb.7(0x7c000000); %bb.8(3.12%), %bb.7(96.88%)
+  liveins: $x, $y, $rc2, $rc3, $rc4, $rc5
+  renamable $a = COPY killed renamable $rc5
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  dead early-clobber renamable $y, renamable $rc2, renamable $x = DecMB killed renamable $rc2(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $rc6 = COPY renamable $rc3
+  renamable $a = COPY renamable $rc4
+  renamable $rc5 = COPY killed renamable $rc3
+  renamable $rc3 = COPY killed renamable $rc7
+  renamable $y = COPY killed renamable $rc4
+  renamable $rc4 = COPY killed renamable $rc8
+  CmpBrZeroMultiByte %bb.8, 1, renamable $rc2, renamable $x, implicit-def dead $c
+  JMP %bb.7
+
+bb.8:
+; predecessors: %bb.7
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $a, $rc6
+  JMP %bb.6
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on fibonacci omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on fibonacci omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on fibonacci omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  renamable $y = COPY $a
+  renamable $c = CMPImm $a, 1
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+  liveins: $a, $x, $y
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $rc6 = COPY renamable $a
+  JMP %bb.6
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $y
+  renamable $rc2 = COPY killed renamable $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = LDImm 0
+  renamable $rc5 = COPY renamable $a
+  renamable $rc4 = COPY killed renamable $a
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+  liveins: $a, $rc6
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $rc6
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.8(0x04000000), %bb.7(0x7c000000); %bb.8(3.12%), %bb.7(96.88%)
+  liveins: $x, $y, $rc2, $rc3, $rc4, $rc5
+  renamable $a = COPY killed renamable $rc5
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  dead early-clobber renamable $y, renamable $rc2, renamable $x = DecMB killed renamable $rc2(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $rc6 = COPY renamable $rc3
+  renamable $a = COPY renamable $rc4
+  renamable $rc5 = COPY killed renamable $rc3
+  renamable $rc3 = COPY killed renamable $rc7
+  renamable $y = COPY killed renamable $rc4
+  renamable $rc4 = COPY killed renamable $rc8
+  CmpBrZeroMultiByte %bb.8, 1, renamable $rc2, renamable $x, implicit-def dead $c
+  JMP %bb.7
+
+bb.8:
+; predecessors: %bb.7
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $a, $rc6
+  JMP %bb.6
+
+# End machine code for function fibonacci.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on fibonacci omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on fibonacci omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on fibonacci omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  renamable $y = COPY $a
+  renamable $c = CMPImm $a, 1
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.2, killed renamable $v, 0, implicit-def $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $a, $x, $y
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $a, $x, $y
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $rc6 = COPY renamable $a
+
+bb.4 (%ir-block.4):
+; predecessors: %bb.3, %bb.6
+  liveins: $a, $rc6
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $rc6
+  RTS implicit $a, implicit $x
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y
+  renamable $rc2 = COPY killed renamable $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = LDImm 0
+  renamable $rc5 = COPY renamable $a
+  renamable $rc4 = COPY killed renamable $a
+
+bb.6 (%ir-block.6):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $x, $y, $rc2, $rc3, $rc4, $rc5
+  renamable $a = COPY killed renamable $rc5
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  dead early-clobber renamable $y, renamable $rc2, renamable $x = DecMB killed renamable $rc2(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $rc6 = COPY renamable $rc3
+  renamable $a = COPY renamable $rc4
+  renamable $rc5 = COPY killed renamable $rc3
+  renamable $rc3 = COPY killed renamable $rc7
+  renamable $y = COPY killed renamable $rc4
+  renamable $rc4 = COPY killed renamable $rc8
+  CmpBrZeroMultiByte %bb.6, 0, renamable $rc2, renamable $x, implicit-def $c
+  JMP %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on fibonacci omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on fibonacci omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on fibonacci omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  renamable $y = COPY $a
+  renamable $c = CMPImm killed $a, 1
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $x, $y, $a
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $rc6 = COPY renamable $a
+
+bb.4 (%ir-block.4):
+; predecessors: %bb.3, %bb.6
+  liveins: $rc6, $a
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $rc6
+  RTS implicit killed $a, implicit killed $x
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y
+  renamable $rc2 = COPY killed renamable $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = LDImm 0
+  renamable $rc5 = COPY renamable $a
+  renamable $rc4 = COPY killed renamable $a
+
+bb.6 (%ir-block.6):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $y, $rc3, $rc4, $x, $rc2, $rc5
+  renamable $a = COPY killed renamable $rc5
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  dead early-clobber renamable $y, renamable $rc2, renamable $x = DecMB killed renamable $rc2(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $rc6 = COPY renamable $rc3
+  renamable $a = COPY renamable $rc4
+  renamable $rc5 = COPY killed renamable $rc3
+  renamable $rc3 = COPY killed renamable $rc7
+  renamable $y = COPY killed renamable $rc4
+  renamable $rc4 = COPY killed renamable $rc8
+  CmpBrZeroMultiByte %bb.6, 0, renamable $rc2, renamable $x, implicit-def dead $c
+  JMP %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $x, $y, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.5, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  $rc6 = STImag8 $a
+
+bb.4 (%ir-block.4):
+; predecessors: %bb.3, %bb.6
+  liveins: $rc6, $a
+  $x = TA $a
+  $a = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y
+  $rc2 = STImag8 $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  $rc3 = STImag8 $a
+  renamable $a = LDImm 0
+  $rc5 = STImag8 $a
+  $rc4 = STImag8 $a
+
+bb.6 (%ir-block.6):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $y, $rc3, $rc4, $x, $rc2, $rc5
+  $a = LDImag8 $rc5
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  $rc7 = STImag8 $a
+  $a = T_A $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  $rc8 = STImag8 $a
+  dead early-clobber renamable $y, renamable $rc2, renamable $x = DecMB killed renamable $rc2(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %0:gpr = LDImag8 $rc3
+  $rc6 = STImag8 %0:gpr
+  $a = LDImag8 $rc4
+  %1:gpr = LDImag8 $rc3
+  $rc5 = STImag8 %1:gpr
+  %2:gpr = LDImag8 $rc7
+  $rc3 = STImag8 %2:gpr
+  $y = LDImag8 $rc4
+  %3:gpr = LDImag8 $rc8
+  $rc4 = STImag8 %3:gpr
+  CmpBrZeroMultiByte %bb.6, 0, renamable $rc2, renamable $x, implicit-def dead $c
+  JMP %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $x, $y, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.5, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  $rc6 = STImag8 $a
+
+bb.4 (%ir-block.4):
+; predecessors: %bb.3, %bb.6
+  liveins: $rc6, $a
+  $x = TA $a
+  $a = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y
+  $rc2 = STImag8 $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  $rc3 = STImag8 $a
+  renamable $a = LDImm 0
+  $rc5 = STImag8 $a
+  $rc4 = STImag8 $a
+
+bb.6 (%ir-block.6):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $y, $rc3, $rc4, $x, $rc2, $rc5
+  $a = LDImag8 $rc5
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  $rc7 = STImag8 $a
+  $a = T_A $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  $rc8 = STImag8 $a
+  dead early-clobber renamable $y, renamable $rc2, renamable $x = DecMB killed renamable $rc2(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  $y = LDImag8 $rc3
+  $rc6 = STImag8 killed $y
+  $a = LDImag8 $rc4
+  PH $a
+  $y = LDImag8 $rc3
+  $rc5 = STImag8 killed $y
+  $y = LDImag8 $rc7
+  $rc3 = STImag8 killed $y
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc8
+  $rc4 = STImag8 killed $a
+  $a = PL
+  CmpBrZeroMultiByte %bb.6, 0, renamable $rc2, renamable $x, implicit-def dead $c
+  JMP %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $x, $y, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.5, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  $rc6 = STImag8 $a
+
+bb.4 (%ir-block.4):
+; predecessors: %bb.3, %bb.9
+  liveins: $rc6, $a
+  $x = TA $a
+  $a = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y
+  $rc2 = STImag8 $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  $rc3 = STImag8 $a
+  renamable $a = LDImm 0
+  $rc5 = STImag8 $a
+  $rc4 = STImag8 $a
+
+bb.6 (%ir-block.6):
+; predecessors: %bb.5, %bb.7, %bb.9
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $y, $rc3, $rc4, $x, $rc2, $rc5
+  $a = LDImag8 $rc5
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  $rc7 = STImag8 $a
+  $a = T_A $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  $rc8 = STImag8 $a
+  $y = LDImm 255
+  $rc2 = DecNMOS $rc2(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $y, killed renamable $rc2, implicit-def $z
+  BR %bb.8, $z, -1
+  JMP %bb.7
+
+bb.8 (%ir-block.6):
+; predecessors: %bb.6
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $rc2, $rc3, $rc4, $rc7, $rc8, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $x = DecNMOS killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.7
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.6, %bb.8
+  successors: %bb.9(0x04000000), %bb.6(0x7c000000); %bb.9(3.12%), %bb.6(96.88%)
+  liveins: $x, $rc2, $rc3, $rc4, $rc7, $rc8
+  $y = LDImag8 $rc3
+  $rc6 = STImag8 killed $y
+  $a = LDImag8 $rc4
+  PH $a
+  $y = LDImag8 $rc3
+  $rc5 = STImag8 killed $y
+  $y = LDImag8 $rc7
+  $rc3 = STImag8 killed $y
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc8
+  $rc4 = STImag8 killed $a
+  $a = PL
+  CmpBrZero %bb.6, undef $z, 0, renamable $x, implicit-def $c
+  JMP %bb.9
+
+bb.9 (%ir-block.6):
+; predecessors: %bb.7
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $a, $x, $y, $rc2, $rc3, $rc4, $rc5, $rc6
+  CmpBrZero %bb.6, undef $z, 0, renamable $rc2, implicit-def $c
+  JMP %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $x, $y, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.5, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  $rc6 = STImag8 $a
+
+bb.4 (%ir-block.4):
+; predecessors: %bb.3, %bb.9
+  liveins: $rc6, $a
+  $x = TA $a
+  $a = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y
+  $rc2 = STImag8 $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  $rc3 = STImag8 $a
+  renamable $a = LDImm 0
+  $rc5 = STImag8 $a
+  $rc4 = STImag8 $a
+
+bb.6 (%ir-block.6):
+; predecessors: %bb.5, %bb.7, %bb.9
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $y, $rc3, $rc4, $x, $rc2, $rc5
+  $a = LDImag8 $rc5
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  $rc7 = STImag8 $a
+  $a = T_A $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  $rc8 = STImag8 $a
+  $y = LDImm 255
+  $rc2 = DEC $rc2(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $y, killed renamable $rc2, implicit-def $z
+  BR %bb.8, $z, -1
+  JMP %bb.7
+
+bb.8 (%ir-block.6):
+; predecessors: %bb.6
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $rc2, $rc3, $rc4, $rc7, $rc8, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $x = DEC killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.7
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.6, %bb.8
+  successors: %bb.9(0x04000000), %bb.6(0x7c000000); %bb.9(3.12%), %bb.6(96.88%)
+  liveins: $x, $rc2, $rc3, $rc4, $rc7, $rc8
+  $y = LDImag8 $rc3
+  $rc6 = STImag8 killed $y
+  $a = LDImag8 $rc4
+  PH $a
+  $y = LDImag8 $rc3
+  $rc5 = STImag8 killed $y
+  $y = LDImag8 $rc7
+  $rc3 = STImag8 killed $y
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc8
+  $rc4 = STImag8 killed $a
+  $a = PL
+  CmpZero renamable $x, implicit-def $c, implicit-def $c, implicit-def $z
+  BR %bb.6, killed $z, 0
+  JMP %bb.9
+
+bb.9 (%ir-block.6):
+; predecessors: %bb.7
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $a, $x, $y, $rc2, $rc3, $rc4, $rc5, $rc6
+  CmpZero renamable $rc2, implicit-def $c, implicit-def $c, implicit-def $z
+  BR %bb.6, killed $z, 0
+  JMP %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on fibonacci omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $x, $y, $a
+  dead $c = CMPImm $a, 0, implicit-def $nz
+  BR %bb.5, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  $rc6 = STImag8 $a
+
+bb.4 (%ir-block.4):
+; predecessors: %bb.3, %bb.9
+  liveins: $rc6, $a
+  $x = TA $a
+  $a = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y
+  $rc2 = STImag8 $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  $rc3 = STImag8 $a
+  renamable $a = T_A $y
+  $rc5 = STImag8 $a
+  $rc4 = STImag8 $a
+
+bb.6 (%ir-block.6):
+; predecessors: %bb.5, %bb.7, %bb.9
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $y, $rc3, $rc4, $x, $rc2, $rc5
+  $a = LDImag8 $rc5
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  $rc7 = STImag8 $a
+  $a = T_A $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  $rc8 = STImag8 $a
+  $y = LDImm 255
+  $rc2 = DEC $rc2(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $y, killed renamable $rc2, implicit-def $z
+  BR %bb.8, $z, -1
+  JMP %bb.7
+
+bb.8 (%ir-block.6):
+; predecessors: %bb.6
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $rc2, $rc3, $rc4, $rc7, $rc8, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $x = DEC killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.7
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.6, %bb.8
+  successors: %bb.9(0x04000000), %bb.6(0x7c000000); %bb.9(3.12%), %bb.6(96.88%)
+  liveins: $x, $rc2, $rc3, $rc4, $rc7, $rc8
+  $y = LDImag8 $rc3
+  $rc6 = STImag8 killed $y
+  $a = LDImag8 $rc4
+  PH $a
+  $y = LDImag8 $rc3
+  $rc5 = STImag8 killed $y
+  $y = LDImag8 $rc7
+  $rc3 = STImag8 killed $y
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc8
+  $rc4 = STImag8 killed $a
+  $a = PL
+  dead $c = CMPImm $x, 0, implicit-def $nz
+  BR %bb.6, killed $z, 0
+  JMP %bb.9
+
+bb.9 (%ir-block.6):
+; predecessors: %bb.7
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $a, $x, $y, $rc2, $rc3, $rc4, $rc5, $rc6
+  $rc2 = INC $rc2(tied-def 0)
+  dead $rc2 = DEC $rc2(tied-def 0), implicit-def $nz
+  BR %bb.6, killed $z, 0
+  JMP %bb.4
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on fibonacci omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on fibonacci omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on fibonacci omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on fibonacci omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on fibonacci omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $x, $y, $a
+  dead $c = CMPImm $a, 0, implicit-def $nz
+  BR %bb.3, killed $n, 1
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y
+  $rc2 = STImag8 $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  $rc3 = STImag8 $a
+  renamable $a = T_A $y
+  $rc5 = STImag8 $a
+  $rc4 = STImag8 $a
+
+bb.6 (%ir-block.6):
+; predecessors: %bb.5, %bb.7, %bb.9
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $y, $rc3, $rc4, $x, $rc2, $rc5
+  $a = LDImag8 $rc5
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  $rc7 = STImag8 $a
+  $a = T_A $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  $rc8 = STImag8 $a
+  $y = LDImm 255
+  $rc2 = DEC $rc2(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $y, killed renamable $rc2, implicit-def $z
+  BR %bb.7, $z, 0
+
+bb.8 (%ir-block.6):
+; predecessors: %bb.6
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $rc2, $rc3, $rc4, $rc7, $rc8, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $x = DEC killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.6, %bb.8
+  successors: %bb.9(0x04000000), %bb.6(0x7c000000); %bb.9(3.12%), %bb.6(96.88%)
+  liveins: $x, $rc2, $rc3, $rc4, $rc7, $rc8
+  $y = LDImag8 $rc3
+  $rc6 = STImag8 killed $y
+  $a = LDImag8 $rc4
+  PH $a
+  $y = LDImag8 $rc3
+  $rc5 = STImag8 killed $y
+  $y = LDImag8 $rc7
+  $rc3 = STImag8 killed $y
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc8
+  $rc4 = STImag8 killed $a
+  $a = PL
+  dead $c = CMPImm $x, 0, implicit-def $nz
+  BR %bb.6, killed $z, 0
+
+bb.9 (%ir-block.6):
+; predecessors: %bb.7
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $a, $x, $y, $rc2, $rc3, $rc4, $rc5, $rc6
+  $rc2 = INC $rc2(tied-def 0)
+  dead $rc2 = DEC $rc2(tied-def 0), implicit-def $nz
+  BR %bb.6, killed $z, 0
+  JMP %bb.4
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  $rc6 = STImag8 $a
+
+bb.4 (%ir-block.4):
+; predecessors: %bb.3, %bb.9
+  liveins: $rc6, $a
+  $x = TA $a
+  $a = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Insert fentry calls (fentry-insert) on fibonacci omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on fibonacci omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on fibonacci omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on fibonacci ***
+# Machine code for function fibonacci: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x50000000), %bb.8(0x30000000); %bb.3(62.50%), %bb.8(37.50%)
+  liveins: $x, $y, $a
+  dead $c = CMPImm $a, 0, implicit-def $nz
+  BR %bb.8, killed $n, 1
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+  liveins: $x, $y
+  $rc2 = STImag8 $y
+  renamable $y = LDImm 0
+  renamable $a = LDImm 1
+  $rc3 = STImag8 $a
+  renamable $a = T_A $y
+  $rc5 = STImag8 $a
+  $rc4 = STImag8 $a
+
+bb.4 (%ir-block.6):
+; predecessors: %bb.3, %bb.6, %bb.7
+  successors: %bb.6(0x40000000), %bb.5(0x40000000); %bb.6(50.00%), %bb.5(50.00%)
+  liveins: $y, $rc3, $rc4, $x, $rc2, $rc5
+  $a = LDImag8 $rc5
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc3, killed renamable $c
+  $rc7 = STImag8 $a
+  $a = T_A $y
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc4, killed renamable $c
+  $rc8 = STImag8 $a
+  $y = LDImm 255
+  $rc2 = DEC $rc2(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $y, killed renamable $rc2, implicit-def $z
+  BR %bb.6, $z, 0
+
+bb.5 (%ir-block.6):
+; predecessors: %bb.4
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $rc2, $rc3, $rc4, $rc7, $rc8, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $x = DEC killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v
+
+bb.6 (%ir-block.6):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x04000000), %bb.4(0x7c000000); %bb.7(3.12%), %bb.4(96.88%)
+  liveins: $x, $rc2, $rc3, $rc4, $rc7, $rc8
+  $y = LDImag8 $rc3
+  $rc6 = STImag8 killed $y
+  $a = LDImag8 $rc4
+  PH $a
+  $y = LDImag8 $rc3
+  $rc5 = STImag8 killed $y
+  $y = LDImag8 $rc7
+  $rc3 = STImag8 killed $y
+  $y = LDImag8 $rc4
+  $a = LDImag8 $rc8
+  $rc4 = STImag8 killed $a
+  $a = PL
+  dead $c = CMPImm $x, 0, implicit-def $nz
+  BR %bb.4, killed $z, 0
+
+bb.7 (%ir-block.6):
+; predecessors: %bb.6
+  successors: %bb.9(0x04000000), %bb.4(0x7c000000); %bb.9(3.12%), %bb.4(96.88%)
+  liveins: $a, $x, $y, $rc2, $rc3, $rc4, $rc5, $rc6
+  $rc2 = INC $rc2(tied-def 0)
+  dead $rc2 = DEC $rc2(tied-def 0), implicit-def $nz
+  BR %bb.4, killed $z, 0
+  JMP %bb.9
+
+bb.8:
+; predecessors: %bb.2
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  renamable $a = LDImm 0
+  $rc6 = STImag8 $a
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.8, %bb.7
+  liveins: $rc6, $a
+  $x = TA $a
+  $a = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function fibonacci.
+
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on fibonacci omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on fibonacci omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on fibonacci omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on fibonacci omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on fibonacci omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on fibonacci omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on fibonacci omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on fibonacci omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on fibonacci omitted because no change ***

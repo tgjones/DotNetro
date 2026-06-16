@@ -52,7 +52,7 @@ internal static class MachineCodeBinaryReader
             OperandKindTag.Register    => new MachineCodeOperand.Register(reader.ReadInt32()),
             OperandKindTag.Immediate   => new MachineCodeOperand.Immediate(reader.ReadInt64()),
             OperandKindTag.LabelRef    => new MachineCodeOperand.LabelRef(reader.ReadString()),
-            OperandKindTag.ExternalRef => new MachineCodeOperand.ExternalRef(reader.ReadString(), (SymbolHalf)reader.ReadByte()),
+            OperandKindTag.ExternalRef => new MachineCodeOperand.ExternalRef(reader.ReadString(), (SymbolHalf)reader.ReadByte(), reader.ReadInt32()),
             _ => throw new InvalidDataException($"Unknown operand kind tag: {tag}"),
         };
     }

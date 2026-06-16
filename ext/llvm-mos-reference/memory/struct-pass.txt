@@ -1,0 +1,674 @@
+*** IR Dump At Start ***
+; ModuleID = './memory/struct-pass.c'
+source_filename = "./memory/struct-pass.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+%struct.point = type { i16, i16 }
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @struct_pass(i16 %0, i16 %1) #0 {
+  %3 = alloca %struct.point, align 1
+  %4 = getelementptr inbounds nuw %struct.point, ptr %3, i32 0, i32 0
+  store i16 %0, ptr %4, align 1
+  %5 = getelementptr inbounds nuw %struct.point, ptr %3, i32 0, i32 1
+  store i16 %1, ptr %5, align 1
+  %6 = getelementptr inbounds nuw %struct.point, ptr %3, i32 0, i32 0
+  %7 = load i16, ptr %6, align 1, !tbaa !6
+  %8 = getelementptr inbounds nuw %struct.point, ptr %3, i32 0, i32 1
+  %9 = load i16, ptr %8, align 1, !tbaa !8
+  %10 = mul nsw i16 %7, %9
+  ret i16 %10
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = !{!7, !3, i64 0}
+!7 = !{!"point", !3, i64 0, !3, i64 2}
+!8 = !{!7, !3, i64 2}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on struct_pass omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on struct_pass omitted because no change ***
+*** IR Dump After SimplifyCFGPass on struct_pass omitted because no change ***
+*** IR Dump After SROAPass on struct_pass ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @struct_pass(i16 %0, i16 %1) #0 {
+  %3 = mul nsw i16 %0, %1
+  ret i16 %3
+}
+*** IR Dump After EarlyCSEPass on struct_pass omitted because no change ***
+*** IR Pass PassManager<Function> on struct_pass ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './memory/struct-pass.c'
+source_filename = "./memory/struct-pass.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @struct_pass(i16 %0, i16 %1) local_unnamed_addr #0 {
+  %3 = mul nsw i16 %0, %1
+  ret i16 %3
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on struct_pass omitted because no change ***
+*** IR Dump After InstCombinePass on struct_pass omitted because no change ***
+*** IR Dump After SimplifyCFGPass on struct_pass omitted because no change ***
+*** IR Pass PassManager<Function> on struct_pass ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on struct_pass omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (struct_pass) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (struct_pass) omitted because no change ***
+*** IR Dump After SROAPass on struct_pass omitted because no change ***
+*** IR Dump After EarlyCSEPass on struct_pass omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on struct_pass omitted because no change ***
+*** IR Dump After JumpThreadingPass on struct_pass omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on struct_pass omitted because no change ***
+*** IR Dump After SimplifyCFGPass on struct_pass omitted because no change ***
+*** IR Dump After InstCombinePass on struct_pass omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on struct_pass omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on struct_pass omitted because no change ***
+*** IR Dump After TailCallElimPass on struct_pass omitted because no change ***
+*** IR Dump After SimplifyCFGPass on struct_pass omitted because no change ***
+*** IR Dump After ReassociatePass on struct_pass ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @struct_pass(i16 %0, i16 %1) local_unnamed_addr #0 {
+  %3 = mul nsw i16 %1, %0
+  ret i16 %3
+}
+*** IR Dump After ConstraintEliminationPass on struct_pass omitted because no change ***
+*** IR Dump After LoopSimplifyPass on struct_pass omitted because no change ***
+*** IR Dump After LCSSAPass on struct_pass omitted because no change ***
+*** IR Pass PassManager<Function> on struct_pass ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on struct_pass ignored ***
+*** IR Dump After SimplifyCFGPass on struct_pass omitted because no change ***
+*** IR Dump After InstCombinePass on struct_pass omitted because no change ***
+*** IR Dump After LoopSimplifyPass on struct_pass omitted because no change ***
+*** IR Dump After LCSSAPass on struct_pass omitted because no change ***
+*** IR Pass PassManager<Function> on struct_pass ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on struct_pass ignored ***
+*** IR Dump After SROAPass on struct_pass omitted because no change ***
+*** IR Dump After VectorCombinePass on struct_pass omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on struct_pass omitted because no change ***
+*** IR Dump After GVNPass on struct_pass omitted because no change ***
+*** IR Dump After SCCPPass on struct_pass omitted because no change ***
+*** IR Dump After BDCEPass on struct_pass omitted because no change ***
+*** IR Dump After InstCombinePass on struct_pass omitted because no change ***
+*** IR Dump After JumpThreadingPass on struct_pass omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on struct_pass omitted because no change ***
+*** IR Dump After ADCEPass on struct_pass omitted because no change ***
+*** IR Dump After MemCpyOptPass on struct_pass omitted because no change ***
+*** IR Dump After DSEPass on struct_pass omitted because no change ***
+*** IR Dump After MoveAutoInitPass on struct_pass omitted because no change ***
+*** IR Dump After LoopSimplifyPass on struct_pass omitted because no change ***
+*** IR Dump After LCSSAPass on struct_pass omitted because no change ***
+*** IR Pass PassManager<Function> on struct_pass ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on struct_pass ignored ***
+*** IR Dump After CoroElidePass on struct_pass omitted because no change ***
+*** IR Dump After SimplifyCFGPass on struct_pass omitted because no change ***
+*** IR Dump After InstCombinePass on struct_pass omitted because no change ***
+*** IR Pass PassManager<Function> on struct_pass ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (struct_pass) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (struct_pass) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local i16 @struct_pass(i16 %0, i16 %1) local_unnamed_addr #0 {
+  %3 = mul nsw i16 %1, %0
+  ret i16 %3
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on struct_pass omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (struct_pass) ignored ***
+*** IR Dump After CoroSplitPass on (struct_pass) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (struct_pass) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (struct_pass) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (struct_pass) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on struct_pass omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on struct_pass omitted because no change ***
+*** IR Dump After Float2IntPass on struct_pass omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on struct_pass omitted because no change ***
+*** IR Dump After LoopSimplifyPass on struct_pass omitted because no change ***
+*** IR Dump After LCSSAPass on struct_pass omitted because no change ***
+*** IR Pass PassManager<Function> on struct_pass ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on struct_pass ignored ***
+*** IR Dump After LoopDistributePass on struct_pass omitted because no change ***
+*** IR Dump After InjectTLIMappings on struct_pass omitted because no change ***
+*** IR Dump After LoopVectorizePass on struct_pass omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on struct_pass omitted because no change ***
+*** IR Dump After InferAlignmentPass on struct_pass omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on struct_pass omitted because no change ***
+*** IR Dump After InstCombinePass on struct_pass omitted because no change ***
+*** IR Dump After SimplifyCFGPass on struct_pass omitted because no change ***
+*** IR Dump After SLPVectorizerPass on struct_pass omitted because no change ***
+*** IR Dump After VectorCombinePass on struct_pass omitted because no change ***
+*** IR Dump After InstCombinePass on struct_pass omitted because no change ***
+*** IR Dump After LoopUnrollPass on struct_pass omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on struct_pass omitted because no change ***
+*** IR Dump After SROAPass on struct_pass omitted because no change ***
+*** IR Dump After InferAlignmentPass on struct_pass omitted because no change ***
+*** IR Dump After InstCombinePass on struct_pass omitted because no change ***
+*** IR Dump After LoopSimplifyPass on struct_pass omitted because no change ***
+*** IR Dump After LCSSAPass on struct_pass omitted because no change ***
+*** IR Pass PassManager<Function> on struct_pass ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on struct_pass ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on struct_pass omitted because no change ***
+*** IR Dump After LoopSinkPass on struct_pass omitted because no change ***
+*** IR Dump After InstSimplifyPass on struct_pass omitted because no change ***
+*** IR Dump After DivRemPairsPass on struct_pass omitted because no change ***
+*** IR Dump After MergeICmpsPass on struct_pass omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on struct_pass omitted because no change ***
+*** IR Dump After TailCallElimPass on struct_pass omitted because no change ***
+*** IR Dump After SimplifyCFGPass on struct_pass omitted because no change ***
+*** IR Pass PassManager<Function> on struct_pass ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on struct_pass omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on struct_pass omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on struct_pass ***
+# Machine code for function struct_pass: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %2:_(s8), %3:_(s8)
+  %4:_(s8) = COPY $rc2
+  %5:_(s8) = COPY $rc3
+  %1:_(s16) = G_MERGE_VALUES %4:_(s8), %5:_(s8)
+  %6:_(s16) = nsw G_MUL %1:_, %0:_
+  %7:_(s8), %8:_(s8) = G_UNMERGE_VALUES %6:_(s16)
+  $a = COPY %7:_(s8)
+  $x = COPY %8:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on struct_pass omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on struct_pass omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on struct_pass omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on struct_pass omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on struct_pass omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on struct_pass omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on struct_pass omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on struct_pass ***
+# Machine code for function struct_pass: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %4:_(s8) = COPY $rc2
+  %5:_(s8) = COPY $rc3
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %4:_(s8)
+  $x = COPY %5:_(s8)
+  $rc2 = COPY %2:_(s8)
+  $rc3 = COPY %3:_(s8)
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %13:_(s8) = COPY $a
+  %14:_(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %13:_(s8)
+  $x = COPY %14:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on struct_pass omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on struct_pass omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on struct_pass omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on struct_pass omitted because no change ***
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on struct_pass omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on struct_pass ***
+# Machine code for function struct_pass: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:any(s8) = COPY $a
+  %3:any(s8) = COPY $x
+  %4:any(s8) = COPY $rc2
+  %5:any(s8) = COPY $rc3
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %4:any(s8)
+  $x = COPY %5:any(s8)
+  $rc2 = COPY %2:any(s8)
+  $rc3 = COPY %3:any(s8)
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %13:any(s8) = COPY $a
+  %14:any(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %13:any(s8)
+  $x = COPY %14:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Localizer (localizer) on struct_pass omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on struct_pass omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on struct_pass ***
+# Machine code for function struct_pass: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY $a
+  %3:anyi8 = COPY $x
+  %4:anyi8 = COPY $rc2
+  %5:anyi8 = COPY $rc3
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %4:anyi8
+  $x = COPY %5:anyi8
+  $rc2 = COPY %2:anyi8
+  $rc3 = COPY %3:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %13:anyi8 = COPY $a
+  %14:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %13:anyi8
+  $x = COPY %14:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After ResetMachineFunction on struct_pass omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on struct_pass omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on struct_pass omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on struct_pass omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on struct_pass omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on struct_pass omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on struct_pass omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on struct_pass omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on struct_pass omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on struct_pass omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on struct_pass omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on struct_pass omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on struct_pass omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on struct_pass omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on struct_pass omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on struct_pass omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on struct_pass omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on struct_pass omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on struct_pass omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on struct_pass omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on struct_pass omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on struct_pass omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on struct_pass omitted because no change ***
+*** IR Dump After Init Undef Pass (init-undef) on struct_pass omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on struct_pass omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on struct_pass ***
+# Machine code for function struct_pass: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY $a
+  %3:anyi8 = COPY $x
+  %4:anyi8 = COPY $rc2
+  %5:anyi8 = COPY $rc3
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %4:anyi8
+  $x = COPY %5:anyi8
+  $rc2 = COPY %2:anyi8
+  $rc3 = COPY %3:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %13:anyi8 = COPY $a
+  %14:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %13:anyi8
+  $x = COPY %14:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Live Variable Analysis (livevars) on struct_pass ***
+# Machine code for function struct_pass: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY killed $a
+  %3:anyi8 = COPY killed $x
+  %4:anyi8 = COPY killed $rc2
+  %5:anyi8 = COPY killed $rc3
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %4:anyi8
+  $x = COPY killed %5:anyi8
+  $rc2 = COPY killed %2:anyi8
+  $rc3 = COPY killed %3:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %13:anyi8 = COPY killed $a
+  %14:anyi8 = COPY killed $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %13:anyi8
+  $x = COPY killed %14:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on struct_pass omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on struct_pass omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on struct_pass ***
+# Machine code for function struct_pass: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY killed $a
+  %3:anyi8 = COPY killed $x
+  %4:anyi8 = COPY killed $rc2
+  %5:anyi8 = COPY killed $rc3
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %4:anyi8
+  $x = COPY killed %5:anyi8
+  $rc2 = COPY killed %2:anyi8
+  $rc3 = COPY killed %3:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %13:anyi8 = COPY killed $a
+  %14:anyi8 = COPY killed $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %13:anyi8
+  $x = COPY killed %14:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on struct_pass ***
+# Machine code for function struct_pass: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY killed $a
+  %3:anyi8 = COPY killed $x
+  %4:anyi8 = COPY killed $rc2
+  %5:anyi8 = COPY killed $rc3
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %4:anyi8
+  $x = COPY killed %5:anyi8
+  $rc2 = COPY killed %2:anyi8
+  $rc3 = COPY killed %3:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %13:anyi8 = COPY killed $a
+  %14:anyi8 = COPY killed $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %13:anyi8
+  $x = COPY killed %14:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Slot index numbering (slotindexes) on struct_pass omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on struct_pass ***
+# Machine code for function struct_pass: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY $a
+  %3:anyi8 = COPY $x
+  %4:anyi8 = COPY $rc2
+  %5:anyi8 = COPY $rc3
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %4:anyi8
+  $x = COPY %5:anyi8
+  $rc2 = COPY %2:anyi8
+  $rc3 = COPY %3:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %13:anyi8 = COPY $a
+  %14:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %13:anyi8
+  $x = COPY %14:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Register Coalescer (register-coalescer) on struct_pass omitted because no change ***
+*** IR Dump After Register Coalescer (register-coalescer) on struct_pass omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on struct_pass omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on struct_pass omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on struct_pass ***
+# Machine code for function struct_pass: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY $a
+  %3:anyi8 = COPY $x
+  %4:anyi8 = COPY $rc2
+  %5:anyi8 = COPY $rc3
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %2:anyi8
+  $rc3 = COPY %3:anyi8
+  $x = COPY %5:anyi8
+  $a = COPY %4:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %13:anyi8 = COPY $a
+  %14:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  $x = COPY %14:anyi8
+  $a = COPY %13:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on struct_pass ***
+# Machine code for function struct_pass: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:anyi8 = COPY $a
+  %3:anyi8 = COPY $x
+  %4:anyi8 = COPY $rc2
+  %5:anyi8 = COPY $rc3
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %2:anyi8
+  $rc3 = COPY %3:anyi8
+  $x = COPY %5:anyi8
+  $a = COPY %4:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %13:anyi8 = COPY $a
+  %14:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  $x = COPY %14:anyi8
+  $a = COPY %13:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on struct_pass omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on struct_pass omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on struct_pass omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on struct_pass omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on struct_pass omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on struct_pass omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on struct_pass omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on struct_pass omitted because no change ***
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on struct_pass ***
+# Machine code for function struct_pass: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  renamable $y = COPY $rc2
+  renamable $rc4 = COPY $rc3
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY killed renamable $a
+  $rc3 = COPY killed renamable $x
+  $x = COPY killed renamable $rc4
+  $a = COPY killed renamable $y
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  RTS implicit $a, implicit $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on struct_pass omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on struct_pass omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on struct_pass omitted because no change ***
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on struct_pass omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on struct_pass omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on struct_pass omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on struct_pass omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on struct_pass omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on struct_pass omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on struct_pass omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on struct_pass omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on struct_pass omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on struct_pass omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on struct_pass omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on struct_pass omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on struct_pass ***
+# Machine code for function struct_pass: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  renamable $y = COPY $rc2
+  renamable $rc4 = COPY $rc3
+  $rc2 = COPY killed renamable $a
+  $rc3 = COPY killed renamable $x
+  $x = COPY killed renamable $rc4
+  $a = COPY killed renamable $y
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  RTS implicit $a, implicit $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on struct_pass omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on struct_pass omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on struct_pass omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on struct_pass omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on struct_pass omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on struct_pass omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on struct_pass omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on struct_pass omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on struct_pass ***
+# Machine code for function struct_pass: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  renamable $y = COPY killed $rc2
+  renamable $rc4 = COPY killed $rc3
+  $rc2 = COPY killed renamable $a
+  $rc3 = COPY killed renamable $x
+  $x = COPY killed renamable $rc4
+  $a = COPY killed renamable $y
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on struct_pass ***
+# Machine code for function struct_pass: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  $y = LDImag8 $rc2
+  %0:gpr = LDImag8 $rc3
+  $rc4 = STImag8 %0:gpr
+  $rc2 = STImag8 $a
+  $rc3 = STImag8 $x
+  $x = LDImag8 $rc4
+  $a = T_A $y
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on struct_pass ***
+# Machine code for function struct_pass: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  $y = LDImag8 $rc2
+  PH $a
+  $a = LDImag8 $rc3
+  $rc4 = STImag8 killed $a
+  $a = PL
+  $rc2 = STImag8 $a
+  $rc3 = STImag8 $x
+  $x = LDImag8 $rc4
+  $a = T_A $y
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on struct_pass omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on struct_pass omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on struct_pass omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on struct_pass ***
+# Machine code for function struct_pass: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  $y = LDImag8 $rc2
+  PH $a
+  $a = LDImag8 $rc3
+  $rc4 = STImag8 killed $a
+  $a = PL
+  $rc2 = STImag8 $a
+  $rc3 = STImag8 $x
+  $x = LDImag8 $rc4
+  $a = T_A $y
+  TailJMP &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+
+# End machine code for function struct_pass.
+
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on struct_pass omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on struct_pass omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on struct_pass omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on struct_pass omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on struct_pass omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on struct_pass omitted because no change ***
+*** IR Dump After Insert fentry calls (fentry-insert) on struct_pass omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on struct_pass omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on struct_pass omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on struct_pass omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on struct_pass omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on struct_pass omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on struct_pass omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on struct_pass omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on struct_pass omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on struct_pass omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on struct_pass omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on struct_pass omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on struct_pass omitted because no change ***

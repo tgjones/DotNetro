@@ -1,0 +1,4494 @@
+*** IR Dump At Start ***
+; ModuleID = './realistic/factorial-recursive.c'
+source_filename = "./realistic/factorial-recursive.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @factorial(i16 noundef %0) #0 {
+  %2 = alloca i16, align 1
+  %3 = alloca i16, align 1
+  store i16 %0, ptr %3, align 1, !tbaa !2
+  %4 = load i16, ptr %3, align 1, !tbaa !2
+  %5 = icmp sle i16 %4, 1
+  br i1 %5, label %6, label %7
+
+6:                                                ; preds = %1
+  store i16 1, ptr %2, align 1
+  br label %13
+
+7:                                                ; preds = %1
+  %8 = load i16, ptr %3, align 1, !tbaa !2
+  %9 = load i16, ptr %3, align 1, !tbaa !2
+  %10 = sub nsw i16 %9, 1
+  %11 = call i16 @factorial(i16 noundef %10) #1
+  %12 = mul nsw i16 %8, %11
+  store i16 %12, ptr %2, align 1
+  br label %13
+
+13:                                               ; preds = %7, %6
+  %14 = load i16, ptr %2, align 1
+  ret i16 %14
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { optsize }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on factorial omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on factorial omitted because no change ***
+*** IR Dump After SimplifyCFGPass on factorial omitted because no change ***
+*** IR Dump After SROAPass on factorial ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @factorial(i16 noundef %0) #0 {
+  %2 = icmp sle i16 %0, 1
+  br i1 %2, label %3, label %4
+
+3:                                                ; preds = %1
+  br label %8
+
+4:                                                ; preds = %1
+  %5 = sub nsw i16 %0, 1
+  %6 = call i16 @factorial(i16 noundef %5) #1
+  %7 = mul nsw i16 %0, %6
+  br label %8
+
+8:                                                ; preds = %4, %3
+  %9 = phi i16 [ 1, %3 ], [ %7, %4 ]
+  ret i16 %9
+}
+*** IR Dump After EarlyCSEPass on factorial omitted because no change ***
+*** IR Pass PassManager<Function> on factorial ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] ***
+; ModuleID = './realistic/factorial-recursive.c'
+source_filename = "./realistic/factorial-recursive.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) #0 {
+  %2 = icmp sle i16 %0, 1
+  br i1 %2, label %3, label %4
+
+3:                                                ; preds = %1
+  br label %8
+
+4:                                                ; preds = %1
+  %5 = sub nuw nsw i16 %0, 1
+  %6 = call i16 @factorial(i16 noundef %5) #1
+  %7 = mul nsw i16 %0, %6
+  br label %8
+
+8:                                                ; preds = %4, %3
+  %9 = phi i16 [ 1, %3 ], [ %7, %4 ]
+  ret i16 %9
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { optsize }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './realistic/factorial-recursive.c'
+source_filename = "./realistic/factorial-recursive.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp sle i16 %0, 1
+  br i1 %2, label %3, label %4
+
+3:                                                ; preds = %1
+  br label %8
+
+4:                                                ; preds = %1
+  %5 = sub nuw nsw i16 %0, 1
+  %6 = call i16 @factorial(i16 noundef %5) #1
+  %7 = mul nsw i16 %0, %6
+  br label %8
+
+8:                                                ; preds = %4, %3
+  %9 = phi i16 [ 1, %3 ], [ %7, %4 ]
+  ret i16 %9
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { optsize }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on factorial omitted because no change ***
+*** IR Dump After InstCombinePass on factorial ***
+; Function Attrs: nounwind optsize
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %3, label %4
+
+3:                                                ; preds = %1
+  br label %8
+
+4:                                                ; preds = %1
+  %5 = add nsw i16 %0, -1
+  %6 = call i16 @factorial(i16 noundef %5) #1
+  %7 = mul nuw nsw i16 %0, %6
+  br label %8
+
+8:                                                ; preds = %4, %3
+  %9 = phi i16 [ 1, %3 ], [ %7, %4 ]
+  ret i16 %9
+}
+*** IR Dump After SimplifyCFGPass on factorial ***
+; Function Attrs: nounwind optsize
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %7, label %3
+
+3:                                                ; preds = %1
+  %4 = add nsw i16 %0, -1
+  %5 = call i16 @factorial(i16 noundef %4) #1
+  %6 = mul nuw nsw i16 %0, %5
+  br label %7
+
+7:                                                ; preds = %1, %3
+  %8 = phi i16 [ %6, %3 ], [ 1, %1 ]
+  ret i16 %8
+}
+*** IR Pass PassManager<Function> on factorial ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on factorial omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (factorial) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (factorial) ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %7, label %3
+
+3:                                                ; preds = %1
+  %4 = add nsw i16 %0, -1
+  %5 = call i16 @factorial(i16 noundef %4) #1
+  %6 = mul nuw nsw i16 %0, %5
+  br label %7
+
+7:                                                ; preds = %1, %3
+  %8 = phi i16 [ %6, %3 ], [ 1, %1 ]
+  ret i16 %8
+}
+*** IR Dump After SROAPass on factorial omitted because no change ***
+*** IR Dump After EarlyCSEPass on factorial omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on factorial omitted because no change ***
+*** IR Dump After JumpThreadingPass on factorial omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on factorial omitted because no change ***
+*** IR Dump After SimplifyCFGPass on factorial omitted because no change ***
+*** IR Dump After InstCombinePass on factorial omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on factorial omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on factorial omitted because no change ***
+*** IR Dump After TailCallElimPass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  br label %2
+
+2:                                                ; preds = %6, %1
+  %3 = phi i16 [ 1, %1 ], [ %8, %6 ]
+  %4 = phi i16 [ %0, %1 ], [ %7, %6 ]
+  %5 = icmp slt i16 %4, 2
+  br i1 %5, label %9, label %6
+
+6:                                                ; preds = %2
+  %7 = add nsw i16 %4, -1
+  %8 = mul nuw nsw i16 %4, %3
+  br label %2
+
+9:                                                ; preds = %2
+  %10 = mul nuw nsw i16 1, %3
+  ret i16 %10
+}
+*** IR Dump After SimplifyCFGPass on factorial omitted because no change ***
+*** IR Dump After ReassociatePass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  br label %2
+
+2:                                                ; preds = %6, %1
+  %3 = phi i16 [ 1, %1 ], [ %8, %6 ]
+  %4 = phi i16 [ %0, %1 ], [ %7, %6 ]
+  %5 = icmp slt i16 %4, 2
+  br i1 %5, label %9, label %6
+
+6:                                                ; preds = %2
+  %7 = add nsw i16 %4, -1
+  %8 = mul nuw nsw i16 %4, %3
+  br label %2
+
+9:                                                ; preds = %2
+  ret i16 %3
+}
+*** IR Dump After ConstraintEliminationPass on factorial omitted because no change ***
+*** IR Dump After LoopSimplifyPass on factorial omitted because no change ***
+*** IR Dump After LCSSAPass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  br label %2
+
+2:                                                ; preds = %6, %1
+  %3 = phi i16 [ 1, %1 ], [ %8, %6 ]
+  %4 = phi i16 [ %0, %1 ], [ %7, %6 ]
+  %5 = icmp slt i16 %4, 2
+  br i1 %5, label %9, label %6
+
+6:                                                ; preds = %2
+  %7 = add nsw i16 %4, -1
+  %8 = mul nuw nsw i16 %4, %3
+  br label %2
+
+9:                                                ; preds = %2
+  %10 = phi i16 [ %3, %2 ]
+  ret i16 %10
+}
+*** IR Pass PassManager<Function> on factorial ignored ***
+*** IR Dump After LoopInstSimplifyPass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Dump After LoopSimplifyCFGPass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Dump After LICMPass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Dump After LoopRotatePass on loop %<unnamed loop> in function factorial ***
+
+; Preheader:
+3:                                                ; preds = %1
+  br label %4
+
+; Loop:
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %0, %3 ], [ %7, %4 ]
+  %6 = phi i16 [ 1, %3 ], [ %8, %4 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp slt i16 %7, 2
+  br i1 %9, label %10, label %4
+
+; Exit blocks
+10:                                               ; preds = %4
+  %11 = phi i16 [ %8, %4 ]
+  br label %12
+*** IR Dump After LICMPass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Dump After SimpleLoopUnswitchPass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Pass PassManager<Loop, LoopAnalysisManager, LoopStandardAnalysisResults &, LPMUpdater &> on loop %<unnamed loop> in function factorial ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on factorial ignored ***
+*** IR Dump After SimplifyCFGPass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %9, label %3
+
+3:                                                ; preds = %1, %3
+  %4 = phi i16 [ %6, %3 ], [ %0, %1 ]
+  %5 = phi i16 [ %7, %3 ], [ 1, %1 ]
+  %6 = add nsw i16 %4, -1
+  %7 = mul nuw nsw i16 %4, %5
+  %8 = icmp slt i16 %6, 2
+  br i1 %8, label %9, label %3
+
+9:                                                ; preds = %3, %1
+  %10 = phi i16 [ 1, %1 ], [ %7, %3 ]
+  ret i16 %10
+}
+*** IR Dump After InstCombinePass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %9, label %3
+
+3:                                                ; preds = %1, %3
+  %4 = phi i16 [ %6, %3 ], [ %0, %1 ]
+  %5 = phi i16 [ %7, %3 ], [ 1, %1 ]
+  %6 = add nsw i16 %4, -1
+  %7 = mul nuw nsw i16 %4, %5
+  %8 = icmp slt i16 %4, 3
+  br i1 %8, label %9, label %3
+
+9:                                                ; preds = %3, %1
+  %10 = phi i16 [ 1, %1 ], [ %7, %3 ]
+  ret i16 %10
+}
+*** IR Dump After LoopSimplifyPass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %11, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp slt i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4
+  br label %11
+
+11:                                               ; preds = %10, %1
+  %12 = phi i16 [ 1, %1 ], [ %8, %10 ]
+  ret i16 %12
+}
+*** IR Dump After LCSSAPass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %12, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp slt i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4
+  %11 = phi i16 [ %8, %4 ]
+  br label %12
+
+12:                                               ; preds = %10, %1
+  %13 = phi i16 [ 1, %1 ], [ %11, %10 ]
+  ret i16 %13
+}
+*** IR Pass PassManager<Function> on factorial ignored ***
+*** IR Dump After LoopIdiomRecognizePass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Dump After IndVarSimplifyPass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Pass ExtraLoopPassManager<llvm::ShouldRunExtraSimpleLoopUnswitch> on loop %<unnamed loop> in function factorial ignored ***
+*** IR Dump After MOSIndexIV on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Dump After IndVarSimplifyPass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Dump After LoopDeletionPass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Dump After LoopFullUnrollPass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Pass PassManager<Loop, LoopAnalysisManager, LoopStandardAnalysisResults &, LPMUpdater &> on loop %<unnamed loop> in function factorial ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on factorial ignored ***
+*** IR Dump After SROAPass on factorial omitted because no change ***
+*** IR Dump After VectorCombinePass on factorial omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on factorial omitted because no change ***
+*** IR Dump After GVNPass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %11, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp slt i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4
+  br label %11
+
+11:                                               ; preds = %10, %1
+  %12 = phi i16 [ 1, %1 ], [ %8, %10 ]
+  ret i16 %12
+}
+*** IR Dump After SCCPPass on factorial omitted because no change ***
+*** IR Dump After BDCEPass on factorial omitted because no change ***
+*** IR Dump After InstCombinePass on factorial omitted because no change ***
+*** IR Dump After JumpThreadingPass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %10, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp slt i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4, %1
+  %11 = phi i16 [ 1, %1 ], [ %8, %4 ]
+  ret i16 %11
+}
+*** IR Dump After CorrelatedValuePropagationPass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %10, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp samesign ult i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4, %1
+  %11 = phi i16 [ 1, %1 ], [ %8, %4 ]
+  ret i16 %11
+}
+*** IR Dump After ADCEPass on factorial omitted because no change ***
+*** IR Dump After MemCpyOptPass on factorial omitted because no change ***
+*** IR Dump After DSEPass on factorial omitted because no change ***
+*** IR Dump After MoveAutoInitPass on factorial omitted because no change ***
+*** IR Dump After LoopSimplifyPass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %11, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp samesign ult i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4
+  br label %11
+
+11:                                               ; preds = %10, %1
+  %12 = phi i16 [ 1, %1 ], [ %8, %10 ]
+  ret i16 %12
+}
+*** IR Dump After LCSSAPass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %12, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp samesign ult i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4
+  %11 = phi i16 [ %8, %4 ]
+  br label %12
+
+12:                                               ; preds = %10, %1
+  %13 = phi i16 [ 1, %1 ], [ %11, %10 ]
+  ret i16 %13
+}
+*** IR Pass PassManager<Function> on factorial ignored ***
+*** IR Dump After LICMPass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Pass FunctionToLoopPassAdaptor on factorial ignored ***
+*** IR Dump After CoroElidePass on factorial omitted because no change ***
+*** IR Dump After SimplifyCFGPass on factorial ***
+; Function Attrs: nofree nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %9, label %3
+
+3:                                                ; preds = %1, %3
+  %4 = phi i16 [ %6, %3 ], [ %0, %1 ]
+  %5 = phi i16 [ %7, %3 ], [ 1, %1 ]
+  %6 = add nsw i16 %4, -1
+  %7 = mul nuw nsw i16 %4, %5
+  %8 = icmp samesign ult i16 %4, 3
+  br i1 %8, label %9, label %3
+
+9:                                                ; preds = %3, %1
+  %10 = phi i16 [ 1, %1 ], [ %7, %3 ]
+  ret i16 %10
+}
+*** IR Dump After InstCombinePass on factorial omitted because no change ***
+*** IR Pass PassManager<Function> on factorial ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (factorial) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (factorial) ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %9, label %3
+
+3:                                                ; preds = %1, %3
+  %4 = phi i16 [ %6, %3 ], [ %0, %1 ]
+  %5 = phi i16 [ %7, %3 ], [ 1, %1 ]
+  %6 = add nsw i16 %4, -1
+  %7 = mul nuw nsw i16 %4, %5
+  %8 = icmp samesign ult i16 %4, 3
+  br i1 %8, label %9, label %3
+
+9:                                                ; preds = %3, %1
+  %10 = phi i16 [ 1, %1 ], [ %7, %3 ]
+  ret i16 %10
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on factorial omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (factorial) ignored ***
+*** IR Dump After CoroSplitPass on (factorial) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (factorial) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (factorial) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (factorial) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on factorial omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on factorial omitted because no change ***
+*** IR Dump After Float2IntPass on factorial omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on factorial omitted because no change ***
+*** IR Dump After LoopSimplifyPass on factorial ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %11, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp samesign ult i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4
+  br label %11
+
+11:                                               ; preds = %10, %1
+  %12 = phi i16 [ 1, %1 ], [ %8, %10 ]
+  ret i16 %12
+}
+*** IR Dump After LCSSAPass on factorial ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %12, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp samesign ult i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4
+  %11 = phi i16 [ %8, %4 ]
+  br label %12
+
+12:                                               ; preds = %10, %1
+  %13 = phi i16 [ 1, %1 ], [ %11, %10 ]
+  ret i16 %13
+}
+*** IR Pass PassManager<Function> on factorial ignored ***
+*** IR Dump After LoopRotatePass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Dump After LoopDeletionPass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Pass PassManager<Loop, LoopAnalysisManager, LoopStandardAnalysisResults &, LPMUpdater &> on loop %<unnamed loop> in function factorial ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on factorial ignored ***
+*** IR Dump After LoopDistributePass on factorial omitted because no change ***
+*** IR Dump After InjectTLIMappings on factorial omitted because no change ***
+*** IR Dump After LoopVectorizePass on factorial omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on factorial omitted because no change ***
+*** IR Dump After InferAlignmentPass on factorial omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on factorial omitted because no change ***
+*** IR Dump After InstCombinePass on factorial ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %11, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp samesign ult i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4
+  br label %11
+
+11:                                               ; preds = %10, %1
+  %12 = phi i16 [ 1, %1 ], [ %8, %10 ]
+  ret i16 %12
+}
+*** IR Dump After SimplifyCFGPass on factorial ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %9, label %3
+
+3:                                                ; preds = %1, %3
+  %4 = phi i16 [ %6, %3 ], [ %0, %1 ]
+  %5 = phi i16 [ %7, %3 ], [ 1, %1 ]
+  %6 = add nsw i16 %4, -1
+  %7 = mul nuw nsw i16 %4, %5
+  %8 = icmp samesign ult i16 %4, 3
+  br i1 %8, label %9, label %3
+
+9:                                                ; preds = %3, %1
+  %10 = phi i16 [ 1, %1 ], [ %7, %3 ]
+  ret i16 %10
+}
+*** IR Dump After SLPVectorizerPass on factorial omitted because no change ***
+*** IR Dump After VectorCombinePass on factorial omitted because no change ***
+*** IR Dump After InstCombinePass on factorial omitted because no change ***
+*** IR Dump After LoopUnrollPass on factorial ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %12, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp samesign ult i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4
+  %11 = phi i16 [ %8, %4 ]
+  br label %12
+
+12:                                               ; preds = %10, %1
+  %13 = phi i16 [ 1, %1 ], [ %11, %10 ]
+  ret i16 %13
+}
+*** IR Dump After WarnMissedTransformationsPass on factorial omitted because no change ***
+*** IR Dump After SROAPass on factorial omitted because no change ***
+*** IR Dump After InferAlignmentPass on factorial omitted because no change ***
+*** IR Dump After InstCombinePass on factorial ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %11, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp samesign ult i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4
+  br label %11
+
+11:                                               ; preds = %10, %1
+  %12 = phi i16 [ 1, %1 ], [ %8, %10 ]
+  ret i16 %12
+}
+*** IR Dump After LoopSimplifyPass on factorial omitted because no change ***
+*** IR Dump After LCSSAPass on factorial ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %12, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp samesign ult i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4
+  %11 = phi i16 [ %8, %4 ]
+  br label %12
+
+12:                                               ; preds = %10, %1
+  %13 = phi i16 [ 1, %1 ], [ %11, %10 ]
+  ret i16 %13
+}
+*** IR Pass PassManager<Function> on factorial ignored ***
+*** IR Dump After LICMPass on loop %<unnamed loop> in function factorial omitted because no change ***
+*** IR Pass FunctionToLoopPassAdaptor on factorial ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on factorial omitted because no change ***
+*** IR Dump After LoopSinkPass on factorial omitted because no change ***
+*** IR Dump After InstSimplifyPass on factorial ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %11, label %3
+
+3:                                                ; preds = %1
+  br label %4
+
+4:                                                ; preds = %3, %4
+  %5 = phi i16 [ %7, %4 ], [ %0, %3 ]
+  %6 = phi i16 [ %8, %4 ], [ 1, %3 ]
+  %7 = add nsw i16 %5, -1
+  %8 = mul nuw nsw i16 %5, %6
+  %9 = icmp samesign ult i16 %5, 3
+  br i1 %9, label %10, label %4
+
+10:                                               ; preds = %4
+  br label %11
+
+11:                                               ; preds = %10, %1
+  %12 = phi i16 [ 1, %1 ], [ %8, %10 ]
+  ret i16 %12
+}
+*** IR Dump After DivRemPairsPass on factorial omitted because no change ***
+*** IR Dump After MergeICmpsPass on factorial omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on factorial omitted because no change ***
+*** IR Dump After TailCallElimPass on factorial omitted because no change ***
+*** IR Dump After SimplifyCFGPass on factorial ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(none)
+define dso_local range(i16 1, -32768) i16 @factorial(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = icmp slt i16 %0, 2
+  br i1 %2, label %9, label %3
+
+3:                                                ; preds = %1, %3
+  %4 = phi i16 [ %6, %3 ], [ %0, %1 ]
+  %5 = phi i16 [ %7, %3 ], [ 1, %1 ]
+  %6 = add nsw i16 %4, -1
+  %7 = mul nuw nsw i16 %4, %5
+  %8 = icmp samesign ult i16 %4, 3
+  br i1 %8, label %9, label %3
+
+9:                                                ; preds = %3, %1
+  %10 = phi i16 [ 1, %1 ], [ %7, %3 ]
+  ret i16 %10
+}
+*** IR Pass PassManager<Function> on factorial ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on factorial omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on factorial omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.1):
+  successors: %bb.4(0x40000000), %bb.2(0x40000000); %bb.4(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %1:_(s8), %2:_(s8)
+  %3:_(s16) = G_CONSTANT i16 2
+  %7:_(s16) = G_CONSTANT i16 -1
+  %10:_(s16) = G_CONSTANT i16 3
+  %15:_(s16) = G_CONSTANT i16 1
+  %4:_(s1) = G_ICMP intpred(slt), %0:_(s16), %3:_
+  G_BRCOND %4:_(s1), %bb.4
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.2, %bb.3
+  successors: %bb.4(0x04000000), %bb.3(0x7c000000); %bb.4(3.12%), %bb.3(96.88%)
+
+  %5:_(s16) = G_PHI %8:_(s16), %bb.3, %0:_(s16), %bb.2
+  %6:_(s16) = G_PHI %9:_(s16), %bb.3, %15:_(s16), %bb.2
+  %8:_(s16) = G_ADD %5:_, %7:_
+  %9:_(s16) = nuw nsw G_MUL %5:_, %6:_
+  %11:_(s1) = samesign G_ICMP intpred(ult), %5:_(s16), %10:_
+  G_BRCOND %11:_(s1), %bb.4
+  G_BR %bb.3
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.1, %bb.3
+
+  %12:_(s16) = G_PHI %15:_(s16), %bb.1, %9:_(s16), %bb.3
+  %13:_(s8), %14:_(s8) = G_UNMERGE_VALUES %12:_(s16)
+  $a = COPY %13:_(s8)
+  $x = COPY %14:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on factorial omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on factorial omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on factorial omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.1):
+  successors: %bb.4(0x40000000), %bb.2(0x40000000); %bb.4(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %1:_(s8), %2:_(s8)
+  %3:_(s16) = G_CONSTANT i16 2
+  %7:_(s16) = G_CONSTANT i16 -1
+  %10:_(s16) = G_CONSTANT i16 3
+  %15:_(s16) = G_CONSTANT i16 1
+  %4:_(s1) = G_ICMP intpred(slt), %0:_(s16), %3:_
+  G_BRCOND %4:_(s1), %bb.4
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.2, %bb.3
+  successors: %bb.4(0x04000000), %bb.3(0x7c000000); %bb.4(3.12%), %bb.3(96.88%)
+
+  %5:_(s16) = G_PHI %8:_(s16), %bb.3, %0:_(s16), %bb.2
+  %6:_(s16) = G_PHI %9:_(s16), %bb.3, %15:_(s16), %bb.2
+  %8:_(s16) = G_ADD %5:_, %7:_
+  %9:_(s16) = nuw nsw G_MUL %5:_, %6:_
+  %11:_(s1) = samesign G_ICMP intpred(uge), %5:_(s16), %10:_
+  G_BRCOND %11:_(s1), %bb.3
+  G_BR %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.1, %bb.3
+
+  %12:_(s16) = G_PHI %15:_(s16), %bb.1, %9:_(s16), %bb.3
+  %13:_(s8), %14:_(s8) = G_UNMERGE_VALUES %12:_(s16)
+  $a = COPY %13:_(s8)
+  $x = COPY %14:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on factorial omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on factorial omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on factorial omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.1):
+  successors: %bb.4(0x40000000), %bb.2(0x40000000); %bb.4(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %88:_(s8) = G_CONSTANT i8 2
+  %79:_(s8) = G_CONSTANT i8 0
+  %87:_(s8) = G_CONSTANT i8 3
+  %86:_(s8) = G_CONSTANT i8 1
+  %66:_(s1) = G_CONSTANT i1 true
+  %67:_(s8), %68:_(s1), %69:_, %70:_, %71:_ = G_SBC %1:_, %88:_, %66:_
+  %72:_(s8), %73:_(s1), %74:_, %75:_, %76:_ = G_SBC %2:_, %79:_, %68:_
+  %77:_(s8) = G_CONSTANT i8 -128
+  %78:_(s8) = G_XOR %72:_, %77:_
+  %80:_(s8) = G_SELECT %75:_(s1), %78:_, %72:_
+  %81:_(s8), %82:_(s1), %83:_, %84:_, %85:_ = G_SBC %80:_, %79:_, %66:_
+  %4:_(s1) = COPY %83:_(s1)
+  G_BRCOND_IMM %4:_(s1), %bb.4, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.2, %bb.3
+  successors: %bb.4(0x04000000), %bb.3(0x7c000000); %bb.4(3.12%), %bb.3(96.88%)
+
+  %60:_(s8) = G_PHI %48:_(s8), %bb.3, %1:_(s8), %bb.2
+  %61:_(s8) = G_PHI %49:_(s8), %bb.3, %2:_(s8), %bb.2
+  %54:_(s8) = G_PHI %46:_(s8), %bb.3, %86:_(s8), %bb.2
+  %55:_(s8) = G_PHI %47:_(s8), %bb.3, %79:_(s8), %bb.2
+  %48:_(s8), %49:_(s8) = G_DEC %60:_(s8), %61:_(s8)
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:_(s8)
+  $x = COPY %61:_(s8)
+  $rc2 = COPY %54:_(s8)
+  $rc3 = COPY %55:_(s8)
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %46:_(s8) = COPY $a
+  %47:_(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:_(s1) = G_CONSTANT i1 true
+  %37:_(s8), %38:_(s1), %39:_, %40:_, %41:_ = G_SBC %61:_, %79:_, %31:_
+  %28:_(s1) = COPY %41:_(s1)
+  %29:_(s1) = COPY %38:_(s1)
+  %32:_(s8), %33:_(s1), %34:_, %35:_, %36:_ = G_SBC %60:_, %87:_, %31:_
+  %30:_(s1) = COPY %33:_(s1)
+  %11:_(s1) = G_SELECT %28:_(s1), %30:_, %29:_
+  G_BRCOND_IMM %11:_(s1), %bb.3, 1
+  G_BR %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.1, %bb.3
+
+  %22:_(s8) = G_PHI %86:_(s8), %bb.1, %46:_(s8), %bb.3
+  %23:_(s8) = G_PHI %79:_(s8), %bb.1, %47:_(s8), %bb.3
+  $a = COPY %22:_(s8)
+  $x = COPY %23:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on factorial omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on factorial omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on factorial omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.1):
+  successors: %bb.4(0x40000000), %bb.2(0x40000000); %bb.4(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %88:_(s8) = G_CONSTANT i8 2
+  %79:_(s8) = G_CONSTANT i8 0
+  %87:_(s8) = G_CONSTANT i8 3
+  %86:_(s8) = G_CONSTANT i8 1
+  %66:_(s1) = G_CONSTANT i1 true
+  %67:_(s8), %68:_(s1), %69:_, %70:_, %71:_ = G_SBC %1:_, %88:_, %66:_
+  %72:_(s8), %73:_(s1), %74:_, %75:_, %76:_ = G_SBC %2:_, %79:_, %68:_
+  %77:_(s8) = G_CONSTANT i8 -128
+  %78:_(s8) = G_XOR %72:_, %77:_
+  %80:_(s8) = G_SELECT %75:_(s1), %78:_, %72:_
+  %81:_(s8), %82:_(s1), %83:_, %84:_, %85:_ = G_SBC %80:_, %79:_, %66:_
+  G_BRCOND_IMM %83:_(s1), %bb.4, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.2, %bb.3
+  successors: %bb.4(0x04000000), %bb.3(0x7c000000); %bb.4(3.12%), %bb.3(96.88%)
+
+  %60:_(s8) = G_PHI %48:_(s8), %bb.3, %1:_(s8), %bb.2
+  %61:_(s8) = G_PHI %49:_(s8), %bb.3, %2:_(s8), %bb.2
+  %54:_(s8) = G_PHI %46:_(s8), %bb.3, %86:_(s8), %bb.2
+  %55:_(s8) = G_PHI %47:_(s8), %bb.3, %79:_(s8), %bb.2
+  %48:_(s8), %49:_(s8) = G_DEC %60:_(s8), %61:_(s8)
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:_(s8)
+  $x = COPY %61:_(s8)
+  $rc2 = COPY %54:_(s8)
+  $rc3 = COPY %55:_(s8)
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %46:_(s8) = COPY $a
+  %47:_(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:_(s1) = G_CONSTANT i1 true
+  %37:_(s8), %38:_(s1), %39:_, %40:_, %41:_ = G_SBC %61:_, %79:_, %31:_
+  %32:_(s8), %33:_(s1), %34:_, %35:_, %36:_ = G_SBC %60:_, %87:_, %31:_
+  %11:_(s1) = G_SELECT %41:_(s1), %33:_, %38:_
+  G_BRCOND_IMM %11:_(s1), %bb.3, 1
+  G_BR %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.1, %bb.3
+
+  %22:_(s8) = G_PHI %86:_(s8), %bb.1, %46:_(s8), %bb.3
+  %23:_(s8) = G_PHI %79:_(s8), %bb.1, %47:_(s8), %bb.3
+  $a = COPY %22:_(s8)
+  $x = COPY %23:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.1):
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %88:_(s8) = G_CONSTANT i8 2
+  %79:_(s8) = G_CONSTANT i8 0
+  %87:_(s8) = G_CONSTANT i8 3
+  %86:_(s8) = G_CONSTANT i8 1
+  %66:_(s1) = G_CONSTANT i1 true
+  %67:_(s8), %68:_(s1), %69:_, %70:_, %71:_ = G_SBC %1:_, %88:_, %66:_
+  %72:_(s8), %73:_(s1), %74:_, %75:_, %76:_ = G_SBC %2:_, %79:_, %68:_
+  G_BRCOND_IMM %75:_(s1), %bb.8, 1
+  G_BR %bb.9
+
+bb.8 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %77:_(s8) = G_CONSTANT i8 -128
+  %78:_(s8) = G_XOR %72:_, %77:_
+  G_BR %bb.10
+
+bb.9 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  G_BR %bb.10
+
+bb.10 (%ir-block.1):
+; predecessors: %bb.8, %bb.9
+  successors: %bb.4(0x40000000), %bb.2(0x40000000); %bb.4(50.00%), %bb.2(50.00%)
+
+  %80:_(s8) = G_PHI %78:_(s8), %bb.8, %72:_(s8), %bb.9
+  %81:_(s8), %82:_(s1), %83:_, %84:_, %85:_ = G_SBC %80:_, %79:_, %66:_
+  G_BRCOND_IMM %83:_(s1), %bb.4, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.10
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.2, %bb.5, %bb.6
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+
+  %60:_(s8) = G_PHI %1:_(s8), %bb.2, %48:_(s8), %bb.5, %48:_(s8), %bb.6
+  %61:_(s8) = G_PHI %2:_(s8), %bb.2, %49:_(s8), %bb.5, %49:_(s8), %bb.6
+  %54:_(s8) = G_PHI %86:_(s8), %bb.2, %46:_(s8), %bb.5, %46:_(s8), %bb.6
+  %55:_(s8) = G_PHI %79:_(s8), %bb.2, %47:_(s8), %bb.5, %47:_(s8), %bb.6
+  %48:_(s8), %49:_(s8) = G_DEC %60:_(s8), %61:_(s8)
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:_(s8)
+  $x = COPY %61:_(s8)
+  $rc2 = COPY %54:_(s8)
+  $rc3 = COPY %55:_(s8)
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %46:_(s8) = COPY $a
+  %47:_(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:_(s1) = G_CONSTANT i1 true
+  %37:_(s8), %38:_(s1), %39:_, %40:_, %41:_ = G_SBC %61:_, %79:_, %31:_
+  G_BRCOND_IMM %41:_(s1), %bb.5, 1
+  G_BR %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  %32:_(s8), %33:_(s1), %34:_, %35:_, %36:_ = G_SBC %60:_, %87:_, %31:_
+  G_BRCOND_IMM %33:_(s1), %bb.3, 1
+  G_BR %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  G_BRCOND_IMM %38:_(s1), %bb.3, 1
+  G_BR %bb.7
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.7, %bb.10
+
+  %22:_(s8) = G_PHI %86:_(s8), %bb.10, %46:_(s8), %bb.7
+  %23:_(s8) = G_PHI %79:_(s8), %bb.10, %47:_(s8), %bb.7
+  $a = COPY %22:_(s8)
+  $x = COPY %23:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After RegBankSelect (regbankselect) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.1):
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $a, $x
+  %1:any(s8) = COPY $a
+  %2:any(s8) = COPY $x
+  %88:any(s8) = G_CONSTANT i8 2
+  %79:any(s8) = G_CONSTANT i8 0
+  %87:any(s8) = G_CONSTANT i8 3
+  %86:any(s8) = G_CONSTANT i8 1
+  %66:any(s1) = G_CONSTANT i1 true
+  %67:any(s8), %68:any(s1), %69:any, %70:any, %71:any = G_SBC %1:any, %88:any, %66:any
+  %72:any(s8), %73:any(s1), %74:any, %75:any, %76:any = G_SBC %2:any, %79:any, %68:any
+  G_BRCOND_IMM %75:any(s1), %bb.8, 1
+  G_BR %bb.9
+
+bb.8 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %77:any(s8) = G_CONSTANT i8 -128
+  %78:any(s8) = G_XOR %72:any, %77:any
+  G_BR %bb.10
+
+bb.9 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  G_BR %bb.10
+
+bb.10 (%ir-block.1):
+; predecessors: %bb.8, %bb.9
+  successors: %bb.4(0x40000000), %bb.2(0x40000000); %bb.4(50.00%), %bb.2(50.00%)
+
+  %80:any(s8) = G_PHI %78:any(s8), %bb.8, %72:any(s8), %bb.9
+  %81:any(s8), %82:any(s1), %83:any, %84:any, %85:any = G_SBC %80:any, %79:any, %66:any
+  G_BRCOND_IMM %83:any(s1), %bb.4, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.10
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.2, %bb.5, %bb.6
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+
+  %60:any(s8) = G_PHI %1:any(s8), %bb.2, %48:any(s8), %bb.5, %48:any(s8), %bb.6
+  %61:any(s8) = G_PHI %2:any(s8), %bb.2, %49:any(s8), %bb.5, %49:any(s8), %bb.6
+  %54:any(s8) = G_PHI %86:any(s8), %bb.2, %46:any(s8), %bb.5, %46:any(s8), %bb.6
+  %55:any(s8) = G_PHI %79:any(s8), %bb.2, %47:any(s8), %bb.5, %47:any(s8), %bb.6
+  %48:any(s8), %49:any(s8) = G_DEC %60:any(s8), %61:any(s8)
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:any(s8)
+  $x = COPY %61:any(s8)
+  $rc2 = COPY %54:any(s8)
+  $rc3 = COPY %55:any(s8)
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %46:any(s8) = COPY $a
+  %47:any(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:any(s1) = G_CONSTANT i1 true
+  %37:any(s8), %38:any(s1), %39:any, %40:any, %41:any = G_SBC %61:any, %79:any, %31:any
+  G_BRCOND_IMM %41:any(s1), %bb.5, 1
+  G_BR %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  %32:any(s8), %33:any(s1), %34:any, %35:any, %36:any = G_SBC %60:any, %87:any, %31:any
+  G_BRCOND_IMM %33:any(s1), %bb.3, 1
+  G_BR %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  G_BRCOND_IMM %38:any(s1), %bb.3, 1
+  G_BR %bb.7
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.7, %bb.10
+
+  %22:any(s8) = G_PHI %86:any(s8), %bb.10, %46:any(s8), %bb.7
+  %23:any(s8) = G_PHI %79:any(s8), %bb.10, %47:any(s8), %bb.7
+  $a = COPY %22:any(s8)
+  $x = COPY %23:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Localizer (localizer) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.1):
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $a, $x
+  %1:any(s8) = COPY $a
+  %2:any(s8) = COPY $x
+  %87:any(s8) = G_CONSTANT i8 3
+  %86:any(s8) = G_CONSTANT i8 1
+  %66:any(s1) = G_CONSTANT i1 true
+  %88:any(s8) = G_CONSTANT i8 2
+  %67:any(s8), %68:any(s1), %69:any, %70:any, %71:any = G_SBC %1:any, %88:any, %66:any
+  %79:any(s8) = G_CONSTANT i8 0
+  %72:any(s8), %73:any(s1), %74:any, %75:any, %76:any = G_SBC %2:any, %79:any, %68:any
+  G_BRCOND_IMM %75:any(s1), %bb.8, 1
+  G_BR %bb.9
+
+bb.8 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %77:any(s8) = G_CONSTANT i8 -128
+  %78:any(s8) = G_XOR %72:any, %77:any
+  G_BR %bb.10
+
+bb.9 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  G_BR %bb.10
+
+bb.10 (%ir-block.1):
+; predecessors: %bb.8, %bb.9
+  successors: %bb.4(0x40000000), %bb.2(0x40000000); %bb.4(50.00%), %bb.2(50.00%)
+
+  %80:any(s8) = G_PHI %78:any(s8), %bb.8, %72:any(s8), %bb.9
+  %89:any(s1) = G_CONSTANT i1 true
+  %93:any(s8) = G_CONSTANT i8 0
+  %81:any(s8), %82:any(s1), %83:any, %84:any, %85:any = G_SBC %80:any, %93:any, %89:any
+  %91:any(s8) = G_CONSTANT i8 1
+  G_BRCOND_IMM %83:any(s1), %bb.4, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.10
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %90:any(s8) = G_CONSTANT i8 1
+  %94:any(s8) = G_CONSTANT i8 0
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.2, %bb.5, %bb.6
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+
+  %60:any(s8) = G_PHI %1:any(s8), %bb.2, %48:any(s8), %bb.5, %48:any(s8), %bb.6
+  %61:any(s8) = G_PHI %2:any(s8), %bb.2, %49:any(s8), %bb.5, %49:any(s8), %bb.6
+  %54:any(s8) = G_PHI %90:any(s8), %bb.2, %46:any(s8), %bb.5, %46:any(s8), %bb.6
+  %55:any(s8) = G_PHI %94:any(s8), %bb.2, %47:any(s8), %bb.5, %47:any(s8), %bb.6
+  %48:any(s8), %49:any(s8) = G_DEC %60:any(s8), %61:any(s8)
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:any(s8)
+  $x = COPY %61:any(s8)
+  $rc2 = COPY %54:any(s8)
+  $rc3 = COPY %55:any(s8)
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %46:any(s8) = COPY $a
+  %47:any(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:any(s1) = G_CONSTANT i1 true
+  %95:any(s8) = G_CONSTANT i8 0
+  %37:any(s8), %38:any(s1), %39:any, %40:any, %41:any = G_SBC %61:any, %95:any, %31:any
+  G_BRCOND_IMM %41:any(s1), %bb.5, 1
+  G_BR %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  %92:any(s8) = G_CONSTANT i8 3
+  %32:any(s8), %33:any(s1), %34:any, %35:any, %36:any = G_SBC %60:any, %92:any, %31:any
+  G_BRCOND_IMM %33:any(s1), %bb.3, 1
+  G_BR %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  G_BRCOND_IMM %38:any(s1), %bb.3, 1
+  G_BR %bb.7
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.7, %bb.10
+
+  %22:any(s8) = G_PHI %91:any(s8), %bb.10, %46:any(s8), %bb.7
+  %23:any(s8) = G_PHI %93:any(s8), %bb.10, %47:any(s8), %bb.7
+  $a = COPY %22:any(s8)
+  $x = COPY %23:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on factorial omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %2:ac = COPY $x
+  %68:cc = CMPImm %1:gpr, 2
+  %72:ac, %73:cc, %75:vc = SBCImm %2:ac(tied-def 0), 0, %68:cc(tied-def 1)
+  GBR %bb.8, %75:vc, 1, implicit-def $c
+  JMP %bb.9
+
+bb.8 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %78:ac = EORImm %72:ac(tied-def 0), -128
+  JMP %bb.10
+
+bb.9 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  JMP %bb.10
+
+bb.10 (%ir-block.1):
+; predecessors: %bb.8, %bb.9
+  successors: %bb.4(0x40000000), %bb.2(0x40000000); %bb.4(50.00%), %bb.2(50.00%)
+
+  %80:anyi8 = PHI %78:ac, %bb.8, %72:ac, %bb.9
+  %93:gpr = LDImm 0
+  %91:gpr = LDImm 1
+  CmpBrZero %bb.4, undef $n, 1, %80:anyi8, implicit-def $c
+  JMP %bb.2
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.10
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %90:gpr = LDImm 1
+  %94:gpr = LDImm 0
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.2, %bb.5, %bb.6
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+
+  %60:gpr = PHI %1:gpr, %bb.2, %48:anyi8, %bb.5, %48:anyi8, %bb.6
+  %61:gpr = PHI %2:ac, %bb.2, %49:anyi8, %bb.5, %49:anyi8, %bb.6
+  %54:anyi8 = PHI %90:gpr, %bb.2, %46:anyi8, %bb.5, %46:anyi8, %bb.6
+  %55:anyi8 = PHI %94:gpr, %bb.2, %47:anyi8, %bb.5, %47:anyi8, %bb.6
+  early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB %60:gpr(tied-def 1), %61:gpr(tied-def 2), implicit-def $c, implicit-def $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:gpr
+  $x = COPY %61:gpr
+  $rc2 = COPY %54:anyi8
+  $rc3 = COPY %55:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %46:anyi8 = COPY $a
+  %47:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %38:cc = CMPImm %61:gpr, 0
+  CmpBrZero %bb.5, undef $z, 1, %61:gpr, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  %33:cc = CMPImm %60:gpr, 3
+  GBR %bb.3, %33:cc, 1, implicit-def $c
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  GBR %bb.3, %38:cc, 1, implicit-def $c
+  JMP %bb.7
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  JMP %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.7, %bb.10
+
+  %22:anyi8 = PHI %91:gpr, %bb.10, %46:anyi8, %bb.7
+  %23:anyi8 = PHI %93:gpr, %bb.10, %47:anyi8, %bb.7
+  $a = COPY %22:anyi8
+  $x = COPY %23:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After ResetMachineFunction on factorial omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on factorial omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on factorial omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on factorial omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on factorial omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on factorial omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on factorial omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on factorial omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on factorial omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on factorial omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on factorial omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on factorial omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on factorial omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on factorial omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on factorial omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on factorial omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on factorial omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on factorial omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %2:ac = COPY $x
+  %68:cc = CMPImm %1:gpr, 2
+  %72:ac, %73:cc, %75:vc = SBCImm %2:ac(tied-def 0), 0, %68:cc(tied-def 1)
+  GBR %bb.8, %75:vc, 1, implicit-def $c
+  JMP %bb.9
+
+bb.8 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %78:ac = EORImm %72:ac(tied-def 0), -128
+  JMP %bb.10
+
+bb.9 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  JMP %bb.10
+
+bb.10 (%ir-block.1):
+; predecessors: %bb.8, %bb.9
+  successors: %bb.11(0x40000000), %bb.2(0x40000000); %bb.11(50.00%), %bb.2(50.00%)
+
+  %80:anyi8 = PHI %78:ac, %bb.8, %72:ac, %bb.9
+  CmpBrZero %bb.2, undef $n, 0, %80:anyi8, implicit-def $c
+
+bb.11:
+; predecessors: %bb.10
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %93:gpr = LDImm 0
+  %91:gpr = LDImm 1
+  JMP %bb.4
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.10
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %90:gpr = LDImm 1
+  %94:gpr = LDImm 0
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.2, %bb.5, %bb.6
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+
+  %60:gpr = PHI %1:gpr, %bb.2, %48:anyi8, %bb.5, %48:anyi8, %bb.6
+  %61:gpr = PHI %2:ac, %bb.2, %49:anyi8, %bb.5, %49:anyi8, %bb.6
+  %54:anyi8 = PHI %90:gpr, %bb.2, %46:anyi8, %bb.5, %46:anyi8, %bb.6
+  %55:anyi8 = PHI %94:gpr, %bb.2, %47:anyi8, %bb.5, %47:anyi8, %bb.6
+  early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB %60:gpr(tied-def 1), %61:gpr(tied-def 2), implicit-def $c, implicit-def $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:gpr
+  $x = COPY %61:gpr
+  $rc2 = COPY %54:anyi8
+  $rc3 = COPY %55:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %46:anyi8 = COPY $a
+  %47:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.5, undef $z, 1, %61:gpr, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  %33:cc = CMPImm %60:gpr, 3
+  GBR %bb.3, %33:cc, 1, implicit-def $c
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  %38:cc = CMPImm %61:gpr, 0
+  GBR %bb.3, %38:cc, 1, implicit-def $c
+  JMP %bb.7
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  JMP %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.7, %bb.11
+
+  %22:anyi8 = PHI %91:gpr, %bb.11, %46:anyi8, %bb.7
+  %23:anyi8 = PHI %93:gpr, %bb.11, %47:anyi8, %bb.7
+  $a = COPY %22:anyi8
+  $x = COPY %23:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Peephole Optimizations (peephole-opt) on factorial omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on factorial omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %2:ac = COPY $x
+  %68:cc = CMPImm %1:gpr, 2
+  %72:ac, %73:cc, %75:vc = SBCImm %2:ac(tied-def 0), 0, %68:cc(tied-def 1)
+  GBR %bb.8, %75:vc, 1, implicit-def $c
+  JMP %bb.9
+
+bb.8 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %78:ac = EORImm %72:ac(tied-def 0), -128
+  JMP %bb.10
+
+bb.9 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  JMP %bb.10
+
+bb.10 (%ir-block.1):
+; predecessors: %bb.8, %bb.9
+  successors: %bb.11(0x40000000), %bb.2(0x40000000); %bb.11(50.00%), %bb.2(50.00%)
+
+  %80:anyi8 = PHI %78:ac, %bb.8, %72:ac, %bb.9
+  CmpBrZero %bb.2, undef $n, 0, %80:anyi8, implicit-def $c
+
+bb.11:
+; predecessors: %bb.10
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %93:gpr = LDImm 0
+  %91:gpr = LDImm 1
+  JMP %bb.4
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.10
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %90:gpr = LDImm 1
+  %94:gpr = LDImm 0
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.2, %bb.5, %bb.6
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+
+  %60:gpr = PHI %1:gpr, %bb.2, %48:anyi8, %bb.5, %48:anyi8, %bb.6
+  %61:gpr = PHI %2:ac, %bb.2, %49:anyi8, %bb.5, %49:anyi8, %bb.6
+  %54:anyi8 = PHI %90:gpr, %bb.2, %46:anyi8, %bb.5, %46:anyi8, %bb.6
+  %55:anyi8 = PHI %94:gpr, %bb.2, %47:anyi8, %bb.5, %47:anyi8, %bb.6
+  %97:anyi8 = COPY %60:gpr
+  %98:anyi8 = COPY %61:gpr
+  early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB %97:anyi8(tied-def 1), %98:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:gpr
+  $x = COPY %61:gpr
+  $rc2 = COPY %54:anyi8
+  $rc3 = COPY %55:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %46:anyi8 = COPY $a
+  %47:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.5, undef $z, 1, %61:gpr, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  %33:cc = CMPImm %60:gpr, 3
+  GBR %bb.3, %33:cc, 1, implicit-def $c
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  %38:cc = CMPImm %61:gpr, 0
+  GBR %bb.3, %38:cc, 1, implicit-def $c
+  JMP %bb.7
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  JMP %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.7, %bb.11
+
+  %22:anyi8 = PHI %91:gpr, %bb.11, %46:anyi8, %bb.7
+  %23:anyi8 = PHI %93:gpr, %bb.11, %47:anyi8, %bb.7
+  $a = COPY %22:anyi8
+  $x = COPY %23:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %2:ac = COPY $x
+  %68:cc = CMPImm %1:gpr, 2
+  %72:ac, dead %73:cc, %75:vc = SBCImm %2:ac(tied-def 0), 0, %68:cc(tied-def 1)
+  GBR %bb.8, %75:vc, 1, implicit-def $c
+  JMP %bb.9
+
+bb.8 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %78:ac = EORImm %72:ac(tied-def 0), -128
+  JMP %bb.10
+
+bb.9 (%ir-block.1):
+; predecessors: %bb.1
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  JMP %bb.10
+
+bb.10 (%ir-block.1):
+; predecessors: %bb.8, %bb.9
+  successors: %bb.11(0x40000000), %bb.2(0x40000000); %bb.11(50.00%), %bb.2(50.00%)
+
+  %80:anyi8 = PHI %78:ac, %bb.8, %72:ac, %bb.9
+  CmpBrZero %bb.2, undef $n, 0, %80:anyi8, implicit-def $c
+
+bb.11:
+; predecessors: %bb.10
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %93:gpr = LDImm 0
+  %91:gpr = LDImm 1
+  JMP %bb.4
+
+bb.2 (%ir-block.3):
+; predecessors: %bb.10
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %90:gpr = LDImm 1
+  %94:gpr = LDImm 0
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.2, %bb.5, %bb.6
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+
+  %60:gpr = PHI %1:gpr, %bb.2, %48:anyi8, %bb.5, %48:anyi8, %bb.6
+  %61:gpr = PHI %2:ac, %bb.2, %49:anyi8, %bb.5, %49:anyi8, %bb.6
+  %54:anyi8 = PHI %90:gpr, %bb.2, %46:anyi8, %bb.5, %46:anyi8, %bb.6
+  %55:anyi8 = PHI %94:gpr, %bb.2, %47:anyi8, %bb.5, %47:anyi8, %bb.6
+  %97:anyi8 = COPY %60:gpr
+  %98:anyi8 = COPY %61:gpr
+  dead early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB %97:anyi8(tied-def 1), %98:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:gpr
+  $x = COPY %61:gpr
+  $rc2 = COPY %54:anyi8
+  $rc3 = COPY %55:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %46:anyi8 = COPY $a
+  %47:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.5, undef $z, 1, %61:gpr, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  %33:cc = CMPImm %60:gpr, 3
+  GBR %bb.3, %33:cc, 1, implicit-def $c
+  JMP %bb.7
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.3(0x40000000), %bb.7(0x40000000); %bb.3(50.00%), %bb.7(50.00%)
+
+  %38:cc = CMPImm %61:gpr, 0
+  GBR %bb.3, %38:cc, 1, implicit-def $c
+  JMP %bb.7
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  JMP %bb.4
+
+bb.4 (%ir-block.10):
+; predecessors: %bb.7, %bb.11
+
+  %22:anyi8 = PHI %91:gpr, %bb.11, %46:anyi8, %bb.7
+  %23:anyi8 = PHI %93:gpr, %bb.11, %47:anyi8, %bb.7
+  $a = COPY %22:anyi8
+  $x = COPY %23:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Init Undef Pass (init-undef) on factorial omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on factorial omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %2:ac = COPY $x
+  %68:cc = CMPImm %1:gpr, 2
+  %72:ac, dead %73:cc, %75:vc = SBCImm %2:ac(tied-def 0), 0, %68:cc(tied-def 1)
+  GBR %bb.1, %75:vc, 1, implicit-def $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %78:ac = EORImm %72:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %80:anyi8 = PHI %78:ac, %bb.1, %72:ac, %bb.2
+  CmpBrZero %bb.5, undef $n, 0, %80:anyi8, implicit-def $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %93:gpr = LDImm 0
+  %91:gpr = LDImm 1
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %90:gpr = LDImm 1
+  %94:gpr = LDImm 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %60:gpr = PHI %1:gpr, %bb.5, %48:anyi8, %bb.7, %48:anyi8, %bb.8
+  %61:gpr = PHI %2:ac, %bb.5, %49:anyi8, %bb.7, %49:anyi8, %bb.8
+  %54:anyi8 = PHI %90:gpr, %bb.5, %46:anyi8, %bb.7, %46:anyi8, %bb.8
+  %55:anyi8 = PHI %94:gpr, %bb.5, %47:anyi8, %bb.7, %47:anyi8, %bb.8
+  %97:anyi8 = COPY %60:gpr
+  %98:anyi8 = COPY %61:gpr
+  dead early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB %97:anyi8(tied-def 1), %98:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:gpr
+  $x = COPY %61:gpr
+  $rc2 = COPY %54:anyi8
+  $rc3 = COPY %55:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %46:anyi8 = COPY $a
+  %47:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.7, undef $z, 1, %61:gpr, implicit-def $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %33:cc = CMPImm %60:gpr, 3
+  GBR %bb.6, %33:cc, 1, implicit-def $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %38:cc = CMPImm %61:gpr, 0
+  GBR %bb.6, %38:cc, 1, implicit-def $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+
+  %22:anyi8 = PHI %91:gpr, %bb.4, %46:anyi8, %bb.9
+  %23:anyi8 = PHI %93:gpr, %bb.4, %47:anyi8, %bb.9
+  $a = COPY %22:anyi8
+  $x = COPY %23:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Live Variable Analysis (livevars) on factorial ***
+# Machine code for function factorial: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY killed $a
+  %2:ac = COPY killed $x
+  %68:cc = CMPImm %1:gpr, 2
+  %72:ac, dead %73:cc, %75:vc = SBCImm %2:ac(tied-def 0), 0, killed %68:cc(tied-def 1)
+  GBR %bb.1, killed %75:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %78:ac = EORImm killed %72:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %80:anyi8 = PHI %78:ac, %bb.1, %72:ac, %bb.2
+  CmpBrZero %bb.5, undef $n, 0, killed %80:anyi8, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %93:gpr = LDImm 0
+  %91:gpr = LDImm 1
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %90:gpr = LDImm 1
+  %94:gpr = LDImm 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %60:gpr = PHI %1:gpr, %bb.5, %48:anyi8, %bb.7, %48:anyi8, %bb.8
+  %61:gpr = PHI %2:ac, %bb.5, %49:anyi8, %bb.7, %49:anyi8, %bb.8
+  %54:anyi8 = PHI %90:gpr, %bb.5, %46:anyi8, %bb.7, %46:anyi8, %bb.8
+  %55:anyi8 = PHI %94:gpr, %bb.5, %47:anyi8, %bb.7, %47:anyi8, %bb.8
+  %97:anyi8 = COPY %60:gpr
+  %98:anyi8 = COPY %61:gpr
+  dead early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB killed %97:anyi8(tied-def 1), killed %98:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:gpr
+  $x = COPY %61:gpr
+  $rc2 = COPY killed %54:anyi8
+  $rc3 = COPY killed %55:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %46:anyi8 = COPY killed $a
+  %47:anyi8 = COPY killed $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.7, undef $z, 1, %61:gpr, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %33:cc = CMPImm killed %60:gpr, 3
+  GBR %bb.6, killed %33:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %38:cc = CMPImm killed %61:gpr, 0
+  GBR %bb.6, killed %38:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+
+  %22:anyi8 = PHI %91:gpr, %bb.4, %46:anyi8, %bb.9
+  %23:anyi8 = PHI %93:gpr, %bb.4, %47:anyi8, %bb.9
+  $a = COPY killed %22:anyi8
+  $x = COPY killed %23:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function factorial.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on factorial omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on factorial omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY killed $a
+  %2:ac = COPY killed $x
+  %68:cc = CMPImm %1:gpr, 2
+  %72:ac, dead %73:cc, %75:vc = SBCImm %2:ac(tied-def 0), 0, killed %68:cc(tied-def 1)
+  GBR %bb.1, killed %75:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %78:ac = EORImm killed %72:ac(tied-def 0), -128
+  %99:anyi8 = COPY killed %78:ac
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %99:anyi8 = COPY killed %72:ac
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %80:anyi8 = COPY killed %99:anyi8
+  CmpBrZero %bb.5, undef $n, 0, killed %80:anyi8, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %93:gpr = LDImm 0
+  %91:gpr = LDImm 1
+  %104:anyi8 = COPY killed %91:gpr
+  %105:anyi8 = COPY killed %93:gpr
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %90:gpr = LDImm 1
+  %94:gpr = LDImm 0
+  %100:gpr = COPY killed %1:gpr
+  %101:gpr = COPY killed %2:ac
+  %102:anyi8 = COPY killed %90:gpr
+  %103:anyi8 = COPY killed %94:gpr
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %55:anyi8 = COPY killed %103:anyi8
+  %54:anyi8 = COPY killed %102:anyi8
+  %61:gpr = COPY killed %101:gpr
+  %60:gpr = COPY killed %100:gpr
+  %97:anyi8 = COPY %60:gpr
+  %98:anyi8 = COPY %61:gpr
+  dead early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB killed %97:anyi8(tied-def 1), killed %98:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:gpr
+  $x = COPY %61:gpr
+  $rc2 = COPY killed %54:anyi8
+  $rc3 = COPY killed %55:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %46:anyi8 = COPY killed $a
+  %47:anyi8 = COPY killed $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.7, undef $z, 1, %61:gpr, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %33:cc = CMPImm killed %60:gpr, 3
+  %100:gpr = COPY killed %48:anyi8
+  %101:gpr = COPY killed %49:anyi8
+  %102:anyi8 = COPY %46:anyi8
+  %103:anyi8 = COPY %47:anyi8
+  GBR %bb.6, killed %33:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %38:cc = CMPImm killed %61:gpr, 0
+  %100:gpr = COPY killed %48:anyi8
+  %101:gpr = COPY killed %49:anyi8
+  %102:anyi8 = COPY %46:anyi8
+  %103:anyi8 = COPY %47:anyi8
+  GBR %bb.6, killed %38:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %104:anyi8 = COPY killed %46:anyi8
+  %105:anyi8 = COPY killed %47:anyi8
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+
+  %23:anyi8 = COPY killed %105:anyi8
+  %22:anyi8 = COPY killed %104:anyi8
+  $a = COPY killed %22:anyi8
+  $x = COPY killed %23:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY killed $a
+  %2:ac = COPY killed $x
+  %68:cc = CMPImm %1:gpr, 2
+  %73:cc = COPY killed %68:cc
+  %72:ac = COPY %2:ac
+  %72:ac, dead %73:cc, %75:vc = SBCImm %72:ac(tied-def 0), 0, %73:cc(tied-def 1)
+  GBR %bb.1, killed %75:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %78:ac = COPY killed %72:ac
+  %78:ac = EORImm %78:ac(tied-def 0), -128
+  %99:anyi8 = COPY killed %78:ac
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %99:anyi8 = COPY killed %72:ac
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %80:anyi8 = COPY killed %99:anyi8
+  CmpBrZero %bb.5, undef $n, 0, killed %80:anyi8, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %93:gpr = LDImm 0
+  %91:gpr = LDImm 1
+  %104:anyi8 = COPY killed %91:gpr
+  %105:anyi8 = COPY killed %93:gpr
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %90:gpr = LDImm 1
+  %94:gpr = LDImm 0
+  %100:gpr = COPY killed %1:gpr
+  %101:gpr = COPY killed %2:ac
+  %102:anyi8 = COPY killed %90:gpr
+  %103:anyi8 = COPY killed %94:gpr
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %55:anyi8 = COPY killed %103:anyi8
+  %54:anyi8 = COPY killed %102:anyi8
+  %61:gpr = COPY killed %101:gpr
+  %60:gpr = COPY killed %100:gpr
+  %97:anyi8 = COPY %60:gpr
+  %98:anyi8 = COPY %61:gpr
+  %48:anyi8 = COPY killed %97:anyi8
+  %49:anyi8 = COPY killed %98:anyi8
+  dead early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB %48:anyi8(tied-def 1), %49:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:gpr
+  $x = COPY %61:gpr
+  $rc2 = COPY killed %54:anyi8
+  $rc3 = COPY killed %55:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %46:anyi8 = COPY killed $a
+  %47:anyi8 = COPY killed $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.7, undef $z, 1, %61:gpr, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %33:cc = CMPImm killed %60:gpr, 3
+  %100:gpr = COPY killed %48:anyi8
+  %101:gpr = COPY killed %49:anyi8
+  %102:anyi8 = COPY %46:anyi8
+  %103:anyi8 = COPY %47:anyi8
+  GBR %bb.6, killed %33:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %38:cc = CMPImm killed %61:gpr, 0
+  %100:gpr = COPY killed %48:anyi8
+  %101:gpr = COPY killed %49:anyi8
+  %102:anyi8 = COPY %46:anyi8
+  %103:anyi8 = COPY %47:anyi8
+  GBR %bb.6, killed %38:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %104:anyi8 = COPY killed %46:anyi8
+  %105:anyi8 = COPY killed %47:anyi8
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+
+  %23:anyi8 = COPY killed %105:anyi8
+  %22:anyi8 = COPY killed %104:anyi8
+  $a = COPY killed %22:anyi8
+  $x = COPY killed %23:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Slot index numbering (slotindexes) on factorial omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %1:gpr = COPY $a
+  %2:ac = COPY $x
+  %68:cc = CMPImm %1:gpr, 2
+  %73:cc = COPY %68:cc
+  %72:ac = COPY %2:ac
+  %72:ac, dead %73:cc, %75:vc = SBCImm %72:ac(tied-def 0), 0, %73:cc(tied-def 1)
+  GBR %bb.1, %75:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %78:ac = COPY %72:ac
+  %78:ac = EORImm %78:ac(tied-def 0), -128
+  %99:anyi8 = COPY %78:ac
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %99:anyi8 = COPY %72:ac
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  %80:anyi8 = COPY %99:anyi8
+  CmpBrZero %bb.5, undef $n, 0, %80:anyi8, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %93:gpr = LDImm 0
+  %91:gpr = LDImm 1
+  %104:anyi8 = COPY %91:gpr
+  %105:anyi8 = COPY %93:gpr
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %90:gpr = LDImm 1
+  %94:gpr = LDImm 0
+  %100:gpr = COPY %1:gpr
+  %101:gpr = COPY %2:ac
+  %102:anyi8 = COPY %90:gpr
+  %103:anyi8 = COPY %94:gpr
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %55:anyi8 = COPY %103:anyi8
+  %54:anyi8 = COPY %102:anyi8
+  %61:gpr = COPY %101:gpr
+  %60:gpr = COPY %100:gpr
+  %97:anyi8 = COPY %60:gpr
+  %98:anyi8 = COPY %61:gpr
+  %48:anyi8 = COPY %97:anyi8
+  %49:anyi8 = COPY %98:anyi8
+  dead early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB %48:anyi8(tied-def 1), %49:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %60:gpr
+  $x = COPY %61:gpr
+  $rc2 = COPY %54:anyi8
+  $rc3 = COPY %55:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %46:anyi8 = COPY $a
+  %47:anyi8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.7, undef $z, 1, %61:gpr, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %33:cc = CMPImm %60:gpr, 3
+  %100:gpr = COPY %48:anyi8
+  %101:gpr = COPY %49:anyi8
+  %102:anyi8 = COPY %46:anyi8
+  %103:anyi8 = COPY %47:anyi8
+  GBR %bb.6, %33:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %38:cc = CMPImm %61:gpr, 0
+  %100:gpr = COPY %48:anyi8
+  %101:gpr = COPY %49:anyi8
+  %102:anyi8 = COPY %46:anyi8
+  %103:anyi8 = COPY %47:anyi8
+  GBR %bb.6, %38:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %104:anyi8 = COPY %46:anyi8
+  %105:anyi8 = COPY %47:anyi8
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+
+  %23:anyi8 = COPY %105:anyi8
+  %22:anyi8 = COPY %104:anyi8
+  $a = COPY %22:anyi8
+  $x = COPY %23:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Register Coalescer (register-coalescer) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %100:gpr = COPY $a
+  %101:gpr = COPY $x
+  %73:cc = CMPImm %100:gpr, 2
+  %99:ac = COPY %101:gpr
+  %99:ac, dead %73:cc, %75:vc = SBCImm %99:ac(tied-def 0), 0, %73:cc(tied-def 1)
+  GBR %bb.1, %75:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %99:ac = EORImm %99:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  CmpBrZero %bb.5, undef $n, 0, %99:ac, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %105:gpr = LDImm 0
+  %104:gpr = LDImm 1
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %104:gpr = LDImm 1
+  %105:gpr = LDImm 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %48:anyi8 = COPY %100:gpr
+  %49:anyi8 = COPY %101:gpr
+  dead early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB %48:anyi8(tied-def 1), %49:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %100:gpr
+  $x = COPY %101:gpr
+  $rc2 = COPY %104:gpr
+  $rc3 = COPY %105:gpr
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %104:gpr = COPY $a
+  %105:gpr = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.7, undef $z, 1, %101:gpr, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %33:cc = CMPImm %100:gpr, 3
+  %100:gpr = COPY %48:anyi8
+  %101:gpr = COPY %49:anyi8
+  GBR %bb.6, %33:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %38:cc = CMPImm %101:gpr, 0
+  %100:gpr = COPY %48:anyi8
+  %101:gpr = COPY %49:anyi8
+  GBR %bb.6, %38:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+
+  $a = COPY %104:gpr
+  $x = COPY %105:gpr
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Register Coalescer (register-coalescer) on factorial omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on factorial omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on factorial omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %100:gpr = COPY $a
+  %101:gpr = COPY $x
+  %73:cc = CMPImm %100:gpr, 2
+  %99:ac = COPY %101:gpr
+  %99:ac, dead %73:cc, %75:vc = SBCImm %99:ac(tied-def 0), 0, %73:cc(tied-def 1)
+  GBR %bb.1, %75:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %99:ac = EORImm %99:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  CmpBrZero %bb.5, undef $n, 0, %99:ac, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %105:gpr = LDImm 0
+  %104:gpr = LDImm 1
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %104:gpr = LDImm 1
+  %105:gpr = LDImm 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %48:anyi8 = COPY %100:gpr
+  %49:anyi8 = COPY %101:gpr
+  dead early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB %48:anyi8(tied-def 1), %49:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %104:gpr
+  $rc3 = COPY %105:gpr
+  $x = COPY %101:gpr
+  $a = COPY %100:gpr
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %104:gpr = COPY $a
+  %105:gpr = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.7, undef $z, 1, %101:gpr, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %33:cc = CMPImm %100:gpr, 3
+  %100:gpr = COPY %48:anyi8
+  %101:gpr = COPY %49:anyi8
+  GBR %bb.6, %33:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %38:cc = CMPImm %101:gpr, 0
+  %100:gpr = COPY %48:anyi8
+  %101:gpr = COPY %49:anyi8
+  GBR %bb.6, %38:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+
+  $x = COPY %105:gpr
+  $a = COPY %104:gpr
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %100:gpr = COPY $a
+  %101:gpr = COPY $x
+  %73:cc = CMPImm %100:gpr, 2
+  %99:ac = COPY %101:gpr
+  %99:ac, dead %73:cc, %75:vc = SBCImm %99:ac(tied-def 0), 0, %73:cc(tied-def 1)
+  GBR %bb.1, %75:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %99:ac = EORImm %99:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  CmpBrZero %bb.5, undef $n, 0, %99:ac, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %105:gpr = LDImm 0
+  %104:gpr = LDImm 1
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %104:gpr = LDImm 1
+  %105:gpr = LDImm 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %48:anyi8 = COPY %100:gpr
+  %49:anyi8 = COPY %101:gpr
+  dead early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB %48:anyi8(tied-def 1), %49:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %104:gpr
+  $rc3 = COPY %105:gpr
+  $x = COPY %101:gpr
+  $a = COPY %100:gpr
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %104:gpr = COPY $a
+  %105:gpr = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.7, undef $z, 1, %101:gpr, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %33:cc = CMPImm %100:gpr, 3
+  %100:gpr = COPY %48:anyi8
+  %101:gpr = COPY %49:anyi8
+  GBR %bb.6, %33:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %38:cc = CMPImm %101:gpr, 0
+  %100:gpr = COPY %48:anyi8
+  %101:gpr = COPY %49:anyi8
+  GBR %bb.6, %38:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+
+  $x = COPY %105:gpr
+  $a = COPY %104:gpr
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on factorial omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on factorial omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on factorial omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on factorial omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on factorial omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on factorial omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on factorial omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  %107:gpr = COPY $a
+  %110:anyi8 = COPY $x
+  %73:cc = CMPImm %107:gpr, 2
+  %99:ac = COPY %110:anyi8
+  %99:ac, dead %73:cc, %75:vc = SBCImm %99:ac(tied-def 0), 0, %73:cc(tied-def 1)
+  GBR %bb.1, %75:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %99:ac = EORImm %99:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+
+  CmpBrZero %bb.5, undef $n, 0, %99:ac, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  %105:gpr = LDImm 0
+  %104:gpr = LDImm 1
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %104:gpr = LDImm 1
+  %112:anyi8 = COPY %110:anyi8
+  %105:gpr = LDImm 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+
+  %48:anyi8 = COPY %107:gpr
+  %113:anyi8 = COPY %112:anyi8
+  %49:anyi8 = COPY %113:anyi8
+  %116:anyi8 = COPY %107:gpr
+  dead early-clobber %96:gpr, %48:anyi8, %49:anyi8 = DecMB %48:anyi8(tied-def 1), %49:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %104:gpr
+  $rc3 = COPY %105:gpr
+  $x = COPY %113:anyi8
+  %118:anyi8 = COPY %116:anyi8
+  %119:gpr = COPY %118:anyi8
+  STAbs %119:gpr, %stack.0 :: (store (s8) into %stack.0)
+  $a = COPY %116:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %104:gpr = COPY $a
+  %105:gpr = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.7, undef $z, 1, %112:anyi8, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %120:gpr = LDAbs %stack.0 :: (load (s8) from %stack.0)
+  %33:cc = CMPImm %120:gpr, 3
+  %107:gpr = COPY %48:anyi8
+  %112:anyi8 = COPY %49:anyi8
+  GBR %bb.6, %33:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+
+  %114:gpr = COPY %112:anyi8
+  %38:cc = CMPImm %114:gpr, 0
+  %107:gpr = COPY %48:anyi8
+  %112:anyi8 = COPY %49:anyi8
+  GBR %bb.6, %38:cc, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+
+  $x = COPY %105:gpr
+  $a = COPY %104:gpr
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  renamable $y = COPY $a
+  renamable $c = CMPImm renamable $y, 2
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+  liveins: $a, $x, $y
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y
+  renamable $a = LDImm 1
+  renamable $rc22 = COPY killed renamable $x
+  renamable $x = LDImm 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $a, $x, $y, $rc22
+  renamable $rc21 = COPY renamable $y
+  renamable $rc4 = COPY renamable $rc22
+  renamable $rc20 = COPY renamable $rc4
+  renamable $rc5 = COPY killed renamable $y
+  dead early-clobber renamable $y, renamable $rc21, renamable $rc20 = DecMB killed renamable $rc21(tied-def 1), killed renamable $rc20(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY killed renamable $a
+  $rc3 = COPY killed renamable $x
+  $x = COPY killed renamable $rc4
+  renamable $y = COPY renamable $rc5
+  STAbs killed renamable $y, %stack.0 :: (store (s8) into %stack.0)
+  $a = COPY killed renamable $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.7, undef $z, 1, renamable $rc22, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs %stack.0 :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  renamable $y = COPY killed renamable $rc21
+  renamable $rc22 = COPY killed renamable $rc20
+  GBR %bb.6, killed renamable $c, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  renamable $y = COPY killed renamable $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+  renamable $y = COPY killed renamable $rc21
+  renamable $rc22 = COPY killed renamable $rc20
+  GBR %bb.6, killed renamable $c, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $a, $x
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+  liveins: $a, $x
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on factorial omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on factorial omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  renamable $y = COPY $a
+  renamable $c = CMPImm $a, 2
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+  liveins: $a, $x, $y
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y
+  renamable $a = LDImm 1
+  renamable $rc22 = COPY killed renamable $x
+  renamable $x = LDImm 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $a, $x, $y, $rc22
+  renamable $rc21 = COPY renamable $y
+  renamable $rc20 = COPY $rc22
+  renamable $rc5 = COPY killed renamable $y
+  dead early-clobber renamable $y, renamable $rc21, renamable $rc20 = DecMB killed renamable $rc21(tied-def 1), killed renamable $rc20(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY killed renamable $a
+  $rc3 = COPY killed renamable $x
+  $x = COPY $rc22
+  renamable $y = COPY renamable $rc5
+  STAbs killed renamable $y, %stack.0 :: (store (s8) into %stack.0)
+  $a = COPY killed renamable $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.7, undef $z, 1, renamable $rc22, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs %stack.0 :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  renamable $y = COPY killed renamable $rc21
+  renamable $rc22 = COPY killed renamable $rc20
+  GBR %bb.6, killed renamable $c, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  renamable $y = COPY killed renamable $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+  renamable $y = COPY killed renamable $rc21
+  renamable $rc22 = COPY killed renamable $rc20
+  GBR %bb.6, killed renamable $c, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $a, $x
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+  liveins: $a, $x
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on factorial omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on factorial omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on factorial omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on factorial omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on factorial omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on factorial omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on factorial omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on factorial omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on factorial omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: size=1, align=1, at location [SP]
+save/restore points:
+save points:
+%bb.5
+restore points:
+%bb.9
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x
+  renamable $y = COPY $a
+  renamable $c = CMPImm $a, 2
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+  liveins: $a, $x, $y
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y
+  renamable $a = LDImm 1
+  renamable $rc22 = COPY killed renamable $x
+  renamable $x = LDImm 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $a, $x, $y, $rc22
+  renamable $rc21 = COPY renamable $y
+  renamable $rc20 = COPY $rc22
+  renamable $rc5 = COPY killed renamable $y
+  dead early-clobber renamable $y, renamable $rc21, renamable $rc20 = DecMB killed renamable $rc21(tied-def 1), killed renamable $rc20(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY killed renamable $a
+  $rc3 = COPY killed renamable $x
+  $x = COPY $rc22
+  renamable $y = COPY renamable $rc5
+  STAbs killed renamable $y, %stack.0 :: (store (s8) into %stack.0)
+  $a = COPY killed renamable $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  CmpBrZero %bb.7, undef $z, 1, renamable $rc22, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs %stack.0 :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  renamable $y = COPY killed renamable $rc21
+  renamable $rc22 = COPY killed renamable $rc20
+  GBR %bb.6, killed renamable $c, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  renamable $y = COPY killed renamable $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+  renamable $y = COPY killed renamable $rc21
+  renamable $rc22 = COPY killed renamable $rc20
+  GBR %bb.6, killed renamable $c, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $a, $x
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+  liveins: $a, $x
+  RTS implicit $a, implicit $x
+
+# End machine code for function factorial.
+
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on factorial omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on factorial omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  renamable $y = COPY $a
+  renamable $c = CMPImm $a, 2
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y, $rc20, $rc21, $rc22
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y, $rc20, $rc21, $rc22
+  JMP %bb.3
+
+bb.3 (%ir-block.1):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+  liveins: $a, $x, $y, $rc20, $rc21, $rc22
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $rc20, $rc21, $rc22
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  JMP %bb.10
+
+bb.5 (%ir-block.3):
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y, $rc20, $rc21, $rc22
+  $a = frame-setup COPY $rc20
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc21
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc22
+  frame-setup PH killed $a
+  renamable $a = LDImm 1
+  renamable $rc22 = COPY killed renamable $x
+  renamable $x = LDImm 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5, %bb.7, %bb.8
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $a, $x, $y, $rc22
+  renamable $rc21 = COPY renamable $y
+  renamable $rc20 = COPY $rc22
+  renamable $rc5 = COPY killed renamable $y
+  dead early-clobber renamable $y, renamable $rc21, renamable $rc20 = DecMB killed renamable $rc21(tied-def 1), killed renamable $rc20(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  $rc2 = COPY killed renamable $a
+  $rc3 = COPY killed renamable $x
+  $x = COPY $rc22
+  renamable $y = COPY renamable $rc5
+  STAbs killed renamable $y, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  $a = COPY killed renamable $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  CmpBrZero %bb.7, undef $z, 1, renamable $rc22, implicit-def dead $c
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  renamable $y = COPY killed renamable $rc21
+  renamable $rc22 = COPY killed renamable $rc20
+  GBR %bb.6, killed renamable $c, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.6
+  successors: %bb.6(0x40000000), %bb.9(0x40000000); %bb.6(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  renamable $y = COPY killed renamable $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+  renamable $y = COPY killed renamable $rc21
+  renamable $rc22 = COPY killed renamable $rc20
+  GBR %bb.6, killed renamable $c, 1, implicit-def dead $c
+  JMP %bb.9
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7, %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $a, $x
+  $rc16 = STImag8 $a
+  $a = frame-destroy PL
+  $rc22 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc21 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc20 = frame-destroy COPY killed $a
+  $a = LDImag8 $rc16
+  JMP %bb.10
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.4
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  RTS implicit $a, implicit $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+# End machine code for function factorial.
+
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on factorial omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on factorial omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on factorial omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on factorial omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  renamable $y = COPY $a
+  renamable $c = CMPImm $a, 2
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.2, killed renamable $v, 0, implicit-def $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $a, $x, $y, $rc20, $rc21, $rc22
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $a, $x, $y, $rc20, $rc21, $rc22
+  CmpBrZero %bb.4, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $rc20, $rc21, $rc22
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  JMP %bb.10
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $x, $y, $rc20, $rc21, $rc22
+  $a = frame-setup COPY $rc20
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc21
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc22
+  frame-setup PH killed $a
+  renamable $a = LDImm 1
+  renamable $rc22 = COPY killed renamable $x
+  renamable $x = LDImm 0
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $a, $x, $y, $rc22
+  renamable $rc21 = COPY renamable $y
+  renamable $rc20 = COPY $rc22
+  renamable $rc5 = COPY killed renamable $y
+  dead early-clobber renamable $y, renamable $rc21, renamable $rc20 = DecMB killed renamable $rc21(tied-def 1), killed renamable $rc20(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  $rc2 = COPY killed renamable $a
+  $rc3 = COPY killed renamable $x
+  $x = COPY $rc22
+  renamable $y = COPY renamable $rc5
+  STAbs killed renamable $y, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  $a = COPY killed renamable $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  CmpBrZero %bb.7, undef $z, 0, renamable $rc22, implicit-def $c
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  renamable $y = COPY killed renamable $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.7, %bb.6
+  successors: %bb.5(0x40000000), %bb.9(0x40000000); %bb.5(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $c, $rc21
+  renamable $y = COPY killed renamable $rc21
+  renamable $rc22 = COPY killed renamable $rc20
+  GBR %bb.5, killed renamable $c, 1, implicit-def $c
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.8
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $a, $x
+  $rc16 = STImag8 $a
+  $a = frame-destroy PL
+  $rc22 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc21 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc20 = frame-destroy COPY killed $a
+  $a = LDImag8 $rc16
+
+bb.10 (%ir-block.10):
+; predecessors: %bb.9, %bb.3
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  RTS implicit $a, implicit $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+# End machine code for function factorial.
+
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on factorial omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  renamable $y = COPY $a
+  renamable $c = CMPImm $a, 2
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.2, killed renamable $v, 0, implicit-def $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $a, $x, $y, $rc20, $rc21, $rc22
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $a, $x, $y, $rc20, $rc21, $rc22
+  CmpBrZero %bb.4, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.3:
+; predecessors: %bb.2
+  liveins: $rc20, $rc21, $rc22
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  RTS implicit $a, implicit $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $x, $y, $rc20, $rc21, $rc22
+  $a = frame-setup COPY $rc20
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc21
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc22
+  frame-setup PH killed $a
+  renamable $a = LDImm 1
+  renamable $rc22 = COPY killed renamable $x
+  renamable $x = LDImm 0
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $a, $x, $y, $rc22
+  renamable $rc21 = COPY renamable $y
+  renamable $rc20 = COPY $rc22
+  renamable $rc5 = COPY killed renamable $y
+  dead early-clobber renamable $y, renamable $rc21, renamable $rc20 = DecMB killed renamable $rc21(tied-def 1), killed renamable $rc20(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  $rc2 = COPY killed renamable $a
+  $rc3 = COPY killed renamable $x
+  $x = COPY $rc22
+  renamable $y = COPY renamable $rc5
+  STAbs killed renamable $y, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  $a = COPY killed renamable $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  CmpBrZero %bb.7, undef $z, 0, renamable $rc22, implicit-def $c
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  renamable $y = COPY killed renamable $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.7, %bb.6
+  successors: %bb.5(0x40000000), %bb.9(0x40000000); %bb.5(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $c, $rc21
+  renamable $y = COPY killed renamable $rc21
+  renamable $rc22 = COPY killed renamable $rc20
+  GBR %bb.5, killed renamable $c, 1, implicit-def $c
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.8
+  liveins: $a, $x
+  $rc16 = STImag8 $a
+  $a = frame-destroy PL
+  $rc22 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc21 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc20 = frame-destroy COPY killed $a
+  $a = LDImag8 $rc16
+  RTS implicit $a, implicit $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+# End machine code for function factorial.
+
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on factorial omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  renamable $y = COPY $a
+  renamable $c = CMPImm killed $a, 2
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  CmpBrZero %bb.4, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.3:
+; predecessors: %bb.2
+  liveins: $rc20, $rc21, $rc22
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $y, $x, $rc22, $rc21, $rc20
+  $a = frame-setup COPY killed $rc20
+  frame-setup PH killed $a
+  $a = frame-setup COPY killed $rc21
+  frame-setup PH killed $a
+  $a = frame-setup COPY killed $rc22
+  frame-setup PH killed $a
+  renamable $a = LDImm 1
+  renamable $rc22 = COPY killed renamable $x
+  renamable $x = LDImm 0
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc22, $a, $y, $x
+  renamable $rc21 = COPY renamable $y
+  renamable $rc20 = COPY $rc22
+  renamable $rc5 = COPY killed renamable $y
+  dead early-clobber renamable $y, renamable $rc21, renamable $rc20 = DecMB killed renamable $rc21(tied-def 1), killed renamable $rc20(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  $rc2 = COPY killed renamable $a
+  $rc3 = COPY killed renamable $x
+  $x = COPY $rc22
+  renamable $y = COPY renamable $rc5
+  STAbs killed renamable $y, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  $a = COPY killed renamable $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  CmpBrZero %bb.7, undef $z, 0, renamable $rc22, implicit-def dead $c
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  renamable $y = COPY killed renamable $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.7, %bb.6
+  successors: %bb.5(0x40000000), %bb.9(0x40000000); %bb.5(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $c, $rc21
+  renamable $y = COPY killed renamable $rc21
+  renamable $rc22 = COPY killed renamable $rc20
+  GBR %bb.5, killed renamable $c, 1, implicit-def dead $c
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.8
+  liveins: $x, $a
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc22 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc21 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc20 = frame-destroy COPY killed $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+# End machine code for function factorial.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 2
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.4, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  liveins: $rc20, $rc21, $rc22
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $y, $x, $rc22, $rc21, $rc20
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc22
+  frame-setup PH killed $a
+  renamable $a = LDImm 1
+  $rc22 = STImag8 $x
+  renamable $x = LDImm 0
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc22, $a, $y, $x
+  $rc21 = STImag8 $y
+  %0:gpr = LDImag8 $rc22
+  $rc20 = STImag8 %0:gpr
+  $rc5 = STImag8 $y
+  dead early-clobber renamable $y, renamable $rc21, renamable $rc20 = DecMB killed renamable $rc21(tied-def 1), killed renamable $rc20(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  $rc2 = STImag8 $a
+  $rc3 = STImag8 $x
+  $x = LDImag8 $rc22
+  $y = LDImag8 $rc5
+  STAbs killed renamable $y, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  $a = LDImag8 $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  CmpZero renamable $rc22, implicit-def $c, implicit-def dead $c, implicit-def $z
+  BR %bb.7, killed $z, 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = LDImag8 $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.7, %bb.6
+  successors: %bb.5(0x40000000), %bb.9(0x40000000); %bb.5(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $c, $rc21
+  $y = LDImag8 $rc21
+  %1:gpr = LDImag8 $rc20
+  $rc22 = STImag8 %1:gpr
+  BR %bb.5, killed renamable $c, 1, implicit-def dead $c
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.8
+  liveins: $x, $a
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc22 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+# End machine code for function factorial.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 2
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.4, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  liveins: $rc20, $rc21, $rc22
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $y, $x, $rc22, $rc21, $rc20
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc22
+  frame-setup PH killed $a
+  renamable $a = LDImm 1
+  $rc22 = STImag8 $x
+  renamable $x = LDImm 0
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc22, $a, $y, $x
+  $rc21 = STImag8 $y
+  PH $a
+  $a = LDImag8 $rc22
+  $rc20 = STImag8 killed $a
+  $a = PL
+  $rc5 = STImag8 $y
+  dead early-clobber renamable $y, renamable $rc21, renamable $rc20 = DecMB killed renamable $rc21(tied-def 1), killed renamable $rc20(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  $rc2 = STImag8 $a
+  $rc3 = STImag8 $x
+  $x = LDImag8 $rc22
+  $y = LDImag8 $rc5
+  STAbs killed renamable $y, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  $a = LDImag8 $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  CmpZero renamable $rc22, implicit-def $c, implicit-def dead $c, implicit-def $z
+  BR %bb.7, killed $z, 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = LDImag8 $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.7, %bb.6
+  successors: %bb.5(0x40000000), %bb.9(0x40000000); %bb.5(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $c, $rc21
+  $y = LDImag8 $rc21
+  PH $a
+  $a = LDImag8 $rc20
+  $rc22 = STImag8 killed $a
+  $a = PL
+  BR %bb.5, killed renamable $c, 1, implicit-def dead $c
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.8
+  liveins: $x, $a
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc22 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+# End machine code for function factorial.
+
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 2
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.4, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  liveins: $rc20, $rc21, $rc22
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $y, $x, $rc22, $rc21, $rc20
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc22
+  frame-setup PH killed $a
+  renamable $a = LDImm 1
+  $rc22 = STImag8 $x
+  renamable $x = LDImm 0
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+  successors: %bb.11(0x40000000), %bb.12(0x40000000); %bb.11(50.00%), %bb.12(50.00%)
+  liveins: $rc22, $a, $y, $x
+  $rc21 = STImag8 $y
+  PH $a
+  $a = LDImag8 $rc22
+  $rc20 = STImag8 killed $a
+  $a = PL
+  $rc5 = STImag8 $y
+  $y = LDImm 255
+  $rc21 = DecNMOS $rc21(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $y, killed renamable $rc21, implicit-def $z
+  BR %bb.12, $z, -1
+  JMP %bb.11
+
+bb.12 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.11(0x80000000); %bb.11(100.00%)
+  liveins: $a, $x, $rc5, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $rc20 = DecNMOS killed renamable $rc20(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.11
+
+bb.11 (%ir-block.4):
+; predecessors: %bb.5, %bb.12
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc31, $rc30, $rc29, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc22, $rc21, $rc20, $x, $rc5, $a
+  $rc2 = STImag8 $a
+  $rc3 = STImag8 $x
+  $x = LDImag8 $rc22
+  $y = LDImag8 $rc5
+  STAbs killed renamable $y, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  $a = LDImag8 $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  CmpZero renamable $rc22, implicit-def $c, implicit-def dead $c, implicit-def $z
+  BR %bb.7, killed $z, 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.11
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.11
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = LDImag8 $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.7, %bb.6
+  successors: %bb.5(0x40000000), %bb.9(0x40000000); %bb.5(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $c, $rc21
+  $y = LDImag8 $rc21
+  PH $a
+  $a = LDImag8 $rc20
+  $rc22 = STImag8 killed $a
+  $a = PL
+  BR %bb.5, killed renamable $c, 1, implicit-def dead $c
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.8
+  liveins: $x, $a
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc22 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+# End machine code for function factorial.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 2
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.4, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  liveins: $rc20, $rc21, $rc22
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $y, $x, $rc22, $rc21, $rc20
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc22
+  frame-setup PH killed $a
+  renamable $a = LDImm 1
+  $rc22 = STImag8 $x
+  renamable $x = LDImm 0
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+  successors: %bb.11(0x40000000), %bb.12(0x40000000); %bb.11(50.00%), %bb.12(50.00%)
+  liveins: $rc22, $a, $y, $x
+  $rc21 = STImag8 $y
+  PH $a
+  $a = LDImag8 $rc22
+  $rc20 = STImag8 killed $a
+  $a = PL
+  $rc5 = STImag8 $y
+  $y = LDImm 255
+  $rc21 = DEC $rc21(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $y, killed renamable $rc21, implicit-def $z
+  BR %bb.12, $z, -1
+  JMP %bb.11
+
+bb.12 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.11(0x80000000); %bb.11(100.00%)
+  liveins: $a, $x, $rc5, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $rc20 = DEC killed renamable $rc20(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.11
+
+bb.11 (%ir-block.4):
+; predecessors: %bb.5, %bb.12
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc31, $rc30, $rc29, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc22, $rc21, $rc20, $x, $rc5, $a
+  $rc2 = STImag8 $a
+  $rc3 = STImag8 $x
+  $x = LDImag8 $rc22
+  $y = LDImag8 $rc5
+  STAbs killed renamable $y, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  $a = LDImag8 $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  CmpZero renamable $rc22, implicit-def $c, implicit-def dead $c, implicit-def $z
+  BR %bb.7, killed $z, 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.11
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.11
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = LDImag8 $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.7, %bb.6
+  successors: %bb.5(0x40000000), %bb.9(0x40000000); %bb.5(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $c, $rc21
+  $y = LDImag8 $rc21
+  PH $a
+  $a = LDImag8 $rc20
+  $rc22 = STImag8 killed $a
+  $a = PL
+  BR %bb.5, killed renamable $c, 1, implicit-def dead $c
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.8
+  liveins: $x, $a
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc22 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+# End machine code for function factorial.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on factorial omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 2
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  dead $c = CMPImm $a, 0, implicit-def $nz
+  BR %bb.4, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  liveins: $rc20, $rc21, $rc22
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $y, $x, $rc22, $rc21, $rc20
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc22
+  frame-setup PH killed $a
+  renamable $a = LDImm 1
+  $rc22 = STImag8 $x
+  renamable $x = LDImm 0
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+  successors: %bb.11(0x40000000), %bb.12(0x40000000); %bb.11(50.00%), %bb.12(50.00%)
+  liveins: $rc22, $a, $y, $x
+  $rc21 = STImag8 $y
+  PH $a
+  $a = LDImag8 $rc22
+  $rc20 = STImag8 killed $a
+  $a = PL
+  $rc5 = STImag8 $y
+  $y = LDImm 255
+  $rc21 = DEC $rc21(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $y, killed renamable $rc21, implicit-def $z
+  BR %bb.12, $z, -1
+  JMP %bb.11
+
+bb.12 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.11(0x80000000); %bb.11(100.00%)
+  liveins: $a, $x, $rc5, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $rc20 = DEC killed renamable $rc20(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.11
+
+bb.11 (%ir-block.4):
+; predecessors: %bb.5, %bb.12
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc31, $rc30, $rc29, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc22, $rc21, $rc20, $x, $rc5, $a
+  $rc2 = STImag8 $a
+  $rc3 = STImag8 $x
+  $x = LDImag8 $rc22
+  $y = LDImag8 $rc5
+  STAbs killed renamable $y, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  $a = LDImag8 $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  dead $y = LDImag8 $rc22, implicit-def $nz
+  BR %bb.7, killed $z, 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.11
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.11
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = LDImag8 $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.7, %bb.6
+  successors: %bb.5(0x40000000), %bb.9(0x40000000); %bb.5(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $c, $rc21
+  $y = LDImag8 $rc21
+  PH $a
+  $a = LDImag8 $rc20
+  $rc22 = STImag8 killed $a
+  $a = PL
+  BR %bb.5, killed renamable $c, 1, implicit-def dead $c
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.8
+  liveins: $x, $a
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc22 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+# End machine code for function factorial.
+
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on factorial omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on factorial omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on factorial omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on factorial omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on factorial omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 2
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  dead $c = CMPImm $a, 0, implicit-def $nz
+  BR %bb.4, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  liveins: $rc20, $rc21, $rc22
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $y, $x, $rc22, $rc21, $rc20
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc22
+  frame-setup PH killed $a
+  renamable $a = LDImm 1
+  $rc22 = STImag8 $x
+  renamable $x = LDImm 0
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.4, %bb.8
+  successors: %bb.11(0x40000000), %bb.12(0x40000000); %bb.11(50.00%), %bb.12(50.00%)
+  liveins: $rc22, $a, $y, $x
+  $rc21 = STImag8 $y
+  PH $a
+  $a = LDImag8 $rc22
+  $rc20 = STImag8 killed $a
+  $a = PL
+  $rc5 = STImag8 $y
+  $y = LDImm 255
+  $rc21 = DEC $rc21(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $y, killed renamable $rc21, implicit-def $z
+  BR %bb.11, $z, 0
+
+bb.12 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.11(0x80000000); %bb.11(100.00%)
+  liveins: $a, $x, $rc5, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $rc20 = DEC killed renamable $rc20(tied-def 0), implicit-def $c, implicit-def $v
+
+bb.11 (%ir-block.4):
+; predecessors: %bb.5, %bb.12
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc31, $rc30, $rc29, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc22, $rc21, $rc20, $x, $rc5, $a
+  $rc2 = STImag8 $a
+  $rc3 = STImag8 $x
+  $x = LDImag8 $rc22
+  $y = LDImag8 $rc5
+  STAbs killed renamable $y, @factorial_sstk :: (store (s8) into %stack.0)
+  $a = LDImag8 $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  dead $y = LDImag8 $rc22, implicit-def $nz
+  BR %bb.7, killed $z, 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.11
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs @factorial_sstk :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  JMP %bb.8
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.11
+  successors: %bb.8(0x80000000); %bb.8(100.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = LDImag8 $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.7, %bb.6
+  successors: %bb.5(0x40000000), %bb.9(0x40000000); %bb.5(50.00%), %bb.9(50.00%)
+  liveins: $a, $x, $rc20, $c, $rc21
+  $y = LDImag8 $rc21
+  PH $a
+  $a = LDImag8 $rc20
+  $rc22 = STImag8 killed $a
+  $a = PL
+  BR %bb.5, killed renamable $c, 1, implicit-def dead $c
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.8
+  liveins: $x, $a
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc22 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+# End machine code for function factorial.
+
+*** IR Dump After Insert fentry calls (fentry-insert) on factorial omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on factorial omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on factorial omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on factorial ***
+# Machine code for function factorial: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.1):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 2
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0
+
+bb.1 (%ir-block.1):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.1):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x40000000), %bb.4(0x40000000); %bb.3(50.00%), %bb.4(50.00%)
+  liveins: $rc20, $rc21, $rc22, $y, $x, $a
+  dead $c = CMPImm $a, 0, implicit-def $nz
+  BR %bb.4, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  liveins: $rc20, $rc21, $rc22
+  renamable $x = LDImm 0
+  renamable $a = LDImm 1
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+bb.4 (%ir-block.3):
+; predecessors: %bb.2
+  successors: %bb.5(0x80000000); %bb.5(100.00%)
+  liveins: $y, $x, $rc22, $rc21, $rc20
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc22
+  frame-setup PH killed $a
+  renamable $a = LDImm 1
+  $rc22 = STImag8 $x
+  renamable $x = LDImm 0
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.4, %bb.10
+  successors: %bb.7(0x40000000), %bb.6(0x40000000); %bb.7(50.00%), %bb.6(50.00%)
+  liveins: $rc22, $a, $y, $x
+  $rc21 = STImag8 $y
+  PH $a
+  $a = LDImag8 $rc22
+  $rc20 = STImag8 killed $a
+  $a = PL
+  $rc5 = STImag8 $y
+  $y = LDImm 255
+  $rc21 = DEC $rc21(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $y, killed renamable $rc21, implicit-def $z
+  BR %bb.7, $z, 0
+
+bb.6 (%ir-block.4):
+; predecessors: %bb.5
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $a, $x, $rc5, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $rc20 = DEC killed renamable $rc20(tied-def 0), implicit-def $c, implicit-def $v
+
+bb.7 (%ir-block.4):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.8(0x40000000), %bb.9(0x40000000); %bb.8(50.00%), %bb.9(50.00%)
+  liveins: $rc31, $rc30, $rc29, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc22, $rc21, $rc20, $x, $rc5, $a
+  $rc2 = STImag8 $a
+  $rc3 = STImag8 $x
+  $x = LDImag8 $rc22
+  $y = LDImag8 $rc5
+  STAbs killed renamable $y, @factorial_sstk :: (store (s8) into %stack.0)
+  $a = LDImag8 $rc5
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  dead $y = LDImag8 $rc22, implicit-def $nz
+  BR %bb.9, killed $z, 0
+
+bb.8 (%ir-block.4):
+; predecessors: %bb.7
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $a, $x, $rc20, $rc21
+  renamable $y = LDAbs @factorial_sstk :: (load (s8) from %stack.0)
+  renamable $c = CMPImm killed renamable $y, 3
+  JMP %bb.10
+
+bb.9 (%ir-block.4):
+; predecessors: %bb.7
+  successors: %bb.10(0x80000000); %bb.10(100.00%)
+  liveins: $a, $x, $rc20, $rc21, $rc22
+  $y = LDImag8 $rc22
+  renamable $c = CMPImm killed renamable $y, 0
+
+bb.10 (%ir-block.4):
+; predecessors: %bb.9, %bb.8
+  successors: %bb.5(0x40000000), %bb.11(0x40000000); %bb.5(50.00%), %bb.11(50.00%)
+  liveins: $a, $x, $rc20, $c, $rc21
+  $y = LDImag8 $rc21
+  PH $a
+  $a = LDImag8 $rc20
+  $rc22 = STImag8 killed $a
+  $a = PL
+  BR %bb.5, killed renamable $c, 1, implicit-def dead $c
+
+bb.11 (%ir-block.4):
+; predecessors: %bb.10
+  liveins: $x, $a
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc22 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22
+
+# End machine code for function factorial.
+
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on factorial omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on factorial omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on factorial omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on factorial omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on factorial omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on factorial omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on factorial omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on factorial omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on factorial omitted because no change ***

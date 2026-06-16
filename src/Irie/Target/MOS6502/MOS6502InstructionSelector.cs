@@ -830,6 +830,41 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             return true;
         }
 
+        // A byte access whose address resolves to a (non-frame) static symbol —
+        // a global, string, or other compile-time-constant address — uses
+        // absolute addressing: `lda.abs @sym+off` reads the byte directly, with
+        // no zero-page pointer pair and no Y register. The byte offset (0 = low,
+        // 1 = high of an i16) becomes the Symbol's offset. Mirrors llvm-mos
+        // `G_LOAD_ABS`. Runtime i16 pointers (heap, computed) fall through to the
+        // indirect-Y path below.
+        if (TryResolveSymbolAddress(function, addrReg.Id) is string absLoadSym)
+        {
+            // %a : ac = mos6502.lda.abs @sym+off — value lands in $a.
+            var absLdaVreg = function.CreateVirtualRegisterInClass(
+                MOS6502RegisterClass.Ac,
+                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+            builder.BuildInstruction(
+                MOS6502Dialect.OpRef(MOS6502Op.LdaAbs),
+                new VirtualReg(absLdaVreg, IsDefinition: true),
+                new Symbol(absLoadSym, (int)offset.Value));
+
+            // Funnel out of $a into a flexible Anyi8 vreg so the value can be
+            // parked when more accesses are in flight (same idiom as the indy path).
+            var absResultVreg = function.CreateVirtualRegisterInClass(
+                MOS6502RegisterClass.Anyi8,
+                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
+            builder.BuildInstruction(
+                PseudoDialect.OpRef(PseudoOp.Copy),
+                new VirtualReg(absResultVreg, IsDefinition: true),
+                new VirtualReg(absLdaVreg,    IsDefinition: false));
+
+            function.ReplaceAllUsesOfRegister(defReg.Id, absResultVreg);
+            builder.Remove(instr);
+
+            TryRemoveDeadMemSymbol(function, addrReg.Id, builder);
+            return true;
+        }
+
         EmitPointerSetup(builder, addrReg, offset.Value);
 
         // %a3 : ac = mos6502.lda.indy $rc2, implicit-use $rc3, implicit-use $y
@@ -921,6 +956,32 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
                 new PhysicalReg(MOS6502Registers.Y, IsDefinition: true, IsImplicit: true),
                 new PhysicalReg(PointerZpLo, IsDefinition: true, IsImplicit: true),
                 new PhysicalReg(PointerZpHi, IsDefinition: true, IsImplicit: true));
+
+            builder.Remove(instr);
+
+            TryRemoveDeadMemSymbol(function, addrReg.Id, builder);
+            return true;
+        }
+
+        // A (non-frame) static symbol store uses absolute addressing: the value
+        // byte flows through $a and `sta.abs @sym+off` writes it directly, with
+        // no zero-page pointer pair and no Y register. Mirrors llvm-mos
+        // `G_STORE_ABS`. Runtime i16 pointers fall through to the indy path.
+        if (TryResolveSymbolAddress(function, addrReg.Id) is string absStoreSym)
+        {
+            // sta.abs needs its source in $a (Ac); copy the parked value there.
+            var absSrcVreg = function.CreateVirtualRegisterInClass(
+                MOS6502RegisterClass.Ac,
+                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+            builder.BuildInstruction(
+                PseudoDialect.OpRef(PseudoOp.Copy),
+                new VirtualReg(absSrcVreg,  IsDefinition: true),
+                new VirtualReg(parkedVreg,  IsDefinition: false));
+
+            builder.BuildInstruction(
+                MOS6502Dialect.OpRef(MOS6502Op.StaAbs),
+                new VirtualReg(absSrcVreg, IsDefinition: false),
+                new Symbol(absStoreSym, (int)offset.Value));
 
             builder.Remove(instr);
 

@@ -1,0 +1,1020 @@
+*** IR Dump At Start ***
+; ModuleID = './constraints/shift-const.c'
+source_filename = "./constraints/shift-const.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @shift_const(i16 noundef %0) #0 {
+  %2 = alloca i16, align 1
+  store i16 %0, ptr %2, align 1, !tbaa !2
+  %3 = load i16, ptr %2, align 1, !tbaa !2
+  %4 = shl i16 %3, 3
+  %5 = load i16, ptr %2, align 1, !tbaa !2
+  %6 = ashr i16 %5, 2
+  %7 = or i16 %4, %6
+  ret i16 %7
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on shift_const omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on shift_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on shift_const omitted because no change ***
+*** IR Dump After SROAPass on shift_const ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @shift_const(i16 noundef %0) #0 {
+  %2 = shl i16 %0, 3
+  %3 = ashr i16 %0, 2
+  %4 = or i16 %2, %3
+  ret i16 %4
+}
+*** IR Dump After EarlyCSEPass on shift_const omitted because no change ***
+*** IR Pass PassManager<Function> on shift_const ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './constraints/shift-const.c'
+source_filename = "./constraints/shift-const.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @shift_const(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = shl i16 %0, 3
+  %3 = ashr i16 %0, 2
+  %4 = or i16 %2, %3
+  ret i16 %4
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on shift_const omitted because no change ***
+*** IR Dump After InstCombinePass on shift_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on shift_const omitted because no change ***
+*** IR Pass PassManager<Function> on shift_const ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on shift_const omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (shift_const) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (shift_const) omitted because no change ***
+*** IR Dump After SROAPass on shift_const omitted because no change ***
+*** IR Dump After EarlyCSEPass on shift_const omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on shift_const omitted because no change ***
+*** IR Dump After JumpThreadingPass on shift_const omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on shift_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on shift_const omitted because no change ***
+*** IR Dump After InstCombinePass on shift_const omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on shift_const omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on shift_const omitted because no change ***
+*** IR Dump After TailCallElimPass on shift_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on shift_const omitted because no change ***
+*** IR Dump After ReassociatePass on shift_const omitted because no change ***
+*** IR Dump After ConstraintEliminationPass on shift_const omitted because no change ***
+*** IR Dump After LoopSimplifyPass on shift_const omitted because no change ***
+*** IR Dump After LCSSAPass on shift_const omitted because no change ***
+*** IR Pass PassManager<Function> on shift_const ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on shift_const ignored ***
+*** IR Dump After SimplifyCFGPass on shift_const omitted because no change ***
+*** IR Dump After InstCombinePass on shift_const omitted because no change ***
+*** IR Dump After LoopSimplifyPass on shift_const omitted because no change ***
+*** IR Dump After LCSSAPass on shift_const omitted because no change ***
+*** IR Pass PassManager<Function> on shift_const ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on shift_const ignored ***
+*** IR Dump After SROAPass on shift_const omitted because no change ***
+*** IR Dump After VectorCombinePass on shift_const omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on shift_const omitted because no change ***
+*** IR Dump After GVNPass on shift_const omitted because no change ***
+*** IR Dump After SCCPPass on shift_const omitted because no change ***
+*** IR Dump After BDCEPass on shift_const omitted because no change ***
+*** IR Dump After InstCombinePass on shift_const omitted because no change ***
+*** IR Dump After JumpThreadingPass on shift_const omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on shift_const omitted because no change ***
+*** IR Dump After ADCEPass on shift_const omitted because no change ***
+*** IR Dump After MemCpyOptPass on shift_const omitted because no change ***
+*** IR Dump After DSEPass on shift_const omitted because no change ***
+*** IR Dump After MoveAutoInitPass on shift_const omitted because no change ***
+*** IR Dump After LoopSimplifyPass on shift_const omitted because no change ***
+*** IR Dump After LCSSAPass on shift_const omitted because no change ***
+*** IR Pass PassManager<Function> on shift_const ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on shift_const ignored ***
+*** IR Dump After CoroElidePass on shift_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on shift_const omitted because no change ***
+*** IR Dump After InstCombinePass on shift_const omitted because no change ***
+*** IR Pass PassManager<Function> on shift_const ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (shift_const) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (shift_const) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local noundef i16 @shift_const(i16 noundef %0) local_unnamed_addr #0 {
+  %2 = shl i16 %0, 3
+  %3 = ashr i16 %0, 2
+  %4 = or i16 %2, %3
+  ret i16 %4
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on shift_const omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (shift_const) ignored ***
+*** IR Dump After CoroSplitPass on (shift_const) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (shift_const) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (shift_const) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (shift_const) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on shift_const omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on shift_const omitted because no change ***
+*** IR Dump After Float2IntPass on shift_const omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on shift_const omitted because no change ***
+*** IR Dump After LoopSimplifyPass on shift_const omitted because no change ***
+*** IR Dump After LCSSAPass on shift_const omitted because no change ***
+*** IR Pass PassManager<Function> on shift_const ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on shift_const ignored ***
+*** IR Dump After LoopDistributePass on shift_const omitted because no change ***
+*** IR Dump After InjectTLIMappings on shift_const omitted because no change ***
+*** IR Dump After LoopVectorizePass on shift_const omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on shift_const omitted because no change ***
+*** IR Dump After InferAlignmentPass on shift_const omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on shift_const omitted because no change ***
+*** IR Dump After InstCombinePass on shift_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on shift_const omitted because no change ***
+*** IR Dump After SLPVectorizerPass on shift_const omitted because no change ***
+*** IR Dump After VectorCombinePass on shift_const omitted because no change ***
+*** IR Dump After InstCombinePass on shift_const omitted because no change ***
+*** IR Dump After LoopUnrollPass on shift_const omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on shift_const omitted because no change ***
+*** IR Dump After SROAPass on shift_const omitted because no change ***
+*** IR Dump After InferAlignmentPass on shift_const omitted because no change ***
+*** IR Dump After InstCombinePass on shift_const omitted because no change ***
+*** IR Dump After LoopSimplifyPass on shift_const omitted because no change ***
+*** IR Dump After LCSSAPass on shift_const omitted because no change ***
+*** IR Pass PassManager<Function> on shift_const ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on shift_const ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on shift_const omitted because no change ***
+*** IR Dump After LoopSinkPass on shift_const omitted because no change ***
+*** IR Dump After InstSimplifyPass on shift_const omitted because no change ***
+*** IR Dump After DivRemPairsPass on shift_const omitted because no change ***
+*** IR Dump After MergeICmpsPass on shift_const omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on shift_const omitted because no change ***
+*** IR Dump After TailCallElimPass on shift_const omitted because no change ***
+*** IR Dump After SimplifyCFGPass on shift_const omitted because no change ***
+*** IR Pass PassManager<Function> on shift_const ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on shift_const omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on shift_const omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on shift_const ***
+# Machine code for function shift_const: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %1:_(s8), %2:_(s8)
+  %3:_(s16) = G_CONSTANT i16 3
+  %5:_(s16) = G_CONSTANT i16 2
+  %4:_(s16) = G_SHL %0:_, %3:_(s16)
+  %6:_(s16) = G_ASHR %0:_, %5:_(s16)
+  %7:_(s16) = G_OR %4:_, %6:_
+  %8:_(s8), %9:_(s8) = G_UNMERGE_VALUES %7:_(s16)
+  $a = COPY %8:_(s8)
+  $x = COPY %9:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on shift_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on shift_const omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on shift_const omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on shift_const omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on shift_const omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on shift_const omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on shift_const omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on shift_const ***
+# Machine code for function shift_const: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %48:_(s1) = G_CONSTANT i1 false
+  %51:_(s8), %52:_(s1) = G_SHLE %1:_, %48:_
+  %53:_(s8), %50:_(s1) = G_SHLE %2:_, %52:_
+  %59:_(s8), %60:_(s1) = G_SHLE %51:_, %48:_
+  %61:_(s8), %56:_(s1) = G_SHLE %53:_, %60:_
+  %67:_(s8), %68:_(s1) = G_SHLE %59:_, %48:_
+  %69:_(s8), %64:_(s1) = G_SHLE %61:_, %68:_
+  %19:_(s8) = G_CONSTANT i8 -128
+  %36:_(s1) = G_CONSTANT i1 true
+  %42:_(s8), %43:_(s1), %44:_, %45:_, %46:_ = G_SBC %2:_, %19:_, %36:_
+  %20:_(s1) = COPY %43:_(s1)
+  %23:_(s8), %24:_(s1) = G_LSHRE %2:_, %20:_
+  %25:_(s8), %22:_(s1) = G_LSHRE %1:_, %24:_
+  %37:_(s8), %38:_(s1), %39:_, %40:_, %41:_ = G_SBC %23:_, %19:_, %36:_
+  %29:_(s1) = COPY %38:_(s1)
+  %32:_(s8), %33:_(s1) = G_LSHRE %23:_, %29:_
+  %34:_(s8), %31:_(s1) = G_LSHRE %25:_, %33:_
+  %14:_(s8) = G_OR %67:_, %34:_
+  %15:_(s8) = G_OR %69:_, %32:_
+  $a = COPY %14:_(s8)
+  $x = COPY %15:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on shift_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on shift_const omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on shift_const omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on shift_const ***
+# Machine code for function shift_const: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:_(s8) = COPY $a
+  %2:_(s8) = COPY $x
+  %48:_(s1) = G_CONSTANT i1 false
+  %51:_(s8), %52:_(s1) = G_SHLE %1:_, %48:_
+  %53:_(s8), %50:_(s1) = G_SHLE %2:_, %52:_
+  %59:_(s8), %60:_(s1) = G_SHLE %51:_, %48:_
+  %61:_(s8), %56:_(s1) = G_SHLE %53:_, %60:_
+  %67:_(s8), %68:_(s1) = G_SHLE %59:_, %48:_
+  %69:_(s8), %64:_(s1) = G_SHLE %61:_, %68:_
+  %19:_(s8) = G_CONSTANT i8 -128
+  %36:_(s1) = G_CONSTANT i1 true
+  %42:_(s8), %43:_(s1), %44:_, %45:_, %46:_ = G_SBC %2:_, %19:_, %36:_
+  %23:_(s8), %24:_(s1) = G_LSHRE %2:_, %43:_
+  %25:_(s8), %22:_(s1) = G_LSHRE %1:_, %24:_
+  %37:_(s8), %38:_(s1), %39:_, %40:_, %41:_ = G_SBC %23:_, %19:_, %36:_
+  %32:_(s8), %33:_(s1) = G_LSHRE %23:_, %38:_
+  %34:_(s8), %31:_(s1) = G_LSHRE %25:_, %33:_
+  %14:_(s8) = G_OR %67:_, %34:_
+  %15:_(s8) = G_OR %69:_, %32:_
+  $a = COPY %14:_(s8)
+  $x = COPY %15:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on shift_const omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on shift_const ***
+# Machine code for function shift_const: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:any(s8) = COPY $a
+  %2:any(s8) = COPY $x
+  %48:any(s1) = G_CONSTANT i1 false
+  %51:any(s8), %52:any(s1) = G_SHLE %1:any, %48:any
+  %53:any(s8), %50:any(s1) = G_SHLE %2:any, %52:any
+  %59:any(s8), %60:any(s1) = G_SHLE %51:any, %48:any
+  %61:any(s8), %56:any(s1) = G_SHLE %53:any, %60:any
+  %67:any(s8), %68:any(s1) = G_SHLE %59:any, %48:any
+  %69:any(s8), %64:any(s1) = G_SHLE %61:any, %68:any
+  %19:any(s8) = G_CONSTANT i8 -128
+  %36:any(s1) = G_CONSTANT i1 true
+  %42:any(s8), %43:any(s1), %44:any, %45:any, %46:any = G_SBC %2:any, %19:any, %36:any
+  %23:any(s8), %24:any(s1) = G_LSHRE %2:any, %43:any
+  %25:any(s8), %22:any(s1) = G_LSHRE %1:any, %24:any
+  %37:any(s8), %38:any(s1), %39:any, %40:any, %41:any = G_SBC %23:any, %19:any, %36:any
+  %32:any(s8), %33:any(s1) = G_LSHRE %23:any, %38:any
+  %34:any(s8), %31:any(s1) = G_LSHRE %25:any, %33:any
+  %14:any(s8) = G_OR %67:any, %34:any
+  %15:any(s8) = G_OR %69:any, %32:any
+  $a = COPY %14:any(s8)
+  $x = COPY %15:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Localizer (localizer) on shift_const ***
+# Machine code for function shift_const: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:any(s8) = COPY $a
+  %2:any(s8) = COPY $x
+  %48:any(s1) = G_CONSTANT i1 false
+  %51:any(s8), %52:any(s1) = G_SHLE %1:any, %48:any
+  %53:any(s8), %50:any(s1) = G_SHLE %2:any, %52:any
+  %59:any(s8), %60:any(s1) = G_SHLE %51:any, %48:any
+  %61:any(s8), %56:any(s1) = G_SHLE %53:any, %60:any
+  %67:any(s8), %68:any(s1) = G_SHLE %59:any, %48:any
+  %69:any(s8), %64:any(s1) = G_SHLE %61:any, %68:any
+  %36:any(s1) = G_CONSTANT i1 true
+  %19:any(s8) = G_CONSTANT i8 -128
+  %42:any(s8), %43:any(s1), %44:any, %45:any, %46:any = G_SBC %2:any, %19:any, %36:any
+  %23:any(s8), %24:any(s1) = G_LSHRE %2:any, %43:any
+  %25:any(s8), %22:any(s1) = G_LSHRE %1:any, %24:any
+  %37:any(s8), %38:any(s1), %39:any, %40:any, %41:any = G_SBC %23:any, %19:any, %36:any
+  %32:any(s8), %33:any(s1) = G_LSHRE %23:any, %38:any
+  %34:any(s8), %31:any(s1) = G_LSHRE %25:any, %33:any
+  %14:any(s8) = G_OR %67:any, %34:any
+  %15:any(s8) = G_OR %69:any, %32:any
+  $a = COPY %14:any(s8)
+  $x = COPY %15:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on shift_const omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on shift_const ***
+# Machine code for function shift_const: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:aimag8 = COPY $a
+  %2:ac = COPY $x
+  %51:aimag8, %52:cc = ASL %1:aimag8(tied-def 0)
+  %53:aimag8, %50:cc = ROL %2:ac(tied-def 0), %52:cc(tied-def 1)
+  %59:aimag8, %60:cc = ASL %51:aimag8(tied-def 0)
+  %61:aimag8, %56:cc = ROL %53:aimag8(tied-def 0), %60:cc(tied-def 1)
+  %67:ac, %68:cc = ASL %59:aimag8(tied-def 0)
+  %69:ac, %64:cc = ROL %61:aimag8(tied-def 0), %68:cc(tied-def 1)
+  %43:cc = CMPImm %2:ac, 128
+  %23:ac, %24:cc = ROR %2:ac(tied-def 0), %43:cc(tied-def 1)
+  %25:aimag8, %22:cc = ROR %1:aimag8(tied-def 0), %24:cc(tied-def 1)
+  %38:cc = CMPImm %23:ac, 128
+  %32:imag8, %33:cc = ROR %23:ac(tied-def 0), %38:cc(tied-def 1)
+  %34:imag8, %31:cc = ROR %25:aimag8(tied-def 0), %33:cc(tied-def 1)
+  %14:ac = ORAImag8 %67:ac(tied-def 0), %34:imag8
+  %15:ac = ORAImag8 %69:ac(tied-def 0), %32:imag8
+  $a = COPY %14:ac
+  $x = COPY %15:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After ResetMachineFunction on shift_const omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on shift_const omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on shift_const omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on shift_const omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on shift_const omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on shift_const omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on shift_const omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on shift_const omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on shift_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on shift_const omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on shift_const omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on shift_const omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on shift_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on shift_const omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on shift_const omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on shift_const omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on shift_const omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on shift_const omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on shift_const omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on shift_const omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on shift_const omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on shift_const ***
+# Machine code for function shift_const: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:aimag8 = COPY $a
+  %2:ac = COPY $x
+  %51:aimag8, %52:cc = ASL %1:aimag8(tied-def 0)
+  %74:aimag8 = COPY %2:ac
+  %53:aimag8, %50:cc = ROL %74:aimag8(tied-def 0), %52:cc(tied-def 1)
+  %59:aimag8, %60:cc = ASL %51:aimag8(tied-def 0)
+  %61:aimag8, %56:cc = ROL %53:aimag8(tied-def 0), %60:cc(tied-def 1)
+  %75:aimag8, %68:cc = ASL %59:aimag8(tied-def 0)
+  %67:ac = COPY %75:aimag8
+  %76:aimag8, %64:cc = ROL %61:aimag8(tied-def 0), %68:cc(tied-def 1)
+  %69:ac = COPY %76:aimag8
+  %43:cc = CMPImm %2:ac, 128
+  %77:aimag8 = COPY %2:ac
+  %78:aimag8, %24:cc = ROR %77:aimag8(tied-def 0), %43:cc(tied-def 1)
+  %23:ac = COPY %78:aimag8
+  %25:aimag8, %22:cc = ROR %1:aimag8(tied-def 0), %24:cc(tied-def 1)
+  %38:cc = CMPImm %23:ac, 128
+  %79:aimag8 = COPY %23:ac
+  %80:aimag8, %33:cc = ROR %79:aimag8(tied-def 0), %38:cc(tied-def 1)
+  %32:imag8 = COPY %80:aimag8
+  %81:aimag8, %31:cc = ROR %25:aimag8(tied-def 0), %33:cc(tied-def 1)
+  %34:imag8 = COPY %81:aimag8
+  %14:ac = ORAImag8 %67:ac(tied-def 0), %34:imag8
+  %15:ac = ORAImag8 %69:ac(tied-def 0), %32:imag8
+  $a = COPY %14:ac
+  $x = COPY %15:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on shift_const ***
+# Machine code for function shift_const: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.1):
+  liveins: $a, $x
+  %1:aimag8 = COPY $a
+  %2:ac = COPY $x
+  %51:aimag8, %52:cc = ASL %1:aimag8(tied-def 0)
+  %74:aimag8 = COPY %2:ac
+  %53:aimag8, dead %50:cc = ROL %74:aimag8(tied-def 0), %52:cc(tied-def 1)
+  %59:aimag8, %60:cc = ASL %51:aimag8(tied-def 0)
+  %61:aimag8, dead %56:cc = ROL %53:aimag8(tied-def 0), %60:cc(tied-def 1)
+  %75:aimag8, %68:cc = ASL %59:aimag8(tied-def 0)
+  %67:ac = COPY %75:aimag8
+  %76:aimag8, dead %64:cc = ROL %61:aimag8(tied-def 0), %68:cc(tied-def 1)
+  %69:ac = COPY %76:aimag8
+  %43:cc = CMPImm %2:ac, 128
+  %77:aimag8 = COPY %2:ac
+  %78:aimag8, %24:cc = ROR %77:aimag8(tied-def 0), %43:cc(tied-def 1)
+  %23:ac = COPY %78:aimag8
+  %25:aimag8, dead %22:cc = ROR %1:aimag8(tied-def 0), %24:cc(tied-def 1)
+  %38:cc = CMPImm %23:ac, 128
+  %79:aimag8 = COPY %23:ac
+  %80:aimag8, %33:cc = ROR %79:aimag8(tied-def 0), %38:cc(tied-def 1)
+  %32:imag8 = COPY %80:aimag8
+  %81:aimag8, dead %31:cc = ROR %25:aimag8(tied-def 0), %33:cc(tied-def 1)
+  %34:imag8 = COPY %81:aimag8
+  %14:ac = ORAImag8 %67:ac(tied-def 0), %34:imag8
+  %15:ac = ORAImag8 %69:ac(tied-def 0), %32:imag8
+  $a = COPY %14:ac
+  $x = COPY %15:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Init Undef Pass (init-undef) on shift_const omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on shift_const omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on shift_const ***
+# Machine code for function shift_const: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %1:aimag8 = COPY $a
+  %2:ac = COPY $x
+  %51:aimag8, %52:cc = ASL %1:aimag8(tied-def 0)
+  %74:aimag8 = COPY %2:ac
+  %53:aimag8, dead %50:cc = ROL %74:aimag8(tied-def 0), %52:cc(tied-def 1)
+  %59:aimag8, %60:cc = ASL %51:aimag8(tied-def 0)
+  %61:aimag8, dead %56:cc = ROL %53:aimag8(tied-def 0), %60:cc(tied-def 1)
+  %75:aimag8, %68:cc = ASL %59:aimag8(tied-def 0)
+  %67:ac = COPY %75:aimag8
+  %76:aimag8, dead %64:cc = ROL %61:aimag8(tied-def 0), %68:cc(tied-def 1)
+  %69:ac = COPY %76:aimag8
+  %43:cc = CMPImm %2:ac, 128
+  %77:aimag8 = COPY %2:ac
+  %78:aimag8, %24:cc = ROR %77:aimag8(tied-def 0), %43:cc(tied-def 1)
+  %23:ac = COPY %78:aimag8
+  %25:aimag8, dead %22:cc = ROR %1:aimag8(tied-def 0), %24:cc(tied-def 1)
+  %38:cc = CMPImm %23:ac, 128
+  %79:aimag8 = COPY %23:ac
+  %80:aimag8, %33:cc = ROR %79:aimag8(tied-def 0), %38:cc(tied-def 1)
+  %32:imag8 = COPY %80:aimag8
+  %81:aimag8, dead %31:cc = ROR %25:aimag8(tied-def 0), %33:cc(tied-def 1)
+  %34:imag8 = COPY %81:aimag8
+  %14:ac = ORAImag8 %67:ac(tied-def 0), %34:imag8
+  %15:ac = ORAImag8 %69:ac(tied-def 0), %32:imag8
+  $a = COPY %14:ac
+  $x = COPY %15:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Live Variable Analysis (livevars) on shift_const ***
+# Machine code for function shift_const: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %1:aimag8 = COPY killed $a
+  %2:ac = COPY killed $x
+  %51:aimag8, %52:cc = ASL %1:aimag8(tied-def 0)
+  %74:aimag8 = COPY %2:ac
+  %53:aimag8, dead %50:cc = ROL killed %74:aimag8(tied-def 0), killed %52:cc(tied-def 1)
+  %59:aimag8, %60:cc = ASL killed %51:aimag8(tied-def 0)
+  %61:aimag8, dead %56:cc = ROL killed %53:aimag8(tied-def 0), killed %60:cc(tied-def 1)
+  %75:aimag8, %68:cc = ASL killed %59:aimag8(tied-def 0)
+  %67:ac = COPY killed %75:aimag8
+  %76:aimag8, dead %64:cc = ROL killed %61:aimag8(tied-def 0), killed %68:cc(tied-def 1)
+  %69:ac = COPY killed %76:aimag8
+  %43:cc = CMPImm %2:ac, 128
+  %77:aimag8 = COPY killed %2:ac
+  %78:aimag8, %24:cc = ROR killed %77:aimag8(tied-def 0), killed %43:cc(tied-def 1)
+  %23:ac = COPY killed %78:aimag8
+  %25:aimag8, dead %22:cc = ROR killed %1:aimag8(tied-def 0), killed %24:cc(tied-def 1)
+  %38:cc = CMPImm %23:ac, 128
+  %79:aimag8 = COPY killed %23:ac
+  %80:aimag8, %33:cc = ROR killed %79:aimag8(tied-def 0), killed %38:cc(tied-def 1)
+  %32:imag8 = COPY killed %80:aimag8
+  %81:aimag8, dead %31:cc = ROR killed %25:aimag8(tied-def 0), killed %33:cc(tied-def 1)
+  %34:imag8 = COPY killed %81:aimag8
+  %14:ac = ORAImag8 killed %67:ac(tied-def 0), killed %34:imag8
+  %15:ac = ORAImag8 killed %69:ac(tied-def 0), killed %32:imag8
+  $a = COPY killed %14:ac
+  $x = COPY killed %15:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on shift_const omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on shift_const omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on shift_const ***
+# Machine code for function shift_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %1:aimag8 = COPY killed $a
+  %2:ac = COPY killed $x
+  %51:aimag8, %52:cc = ASL %1:aimag8(tied-def 0)
+  %74:aimag8 = COPY %2:ac
+  %53:aimag8, dead %50:cc = ROL killed %74:aimag8(tied-def 0), killed %52:cc(tied-def 1)
+  %59:aimag8, %60:cc = ASL killed %51:aimag8(tied-def 0)
+  %61:aimag8, dead %56:cc = ROL killed %53:aimag8(tied-def 0), killed %60:cc(tied-def 1)
+  %75:aimag8, %68:cc = ASL killed %59:aimag8(tied-def 0)
+  %67:ac = COPY killed %75:aimag8
+  %76:aimag8, dead %64:cc = ROL killed %61:aimag8(tied-def 0), killed %68:cc(tied-def 1)
+  %69:ac = COPY killed %76:aimag8
+  %43:cc = CMPImm %2:ac, 128
+  %77:aimag8 = COPY killed %2:ac
+  %78:aimag8, %24:cc = ROR killed %77:aimag8(tied-def 0), killed %43:cc(tied-def 1)
+  %23:ac = COPY killed %78:aimag8
+  %25:aimag8, dead %22:cc = ROR killed %1:aimag8(tied-def 0), killed %24:cc(tied-def 1)
+  %38:cc = CMPImm %23:ac, 128
+  %79:aimag8 = COPY killed %23:ac
+  %80:aimag8, %33:cc = ROR killed %79:aimag8(tied-def 0), killed %38:cc(tied-def 1)
+  %32:imag8 = COPY killed %80:aimag8
+  %81:aimag8, dead %31:cc = ROR killed %25:aimag8(tied-def 0), killed %33:cc(tied-def 1)
+  %34:imag8 = COPY killed %81:aimag8
+  %14:ac = ORAImag8 killed %67:ac(tied-def 0), killed %34:imag8
+  %15:ac = ORAImag8 killed %69:ac(tied-def 0), killed %32:imag8
+  $a = COPY killed %14:ac
+  $x = COPY killed %15:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on shift_const ***
+# Machine code for function shift_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %1:aimag8 = COPY killed $a
+  %2:ac = COPY killed $x
+  %51:aimag8 = COPY %1:aimag8
+  %51:aimag8, %52:cc = ASL %51:aimag8(tied-def 0)
+  %74:aimag8 = COPY %2:ac
+  %50:cc = COPY killed %52:cc
+  %53:aimag8 = COPY killed %74:aimag8
+  %53:aimag8, dead %50:cc = ROL %53:aimag8(tied-def 0), %50:cc(tied-def 1)
+  %59:aimag8 = COPY killed %51:aimag8
+  %59:aimag8, %60:cc = ASL %59:aimag8(tied-def 0)
+  %56:cc = COPY killed %60:cc
+  %61:aimag8 = COPY killed %53:aimag8
+  %61:aimag8, dead %56:cc = ROL %61:aimag8(tied-def 0), %56:cc(tied-def 1)
+  %75:aimag8 = COPY killed %59:aimag8
+  %75:aimag8, %68:cc = ASL %75:aimag8(tied-def 0)
+  %67:imag8 = COPY killed %75:aimag8
+  %64:cc = COPY killed %68:cc
+  %76:aimag8 = COPY killed %61:aimag8
+  %76:aimag8, dead %64:cc = ROL %76:aimag8(tied-def 0), %64:cc(tied-def 1)
+  %69:imag8 = COPY killed %76:aimag8
+  %43:cc = CMPImm %2:ac, 128
+  %77:aimag8 = COPY killed %2:ac
+  %78:aimag8 = COPY killed %77:aimag8
+  %24:cc = COPY killed %43:cc
+  %78:aimag8, %24:cc = ROR %78:aimag8(tied-def 0), %24:cc(tied-def 1)
+  %23:ac = COPY killed %78:aimag8
+  %22:cc = COPY killed %24:cc
+  %25:aimag8 = COPY killed %1:aimag8
+  %25:aimag8, dead %22:cc = ROR %25:aimag8(tied-def 0), %22:cc(tied-def 1)
+  %38:cc = CMPImm %23:ac, 128
+  %79:aimag8 = COPY killed %23:ac
+  %33:cc = COPY killed %38:cc
+  %80:aimag8 = COPY killed %79:aimag8
+  %80:aimag8, %33:cc = ROR %80:aimag8(tied-def 0), %33:cc(tied-def 1)
+  %32:ac = COPY killed %80:aimag8
+  %81:aimag8 = COPY killed %25:aimag8
+  %31:cc = COPY killed %33:cc
+  %81:aimag8, dead %31:cc = ROR %81:aimag8(tied-def 0), %31:cc(tied-def 1)
+  %34:ac = COPY killed %81:aimag8
+  %14:ac = COPY killed %34:ac
+  %14:ac = ORAImag8 %14:ac(tied-def 0), killed %67:imag8
+  %15:ac = COPY killed %32:ac
+  %15:ac = ORAImag8 %15:ac(tied-def 0), killed %69:imag8
+  $a = COPY killed %14:ac
+  $x = COPY killed %15:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Slot index numbering (slotindexes) on shift_const omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on shift_const ***
+# Machine code for function shift_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %1:aimag8 = COPY $a
+  %2:ac = COPY $x
+  %51:aimag8 = COPY %1:aimag8
+  %51:aimag8, %52:cc = ASL %51:aimag8(tied-def 0)
+  %74:aimag8 = COPY %2:ac
+  %50:cc = COPY %52:cc
+  %53:aimag8 = COPY %74:aimag8
+  %53:aimag8, dead %50:cc = ROL %53:aimag8(tied-def 0), %50:cc(tied-def 1)
+  %59:aimag8 = COPY %51:aimag8
+  %59:aimag8, %60:cc = ASL %59:aimag8(tied-def 0)
+  %56:cc = COPY %60:cc
+  %61:aimag8 = COPY %53:aimag8
+  %61:aimag8, dead %56:cc = ROL %61:aimag8(tied-def 0), %56:cc(tied-def 1)
+  %75:aimag8 = COPY %59:aimag8
+  %75:aimag8, %68:cc = ASL %75:aimag8(tied-def 0)
+  %67:imag8 = COPY %75:aimag8
+  %64:cc = COPY %68:cc
+  %76:aimag8 = COPY %61:aimag8
+  %76:aimag8, dead %64:cc = ROL %76:aimag8(tied-def 0), %64:cc(tied-def 1)
+  %69:imag8 = COPY %76:aimag8
+  %43:cc = CMPImm %2:ac, 128
+  %77:aimag8 = COPY %2:ac
+  %78:aimag8 = COPY %77:aimag8
+  %24:cc = COPY %43:cc
+  %78:aimag8, %24:cc = ROR %78:aimag8(tied-def 0), %24:cc(tied-def 1)
+  %23:ac = COPY %78:aimag8
+  %22:cc = COPY %24:cc
+  %25:aimag8 = COPY %1:aimag8
+  %25:aimag8, dead %22:cc = ROR %25:aimag8(tied-def 0), %22:cc(tied-def 1)
+  %38:cc = CMPImm %23:ac, 128
+  %79:aimag8 = COPY %23:ac
+  %33:cc = COPY %38:cc
+  %80:aimag8 = COPY %79:aimag8
+  %80:aimag8, %33:cc = ROR %80:aimag8(tied-def 0), %33:cc(tied-def 1)
+  %32:ac = COPY %80:aimag8
+  %81:aimag8 = COPY %25:aimag8
+  %31:cc = COPY %33:cc
+  %81:aimag8, dead %31:cc = ROR %81:aimag8(tied-def 0), %31:cc(tied-def 1)
+  %34:ac = COPY %81:aimag8
+  %14:ac = COPY %34:ac
+  %14:ac = ORAImag8 %14:ac(tied-def 0), %67:imag8
+  %15:ac = COPY %32:ac
+  %15:ac = ORAImag8 %15:ac(tied-def 0), %69:imag8
+  $a = COPY %14:ac
+  $x = COPY %15:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Register Coalescer (register-coalescer) on shift_const ***
+# Machine code for function shift_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %81:ac = COPY $a
+  %80:ac = COPY $x
+  %59:aimag8 = COPY %81:ac
+  %59:aimag8, %50:cc = ASL %59:aimag8(tied-def 0)
+  %61:aimag8 = COPY %80:ac
+  %61:aimag8, dead %50:cc = ROL %61:aimag8(tied-def 0), %50:cc(tied-def 1)
+  %59:aimag8, %56:cc = ASL %59:aimag8(tied-def 0)
+  %61:aimag8, dead %56:cc = ROL %61:aimag8(tied-def 0), %56:cc(tied-def 1)
+  %59:aimag8, %64:cc = ASL %59:aimag8(tied-def 0)
+  %67:imag8 = COPY %59:aimag8
+  %61:aimag8, dead %64:cc = ROL %61:aimag8(tied-def 0), %64:cc(tied-def 1)
+  %69:imag8 = COPY %61:aimag8
+  %22:cc = CMPImm %80:ac, 128
+  %80:ac, %22:cc = ROR %80:ac(tied-def 0), %22:cc(tied-def 1)
+  %81:ac, dead %22:cc = ROR %81:ac(tied-def 0), %22:cc(tied-def 1)
+  %31:cc = CMPImm %80:ac, 128
+  %80:ac, %31:cc = ROR %80:ac(tied-def 0), %31:cc(tied-def 1)
+  %81:ac, dead %31:cc = ROR %81:ac(tied-def 0), %31:cc(tied-def 1)
+  %81:ac = ORAImag8 %81:ac(tied-def 0), %67:imag8
+  %80:ac = ORAImag8 %80:ac(tied-def 0), %69:imag8
+  $a = COPY %81:ac
+  $x = COPY %80:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Register Coalescer (register-coalescer) on shift_const omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on shift_const omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on shift_const omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on shift_const ***
+# Machine code for function shift_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %81:ac = COPY $a
+  %80:ac = COPY $x
+  %59:aimag8 = COPY %81:ac
+  %59:aimag8, %50:cc = ASL %59:aimag8(tied-def 0)
+  %61:aimag8 = COPY %80:ac
+  %61:aimag8, dead %50:cc = ROL %61:aimag8(tied-def 0), %50:cc(tied-def 1)
+  %59:aimag8, %56:cc = ASL %59:aimag8(tied-def 0)
+  %61:aimag8, dead %56:cc = ROL %61:aimag8(tied-def 0), %56:cc(tied-def 1)
+  %59:aimag8, %64:cc = ASL %59:aimag8(tied-def 0)
+  %67:imag8 = COPY %59:aimag8
+  %61:aimag8, dead %64:cc = ROL %61:aimag8(tied-def 0), %64:cc(tied-def 1)
+  %69:imag8 = COPY %61:aimag8
+  %22:cc = CMPImm %80:ac, 128
+  %80:ac, %22:cc = ROR %80:ac(tied-def 0), %22:cc(tied-def 1)
+  %81:ac, dead %22:cc = ROR %81:ac(tied-def 0), %22:cc(tied-def 1)
+  %31:cc = CMPImm %80:ac, 128
+  %80:ac, %31:cc = ROR %80:ac(tied-def 0), %31:cc(tied-def 1)
+  %81:ac, dead %31:cc = ROR %81:ac(tied-def 0), %31:cc(tied-def 1)
+  %81:ac = ORAImag8 %81:ac(tied-def 0), %67:imag8
+  %80:ac = ORAImag8 %80:ac(tied-def 0), %69:imag8
+  $x = COPY %80:ac
+  $a = COPY %81:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on shift_const ***
+# Machine code for function shift_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %81:ac = COPY $a
+  %80:ac = COPY $x
+  %59:aimag8 = COPY %81:ac
+  %59:aimag8, %50:cc = ASL %59:aimag8(tied-def 0)
+  %61:aimag8 = COPY %80:ac
+  %61:aimag8, dead %50:cc = ROL %61:aimag8(tied-def 0), %50:cc(tied-def 1)
+  %59:aimag8, %56:cc = ASL %59:aimag8(tied-def 0)
+  %61:aimag8, dead %56:cc = ROL %61:aimag8(tied-def 0), %56:cc(tied-def 1)
+  %59:aimag8, %64:cc = ASL %59:aimag8(tied-def 0)
+  %67:imag8 = COPY %59:aimag8
+  %61:aimag8, dead %64:cc = ROL %61:aimag8(tied-def 0), %64:cc(tied-def 1)
+  %69:imag8 = COPY %61:aimag8
+  %22:cc = CMPImm %80:ac, 128
+  %80:ac, %22:cc = ROR %80:ac(tied-def 0), %22:cc(tied-def 1)
+  %81:ac, dead %22:cc = ROR %81:ac(tied-def 0), %22:cc(tied-def 1)
+  %31:cc = CMPImm %80:ac, 128
+  %80:ac, %31:cc = ROR %80:ac(tied-def 0), %31:cc(tied-def 1)
+  %81:ac, dead %31:cc = ROR %81:ac(tied-def 0), %31:cc(tied-def 1)
+  %81:ac = ORAImag8 %81:ac(tied-def 0), %67:imag8
+  %80:ac = ORAImag8 %80:ac(tied-def 0), %69:imag8
+  $x = COPY %80:ac
+  $a = COPY %81:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on shift_const omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on shift_const omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on shift_const omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on shift_const omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on shift_const omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on shift_const omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on shift_const omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on shift_const ***
+# Machine code for function shift_const: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  %82:anyi8 = COPY $a
+  %90:ac = COPY $x
+  %59:aimag8 = COPY %82:anyi8
+  %59:aimag8, %50:cc = ASL %59:aimag8(tied-def 0)
+  %61:aimag8 = COPY %90:ac
+  %61:aimag8, dead %50:cc = ROL %61:aimag8(tied-def 0), %50:cc(tied-def 1)
+  %59:aimag8, %56:cc = ASL %59:aimag8(tied-def 0)
+  %61:aimag8, dead %56:cc = ROL %61:aimag8(tied-def 0), %56:cc(tied-def 1)
+  %59:aimag8, %64:cc = ASL %59:aimag8(tied-def 0)
+  %67:imag8 = COPY %59:aimag8
+  %61:aimag8, dead %64:cc = ROL %61:aimag8(tied-def 0), %64:cc(tied-def 1)
+  %69:imag8 = COPY %61:aimag8
+  %22:cc = CMPImm %90:ac, 128
+  %90:ac, %22:cc = ROR %90:ac(tied-def 0), %22:cc(tied-def 1)
+  %83:aimag8 = COPY %82:anyi8
+  %83:aimag8, dead %22:cc = ROR %83:aimag8(tied-def 0), %22:cc(tied-def 1)
+  %86:anyi8 = COPY %83:aimag8
+  %31:cc = CMPImm %90:ac, 128
+  %90:ac, %31:cc = ROR %90:ac(tied-def 0), %31:cc(tied-def 1)
+  %91:anyi8 = COPY %90:ac
+  %84:aimag8 = COPY %86:anyi8
+  %84:aimag8, dead %31:cc = ROR %84:aimag8(tied-def 0), %31:cc(tied-def 1)
+  %87:anyi8 = COPY %84:aimag8
+  %85:ac = COPY %87:anyi8
+  %85:ac = ORAImag8 %85:ac(tied-def 0), %67:imag8
+  %88:anyi8 = COPY %85:ac
+  %92:ac = COPY %91:anyi8
+  %92:ac = ORAImag8 %92:ac(tied-def 0), %69:imag8
+  $x = COPY %92:ac
+  $a = COPY %88:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on shift_const ***
+# Machine code for function shift_const: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  renamable $y = COPY $a
+  renamable $a = COPY $x
+  renamable $rc2 = COPY renamable $y
+  renamable $rc2, renamable $c = ASL killed renamable $rc2(tied-def 0)
+  renamable $rc3 = COPY renamable $a
+  renamable $rc3, dead renamable $c = ROL killed renamable $rc3(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $rc2, renamable $c = ASL killed renamable $rc2(tied-def 0)
+  renamable $rc3, dead renamable $c = ROL killed renamable $rc3(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $rc2, renamable $c = ASL killed renamable $rc2(tied-def 0)
+  renamable $rc3, dead renamable $c = ROL killed renamable $rc3(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $c = CMPImm renamable $a, 128
+  renamable $a, renamable $c = ROR killed renamable $a(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $rc4 = COPY killed renamable $y
+  renamable $rc4, dead renamable $c = ROR killed renamable $rc4(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $c = CMPImm renamable $a, 128
+  renamable $a, renamable $c = ROR killed renamable $a(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, dead renamable $c = ROR killed renamable $a(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $a = ORAImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a = ORAImag8 killed renamable $a(tied-def 0), killed renamable $rc3
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on shift_const omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on shift_const omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on shift_const ***
+# Machine code for function shift_const: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  renamable $y = COPY $a
+  renamable $a = COPY $x
+  renamable $rc2 = COPY renamable $y
+  renamable $rc2, renamable $c = ASL killed renamable $rc2(tied-def 0)
+  renamable $rc3 = COPY $x
+  renamable $rc3, dead renamable $c = ROL killed renamable $rc3(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $rc2, renamable $c = ASL killed renamable $rc2(tied-def 0)
+  renamable $rc3, dead renamable $c = ROL killed renamable $rc3(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $rc2, renamable $c = ASL killed renamable $rc2(tied-def 0)
+  renamable $rc3, dead renamable $c = ROL killed renamable $rc3(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $c = CMPImm $x, 128
+  renamable $a, renamable $c = ROR killed renamable $a(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $rc4 = COPY killed renamable $y
+  renamable $rc4, dead renamable $c = ROR killed renamable $rc4(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $c = CMPImm renamable $a, 128
+  renamable $a, renamable $c = ROR killed renamable $a(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, dead renamable $c = ROR killed renamable $a(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $a = ORAImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a = ORAImag8 killed renamable $a(tied-def 0), killed renamable $rc3
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on shift_const omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on shift_const omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on shift_const omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on shift_const omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on shift_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on shift_const omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on shift_const omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on shift_const omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on shift_const omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on shift_const omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on shift_const omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on shift_const omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on shift_const omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on shift_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on shift_const omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on shift_const omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on shift_const omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on shift_const omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on shift_const omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on shift_const omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on shift_const omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on shift_const ***
+# Machine code for function shift_const: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  renamable $y = COPY killed $a
+  renamable $a = COPY $x
+  renamable $rc2 = COPY renamable $y
+  renamable $rc2, renamable $c = ASL killed renamable $rc2(tied-def 0)
+  renamable $rc3 = COPY $x
+  renamable $rc3, dead renamable $c = ROL killed renamable $rc3(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $rc2, renamable $c = ASL killed renamable $rc2(tied-def 0)
+  renamable $rc3, dead renamable $c = ROL killed renamable $rc3(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $rc2, renamable $c = ASL killed renamable $rc2(tied-def 0)
+  renamable $rc3, dead renamable $c = ROL killed renamable $rc3(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $c = CMPImm killed $x, 128
+  renamable $a, renamable $c = ROR killed renamable $a(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $rc4 = COPY killed renamable $y
+  renamable $rc4, dead renamable $c = ROR killed renamable $rc4(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $c = CMPImm renamable $a, 128
+  renamable $a, renamable $c = ROR killed renamable $a(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, dead renamable $c = ROR killed renamable $a(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $a = ORAImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a = ORAImag8 killed renamable $a(tied-def 0), killed renamable $rc3
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on shift_const ***
+# Machine code for function shift_const: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.1):
+  liveins: $a, $x
+  $y = TA $a
+  $a = T_A $x
+  $rc2 = STImag8 $y
+  renamable $rc2, renamable $c = ASL killed renamable $rc2(tied-def 0)
+  $rc3 = STImag8 $x
+  renamable $rc3, dead renamable $c = ROL killed renamable $rc3(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $rc2, renamable $c = ASL killed renamable $rc2(tied-def 0)
+  renamable $rc3, dead renamable $c = ROL killed renamable $rc3(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $rc2, renamable $c = ASL killed renamable $rc2(tied-def 0)
+  renamable $rc3, dead renamable $c = ROL killed renamable $rc3(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $c = CMPImm killed $x, 128
+  renamable $a, renamable $c = ROR killed renamable $a(tied-def 0), killed renamable $c(tied-def 1)
+  $rc4 = STImag8 $y
+  renamable $rc4, dead renamable $c = ROR killed renamable $rc4(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $c = CMPImm renamable $a, 128
+  renamable $a, renamable $c = ROR killed renamable $a(tied-def 0), killed renamable $c(tied-def 1)
+  $x = TA $a
+  $a = LDImag8 $rc4
+  renamable $a, dead renamable $c = ROR killed renamable $a(tied-def 0), killed renamable $c(tied-def 1)
+  renamable $a = ORAImag8 killed renamable $a(tied-def 0), killed renamable $rc2
+  $y = TA $a
+  $a = T_A $x
+  renamable $a = ORAImag8 killed renamable $a(tied-def 0), killed renamable $rc3
+  $x = TA $a
+  $a = T_A $y
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function shift_const.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on shift_const omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on shift_const omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on shift_const omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on shift_const omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on shift_const omitted because no change ***
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on shift_const omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on shift_const omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on shift_const omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on shift_const omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on shift_const omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on shift_const omitted because no change ***
+*** IR Dump After Insert fentry calls (fentry-insert) on shift_const omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on shift_const omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on shift_const omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on shift_const omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on shift_const omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on shift_const omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on shift_const omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on shift_const omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on shift_const omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on shift_const omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on shift_const omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on shift_const omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on shift_const omitted because no change ***

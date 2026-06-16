@@ -1,0 +1,1112 @@
+*** IR Dump At Start ***
+; ModuleID = './basics/chain-arith.c'
+source_filename = "./basics/chain-arith.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @chain_arith(i16 noundef %0, i16 noundef %1, i16 noundef %2) #0 {
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  store i16 %0, ptr %4, align 1, !tbaa !2
+  store i16 %1, ptr %5, align 1, !tbaa !2
+  store i16 %2, ptr %6, align 1, !tbaa !2
+  %7 = load i16, ptr %4, align 1, !tbaa !2
+  %8 = load i16, ptr %5, align 1, !tbaa !2
+  %9 = mul nsw i16 %7, %8
+  %10 = load i16, ptr %6, align 1, !tbaa !2
+  %11 = add nsw i16 %9, %10
+  %12 = load i16, ptr %4, align 1, !tbaa !2
+  %13 = sub nsw i16 %11, %12
+  ret i16 %13
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on chain_arith omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on chain_arith omitted because no change ***
+*** IR Dump After SimplifyCFGPass on chain_arith omitted because no change ***
+*** IR Dump After SROAPass on chain_arith ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @chain_arith(i16 noundef %0, i16 noundef %1, i16 noundef %2) #0 {
+  %4 = mul nsw i16 %0, %1
+  %5 = add nsw i16 %4, %2
+  %6 = sub nsw i16 %5, %0
+  ret i16 %6
+}
+*** IR Dump After EarlyCSEPass on chain_arith omitted because no change ***
+*** IR Pass PassManager<Function> on chain_arith ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './basics/chain-arith.c'
+source_filename = "./basics/chain-arith.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @chain_arith(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+  %4 = mul nsw i16 %0, %1
+  %5 = add nsw i16 %4, %2
+  %6 = sub nsw i16 %5, %0
+  ret i16 %6
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on chain_arith omitted because no change ***
+*** IR Dump After InstCombinePass on chain_arith omitted because no change ***
+*** IR Dump After SimplifyCFGPass on chain_arith omitted because no change ***
+*** IR Pass PassManager<Function> on chain_arith ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on chain_arith omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (chain_arith) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (chain_arith) omitted because no change ***
+*** IR Dump After SROAPass on chain_arith omitted because no change ***
+*** IR Dump After EarlyCSEPass on chain_arith omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on chain_arith omitted because no change ***
+*** IR Dump After JumpThreadingPass on chain_arith omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on chain_arith omitted because no change ***
+*** IR Dump After SimplifyCFGPass on chain_arith omitted because no change ***
+*** IR Dump After InstCombinePass on chain_arith omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on chain_arith omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on chain_arith omitted because no change ***
+*** IR Dump After TailCallElimPass on chain_arith omitted because no change ***
+*** IR Dump After SimplifyCFGPass on chain_arith omitted because no change ***
+*** IR Dump After ReassociatePass on chain_arith ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @chain_arith(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+  %4 = mul nsw i16 %1, %0
+  %5 = sub i16 0, %0
+  %6 = add i16 %2, %5
+  %7 = add i16 %6, %4
+  ret i16 %7
+}
+*** IR Dump After ConstraintEliminationPass on chain_arith omitted because no change ***
+*** IR Dump After LoopSimplifyPass on chain_arith omitted because no change ***
+*** IR Dump After LCSSAPass on chain_arith omitted because no change ***
+*** IR Pass PassManager<Function> on chain_arith ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on chain_arith ignored ***
+*** IR Dump After SimplifyCFGPass on chain_arith omitted because no change ***
+*** IR Dump After InstCombinePass on chain_arith ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @chain_arith(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+  %4 = mul nsw i16 %1, %0
+  %5 = sub i16 %2, %0
+  %6 = add i16 %5, %4
+  ret i16 %6
+}
+*** IR Dump After LoopSimplifyPass on chain_arith omitted because no change ***
+*** IR Dump After LCSSAPass on chain_arith omitted because no change ***
+*** IR Pass PassManager<Function> on chain_arith ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on chain_arith ignored ***
+*** IR Dump After SROAPass on chain_arith omitted because no change ***
+*** IR Dump After VectorCombinePass on chain_arith omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on chain_arith omitted because no change ***
+*** IR Dump After GVNPass on chain_arith omitted because no change ***
+*** IR Dump After SCCPPass on chain_arith omitted because no change ***
+*** IR Dump After BDCEPass on chain_arith omitted because no change ***
+*** IR Dump After InstCombinePass on chain_arith omitted because no change ***
+*** IR Dump After JumpThreadingPass on chain_arith omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on chain_arith omitted because no change ***
+*** IR Dump After ADCEPass on chain_arith omitted because no change ***
+*** IR Dump After MemCpyOptPass on chain_arith omitted because no change ***
+*** IR Dump After DSEPass on chain_arith omitted because no change ***
+*** IR Dump After MoveAutoInitPass on chain_arith omitted because no change ***
+*** IR Dump After LoopSimplifyPass on chain_arith omitted because no change ***
+*** IR Dump After LCSSAPass on chain_arith omitted because no change ***
+*** IR Pass PassManager<Function> on chain_arith ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on chain_arith ignored ***
+*** IR Dump After CoroElidePass on chain_arith omitted because no change ***
+*** IR Dump After SimplifyCFGPass on chain_arith omitted because no change ***
+*** IR Dump After InstCombinePass on chain_arith omitted because no change ***
+*** IR Pass PassManager<Function> on chain_arith ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (chain_arith) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (chain_arith) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local i16 @chain_arith(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+  %4 = mul nsw i16 %1, %0
+  %5 = sub i16 %2, %0
+  %6 = add i16 %5, %4
+  ret i16 %6
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on chain_arith omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (chain_arith) ignored ***
+*** IR Dump After CoroSplitPass on (chain_arith) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (chain_arith) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (chain_arith) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (chain_arith) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on chain_arith omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on chain_arith omitted because no change ***
+*** IR Dump After Float2IntPass on chain_arith omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on chain_arith omitted because no change ***
+*** IR Dump After LoopSimplifyPass on chain_arith omitted because no change ***
+*** IR Dump After LCSSAPass on chain_arith omitted because no change ***
+*** IR Pass PassManager<Function> on chain_arith ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on chain_arith ignored ***
+*** IR Dump After LoopDistributePass on chain_arith omitted because no change ***
+*** IR Dump After InjectTLIMappings on chain_arith omitted because no change ***
+*** IR Dump After LoopVectorizePass on chain_arith omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on chain_arith omitted because no change ***
+*** IR Dump After InferAlignmentPass on chain_arith omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on chain_arith omitted because no change ***
+*** IR Dump After InstCombinePass on chain_arith omitted because no change ***
+*** IR Dump After SimplifyCFGPass on chain_arith omitted because no change ***
+*** IR Dump After SLPVectorizerPass on chain_arith omitted because no change ***
+*** IR Dump After VectorCombinePass on chain_arith omitted because no change ***
+*** IR Dump After InstCombinePass on chain_arith omitted because no change ***
+*** IR Dump After LoopUnrollPass on chain_arith omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on chain_arith omitted because no change ***
+*** IR Dump After SROAPass on chain_arith omitted because no change ***
+*** IR Dump After InferAlignmentPass on chain_arith omitted because no change ***
+*** IR Dump After InstCombinePass on chain_arith omitted because no change ***
+*** IR Dump After LoopSimplifyPass on chain_arith omitted because no change ***
+*** IR Dump After LCSSAPass on chain_arith omitted because no change ***
+*** IR Pass PassManager<Function> on chain_arith ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on chain_arith ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on chain_arith omitted because no change ***
+*** IR Dump After LoopSinkPass on chain_arith omitted because no change ***
+*** IR Dump After InstSimplifyPass on chain_arith omitted because no change ***
+*** IR Dump After DivRemPairsPass on chain_arith omitted because no change ***
+*** IR Dump After MergeICmpsPass on chain_arith omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on chain_arith omitted because no change ***
+*** IR Dump After TailCallElimPass on chain_arith omitted because no change ***
+*** IR Dump After SimplifyCFGPass on chain_arith omitted because no change ***
+*** IR Pass PassManager<Function> on chain_arith ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on chain_arith omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on chain_arith omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on chain_arith ***
+# Machine code for function chain_arith: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:_(s8) = COPY $a
+  %4:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %3:_(s8), %4:_(s8)
+  %5:_(s8) = COPY $rc2
+  %6:_(s8) = COPY $rc3
+  %1:_(s16) = G_MERGE_VALUES %5:_(s8), %6:_(s8)
+  %7:_(s8) = COPY $rc4
+  %8:_(s8) = COPY $rc5
+  %2:_(s16) = G_MERGE_VALUES %7:_(s8), %8:_(s8)
+  %9:_(s16) = nsw G_MUL %1:_, %0:_
+  %10:_(s16) = G_SUB %2:_, %0:_
+  %11:_(s16) = G_ADD %10:_, %9:_
+  %12:_(s8), %13:_(s8) = G_UNMERGE_VALUES %11:_(s16)
+  $a = COPY %12:_(s8)
+  $x = COPY %13:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on chain_arith omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on chain_arith omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on chain_arith omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on chain_arith omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on chain_arith omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on chain_arith omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on chain_arith omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on chain_arith ***
+# Machine code for function chain_arith: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:_(s8) = COPY $a
+  %4:_(s8) = COPY $x
+  %5:_(s8) = COPY $rc2
+  %6:_(s8) = COPY $rc3
+  %7:_(s8) = COPY $rc4
+  %8:_(s8) = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %5:_(s8)
+  $x = COPY %6:_(s8)
+  $rc2 = COPY %3:_(s8)
+  $rc3 = COPY %4:_(s8)
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %47:_(s8) = COPY $a
+  %48:_(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %22:_(s1) = G_CONSTANT i1 false
+  %31:_(s1) = G_CONSTANT i1 true
+  %38:_(s8), %39:_(s1), %40:_, %41:_, %42:_ = G_SBC %7:_, %3:_, %31:_
+  %27:_(s8) = COPY %38:_(s8)
+  %32:_(s1) = COPY %39:_(s1)
+  %33:_(s8), %34:_(s1), %35:_, %36:_, %37:_ = G_SBC %8:_, %4:_, %32:_
+  %29:_(s8) = COPY %33:_(s8)
+  %18:_(s8), %19:_(s1) = G_UADDE %27:_, %47:_, %22:_
+  %20:_(s8), %21:_(s1) = G_UADDE %29:_, %48:_, %19:_
+  $a = COPY %18:_(s8)
+  $x = COPY %20:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on chain_arith omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on chain_arith omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on chain_arith omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on chain_arith ***
+# Machine code for function chain_arith: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:_(s8) = COPY $a
+  %4:_(s8) = COPY $x
+  %5:_(s8) = COPY $rc2
+  %6:_(s8) = COPY $rc3
+  %7:_(s8) = COPY $rc4
+  %8:_(s8) = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %5:_(s8)
+  $x = COPY %6:_(s8)
+  $rc2 = COPY %3:_(s8)
+  $rc3 = COPY %4:_(s8)
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %47:_(s8) = COPY $a
+  %48:_(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %22:_(s1) = G_CONSTANT i1 false
+  %31:_(s1) = G_CONSTANT i1 true
+  %38:_(s8), %39:_(s1), %40:_, %41:_, %42:_ = G_SBC %7:_, %3:_, %31:_
+  %33:_(s8), %34:_(s1), %35:_, %36:_, %37:_ = G_SBC %8:_, %4:_, %39:_
+  %18:_(s8), %19:_(s1) = G_UADDE %38:_, %47:_, %22:_
+  %20:_(s8), %21:_(s1) = G_UADDE %33:_, %48:_, %19:_
+  $a = COPY %18:_(s8)
+  $x = COPY %20:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on chain_arith omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on chain_arith ***
+# Machine code for function chain_arith: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:any(s8) = COPY $a
+  %4:any(s8) = COPY $x
+  %5:any(s8) = COPY $rc2
+  %6:any(s8) = COPY $rc3
+  %7:any(s8) = COPY $rc4
+  %8:any(s8) = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %5:any(s8)
+  $x = COPY %6:any(s8)
+  $rc2 = COPY %3:any(s8)
+  $rc3 = COPY %4:any(s8)
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %47:any(s8) = COPY $a
+  %48:any(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %22:any(s1) = G_CONSTANT i1 false
+  %31:any(s1) = G_CONSTANT i1 true
+  %38:any(s8), %39:any(s1), %40:any, %41:any, %42:any = G_SBC %7:any, %3:any, %31:any
+  %33:any(s8), %34:any(s1), %35:any, %36:any, %37:any = G_SBC %8:any, %4:any, %39:any
+  %18:any(s8), %19:any(s1) = G_UADDE %38:any, %47:any, %22:any
+  %20:any(s8), %21:any(s1) = G_UADDE %33:any, %48:any, %19:any
+  $a = COPY %18:any(s8)
+  $x = COPY %20:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Localizer (localizer) on chain_arith ***
+# Machine code for function chain_arith: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:any(s8) = COPY $a
+  %4:any(s8) = COPY $x
+  %5:any(s8) = COPY $rc2
+  %6:any(s8) = COPY $rc3
+  %7:any(s8) = COPY $rc4
+  %8:any(s8) = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %5:any(s8)
+  $x = COPY %6:any(s8)
+  $rc2 = COPY %3:any(s8)
+  $rc3 = COPY %4:any(s8)
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %47:any(s8) = COPY $a
+  %48:any(s8) = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:any(s1) = G_CONSTANT i1 true
+  %38:any(s8), %39:any(s1), %40:any, %41:any, %42:any = G_SBC %7:any, %3:any, %31:any
+  %33:any(s8), %34:any(s1), %35:any, %36:any, %37:any = G_SBC %8:any, %4:any, %39:any
+  %22:any(s1) = G_CONSTANT i1 false
+  %18:any(s8), %19:any(s1) = G_UADDE %38:any, %47:any, %22:any
+  %20:any(s8), %21:any(s1) = G_UADDE %33:any, %48:any, %19:any
+  $a = COPY %18:any(s8)
+  $x = COPY %20:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on chain_arith omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on chain_arith ***
+# Machine code for function chain_arith: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:imag8 = COPY $a
+  %4:imag8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %7:ac = COPY $rc4
+  %8:ac = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %5:anyi8
+  $x = COPY %6:anyi8
+  $rc2 = COPY %3:imag8
+  $rc3 = COPY %4:imag8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %47:imag8 = COPY $a
+  %48:imag8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:cc = LDImm1 -1
+  %38:ac, %39:cc, %41:vc = SBCImag8 %7:ac(tied-def 0), %3:imag8, %31:cc(tied-def 1)
+  %33:ac, %34:cc, %36:vc = SBCImag8 %8:ac(tied-def 0), %4:imag8, %39:cc(tied-def 1)
+  %22:cc = LDImm1 0
+  %18:ac, %19:cc, %50:vc = ADCImag8 %38:ac(tied-def 0), %47:imag8, %22:cc
+  %20:ac, %21:cc, %49:vc = ADCImag8 %33:ac(tied-def 0), %48:imag8, %19:cc
+  $a = COPY %18:ac
+  $x = COPY %20:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After ResetMachineFunction on chain_arith omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on chain_arith omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on chain_arith omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on chain_arith omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on chain_arith omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on chain_arith omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on chain_arith omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on chain_arith omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on chain_arith omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on chain_arith omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on chain_arith omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on chain_arith omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on chain_arith omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on chain_arith omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on chain_arith omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on chain_arith omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on chain_arith omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on chain_arith omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on chain_arith omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on chain_arith omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on chain_arith omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on chain_arith omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on chain_arith ***
+# Machine code for function chain_arith: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:imag8 = COPY $a
+  %4:imag8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %7:ac = COPY $rc4
+  %8:ac = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %5:anyi8
+  $x = COPY %6:anyi8
+  $rc2 = COPY %3:imag8
+  $rc3 = COPY %4:imag8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %47:imag8 = COPY $a
+  %48:imag8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:cc = LDImm1 -1
+  %38:ac, %39:cc, dead %41:vc = SBCImag8 %7:ac(tied-def 0), %3:imag8, %31:cc(tied-def 1)
+  %33:ac, dead %34:cc, dead %36:vc = SBCImag8 %8:ac(tied-def 0), %4:imag8, %39:cc(tied-def 1)
+  %22:cc = LDImm1 0
+  %18:ac, %19:cc, dead %50:vc = ADCImag8 %38:ac(tied-def 0), %47:imag8, %22:cc
+  %20:ac, dead %21:cc, dead %49:vc = ADCImag8 %33:ac(tied-def 0), %48:imag8, %19:cc
+  $a = COPY %18:ac
+  $x = COPY %20:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Init Undef Pass (init-undef) on chain_arith omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on chain_arith omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on chain_arith ***
+# Machine code for function chain_arith: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:imag8 = COPY $a
+  %4:imag8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %7:ac = COPY $rc4
+  %8:ac = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %5:anyi8
+  $x = COPY %6:anyi8
+  $rc2 = COPY %3:imag8
+  $rc3 = COPY %4:imag8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %47:imag8 = COPY $a
+  %48:imag8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:cc = LDImm1 -1
+  %38:ac, %39:cc, dead %41:vc = SBCImag8 %7:ac(tied-def 0), %3:imag8, %31:cc(tied-def 1)
+  %33:ac, dead %34:cc, dead %36:vc = SBCImag8 %8:ac(tied-def 0), %4:imag8, %39:cc(tied-def 1)
+  %22:cc = LDImm1 0
+  %18:ac, %19:cc, dead %50:vc = ADCImag8 %38:ac(tied-def 0), %47:imag8, %22:cc
+  %20:ac, dead %21:cc, dead %49:vc = ADCImag8 %33:ac(tied-def 0), %48:imag8, %19:cc
+  $a = COPY %18:ac
+  $x = COPY %20:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Live Variable Analysis (livevars) on chain_arith ***
+# Machine code for function chain_arith: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:imag8 = COPY killed $a
+  %4:imag8 = COPY killed $x
+  %5:anyi8 = COPY killed $rc2
+  %6:anyi8 = COPY killed $rc3
+  %7:ac = COPY killed $rc4
+  %8:ac = COPY killed $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %5:anyi8
+  $x = COPY killed %6:anyi8
+  $rc2 = COPY %3:imag8
+  $rc3 = COPY %4:imag8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %47:imag8 = COPY killed $a
+  %48:imag8 = COPY killed $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:cc = LDImm1 -1
+  %38:ac, %39:cc, dead %41:vc = SBCImag8 killed %7:ac(tied-def 0), killed %3:imag8, killed %31:cc(tied-def 1)
+  %33:ac, dead %34:cc, dead %36:vc = SBCImag8 killed %8:ac(tied-def 0), killed %4:imag8, killed %39:cc(tied-def 1)
+  %22:cc = LDImm1 0
+  %18:ac, %19:cc, dead %50:vc = ADCImag8 killed %38:ac(tied-def 0), killed %47:imag8, killed %22:cc
+  %20:ac, dead %21:cc, dead %49:vc = ADCImag8 killed %33:ac(tied-def 0), killed %48:imag8, killed %19:cc
+  $a = COPY killed %18:ac
+  $x = COPY killed %20:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on chain_arith omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on chain_arith omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on chain_arith ***
+# Machine code for function chain_arith: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:imag8 = COPY killed $a
+  %4:imag8 = COPY killed $x
+  %5:anyi8 = COPY killed $rc2
+  %6:anyi8 = COPY killed $rc3
+  %7:ac = COPY killed $rc4
+  %8:ac = COPY killed $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %5:anyi8
+  $x = COPY killed %6:anyi8
+  $rc2 = COPY %3:imag8
+  $rc3 = COPY %4:imag8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %47:imag8 = COPY killed $a
+  %48:imag8 = COPY killed $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:cc = LDImm1 -1
+  %38:ac, %39:cc, dead %41:vc = SBCImag8 killed %7:ac(tied-def 0), killed %3:imag8, killed %31:cc(tied-def 1)
+  %33:ac, dead %34:cc, dead %36:vc = SBCImag8 killed %8:ac(tied-def 0), killed %4:imag8, killed %39:cc(tied-def 1)
+  %22:cc = LDImm1 0
+  %18:ac, %19:cc, dead %50:vc = ADCImag8 killed %38:ac(tied-def 0), killed %47:imag8, killed %22:cc
+  %20:ac, dead %21:cc, dead %49:vc = ADCImag8 killed %33:ac(tied-def 0), killed %48:imag8, killed %19:cc
+  $a = COPY killed %18:ac
+  $x = COPY killed %20:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on chain_arith ***
+# Machine code for function chain_arith: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:imag8 = COPY killed $a
+  %4:imag8 = COPY killed $x
+  %5:anyi8 = COPY killed $rc2
+  %6:anyi8 = COPY killed $rc3
+  %7:ac = COPY killed $rc4
+  %8:ac = COPY killed $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %5:anyi8
+  $x = COPY killed %6:anyi8
+  $rc2 = COPY %3:imag8
+  $rc3 = COPY %4:imag8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  %47:imag8 = COPY killed $a
+  %48:imag8 = COPY killed $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:cc = LDImm1 -1
+  %39:cc = COPY killed %31:cc
+  %38:ac = COPY killed %7:ac
+  %38:ac, %39:cc, dead %41:vc = SBCImag8 %38:ac(tied-def 0), killed %3:imag8, %39:cc(tied-def 1)
+  %33:ac = COPY killed %8:ac
+  %34:cc = COPY killed %39:cc
+  %33:ac, dead %34:cc, dead %36:vc = SBCImag8 %33:ac(tied-def 0), killed %4:imag8, %34:cc(tied-def 1)
+  %22:cc = LDImm1 0
+  %18:ac = COPY killed %38:ac
+  %18:ac, %19:cc, dead %50:vc = ADCImag8 %18:ac(tied-def 0), killed %47:imag8, killed %22:cc
+  %20:ac = COPY killed %33:ac
+  %20:ac, dead %21:cc, dead %49:vc = ADCImag8 %20:ac(tied-def 0), killed %48:imag8, killed %19:cc
+  $a = COPY killed %18:ac
+  $x = COPY killed %20:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Slot index numbering (slotindexes) on chain_arith omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on chain_arith ***
+# Machine code for function chain_arith: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:imag8 = COPY $a
+  %4:imag8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %7:ac = COPY $rc4
+  %8:ac = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %5:anyi8
+  $x = COPY %6:anyi8
+  $rc2 = COPY %3:imag8
+  $rc3 = COPY %4:imag8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %47:imag8 = COPY $a
+  %48:imag8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %31:cc = LDImm1 -1
+  %39:cc = COPY %31:cc
+  %38:ac = COPY %7:ac
+  %38:ac, %39:cc, dead %41:vc = SBCImag8 %38:ac(tied-def 0), %3:imag8, %39:cc(tied-def 1)
+  %33:ac = COPY %8:ac
+  %34:cc = COPY %39:cc
+  %33:ac, dead %34:cc, dead %36:vc = SBCImag8 %33:ac(tied-def 0), %4:imag8, %34:cc(tied-def 1)
+  %22:cc = LDImm1 0
+  %18:ac = COPY %38:ac
+  %18:ac, %19:cc, dead %50:vc = ADCImag8 %18:ac(tied-def 0), %47:imag8, %22:cc
+  %20:ac = COPY %33:ac
+  %20:ac, dead %21:cc, dead %49:vc = ADCImag8 %20:ac(tied-def 0), %48:imag8, %19:cc
+  $a = COPY %18:ac
+  $x = COPY %20:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Register Coalescer (register-coalescer) on chain_arith ***
+# Machine code for function chain_arith: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:imag8 = COPY $a
+  %4:imag8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %18:ac = COPY $rc4
+  %20:ac = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %5:anyi8
+  $x = COPY %6:anyi8
+  $rc2 = COPY %3:imag8
+  $rc3 = COPY %4:imag8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %47:imag8 = COPY $a
+  %48:imag8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %34:cc = LDImm1 -1
+  %18:ac, %34:cc, dead %41:vc = SBCImag8 %18:ac(tied-def 0), %3:imag8, %34:cc(tied-def 1)
+  %20:ac, dead %34:cc, dead %36:vc = SBCImag8 %20:ac(tied-def 0), %4:imag8, %34:cc(tied-def 1)
+  %22:cc = LDImm1 0
+  %18:ac, %19:cc, dead %50:vc = ADCImag8 %18:ac(tied-def 0), %47:imag8, %22:cc
+  %20:ac, dead %21:cc, dead %49:vc = ADCImag8 %20:ac(tied-def 0), %48:imag8, %19:cc
+  $a = COPY %18:ac
+  $x = COPY %20:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Register Coalescer (register-coalescer) on chain_arith omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on chain_arith omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on chain_arith omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on chain_arith ***
+# Machine code for function chain_arith: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:imag8 = COPY $a
+  %4:imag8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %18:ac = COPY $rc4
+  %20:ac = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %3:imag8
+  $rc3 = COPY %4:imag8
+  $x = COPY %6:anyi8
+  $a = COPY %5:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %47:imag8 = COPY $a
+  %48:imag8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %34:cc = LDImm1 -1
+  %18:ac, %34:cc, dead %41:vc = SBCImag8 %18:ac(tied-def 0), %3:imag8, %34:cc(tied-def 1)
+  %20:ac, dead %34:cc, dead %36:vc = SBCImag8 %20:ac(tied-def 0), %4:imag8, %34:cc(tied-def 1)
+  %22:cc = LDImm1 0
+  %18:ac, %19:cc, dead %50:vc = ADCImag8 %18:ac(tied-def 0), %47:imag8, %22:cc
+  %20:ac, dead %21:cc, dead %49:vc = ADCImag8 %20:ac(tied-def 0), %48:imag8, %19:cc
+  $x = COPY %20:ac
+  $a = COPY %18:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on chain_arith ***
+# Machine code for function chain_arith: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:imag8 = COPY $a
+  %4:imag8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %18:ac = COPY $rc4
+  %20:ac = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %3:imag8
+  $rc3 = COPY %4:imag8
+  $x = COPY %6:anyi8
+  $a = COPY %5:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %47:imag8 = COPY $a
+  %48:imag8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %34:cc = LDImm1 -1
+  %18:ac, %34:cc, dead %41:vc = SBCImag8 %18:ac(tied-def 0), %3:imag8, %34:cc(tied-def 1)
+  %20:ac, dead %34:cc, dead %36:vc = SBCImag8 %20:ac(tied-def 0), %4:imag8, %34:cc(tied-def 1)
+  %22:cc = LDImm1 0
+  %18:ac, %19:cc, dead %50:vc = ADCImag8 %18:ac(tied-def 0), %47:imag8, %22:cc
+  %20:ac, dead %21:cc, dead %49:vc = ADCImag8 %20:ac(tied-def 0), %48:imag8, %19:cc
+  $x = COPY %20:ac
+  $a = COPY %18:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on chain_arith omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on chain_arith omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on chain_arith omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on chain_arith omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on chain_arith omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on chain_arith omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on chain_arith omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on chain_arith ***
+# Machine code for function chain_arith: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:imag8 = COPY $a
+  %4:imag8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %51:anyi8 = COPY $rc4
+  %56:anyi8 = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %3:imag8
+  $rc3 = COPY %4:imag8
+  $x = COPY %6:anyi8
+  $a = COPY %5:anyi8
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  %47:imag8 = COPY $a
+  %48:imag8 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %34:cc = LDImm1 -1
+  %62:ac = COPY %51:anyi8
+  %62:ac, %34:cc, dead %41:vc = SBCImag8 %62:ac(tied-def 0), %3:imag8, %34:cc(tied-def 1)
+  %61:anyi8 = COPY %62:ac
+  %57:ac = COPY %56:anyi8
+  %57:ac, dead %34:cc, dead %36:vc = SBCImag8 %57:ac(tied-def 0), %4:imag8, %34:cc(tied-def 1)
+  %58:anyi8 = COPY %57:ac
+  %22:cc = LDImm1 0
+  %60:ac = COPY %61:anyi8
+  %60:ac, %19:cc, dead %50:vc = ADCImag8 %60:ac(tied-def 0), %47:imag8, %22:cc
+  %53:anyi8 = COPY %60:ac
+  %55:ac = COPY %58:anyi8
+  %55:ac, dead %21:cc, dead %49:vc = ADCImag8 %55:ac(tied-def 0), %48:imag8, %19:cc
+  $x = COPY %55:ac
+  $a = COPY %53:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on chain_arith ***
+# Machine code for function chain_arith: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  renamable $rc20 = COPY $a
+  renamable $rc21 = COPY $x
+  renamable $a = COPY $rc2
+  renamable $x = COPY $rc3
+  renamable $rc22 = COPY $rc4
+  renamable $rc23 = COPY $rc5
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY renamable $rc20
+  $rc3 = COPY renamable $rc21
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  renamable $rc2 = COPY $a
+  renamable $rc3 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  renamable $c = LDImm1 -1
+  renamable $a = COPY killed renamable $rc22
+  renamable $a, renamable $c, dead renamable $v = SBCImag8 killed renamable $a(tied-def 0), killed renamable $rc20, killed renamable $c(tied-def 1)
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc23
+  renamable $a, dead renamable $c, dead renamable $v = SBCImag8 killed renamable $a(tied-def 0), killed renamable $rc21, killed renamable $c(tied-def 1)
+  renamable $x = COPY killed renamable $a
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $y
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on chain_arith omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on chain_arith omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on chain_arith omitted because no change ***
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on chain_arith omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on chain_arith omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on chain_arith omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on chain_arith omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on chain_arith omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on chain_arith omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on chain_arith omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on chain_arith omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on chain_arith omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on chain_arith omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on chain_arith omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on chain_arith omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on chain_arith ***
+# Machine code for function chain_arith: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc20, $rc21, $rc22, $rc23
+  $rc16 = STImag8 $a
+  $a = frame-setup COPY $rc20
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc21
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc22
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc23
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  renamable $rc20 = COPY $a
+  renamable $rc21 = COPY $x
+  renamable $a = COPY $rc2
+  renamable $x = COPY $rc3
+  renamable $rc22 = COPY $rc4
+  renamable $rc23 = COPY $rc5
+  $rc2 = COPY renamable $rc20
+  $rc3 = COPY renamable $rc21
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit-def $a, implicit-def $x
+  renamable $rc2 = COPY $a
+  renamable $rc3 = COPY $x
+  renamable $c = LDImm1 -1
+  renamable $a = COPY killed renamable $rc22
+  renamable $a, renamable $c, dead renamable $v = SBCImag8 killed renamable $a(tied-def 0), killed renamable $rc20, killed renamable $c(tied-def 1)
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc23
+  renamable $a, dead renamable $c, dead renamable $v = SBCImag8 killed renamable $a(tied-def 0), killed renamable $rc21, killed renamable $c(tied-def 1)
+  renamable $x = COPY killed renamable $a
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $y
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  $rc16 = STImag8 $a
+  $a = frame-destroy PL
+  $rc23 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc22 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc21 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc20 = frame-destroy COPY killed $a
+  $a = LDImag8 $rc16
+  RTS implicit $a, implicit $x, implicit $rc20, implicit $rc21, implicit $rc22, implicit $rc23
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on chain_arith omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on chain_arith omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on chain_arith omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on chain_arith omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on chain_arith omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on chain_arith omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on chain_arith omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on chain_arith omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on chain_arith ***
+# Machine code for function chain_arith: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc20, $rc21, $rc22, $rc23
+  $rc16 = STImag8 killed $a
+  $a = frame-setup COPY killed $rc20
+  frame-setup PH killed $a
+  $a = frame-setup COPY killed $rc21
+  frame-setup PH killed $a
+  $a = frame-setup COPY killed $rc22
+  frame-setup PH killed $a
+  $a = frame-setup COPY killed $rc23
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  renamable $rc20 = COPY killed $a
+  renamable $rc21 = COPY killed $x
+  renamable $a = COPY killed $rc2
+  renamable $x = COPY killed $rc3
+  renamable $rc22 = COPY killed $rc4
+  renamable $rc23 = COPY killed $rc5
+  $rc2 = COPY renamable $rc20
+  $rc3 = COPY renamable $rc21
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  renamable $rc2 = COPY killed $a
+  renamable $rc3 = COPY killed $x
+  renamable $c = LDImm1 -1
+  renamable $a = COPY killed renamable $rc22
+  renamable $a, renamable $c, dead renamable $v = SBCImag8 killed renamable $a(tied-def 0), killed renamable $rc20, killed renamable $c(tied-def 1)
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc23
+  renamable $a, dead renamable $c, dead renamable $v = SBCImag8 killed renamable $a(tied-def 0), killed renamable $rc21, killed renamable $c(tied-def 1)
+  renamable $x = COPY killed renamable $a
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $y
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc23 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc22 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc21 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc20 = frame-destroy COPY killed $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22, implicit $rc23
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on chain_arith ***
+# Machine code for function chain_arith: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc20, $rc21, $rc22, $rc23
+  $rc16 = STImag8 killed $a
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc22
+  frame-setup PH killed $a
+  $a = LDImag8 $rc23
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $rc20 = STImag8 $a
+  $rc21 = STImag8 $x
+  $a = LDImag8 $rc2
+  $x = LDImag8 $rc3
+  %0:gpr = LDImag8 $rc4
+  $rc22 = STImag8 %0:gpr
+  %1:gpr = LDImag8 $rc5
+  $rc23 = STImag8 %1:gpr
+  %2:gpr = LDImag8 $rc20
+  $rc2 = STImag8 %2:gpr
+  %3:gpr = LDImag8 $rc21
+  $rc3 = STImag8 %3:gpr
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  $rc2 = STImag8 $a
+  $rc3 = STImag8 $x
+  renamable $c = LDCImm -1
+  $a = LDImag8 $rc22
+  renamable $a, renamable $c, dead renamable $v = SBCImag8 killed renamable $a(tied-def 0), killed renamable $rc20, killed renamable $c(tied-def 1)
+  $y = TA $a
+  $a = LDImag8 $rc23
+  renamable $a, dead renamable $c, dead renamable $v = SBCImag8 killed renamable $a(tied-def 0), killed renamable $rc21, killed renamable $c(tied-def 1)
+  $x = TA $a
+  renamable $c = LDCImm 0
+  $a = T_A $y
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $y = TA $a
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = TA $a
+  $a = T_A $y
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc23 = STImag8 $a
+  $a = frame-destroy PL
+  $rc22 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22, implicit $rc23
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on chain_arith ***
+# Machine code for function chain_arith: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc20, $rc21, $rc22, $rc23
+  $rc16 = STImag8 killed $a
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc22
+  frame-setup PH killed $a
+  $a = LDImag8 $rc23
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $rc20 = STImag8 $a
+  $rc21 = STImag8 $x
+  $a = LDImag8 $rc2
+  $x = LDImag8 $rc3
+  $y = LDImag8 $rc4
+  $rc22 = STImag8 killed $y
+  $y = LDImag8 $rc5
+  $rc23 = STImag8 killed $y
+  $y = LDImag8 $rc20
+  $rc2 = STImag8 killed $y
+  $y = LDImag8 $rc21
+  $rc3 = STImag8 killed $y
+  JSR &__mulhi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit-def $a, implicit-def $x
+  $rc2 = STImag8 $a
+  $rc3 = STImag8 $x
+  renamable $c = LDCImm -1
+  $a = LDImag8 $rc22
+  renamable $a, renamable $c, dead renamable $v = SBCImag8 killed renamable $a(tied-def 0), killed renamable $rc20, killed renamable $c(tied-def 1)
+  $y = TA $a
+  $a = LDImag8 $rc23
+  renamable $a, dead renamable $c, dead renamable $v = SBCImag8 killed renamable $a(tied-def 0), killed renamable $rc21, killed renamable $c(tied-def 1)
+  $x = TA $a
+  renamable $c = LDCImm 0
+  $a = T_A $y
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $y = TA $a
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = TA $a
+  $a = T_A $y
+  $rc16 = STImag8 killed $a
+  $a = frame-destroy PL
+  $rc23 = STImag8 $a
+  $a = frame-destroy PL
+  $rc22 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit $rc20, implicit $rc21, implicit $rc22, implicit $rc23
+
+# End machine code for function chain_arith.
+
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on chain_arith omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on chain_arith omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on chain_arith omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on chain_arith omitted because no change ***
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on chain_arith omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on chain_arith omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on chain_arith omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on chain_arith omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on chain_arith omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on chain_arith omitted because no change ***
+*** IR Dump After Insert fentry calls (fentry-insert) on chain_arith omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on chain_arith omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on chain_arith omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on chain_arith omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on chain_arith omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on chain_arith omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on chain_arith omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on chain_arith omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on chain_arith omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on chain_arith omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on chain_arith omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on chain_arith omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on chain_arith omitted because no change ***

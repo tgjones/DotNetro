@@ -77,9 +77,15 @@ public static class MOS6502AssemblyParser
         {
             var body = text[1..];
             if (body.StartsWith('<'))
-                return (AddressingMode.Immediate, new MachineCodeOperand.ExternalRef(body[1..], SymbolHalf.LowByte));
+            {
+                var (name, off) = SplitSymbolOffset(body[1..]);
+                return (AddressingMode.Immediate, new MachineCodeOperand.ExternalRef(name, SymbolHalf.LowByte, off));
+            }
             if (body.StartsWith('>'))
-                return (AddressingMode.Immediate, new MachineCodeOperand.ExternalRef(body[1..], SymbolHalf.HighByte));
+            {
+                var (name, off) = SplitSymbolOffset(body[1..]);
+                return (AddressingMode.Immediate, new MachineCodeOperand.ExternalRef(name, SymbolHalf.HighByte, off));
+            }
             var value = ParseHex(body, lineNumber);
             return (AddressingMode.Immediate, new MachineCodeOperand.Immediate(value));
         }
@@ -152,9 +158,24 @@ public static class MOS6502AssemblyParser
                     new MachineCodeOperand.LabelRef(labelName));
         }
 
-        // External symbol reference.
+        // External symbol reference, optionally with a `+N` / `-N` byte offset.
         var addressingMode = IsBranchMnemonic(mnemonic) ? AddressingMode.Relative : AddressingMode.Absolute;
-        return (addressingMode, new MachineCodeOperand.ExternalRef(text));
+        var (symName, symOff) = SplitSymbolOffset(text);
+        return (addressingMode, new MachineCodeOperand.ExternalRef(symName, SymbolHalf.Full, symOff));
+    }
+
+    // Splits a `name+N` / `name-N` symbol token into its name and signed byte
+    // offset (offset 0 when no `+`/`-` suffix is present). The sign character
+    // must follow at least one name character so a leading-`-` is never treated
+    // as an offset separator.
+    private static (string Name, int Offset) SplitSymbolOffset(string text)
+    {
+        for (var i = 1; i < text.Length; i++)
+        {
+            if (text[i] == '+' || text[i] == '-')
+                return (text[..i], int.Parse(text[i..]));
+        }
+        return (text, 0);
     }
 
     private static bool IsBranchMnemonic(string mnemonic) =>

@@ -75,8 +75,8 @@ public static class MOS6502AssemblyWriter
         return operand switch
         {
             MachineCodeOperand.Immediate(var value) => $"${value & 0xFF:X2}",
-            MachineCodeOperand.ExternalRef(var name, SymbolHalf.LowByte)  => $"<{name}",
-            MachineCodeOperand.ExternalRef(var name, SymbolHalf.HighByte) => $">{name}",
+            MachineCodeOperand.ExternalRef(var name, SymbolHalf.LowByte, var off)  => $"<{FormatSymbol(name, off)}",
+            MachineCodeOperand.ExternalRef(var name, SymbolHalf.HighByte, var off) => $">{FormatSymbol(name, off)}",
             _ => throw new InvalidOperationException(
                 $"Expected Immediate or symbol-half ExternalRef operand, got {operand.GetType().Name}"),
         };
@@ -88,7 +88,7 @@ public static class MOS6502AssemblyWriter
         {
             MachineCodeOperand.Immediate(var value) =>
                 bytes == 1 ? $"${value & 0xFF:X2}" : $"${value & 0xFFFF:X4}",
-            MachineCodeOperand.ExternalRef(var name, _) => name,
+            MachineCodeOperand.ExternalRef(var name, _, var off) => FormatSymbol(name, off),
             MachineCodeOperand.LabelRef(var name) => $".{name}",
             _ => throw new InvalidOperationException($"Unexpected operand type {operand.GetType().Name} for address"),
         };
@@ -99,8 +99,13 @@ public static class MOS6502AssemblyWriter
         return operand switch
         {
             MachineCodeOperand.LabelRef(var name)        => $".{name}",
-            MachineCodeOperand.ExternalRef(var name, _)  => name,
+            MachineCodeOperand.ExternalRef(var name, _, var off)  => FormatSymbol(name, off),
             _ => throw new InvalidOperationException($"Unexpected operand type {operand.GetType().Name} for branch"),
         };
     }
+
+    // Renders a symbol reference with an optional byte offset (`name+N` / `name-N`);
+    // a zero offset renders as the bare name so existing output is unchanged.
+    private static string FormatSymbol(string name, int offset)
+        => offset == 0 ? name : $"{name}{offset:+0;-0}";
 }

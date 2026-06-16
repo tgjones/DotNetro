@@ -1,0 +1,3502 @@
+*** IR Dump At Start ***
+; ModuleID = './pressure/pressure-high.c'
+source_filename = "./pressure/pressure-high.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i32 @pressure_high(i32 noundef %0, i32 noundef %1, i32 noundef %2, i32 noundef %3) #0 {
+  %5 = alloca i32, align 1
+  %6 = alloca i32, align 1
+  %7 = alloca i32, align 1
+  %8 = alloca i32, align 1
+  %9 = alloca i32, align 1
+  %10 = alloca i32, align 1
+  %11 = alloca i32, align 1
+  %12 = alloca i32, align 1
+  %13 = alloca i32, align 1
+  %14 = alloca i32, align 1
+  %15 = alloca i32, align 1
+  store i32 %0, ptr %5, align 1, !tbaa !6
+  store i32 %1, ptr %6, align 1, !tbaa !6
+  store i32 %2, ptr %7, align 1, !tbaa !6
+  store i32 %3, ptr %8, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %9) #2
+  %16 = load i32, ptr %5, align 1, !tbaa !6
+  %17 = load i32, ptr %6, align 1, !tbaa !6
+  %18 = mul nsw i32 %16, %17
+  store i32 %18, ptr %9, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %10) #2
+  %19 = load i32, ptr %6, align 1, !tbaa !6
+  %20 = load i32, ptr %7, align 1, !tbaa !6
+  %21 = mul nsw i32 %19, %20
+  store i32 %21, ptr %10, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %11) #2
+  %22 = load i32, ptr %7, align 1, !tbaa !6
+  %23 = load i32, ptr %8, align 1, !tbaa !6
+  %24 = mul nsw i32 %22, %23
+  store i32 %24, ptr %11, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %12) #2
+  %25 = load i32, ptr %8, align 1, !tbaa !6
+  %26 = load i32, ptr %5, align 1, !tbaa !6
+  %27 = mul nsw i32 %25, %26
+  store i32 %27, ptr %12, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %13) #2
+  %28 = load i32, ptr %9, align 1, !tbaa !6
+  %29 = load i32, ptr %10, align 1, !tbaa !6
+  %30 = add nsw i32 %28, %29
+  store i32 %30, ptr %13, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %14) #2
+  %31 = load i32, ptr %11, align 1, !tbaa !6
+  %32 = load i32, ptr %12, align 1, !tbaa !6
+  %33 = add nsw i32 %31, %32
+  store i32 %33, ptr %14, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %15) #2
+  %34 = load i32, ptr %13, align 1, !tbaa !6
+  %35 = load i32, ptr %14, align 1, !tbaa !6
+  %36 = mul nsw i32 %34, %35
+  store i32 %36, ptr %15, align 1, !tbaa !6
+  %37 = load i32, ptr %15, align 1, !tbaa !6
+  %38 = load i32, ptr %9, align 1, !tbaa !6
+  %39 = add nsw i32 %37, %38
+  %40 = load i32, ptr %10, align 1, !tbaa !6
+  %41 = add nsw i32 %39, %40
+  %42 = load i32, ptr %11, align 1, !tbaa !6
+  %43 = add nsw i32 %41, %42
+  %44 = load i32, ptr %12, align 1, !tbaa !6
+  %45 = add nsw i32 %43, %44
+  call void @llvm.lifetime.end.p0(ptr %15) #2
+  call void @llvm.lifetime.end.p0(ptr %14) #2
+  call void @llvm.lifetime.end.p0(ptr %13) #2
+  call void @llvm.lifetime.end.p0(ptr %12) #2
+  call void @llvm.lifetime.end.p0(ptr %11) #2
+  call void @llvm.lifetime.end.p0(ptr %10) #2
+  call void @llvm.lifetime.end.p0(ptr %9) #2
+  ret i32 %45
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = !{!7, !7, i64 0}
+!7 = !{!"long", !4, i64 0}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] ***
+; ModuleID = './pressure/pressure-high.c'
+source_filename = "./pressure/pressure-high.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i32 @pressure_high(i32 noundef %0, i32 noundef %1, i32 noundef %2, i32 noundef %3) #0 {
+  %5 = alloca i32, align 1
+  %6 = alloca i32, align 1
+  %7 = alloca i32, align 1
+  %8 = alloca i32, align 1
+  %9 = alloca i32, align 1
+  %10 = alloca i32, align 1
+  %11 = alloca i32, align 1
+  %12 = alloca i32, align 1
+  %13 = alloca i32, align 1
+  %14 = alloca i32, align 1
+  %15 = alloca i32, align 1
+  store i32 %0, ptr %5, align 1, !tbaa !6
+  store i32 %1, ptr %6, align 1, !tbaa !6
+  store i32 %2, ptr %7, align 1, !tbaa !6
+  store i32 %3, ptr %8, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %9) #2
+  %16 = load i32, ptr %5, align 1, !tbaa !6
+  %17 = load i32, ptr %6, align 1, !tbaa !6
+  %18 = mul nsw i32 %16, %17
+  store i32 %18, ptr %9, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %10) #2
+  %19 = load i32, ptr %6, align 1, !tbaa !6
+  %20 = load i32, ptr %7, align 1, !tbaa !6
+  %21 = mul nsw i32 %19, %20
+  store i32 %21, ptr %10, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %11) #2
+  %22 = load i32, ptr %7, align 1, !tbaa !6
+  %23 = load i32, ptr %8, align 1, !tbaa !6
+  %24 = mul nsw i32 %22, %23
+  store i32 %24, ptr %11, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %12) #2
+  %25 = load i32, ptr %8, align 1, !tbaa !6
+  %26 = load i32, ptr %5, align 1, !tbaa !6
+  %27 = mul nsw i32 %25, %26
+  store i32 %27, ptr %12, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %13) #2
+  %28 = load i32, ptr %9, align 1, !tbaa !6
+  %29 = load i32, ptr %10, align 1, !tbaa !6
+  %30 = add nsw i32 %28, %29
+  store i32 %30, ptr %13, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %14) #2
+  %31 = load i32, ptr %11, align 1, !tbaa !6
+  %32 = load i32, ptr %12, align 1, !tbaa !6
+  %33 = add nsw i32 %31, %32
+  store i32 %33, ptr %14, align 1, !tbaa !6
+  call void @llvm.lifetime.start.p0(ptr %15) #2
+  %34 = load i32, ptr %13, align 1, !tbaa !6
+  %35 = load i32, ptr %14, align 1, !tbaa !6
+  %36 = mul nsw i32 %34, %35
+  store i32 %36, ptr %15, align 1, !tbaa !6
+  %37 = load i32, ptr %15, align 1, !tbaa !6
+  %38 = load i32, ptr %9, align 1, !tbaa !6
+  %39 = add nsw i32 %37, %38
+  %40 = load i32, ptr %10, align 1, !tbaa !6
+  %41 = add nsw i32 %39, %40
+  %42 = load i32, ptr %11, align 1, !tbaa !6
+  %43 = add nsw i32 %41, %42
+  %44 = load i32, ptr %12, align 1, !tbaa !6
+  %45 = add nsw i32 %43, %44
+  call void @llvm.lifetime.end.p0(ptr %15) #2
+  call void @llvm.lifetime.end.p0(ptr %14) #2
+  call void @llvm.lifetime.end.p0(ptr %13) #2
+  call void @llvm.lifetime.end.p0(ptr %12) #2
+  call void @llvm.lifetime.end.p0(ptr %11) #2
+  call void @llvm.lifetime.end.p0(ptr %10) #2
+  call void @llvm.lifetime.end.p0(ptr %9) #2
+  ret i32 %45
+}
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = !{!7, !7, i64 0}
+!7 = !{!"long", !4, i64 0}
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on pressure_high omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on pressure_high omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_high omitted because no change ***
+*** IR Dump After SROAPass on pressure_high ***
+; Function Attrs: nounwind optsize
+define dso_local i32 @pressure_high(i32 noundef %0, i32 noundef %1, i32 noundef %2, i32 noundef %3) #0 {
+  %5 = mul nsw i32 %0, %1
+  %6 = mul nsw i32 %1, %2
+  %7 = mul nsw i32 %2, %3
+  %8 = mul nsw i32 %3, %0
+  %9 = add nsw i32 %5, %6
+  %10 = add nsw i32 %7, %8
+  %11 = mul nsw i32 %9, %10
+  %12 = add nsw i32 %11, %5
+  %13 = add nsw i32 %12, %6
+  %14 = add nsw i32 %13, %7
+  %15 = add nsw i32 %14, %8
+  ret i32 %15
+}
+*** IR Dump After EarlyCSEPass on pressure_high omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_high ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './pressure/pressure-high.c'
+source_filename = "./pressure/pressure-high.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i32 @pressure_high(i32 noundef %0, i32 noundef %1, i32 noundef %2, i32 noundef %3) local_unnamed_addr #0 {
+  %5 = mul nsw i32 %0, %1
+  %6 = mul nsw i32 %1, %2
+  %7 = mul nsw i32 %2, %3
+  %8 = mul nsw i32 %3, %0
+  %9 = add nsw i32 %5, %6
+  %10 = add nsw i32 %7, %8
+  %11 = mul nsw i32 %9, %10
+  %12 = add nsw i32 %11, %5
+  %13 = add nsw i32 %12, %6
+  %14 = add nsw i32 %13, %7
+  %15 = add nsw i32 %14, %8
+  ret i32 %15
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on pressure_high omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_high omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_high omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_high ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on pressure_high omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (pressure_high) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (pressure_high) omitted because no change ***
+*** IR Dump After SROAPass on pressure_high omitted because no change ***
+*** IR Dump After EarlyCSEPass on pressure_high omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on pressure_high omitted because no change ***
+*** IR Dump After JumpThreadingPass on pressure_high omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on pressure_high omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_high omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_high omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on pressure_high omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on pressure_high omitted because no change ***
+*** IR Dump After TailCallElimPass on pressure_high omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_high omitted because no change ***
+*** IR Dump After ReassociatePass on pressure_high ***
+; Function Attrs: nounwind optsize
+define dso_local i32 @pressure_high(i32 noundef %0, i32 noundef %1, i32 noundef %2, i32 noundef %3) local_unnamed_addr #0 {
+  %5 = mul nsw i32 %1, %0
+  %6 = mul nsw i32 %2, %1
+  %7 = mul nsw i32 %3, %2
+  %8 = mul nsw i32 %3, %0
+  %9 = add nsw i32 %6, %5
+  %10 = add nsw i32 %7, %8
+  %11 = mul nsw i32 %10, %9
+  %12 = add i32 %6, %5
+  %13 = add i32 %12, %7
+  %14 = add i32 %13, %8
+  %15 = add i32 %14, %11
+  ret i32 %15
+}
+*** IR Dump After ConstraintEliminationPass on pressure_high omitted because no change ***
+*** IR Dump After LoopSimplifyPass on pressure_high omitted because no change ***
+*** IR Dump After LCSSAPass on pressure_high omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_high ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on pressure_high ignored ***
+*** IR Dump After SimplifyCFGPass on pressure_high omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_high omitted because no change ***
+*** IR Dump After LoopSimplifyPass on pressure_high omitted because no change ***
+*** IR Dump After LCSSAPass on pressure_high omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_high ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on pressure_high ignored ***
+*** IR Dump After SROAPass on pressure_high omitted because no change ***
+*** IR Dump After VectorCombinePass on pressure_high omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on pressure_high omitted because no change ***
+*** IR Dump After GVNPass on pressure_high ***
+; Function Attrs: nounwind optsize
+define dso_local i32 @pressure_high(i32 noundef %0, i32 noundef %1, i32 noundef %2, i32 noundef %3) local_unnamed_addr #0 {
+  %5 = mul nsw i32 %1, %0
+  %6 = mul nsw i32 %2, %1
+  %7 = mul nsw i32 %3, %2
+  %8 = mul nsw i32 %3, %0
+  %9 = add i32 %6, %5
+  %10 = add nsw i32 %7, %8
+  %11 = mul nsw i32 %10, %9
+  %12 = add i32 %9, %7
+  %13 = add i32 %12, %8
+  %14 = add i32 %13, %11
+  ret i32 %14
+}
+*** IR Dump After SCCPPass on pressure_high omitted because no change ***
+*** IR Dump After BDCEPass on pressure_high omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_high ***
+; Function Attrs: nounwind optsize
+define dso_local i32 @pressure_high(i32 noundef %0, i32 noundef %1, i32 noundef %2, i32 noundef %3) local_unnamed_addr #0 {
+  %5 = mul nsw i32 %3, %2
+  %6 = mul nsw i32 %3, %0
+  %7 = add i32 %2, %0
+  %8 = mul i32 %7, %1
+  %9 = add nsw i32 %5, %6
+  %10 = mul nsw i32 %9, %8
+  %11 = add i32 %8, %5
+  %12 = add i32 %11, %6
+  %13 = add i32 %12, %10
+  ret i32 %13
+}
+*** IR Dump After JumpThreadingPass on pressure_high omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on pressure_high omitted because no change ***
+*** IR Dump After ADCEPass on pressure_high omitted because no change ***
+*** IR Dump After MemCpyOptPass on pressure_high omitted because no change ***
+*** IR Dump After DSEPass on pressure_high omitted because no change ***
+*** IR Dump After MoveAutoInitPass on pressure_high omitted because no change ***
+*** IR Dump After LoopSimplifyPass on pressure_high omitted because no change ***
+*** IR Dump After LCSSAPass on pressure_high omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_high ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on pressure_high ignored ***
+*** IR Dump After CoroElidePass on pressure_high omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_high omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_high omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_high ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (pressure_high) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (pressure_high) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local i32 @pressure_high(i32 noundef %0, i32 noundef %1, i32 noundef %2, i32 noundef %3) local_unnamed_addr #0 {
+  %5 = mul nsw i32 %3, %2
+  %6 = mul nsw i32 %3, %0
+  %7 = add i32 %2, %0
+  %8 = mul i32 %7, %1
+  %9 = add nsw i32 %5, %6
+  %10 = mul nsw i32 %9, %8
+  %11 = add i32 %8, %5
+  %12 = add i32 %11, %6
+  %13 = add i32 %12, %10
+  ret i32 %13
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on pressure_high omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (pressure_high) ignored ***
+*** IR Dump After CoroSplitPass on (pressure_high) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (pressure_high) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (pressure_high) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (pressure_high) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on pressure_high omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on pressure_high omitted because no change ***
+*** IR Dump After Float2IntPass on pressure_high omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on pressure_high omitted because no change ***
+*** IR Dump After LoopSimplifyPass on pressure_high omitted because no change ***
+*** IR Dump After LCSSAPass on pressure_high omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_high ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on pressure_high ignored ***
+*** IR Dump After LoopDistributePass on pressure_high omitted because no change ***
+*** IR Dump After InjectTLIMappings on pressure_high omitted because no change ***
+*** IR Dump After LoopVectorizePass on pressure_high omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on pressure_high omitted because no change ***
+*** IR Dump After InferAlignmentPass on pressure_high omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on pressure_high omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_high omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_high omitted because no change ***
+*** IR Dump After SLPVectorizerPass on pressure_high omitted because no change ***
+*** IR Dump After VectorCombinePass on pressure_high omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_high omitted because no change ***
+*** IR Dump After LoopUnrollPass on pressure_high omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on pressure_high omitted because no change ***
+*** IR Dump After SROAPass on pressure_high omitted because no change ***
+*** IR Dump After InferAlignmentPass on pressure_high omitted because no change ***
+*** IR Dump After InstCombinePass on pressure_high omitted because no change ***
+*** IR Dump After LoopSimplifyPass on pressure_high omitted because no change ***
+*** IR Dump After LCSSAPass on pressure_high omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_high ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on pressure_high ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on pressure_high omitted because no change ***
+*** IR Dump After LoopSinkPass on pressure_high omitted because no change ***
+*** IR Dump After InstSimplifyPass on pressure_high omitted because no change ***
+*** IR Dump After DivRemPairsPass on pressure_high omitted because no change ***
+*** IR Dump After MergeICmpsPass on pressure_high omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on pressure_high omitted because no change ***
+*** IR Dump After TailCallElimPass on pressure_high omitted because no change ***
+*** IR Dump After SimplifyCFGPass on pressure_high omitted because no change ***
+*** IR Pass PassManager<Function> on pressure_high ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on pressure_high omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on pressure_high omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on pressure_high ***
+# Machine code for function pressure_high: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:_(s8) = COPY $a
+  %5:_(s8) = COPY $x
+  %6:_(s8) = COPY $rc2
+  %7:_(s8) = COPY $rc3
+  %0:_(s32) = G_MERGE_VALUES %4:_(s8), %5:_(s8), %6:_(s8), %7:_(s8)
+  %8:_(s8) = COPY $rc4
+  %9:_(s8) = COPY $rc5
+  %10:_(s8) = COPY $rc6
+  %11:_(s8) = COPY $rc7
+  %1:_(s32) = G_MERGE_VALUES %8:_(s8), %9:_(s8), %10:_(s8), %11:_(s8)
+  %12:_(s8) = COPY $rc8
+  %13:_(s8) = COPY $rc9
+  %14:_(s8) = COPY $rc10
+  %15:_(s8) = COPY $rc11
+  %2:_(s32) = G_MERGE_VALUES %12:_(s8), %13:_(s8), %14:_(s8), %15:_(s8)
+  %16:_(s8) = COPY $rc12
+  %17:_(s8) = COPY $rc13
+  %18:_(s8) = COPY $rc14
+  %19:_(s8) = COPY $rc15
+  %3:_(s32) = G_MERGE_VALUES %16:_(s8), %17:_(s8), %18:_(s8), %19:_(s8)
+  %20:_(s32) = nsw G_MUL %3:_, %2:_
+  %21:_(s32) = nsw G_MUL %3:_, %0:_
+  %22:_(s32) = G_ADD %2:_, %0:_
+  %23:_(s32) = G_MUL %22:_, %1:_
+  %24:_(s32) = nsw G_ADD %20:_, %21:_
+  %25:_(s32) = nsw G_MUL %24:_, %23:_
+  %26:_(s32) = G_ADD %23:_, %20:_
+  %27:_(s32) = G_ADD %26:_, %21:_
+  %28:_(s32) = G_ADD %27:_, %25:_
+  %29:_(s8), %30:_(s8), %31:_(s8), %32:_(s8) = G_UNMERGE_VALUES %28:_(s32)
+  $a = COPY %29:_(s8)
+  $x = COPY %30:_(s8)
+  $rc2 = COPY %31:_(s8)
+  $rc3 = COPY %32:_(s8)
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on pressure_high omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_high omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on pressure_high omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on pressure_high omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on pressure_high omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on pressure_high omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on pressure_high omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on pressure_high ***
+# Machine code for function pressure_high: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:_(s8) = COPY $a
+  %5:_(s8) = COPY $x
+  %6:_(s8) = COPY $rc2
+  %7:_(s8) = COPY $rc3
+  %8:_(s8) = COPY $rc4
+  %9:_(s8) = COPY $rc5
+  %10:_(s8) = COPY $rc6
+  %11:_(s8) = COPY $rc7
+  %12:_(s8) = COPY $rc8
+  %13:_(s8) = COPY $rc9
+  %14:_(s8) = COPY $rc10
+  %15:_(s8) = COPY $rc11
+  %16:_(s8) = COPY $rc12
+  %17:_(s8) = COPY $rc13
+  %18:_(s8) = COPY $rc14
+  %19:_(s8) = COPY $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:_(s8)
+  $x = COPY %17:_(s8)
+  $rc2 = COPY %18:_(s8)
+  $rc3 = COPY %19:_(s8)
+  $rc4 = COPY %12:_(s8)
+  $rc5 = COPY %13:_(s8)
+  $rc6 = COPY %14:_(s8)
+  $rc7 = COPY %15:_(s8)
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %158:_(s8) = COPY $a
+  %159:_(s8) = COPY $x
+  %160:_(s8) = COPY $rc2
+  %161:_(s8) = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:_(s8)
+  $x = COPY %17:_(s8)
+  $rc2 = COPY %18:_(s8)
+  $rc3 = COPY %19:_(s8)
+  $rc4 = COPY %4:_(s8)
+  $rc5 = COPY %5:_(s8)
+  $rc6 = COPY %6:_(s8)
+  $rc7 = COPY %7:_(s8)
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:_(s8) = COPY $a
+  %147:_(s8) = COPY $x
+  %148:_(s8) = COPY $rc2
+  %149:_(s8) = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %49:_(s1) = G_CONSTANT i1 false
+  %130:_(s8), %131:_(s1) = G_UADDE %12:_, %4:_, %49:_
+  %132:_(s8), %133:_(s1) = G_UADDE %13:_, %5:_, %131:_
+  %134:_(s8), %135:_(s1) = G_UADDE %14:_, %6:_, %133:_
+  %136:_(s8), %137:_(s1) = G_UADDE %15:_, %7:_, %135:_
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %130:_(s8)
+  $x = COPY %132:_(s8)
+  $rc2 = COPY %134:_(s8)
+  $rc3 = COPY %136:_(s8)
+  $rc4 = COPY %8:_(s8)
+  $rc5 = COPY %9:_(s8)
+  $rc6 = COPY %10:_(s8)
+  $rc7 = COPY %11:_(s8)
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %118:_(s8) = COPY $a
+  %119:_(s8) = COPY $x
+  %120:_(s8) = COPY $rc2
+  %121:_(s8) = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %102:_(s8), %103:_(s1) = G_UADDE %158:_, %146:_, %49:_
+  %104:_(s8), %105:_(s1) = G_UADDE %159:_, %147:_, %103:_
+  %106:_(s8), %107:_(s1) = G_UADDE %160:_, %148:_, %105:_
+  %108:_(s8), %109:_(s1) = G_UADDE %161:_, %149:_, %107:_
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %102:_(s8)
+  $x = COPY %104:_(s8)
+  $rc2 = COPY %106:_(s8)
+  $rc3 = COPY %108:_(s8)
+  $rc4 = COPY %118:_(s8)
+  $rc5 = COPY %119:_(s8)
+  $rc6 = COPY %120:_(s8)
+  $rc7 = COPY %121:_(s8)
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:_(s8) = COPY $a
+  %91:_(s8) = COPY $x
+  %92:_(s8) = COPY $rc2
+  %93:_(s8) = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %74:_(s8), %75:_(s1) = G_UADDE %118:_, %158:_, %49:_
+  %76:_(s8), %77:_(s1) = G_UADDE %119:_, %159:_, %75:_
+  %78:_(s8), %79:_(s1) = G_UADDE %120:_, %160:_, %77:_
+  %80:_(s8), %81:_(s1) = G_UADDE %121:_, %161:_, %79:_
+  %58:_(s8), %59:_(s1) = G_UADDE %74:_, %146:_, %49:_
+  %60:_(s8), %61:_(s1) = G_UADDE %76:_, %147:_, %59:_
+  %62:_(s8), %63:_(s1) = G_UADDE %78:_, %148:_, %61:_
+  %64:_(s8), %65:_(s1) = G_UADDE %80:_, %149:_, %63:_
+  %41:_(s8), %42:_(s1) = G_UADDE %58:_, %90:_, %49:_
+  %43:_(s8), %44:_(s1) = G_UADDE %60:_, %91:_, %42:_
+  %45:_(s8), %46:_(s1) = G_UADDE %62:_, %92:_, %44:_
+  %47:_(s8), %48:_(s1) = G_UADDE %64:_, %93:_, %46:_
+  $a = COPY %41:_(s8)
+  $x = COPY %43:_(s8)
+  $rc2 = COPY %45:_(s8)
+  $rc3 = COPY %47:_(s8)
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on pressure_high omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_high omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on pressure_high omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on pressure_high omitted because no change ***
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on pressure_high omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on pressure_high ***
+# Machine code for function pressure_high: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:any(s8) = COPY $a
+  %5:any(s8) = COPY $x
+  %6:any(s8) = COPY $rc2
+  %7:any(s8) = COPY $rc3
+  %8:any(s8) = COPY $rc4
+  %9:any(s8) = COPY $rc5
+  %10:any(s8) = COPY $rc6
+  %11:any(s8) = COPY $rc7
+  %12:any(s8) = COPY $rc8
+  %13:any(s8) = COPY $rc9
+  %14:any(s8) = COPY $rc10
+  %15:any(s8) = COPY $rc11
+  %16:any(s8) = COPY $rc12
+  %17:any(s8) = COPY $rc13
+  %18:any(s8) = COPY $rc14
+  %19:any(s8) = COPY $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:any(s8)
+  $x = COPY %17:any(s8)
+  $rc2 = COPY %18:any(s8)
+  $rc3 = COPY %19:any(s8)
+  $rc4 = COPY %12:any(s8)
+  $rc5 = COPY %13:any(s8)
+  $rc6 = COPY %14:any(s8)
+  $rc7 = COPY %15:any(s8)
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %158:any(s8) = COPY $a
+  %159:any(s8) = COPY $x
+  %160:any(s8) = COPY $rc2
+  %161:any(s8) = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:any(s8)
+  $x = COPY %17:any(s8)
+  $rc2 = COPY %18:any(s8)
+  $rc3 = COPY %19:any(s8)
+  $rc4 = COPY %4:any(s8)
+  $rc5 = COPY %5:any(s8)
+  $rc6 = COPY %6:any(s8)
+  $rc7 = COPY %7:any(s8)
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:any(s8) = COPY $a
+  %147:any(s8) = COPY $x
+  %148:any(s8) = COPY $rc2
+  %149:any(s8) = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %49:any(s1) = G_CONSTANT i1 false
+  %130:any(s8), %131:any(s1) = G_UADDE %12:any, %4:any, %49:any
+  %132:any(s8), %133:any(s1) = G_UADDE %13:any, %5:any, %131:any
+  %134:any(s8), %135:any(s1) = G_UADDE %14:any, %6:any, %133:any
+  %136:any(s8), %137:any(s1) = G_UADDE %15:any, %7:any, %135:any
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %130:any(s8)
+  $x = COPY %132:any(s8)
+  $rc2 = COPY %134:any(s8)
+  $rc3 = COPY %136:any(s8)
+  $rc4 = COPY %8:any(s8)
+  $rc5 = COPY %9:any(s8)
+  $rc6 = COPY %10:any(s8)
+  $rc7 = COPY %11:any(s8)
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %118:any(s8) = COPY $a
+  %119:any(s8) = COPY $x
+  %120:any(s8) = COPY $rc2
+  %121:any(s8) = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %102:any(s8), %103:any(s1) = G_UADDE %158:any, %146:any, %49:any
+  %104:any(s8), %105:any(s1) = G_UADDE %159:any, %147:any, %103:any
+  %106:any(s8), %107:any(s1) = G_UADDE %160:any, %148:any, %105:any
+  %108:any(s8), %109:any(s1) = G_UADDE %161:any, %149:any, %107:any
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %102:any(s8)
+  $x = COPY %104:any(s8)
+  $rc2 = COPY %106:any(s8)
+  $rc3 = COPY %108:any(s8)
+  $rc4 = COPY %118:any(s8)
+  $rc5 = COPY %119:any(s8)
+  $rc6 = COPY %120:any(s8)
+  $rc7 = COPY %121:any(s8)
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:any(s8) = COPY $a
+  %91:any(s8) = COPY $x
+  %92:any(s8) = COPY $rc2
+  %93:any(s8) = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %74:any(s8), %75:any(s1) = G_UADDE %118:any, %158:any, %49:any
+  %76:any(s8), %77:any(s1) = G_UADDE %119:any, %159:any, %75:any
+  %78:any(s8), %79:any(s1) = G_UADDE %120:any, %160:any, %77:any
+  %80:any(s8), %81:any(s1) = G_UADDE %121:any, %161:any, %79:any
+  %58:any(s8), %59:any(s1) = G_UADDE %74:any, %146:any, %49:any
+  %60:any(s8), %61:any(s1) = G_UADDE %76:any, %147:any, %59:any
+  %62:any(s8), %63:any(s1) = G_UADDE %78:any, %148:any, %61:any
+  %64:any(s8), %65:any(s1) = G_UADDE %80:any, %149:any, %63:any
+  %41:any(s8), %42:any(s1) = G_UADDE %58:any, %90:any, %49:any
+  %43:any(s8), %44:any(s1) = G_UADDE %60:any, %91:any, %42:any
+  %45:any(s8), %46:any(s1) = G_UADDE %62:any, %92:any, %44:any
+  %47:any(s8), %48:any(s1) = G_UADDE %64:any, %93:any, %46:any
+  $a = COPY %41:any(s8)
+  $x = COPY %43:any(s8)
+  $rc2 = COPY %45:any(s8)
+  $rc3 = COPY %47:any(s8)
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Localizer (localizer) on pressure_high omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on pressure_high omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on pressure_high ***
+# Machine code for function pressure_high: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %8:anyi8 = COPY $rc4
+  %9:anyi8 = COPY $rc5
+  %10:anyi8 = COPY $rc6
+  %11:anyi8 = COPY $rc7
+  %12:ac = COPY $rc8
+  %13:ac = COPY $rc9
+  %14:ac = COPY $rc10
+  %15:ac = COPY $rc11
+  %16:anyi8 = COPY $rc12
+  %17:anyi8 = COPY $rc13
+  %18:anyi8 = COPY $rc14
+  %19:anyi8 = COPY $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %12:ac
+  $rc5 = COPY %13:ac
+  $rc6 = COPY %14:ac
+  $rc7 = COPY %15:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %158:imag8 = COPY $a
+  %159:imag8 = COPY $x
+  %160:imag8 = COPY $rc2
+  %161:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %4:imag8
+  $rc5 = COPY %5:imag8
+  $rc6 = COPY %6:imag8
+  $rc7 = COPY %7:imag8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:imag8 = COPY $a
+  %147:imag8 = COPY $x
+  %148:imag8 = COPY $rc2
+  %149:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %49:cc = LDImm1 0
+  %130:ac, %131:cc, %185:vc = ADCImag8 %12:ac(tied-def 0), %4:imag8, %49:cc
+  %132:ac, %133:cc, %184:vc = ADCImag8 %13:ac(tied-def 0), %5:imag8, %131:cc
+  %134:ac, %135:cc, %183:vc = ADCImag8 %14:ac(tied-def 0), %6:imag8, %133:cc
+  %136:ac, %137:cc, %182:vc = ADCImag8 %15:ac(tied-def 0), %7:imag8, %135:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %130:ac
+  $x = COPY %132:ac
+  $rc2 = COPY %134:ac
+  $rc3 = COPY %136:ac
+  $rc4 = COPY %8:anyi8
+  $rc5 = COPY %9:anyi8
+  $rc6 = COPY %10:anyi8
+  $rc7 = COPY %11:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %118:ac = COPY $a
+  %119:ac = COPY $x
+  %120:ac = COPY $rc2
+  %121:ac = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %181:ac = COPY %158:imag8
+  %102:ac, %103:cc, %180:vc = ADCImag8 %181:ac(tied-def 0), %146:imag8, %49:cc
+  %179:ac = COPY %159:imag8
+  %104:ac, %105:cc, %178:vc = ADCImag8 %179:ac(tied-def 0), %147:imag8, %103:cc
+  %177:ac = COPY %160:imag8
+  %106:ac, %107:cc, %176:vc = ADCImag8 %177:ac(tied-def 0), %148:imag8, %105:cc
+  %175:ac = COPY %161:imag8
+  %108:ac, %109:cc, %174:vc = ADCImag8 %175:ac(tied-def 0), %149:imag8, %107:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %102:ac
+  $x = COPY %104:ac
+  $rc2 = COPY %106:ac
+  $rc3 = COPY %108:ac
+  $rc4 = COPY %118:ac
+  $rc5 = COPY %119:ac
+  $rc6 = COPY %120:ac
+  $rc7 = COPY %121:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:imag8 = COPY $a
+  %91:imag8 = COPY $x
+  %92:imag8 = COPY $rc2
+  %93:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %74:ac, %75:cc, %173:vc = ADCImag8 %118:ac(tied-def 0), %158:imag8, %49:cc
+  %76:ac, %77:cc, %172:vc = ADCImag8 %119:ac(tied-def 0), %159:imag8, %75:cc
+  %78:ac, %79:cc, %171:vc = ADCImag8 %120:ac(tied-def 0), %160:imag8, %77:cc
+  %80:ac, %81:cc, %170:vc = ADCImag8 %121:ac(tied-def 0), %161:imag8, %79:cc
+  %58:ac, %59:cc, %169:vc = ADCImag8 %74:ac(tied-def 0), %146:imag8, %49:cc
+  %60:ac, %61:cc, %168:vc = ADCImag8 %76:ac(tied-def 0), %147:imag8, %59:cc
+  %62:ac, %63:cc, %167:vc = ADCImag8 %78:ac(tied-def 0), %148:imag8, %61:cc
+  %64:ac, %65:cc, %166:vc = ADCImag8 %80:ac(tied-def 0), %149:imag8, %63:cc
+  %41:ac, %42:cc, %165:vc = ADCImag8 %58:ac(tied-def 0), %90:imag8, %49:cc
+  %43:ac, %44:cc, %164:vc = ADCImag8 %60:ac(tied-def 0), %91:imag8, %42:cc
+  %45:ac, %46:cc, %163:vc = ADCImag8 %62:ac(tied-def 0), %92:imag8, %44:cc
+  %47:ac, %48:cc, %162:vc = ADCImag8 %64:ac(tied-def 0), %93:imag8, %46:cc
+  $a = COPY %41:ac
+  $x = COPY %43:ac
+  $rc2 = COPY %45:ac
+  $rc3 = COPY %47:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After ResetMachineFunction on pressure_high omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on pressure_high omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on pressure_high omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on pressure_high omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on pressure_high omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on pressure_high omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on pressure_high omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on pressure_high omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on pressure_high omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_high omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on pressure_high omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on pressure_high omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on pressure_high omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_high omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on pressure_high omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on pressure_high omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on pressure_high omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on pressure_high omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on pressure_high omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on pressure_high omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on pressure_high omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on pressure_high omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on pressure_high ***
+# Machine code for function pressure_high: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %8:anyi8 = COPY $rc4
+  %9:anyi8 = COPY $rc5
+  %10:anyi8 = COPY $rc6
+  %11:anyi8 = COPY $rc7
+  %12:ac = COPY $rc8
+  %13:ac = COPY $rc9
+  %14:ac = COPY $rc10
+  %15:ac = COPY $rc11
+  %16:anyi8 = COPY $rc12
+  %17:anyi8 = COPY $rc13
+  %18:anyi8 = COPY $rc14
+  %19:anyi8 = COPY $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %12:ac
+  $rc5 = COPY %13:ac
+  $rc6 = COPY %14:ac
+  $rc7 = COPY %15:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %158:imag8 = COPY $a
+  %159:imag8 = COPY $x
+  %160:imag8 = COPY $rc2
+  %161:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %4:imag8
+  $rc5 = COPY %5:imag8
+  $rc6 = COPY %6:imag8
+  $rc7 = COPY %7:imag8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:imag8 = COPY $a
+  %147:imag8 = COPY $x
+  %148:imag8 = COPY $rc2
+  %149:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %49:cc = LDImm1 0
+  %130:ac, %131:cc, dead %185:vc = ADCImag8 %12:ac(tied-def 0), %4:imag8, %49:cc
+  %132:ac, %133:cc, dead %184:vc = ADCImag8 %13:ac(tied-def 0), %5:imag8, %131:cc
+  %134:ac, %135:cc, dead %183:vc = ADCImag8 %14:ac(tied-def 0), %6:imag8, %133:cc
+  %136:ac, dead %137:cc, dead %182:vc = ADCImag8 %15:ac(tied-def 0), %7:imag8, %135:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %130:ac
+  $x = COPY %132:ac
+  $rc2 = COPY %134:ac
+  $rc3 = COPY %136:ac
+  $rc4 = COPY %8:anyi8
+  $rc5 = COPY %9:anyi8
+  $rc6 = COPY %10:anyi8
+  $rc7 = COPY %11:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %118:ac = COPY $a
+  %119:ac = COPY $x
+  %120:ac = COPY $rc2
+  %121:ac = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %181:ac = COPY %158:imag8
+  %102:ac, %103:cc, dead %180:vc = ADCImag8 %181:ac(tied-def 0), %146:imag8, %49:cc
+  %179:ac = COPY %159:imag8
+  %104:ac, %105:cc, dead %178:vc = ADCImag8 %179:ac(tied-def 0), %147:imag8, %103:cc
+  %177:ac = COPY %160:imag8
+  %106:ac, %107:cc, dead %176:vc = ADCImag8 %177:ac(tied-def 0), %148:imag8, %105:cc
+  %175:ac = COPY %161:imag8
+  %108:ac, dead %109:cc, dead %174:vc = ADCImag8 %175:ac(tied-def 0), %149:imag8, %107:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %102:ac
+  $x = COPY %104:ac
+  $rc2 = COPY %106:ac
+  $rc3 = COPY %108:ac
+  $rc4 = COPY %118:ac
+  $rc5 = COPY %119:ac
+  $rc6 = COPY %120:ac
+  $rc7 = COPY %121:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:imag8 = COPY $a
+  %91:imag8 = COPY $x
+  %92:imag8 = COPY $rc2
+  %93:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %74:ac, %75:cc, dead %173:vc = ADCImag8 %118:ac(tied-def 0), %158:imag8, %49:cc
+  %76:ac, %77:cc, dead %172:vc = ADCImag8 %119:ac(tied-def 0), %159:imag8, %75:cc
+  %78:ac, %79:cc, dead %171:vc = ADCImag8 %120:ac(tied-def 0), %160:imag8, %77:cc
+  %80:ac, dead %81:cc, dead %170:vc = ADCImag8 %121:ac(tied-def 0), %161:imag8, %79:cc
+  %58:ac, %59:cc, dead %169:vc = ADCImag8 %74:ac(tied-def 0), %146:imag8, %49:cc
+  %60:ac, %61:cc, dead %168:vc = ADCImag8 %76:ac(tied-def 0), %147:imag8, %59:cc
+  %62:ac, %63:cc, dead %167:vc = ADCImag8 %78:ac(tied-def 0), %148:imag8, %61:cc
+  %64:ac, dead %65:cc, dead %166:vc = ADCImag8 %80:ac(tied-def 0), %149:imag8, %63:cc
+  %41:ac, %42:cc, dead %165:vc = ADCImag8 %58:ac(tied-def 0), %90:imag8, %49:cc
+  %43:ac, %44:cc, dead %164:vc = ADCImag8 %60:ac(tied-def 0), %91:imag8, %42:cc
+  %45:ac, %46:cc, dead %163:vc = ADCImag8 %62:ac(tied-def 0), %92:imag8, %44:cc
+  %47:ac, dead %48:cc, dead %162:vc = ADCImag8 %64:ac(tied-def 0), %93:imag8, %46:cc
+  $a = COPY %41:ac
+  $x = COPY %43:ac
+  $rc2 = COPY %45:ac
+  $rc3 = COPY %47:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Init Undef Pass (init-undef) on pressure_high omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on pressure_high omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on pressure_high ***
+# Machine code for function pressure_high: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %8:anyi8 = COPY $rc4
+  %9:anyi8 = COPY $rc5
+  %10:anyi8 = COPY $rc6
+  %11:anyi8 = COPY $rc7
+  %12:ac = COPY $rc8
+  %13:ac = COPY $rc9
+  %14:ac = COPY $rc10
+  %15:ac = COPY $rc11
+  %16:anyi8 = COPY $rc12
+  %17:anyi8 = COPY $rc13
+  %18:anyi8 = COPY $rc14
+  %19:anyi8 = COPY $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %12:ac
+  $rc5 = COPY %13:ac
+  $rc6 = COPY %14:ac
+  $rc7 = COPY %15:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %158:imag8 = COPY $a
+  %159:imag8 = COPY $x
+  %160:imag8 = COPY $rc2
+  %161:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %4:imag8
+  $rc5 = COPY %5:imag8
+  $rc6 = COPY %6:imag8
+  $rc7 = COPY %7:imag8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:imag8 = COPY $a
+  %147:imag8 = COPY $x
+  %148:imag8 = COPY $rc2
+  %149:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %49:cc = LDImm1 0
+  %130:ac, %131:cc, dead %185:vc = ADCImag8 %12:ac(tied-def 0), %4:imag8, %49:cc
+  %132:ac, %133:cc, dead %184:vc = ADCImag8 %13:ac(tied-def 0), %5:imag8, %131:cc
+  %134:ac, %135:cc, dead %183:vc = ADCImag8 %14:ac(tied-def 0), %6:imag8, %133:cc
+  %136:ac, dead %137:cc, dead %182:vc = ADCImag8 %15:ac(tied-def 0), %7:imag8, %135:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %130:ac
+  $x = COPY %132:ac
+  $rc2 = COPY %134:ac
+  $rc3 = COPY %136:ac
+  $rc4 = COPY %8:anyi8
+  $rc5 = COPY %9:anyi8
+  $rc6 = COPY %10:anyi8
+  $rc7 = COPY %11:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %118:ac = COPY $a
+  %119:ac = COPY $x
+  %120:ac = COPY $rc2
+  %121:ac = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %181:ac = COPY %158:imag8
+  %102:ac, %103:cc, dead %180:vc = ADCImag8 %181:ac(tied-def 0), %146:imag8, %49:cc
+  %179:ac = COPY %159:imag8
+  %104:ac, %105:cc, dead %178:vc = ADCImag8 %179:ac(tied-def 0), %147:imag8, %103:cc
+  %177:ac = COPY %160:imag8
+  %106:ac, %107:cc, dead %176:vc = ADCImag8 %177:ac(tied-def 0), %148:imag8, %105:cc
+  %175:ac = COPY %161:imag8
+  %108:ac, dead %109:cc, dead %174:vc = ADCImag8 %175:ac(tied-def 0), %149:imag8, %107:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %102:ac
+  $x = COPY %104:ac
+  $rc2 = COPY %106:ac
+  $rc3 = COPY %108:ac
+  $rc4 = COPY %118:ac
+  $rc5 = COPY %119:ac
+  $rc6 = COPY %120:ac
+  $rc7 = COPY %121:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:imag8 = COPY $a
+  %91:imag8 = COPY $x
+  %92:imag8 = COPY $rc2
+  %93:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %74:ac, %75:cc, dead %173:vc = ADCImag8 %118:ac(tied-def 0), %158:imag8, %49:cc
+  %76:ac, %77:cc, dead %172:vc = ADCImag8 %119:ac(tied-def 0), %159:imag8, %75:cc
+  %78:ac, %79:cc, dead %171:vc = ADCImag8 %120:ac(tied-def 0), %160:imag8, %77:cc
+  %80:ac, dead %81:cc, dead %170:vc = ADCImag8 %121:ac(tied-def 0), %161:imag8, %79:cc
+  %58:ac, %59:cc, dead %169:vc = ADCImag8 %74:ac(tied-def 0), %146:imag8, %49:cc
+  %60:ac, %61:cc, dead %168:vc = ADCImag8 %76:ac(tied-def 0), %147:imag8, %59:cc
+  %62:ac, %63:cc, dead %167:vc = ADCImag8 %78:ac(tied-def 0), %148:imag8, %61:cc
+  %64:ac, dead %65:cc, dead %166:vc = ADCImag8 %80:ac(tied-def 0), %149:imag8, %63:cc
+  %41:ac, %42:cc, dead %165:vc = ADCImag8 %58:ac(tied-def 0), %90:imag8, %49:cc
+  %43:ac, %44:cc, dead %164:vc = ADCImag8 %60:ac(tied-def 0), %91:imag8, %42:cc
+  %45:ac, %46:cc, dead %163:vc = ADCImag8 %62:ac(tied-def 0), %92:imag8, %44:cc
+  %47:ac, dead %48:cc, dead %162:vc = ADCImag8 %64:ac(tied-def 0), %93:imag8, %46:cc
+  $a = COPY %41:ac
+  $x = COPY %43:ac
+  $rc2 = COPY %45:ac
+  $rc3 = COPY %47:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Live Variable Analysis (livevars) on pressure_high ***
+# Machine code for function pressure_high: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:imag8 = COPY killed $a
+  %5:imag8 = COPY killed $x
+  %6:imag8 = COPY killed $rc2
+  %7:imag8 = COPY killed $rc3
+  %8:anyi8 = COPY killed $rc4
+  %9:anyi8 = COPY killed $rc5
+  %10:anyi8 = COPY killed $rc6
+  %11:anyi8 = COPY killed $rc7
+  %12:ac = COPY killed $rc8
+  %13:ac = COPY killed $rc9
+  %14:ac = COPY killed $rc10
+  %15:ac = COPY killed $rc11
+  %16:anyi8 = COPY killed $rc12
+  %17:anyi8 = COPY killed $rc13
+  %18:anyi8 = COPY killed $rc14
+  %19:anyi8 = COPY killed $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %12:ac
+  $rc5 = COPY %13:ac
+  $rc6 = COPY %14:ac
+  $rc7 = COPY %15:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %158:imag8 = COPY killed $a
+  %159:imag8 = COPY killed $x
+  %160:imag8 = COPY killed $rc2
+  %161:imag8 = COPY killed $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %16:anyi8
+  $x = COPY killed %17:anyi8
+  $rc2 = COPY killed %18:anyi8
+  $rc3 = COPY killed %19:anyi8
+  $rc4 = COPY %4:imag8
+  $rc5 = COPY %5:imag8
+  $rc6 = COPY %6:imag8
+  $rc7 = COPY %7:imag8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:imag8 = COPY killed $a
+  %147:imag8 = COPY killed $x
+  %148:imag8 = COPY killed $rc2
+  %149:imag8 = COPY killed $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %49:cc = LDImm1 0
+  %130:ac, %131:cc, dead %185:vc = ADCImag8 killed %12:ac(tied-def 0), killed %4:imag8, %49:cc
+  %132:ac, %133:cc, dead %184:vc = ADCImag8 killed %13:ac(tied-def 0), killed %5:imag8, killed %131:cc
+  %134:ac, %135:cc, dead %183:vc = ADCImag8 killed %14:ac(tied-def 0), killed %6:imag8, killed %133:cc
+  %136:ac, dead %137:cc, dead %182:vc = ADCImag8 killed %15:ac(tied-def 0), killed %7:imag8, killed %135:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %130:ac
+  $x = COPY killed %132:ac
+  $rc2 = COPY killed %134:ac
+  $rc3 = COPY killed %136:ac
+  $rc4 = COPY killed %8:anyi8
+  $rc5 = COPY killed %9:anyi8
+  $rc6 = COPY killed %10:anyi8
+  $rc7 = COPY killed %11:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %118:ac = COPY killed $a
+  %119:ac = COPY killed $x
+  %120:ac = COPY killed $rc2
+  %121:ac = COPY killed $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %181:ac = COPY %158:imag8
+  %102:ac, %103:cc, dead %180:vc = ADCImag8 killed %181:ac(tied-def 0), %146:imag8, %49:cc
+  %179:ac = COPY %159:imag8
+  %104:ac, %105:cc, dead %178:vc = ADCImag8 killed %179:ac(tied-def 0), %147:imag8, killed %103:cc
+  %177:ac = COPY %160:imag8
+  %106:ac, %107:cc, dead %176:vc = ADCImag8 killed %177:ac(tied-def 0), %148:imag8, killed %105:cc
+  %175:ac = COPY %161:imag8
+  %108:ac, dead %109:cc, dead %174:vc = ADCImag8 killed %175:ac(tied-def 0), %149:imag8, killed %107:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %102:ac
+  $x = COPY killed %104:ac
+  $rc2 = COPY killed %106:ac
+  $rc3 = COPY killed %108:ac
+  $rc4 = COPY %118:ac
+  $rc5 = COPY %119:ac
+  $rc6 = COPY %120:ac
+  $rc7 = COPY %121:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:imag8 = COPY killed $a
+  %91:imag8 = COPY killed $x
+  %92:imag8 = COPY killed $rc2
+  %93:imag8 = COPY killed $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %74:ac, %75:cc, dead %173:vc = ADCImag8 killed %118:ac(tied-def 0), killed %158:imag8, %49:cc
+  %76:ac, %77:cc, dead %172:vc = ADCImag8 killed %119:ac(tied-def 0), killed %159:imag8, killed %75:cc
+  %78:ac, %79:cc, dead %171:vc = ADCImag8 killed %120:ac(tied-def 0), killed %160:imag8, killed %77:cc
+  %80:ac, dead %81:cc, dead %170:vc = ADCImag8 killed %121:ac(tied-def 0), killed %161:imag8, killed %79:cc
+  %58:ac, %59:cc, dead %169:vc = ADCImag8 killed %74:ac(tied-def 0), killed %146:imag8, %49:cc
+  %60:ac, %61:cc, dead %168:vc = ADCImag8 killed %76:ac(tied-def 0), killed %147:imag8, killed %59:cc
+  %62:ac, %63:cc, dead %167:vc = ADCImag8 killed %78:ac(tied-def 0), killed %148:imag8, killed %61:cc
+  %64:ac, dead %65:cc, dead %166:vc = ADCImag8 killed %80:ac(tied-def 0), killed %149:imag8, killed %63:cc
+  %41:ac, %42:cc, dead %165:vc = ADCImag8 killed %58:ac(tied-def 0), killed %90:imag8, killed %49:cc
+  %43:ac, %44:cc, dead %164:vc = ADCImag8 killed %60:ac(tied-def 0), killed %91:imag8, killed %42:cc
+  %45:ac, %46:cc, dead %163:vc = ADCImag8 killed %62:ac(tied-def 0), killed %92:imag8, killed %44:cc
+  %47:ac, dead %48:cc, dead %162:vc = ADCImag8 killed %64:ac(tied-def 0), killed %93:imag8, killed %46:cc
+  $a = COPY killed %41:ac
+  $x = COPY killed %43:ac
+  $rc2 = COPY killed %45:ac
+  $rc3 = COPY killed %47:ac
+  RTS implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_high omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on pressure_high omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:imag8 = COPY killed $a
+  %5:imag8 = COPY killed $x
+  %6:imag8 = COPY killed $rc2
+  %7:imag8 = COPY killed $rc3
+  %8:anyi8 = COPY killed $rc4
+  %9:anyi8 = COPY killed $rc5
+  %10:anyi8 = COPY killed $rc6
+  %11:anyi8 = COPY killed $rc7
+  %12:ac = COPY killed $rc8
+  %13:ac = COPY killed $rc9
+  %14:ac = COPY killed $rc10
+  %15:ac = COPY killed $rc11
+  %16:anyi8 = COPY killed $rc12
+  %17:anyi8 = COPY killed $rc13
+  %18:anyi8 = COPY killed $rc14
+  %19:anyi8 = COPY killed $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %12:ac
+  $rc5 = COPY %13:ac
+  $rc6 = COPY %14:ac
+  $rc7 = COPY %15:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %158:imag8 = COPY killed $a
+  %159:imag8 = COPY killed $x
+  %160:imag8 = COPY killed $rc2
+  %161:imag8 = COPY killed $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %16:anyi8
+  $x = COPY killed %17:anyi8
+  $rc2 = COPY killed %18:anyi8
+  $rc3 = COPY killed %19:anyi8
+  $rc4 = COPY %4:imag8
+  $rc5 = COPY %5:imag8
+  $rc6 = COPY %6:imag8
+  $rc7 = COPY %7:imag8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:imag8 = COPY killed $a
+  %147:imag8 = COPY killed $x
+  %148:imag8 = COPY killed $rc2
+  %149:imag8 = COPY killed $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %49:cc = LDImm1 0
+  %130:ac, %131:cc, dead %185:vc = ADCImag8 killed %12:ac(tied-def 0), killed %4:imag8, %49:cc
+  %132:ac, %133:cc, dead %184:vc = ADCImag8 killed %13:ac(tied-def 0), killed %5:imag8, killed %131:cc
+  %134:ac, %135:cc, dead %183:vc = ADCImag8 killed %14:ac(tied-def 0), killed %6:imag8, killed %133:cc
+  %136:ac, dead %137:cc, dead %182:vc = ADCImag8 killed %15:ac(tied-def 0), killed %7:imag8, killed %135:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %130:ac
+  $x = COPY killed %132:ac
+  $rc2 = COPY killed %134:ac
+  $rc3 = COPY killed %136:ac
+  $rc4 = COPY killed %8:anyi8
+  $rc5 = COPY killed %9:anyi8
+  $rc6 = COPY killed %10:anyi8
+  $rc7 = COPY killed %11:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %118:ac = COPY killed $a
+  %119:ac = COPY killed $x
+  %120:ac = COPY killed $rc2
+  %121:ac = COPY killed $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %181:ac = COPY %158:imag8
+  %102:ac, %103:cc, dead %180:vc = ADCImag8 killed %181:ac(tied-def 0), %146:imag8, %49:cc
+  %179:ac = COPY %159:imag8
+  %104:ac, %105:cc, dead %178:vc = ADCImag8 killed %179:ac(tied-def 0), %147:imag8, killed %103:cc
+  %177:ac = COPY %160:imag8
+  %106:ac, %107:cc, dead %176:vc = ADCImag8 killed %177:ac(tied-def 0), %148:imag8, killed %105:cc
+  %175:ac = COPY %161:imag8
+  %108:ac, dead %109:cc, dead %174:vc = ADCImag8 killed %175:ac(tied-def 0), %149:imag8, killed %107:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %102:ac
+  $x = COPY killed %104:ac
+  $rc2 = COPY killed %106:ac
+  $rc3 = COPY killed %108:ac
+  $rc4 = COPY %118:ac
+  $rc5 = COPY %119:ac
+  $rc6 = COPY %120:ac
+  $rc7 = COPY %121:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:imag8 = COPY killed $a
+  %91:imag8 = COPY killed $x
+  %92:imag8 = COPY killed $rc2
+  %93:imag8 = COPY killed $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %74:ac, %75:cc, dead %173:vc = ADCImag8 killed %118:ac(tied-def 0), killed %158:imag8, %49:cc
+  %76:ac, %77:cc, dead %172:vc = ADCImag8 killed %119:ac(tied-def 0), killed %159:imag8, killed %75:cc
+  %78:ac, %79:cc, dead %171:vc = ADCImag8 killed %120:ac(tied-def 0), killed %160:imag8, killed %77:cc
+  %80:ac, dead %81:cc, dead %170:vc = ADCImag8 killed %121:ac(tied-def 0), killed %161:imag8, killed %79:cc
+  %58:ac, %59:cc, dead %169:vc = ADCImag8 killed %74:ac(tied-def 0), killed %146:imag8, %49:cc
+  %60:ac, %61:cc, dead %168:vc = ADCImag8 killed %76:ac(tied-def 0), killed %147:imag8, killed %59:cc
+  %62:ac, %63:cc, dead %167:vc = ADCImag8 killed %78:ac(tied-def 0), killed %148:imag8, killed %61:cc
+  %64:ac, dead %65:cc, dead %166:vc = ADCImag8 killed %80:ac(tied-def 0), killed %149:imag8, killed %63:cc
+  %41:ac, %42:cc, dead %165:vc = ADCImag8 killed %58:ac(tied-def 0), killed %90:imag8, killed %49:cc
+  %43:ac, %44:cc, dead %164:vc = ADCImag8 killed %60:ac(tied-def 0), killed %91:imag8, killed %42:cc
+  %45:ac, %46:cc, dead %163:vc = ADCImag8 killed %62:ac(tied-def 0), killed %92:imag8, killed %44:cc
+  %47:ac, dead %48:cc, dead %162:vc = ADCImag8 killed %64:ac(tied-def 0), killed %93:imag8, killed %46:cc
+  $a = COPY killed %41:ac
+  $x = COPY killed %43:ac
+  $rc2 = COPY killed %45:ac
+  $rc3 = COPY killed %47:ac
+  RTS implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:imag8 = COPY killed $a
+  %5:imag8 = COPY killed $x
+  %6:imag8 = COPY killed $rc2
+  %7:imag8 = COPY killed $rc3
+  %8:anyi8 = COPY killed $rc4
+  %9:anyi8 = COPY killed $rc5
+  %10:anyi8 = COPY killed $rc6
+  %11:anyi8 = COPY killed $rc7
+  %12:ac = COPY killed $rc8
+  %13:ac = COPY killed $rc9
+  %14:ac = COPY killed $rc10
+  %15:ac = COPY killed $rc11
+  %16:anyi8 = COPY killed $rc12
+  %17:anyi8 = COPY killed $rc13
+  %18:anyi8 = COPY killed $rc14
+  %19:anyi8 = COPY killed $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %12:ac
+  $rc5 = COPY %13:ac
+  $rc6 = COPY %14:ac
+  $rc7 = COPY %15:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %158:imag8 = COPY killed $a
+  %159:imag8 = COPY killed $x
+  %160:imag8 = COPY killed $rc2
+  %161:imag8 = COPY killed $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %16:anyi8
+  $x = COPY killed %17:anyi8
+  $rc2 = COPY killed %18:anyi8
+  $rc3 = COPY killed %19:anyi8
+  $rc4 = COPY %4:imag8
+  $rc5 = COPY %5:imag8
+  $rc6 = COPY %6:imag8
+  $rc7 = COPY %7:imag8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:imag8 = COPY killed $a
+  %147:imag8 = COPY killed $x
+  %148:imag8 = COPY killed $rc2
+  %149:imag8 = COPY killed $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %49:cc = LDImm1 0
+  %130:ac = COPY killed %12:ac
+  %130:ac, %131:cc, dead %185:vc = ADCImag8 %130:ac(tied-def 0), killed %4:imag8, %49:cc
+  %132:ac = COPY killed %13:ac
+  %132:ac, %133:cc, dead %184:vc = ADCImag8 %132:ac(tied-def 0), killed %5:imag8, killed %131:cc
+  %134:ac = COPY killed %14:ac
+  %134:ac, %135:cc, dead %183:vc = ADCImag8 %134:ac(tied-def 0), killed %6:imag8, killed %133:cc
+  %136:ac = COPY killed %15:ac
+  %136:ac, dead %137:cc, dead %182:vc = ADCImag8 %136:ac(tied-def 0), killed %7:imag8, killed %135:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %130:ac
+  $x = COPY killed %132:ac
+  $rc2 = COPY killed %134:ac
+  $rc3 = COPY killed %136:ac
+  $rc4 = COPY killed %8:anyi8
+  $rc5 = COPY killed %9:anyi8
+  $rc6 = COPY killed %10:anyi8
+  $rc7 = COPY killed %11:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %118:ac = COPY killed $a
+  %119:ac = COPY killed $x
+  %120:ac = COPY killed $rc2
+  %121:ac = COPY killed $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %181:ac = COPY %158:imag8
+  %102:ac = COPY killed %181:ac
+  %102:ac, %103:cc, dead %180:vc = ADCImag8 %102:ac(tied-def 0), %146:imag8, %49:cc
+  %179:ac = COPY %159:imag8
+  %104:ac = COPY killed %179:ac
+  %104:ac, %105:cc, dead %178:vc = ADCImag8 %104:ac(tied-def 0), %147:imag8, killed %103:cc
+  %177:ac = COPY %160:imag8
+  %106:ac = COPY killed %177:ac
+  %106:ac, %107:cc, dead %176:vc = ADCImag8 %106:ac(tied-def 0), %148:imag8, killed %105:cc
+  %175:ac = COPY %161:imag8
+  %108:ac = COPY killed %175:ac
+  %108:ac, dead %109:cc, dead %174:vc = ADCImag8 %108:ac(tied-def 0), %149:imag8, killed %107:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY killed %102:ac
+  $x = COPY killed %104:ac
+  $rc2 = COPY killed %106:ac
+  $rc3 = COPY killed %108:ac
+  $rc4 = COPY %118:ac
+  $rc5 = COPY %119:ac
+  $rc6 = COPY %120:ac
+  $rc7 = COPY %121:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:imag8 = COPY killed $a
+  %91:imag8 = COPY killed $x
+  %92:imag8 = COPY killed $rc2
+  %93:imag8 = COPY killed $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %74:ac = COPY killed %118:ac
+  %74:ac, %75:cc, dead %173:vc = ADCImag8 %74:ac(tied-def 0), killed %158:imag8, %49:cc
+  %76:ac = COPY killed %119:ac
+  %76:ac, %77:cc, dead %172:vc = ADCImag8 %76:ac(tied-def 0), killed %159:imag8, killed %75:cc
+  %78:ac = COPY killed %120:ac
+  %78:ac, %79:cc, dead %171:vc = ADCImag8 %78:ac(tied-def 0), killed %160:imag8, killed %77:cc
+  %80:ac = COPY killed %121:ac
+  %80:ac, dead %81:cc, dead %170:vc = ADCImag8 %80:ac(tied-def 0), killed %161:imag8, killed %79:cc
+  %58:ac = COPY killed %74:ac
+  %58:ac, %59:cc, dead %169:vc = ADCImag8 %58:ac(tied-def 0), killed %146:imag8, %49:cc
+  %60:ac = COPY killed %76:ac
+  %60:ac, %61:cc, dead %168:vc = ADCImag8 %60:ac(tied-def 0), killed %147:imag8, killed %59:cc
+  %62:ac = COPY killed %78:ac
+  %62:ac, %63:cc, dead %167:vc = ADCImag8 %62:ac(tied-def 0), killed %148:imag8, killed %61:cc
+  %64:ac = COPY killed %80:ac
+  %64:ac, dead %65:cc, dead %166:vc = ADCImag8 %64:ac(tied-def 0), killed %149:imag8, killed %63:cc
+  %41:ac = COPY killed %58:ac
+  %41:ac, %42:cc, dead %165:vc = ADCImag8 %41:ac(tied-def 0), killed %90:imag8, killed %49:cc
+  %43:ac = COPY killed %60:ac
+  %43:ac, %44:cc, dead %164:vc = ADCImag8 %43:ac(tied-def 0), killed %91:imag8, killed %42:cc
+  %45:ac = COPY killed %62:ac
+  %45:ac, %46:cc, dead %163:vc = ADCImag8 %45:ac(tied-def 0), killed %92:imag8, killed %44:cc
+  %47:ac = COPY killed %64:ac
+  %47:ac, dead %48:cc, dead %162:vc = ADCImag8 %47:ac(tied-def 0), killed %93:imag8, killed %46:cc
+  $a = COPY killed %41:ac
+  $x = COPY killed %43:ac
+  $rc2 = COPY killed %45:ac
+  $rc3 = COPY killed %47:ac
+  RTS implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Slot index numbering (slotindexes) on pressure_high omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %8:anyi8 = COPY $rc4
+  %9:anyi8 = COPY $rc5
+  %10:anyi8 = COPY $rc6
+  %11:anyi8 = COPY $rc7
+  %12:ac = COPY $rc8
+  %13:ac = COPY $rc9
+  %14:ac = COPY $rc10
+  %15:ac = COPY $rc11
+  %16:anyi8 = COPY $rc12
+  %17:anyi8 = COPY $rc13
+  %18:anyi8 = COPY $rc14
+  %19:anyi8 = COPY $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %12:ac
+  $rc5 = COPY %13:ac
+  $rc6 = COPY %14:ac
+  $rc7 = COPY %15:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %158:imag8 = COPY $a
+  %159:imag8 = COPY $x
+  %160:imag8 = COPY $rc2
+  %161:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %4:imag8
+  $rc5 = COPY %5:imag8
+  $rc6 = COPY %6:imag8
+  $rc7 = COPY %7:imag8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:imag8 = COPY $a
+  %147:imag8 = COPY $x
+  %148:imag8 = COPY $rc2
+  %149:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %49:cc = LDImm1 0
+  %130:ac = COPY %12:ac
+  %130:ac, %131:cc, dead %185:vc = ADCImag8 %130:ac(tied-def 0), %4:imag8, %49:cc
+  %132:ac = COPY %13:ac
+  %132:ac, %133:cc, dead %184:vc = ADCImag8 %132:ac(tied-def 0), %5:imag8, %131:cc
+  %134:ac = COPY %14:ac
+  %134:ac, %135:cc, dead %183:vc = ADCImag8 %134:ac(tied-def 0), %6:imag8, %133:cc
+  %136:ac = COPY %15:ac
+  %136:ac, dead %137:cc, dead %182:vc = ADCImag8 %136:ac(tied-def 0), %7:imag8, %135:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %130:ac
+  $x = COPY %132:ac
+  $rc2 = COPY %134:ac
+  $rc3 = COPY %136:ac
+  $rc4 = COPY %8:anyi8
+  $rc5 = COPY %9:anyi8
+  $rc6 = COPY %10:anyi8
+  $rc7 = COPY %11:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %118:ac = COPY $a
+  %119:ac = COPY $x
+  %120:ac = COPY $rc2
+  %121:ac = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %181:ac = COPY %158:imag8
+  %102:ac = COPY %181:ac
+  %102:ac, %103:cc, dead %180:vc = ADCImag8 %102:ac(tied-def 0), %146:imag8, %49:cc
+  %179:ac = COPY %159:imag8
+  %104:ac = COPY %179:ac
+  %104:ac, %105:cc, dead %178:vc = ADCImag8 %104:ac(tied-def 0), %147:imag8, %103:cc
+  %177:ac = COPY %160:imag8
+  %106:ac = COPY %177:ac
+  %106:ac, %107:cc, dead %176:vc = ADCImag8 %106:ac(tied-def 0), %148:imag8, %105:cc
+  %175:ac = COPY %161:imag8
+  %108:ac = COPY %175:ac
+  %108:ac, dead %109:cc, dead %174:vc = ADCImag8 %108:ac(tied-def 0), %149:imag8, %107:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %102:ac
+  $x = COPY %104:ac
+  $rc2 = COPY %106:ac
+  $rc3 = COPY %108:ac
+  $rc4 = COPY %118:ac
+  $rc5 = COPY %119:ac
+  $rc6 = COPY %120:ac
+  $rc7 = COPY %121:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:imag8 = COPY $a
+  %91:imag8 = COPY $x
+  %92:imag8 = COPY $rc2
+  %93:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %74:ac = COPY %118:ac
+  %74:ac, %75:cc, dead %173:vc = ADCImag8 %74:ac(tied-def 0), %158:imag8, %49:cc
+  %76:ac = COPY %119:ac
+  %76:ac, %77:cc, dead %172:vc = ADCImag8 %76:ac(tied-def 0), %159:imag8, %75:cc
+  %78:ac = COPY %120:ac
+  %78:ac, %79:cc, dead %171:vc = ADCImag8 %78:ac(tied-def 0), %160:imag8, %77:cc
+  %80:ac = COPY %121:ac
+  %80:ac, dead %81:cc, dead %170:vc = ADCImag8 %80:ac(tied-def 0), %161:imag8, %79:cc
+  %58:ac = COPY %74:ac
+  %58:ac, %59:cc, dead %169:vc = ADCImag8 %58:ac(tied-def 0), %146:imag8, %49:cc
+  %60:ac = COPY %76:ac
+  %60:ac, %61:cc, dead %168:vc = ADCImag8 %60:ac(tied-def 0), %147:imag8, %59:cc
+  %62:ac = COPY %78:ac
+  %62:ac, %63:cc, dead %167:vc = ADCImag8 %62:ac(tied-def 0), %148:imag8, %61:cc
+  %64:ac = COPY %80:ac
+  %64:ac, dead %65:cc, dead %166:vc = ADCImag8 %64:ac(tied-def 0), %149:imag8, %63:cc
+  %41:ac = COPY %58:ac
+  %41:ac, %42:cc, dead %165:vc = ADCImag8 %41:ac(tied-def 0), %90:imag8, %49:cc
+  %43:ac = COPY %60:ac
+  %43:ac, %44:cc, dead %164:vc = ADCImag8 %43:ac(tied-def 0), %91:imag8, %42:cc
+  %45:ac = COPY %62:ac
+  %45:ac, %46:cc, dead %163:vc = ADCImag8 %45:ac(tied-def 0), %92:imag8, %44:cc
+  %47:ac = COPY %64:ac
+  %47:ac, dead %48:cc, dead %162:vc = ADCImag8 %47:ac(tied-def 0), %93:imag8, %46:cc
+  $a = COPY %41:ac
+  $x = COPY %43:ac
+  $rc2 = COPY %45:ac
+  $rc3 = COPY %47:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Register Coalescer (register-coalescer) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %8:anyi8 = COPY $rc4
+  %9:anyi8 = COPY $rc5
+  %10:anyi8 = COPY $rc6
+  %11:anyi8 = COPY $rc7
+  %130:ac = COPY $rc8
+  %132:ac = COPY $rc9
+  %134:ac = COPY $rc10
+  %136:ac = COPY $rc11
+  %16:anyi8 = COPY $rc12
+  %17:anyi8 = COPY $rc13
+  %18:anyi8 = COPY $rc14
+  %19:anyi8 = COPY $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %130:ac
+  $rc5 = COPY %132:ac
+  $rc6 = COPY %134:ac
+  $rc7 = COPY %136:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %158:imag8 = COPY $a
+  %159:imag8 = COPY $x
+  %160:imag8 = COPY $rc2
+  %161:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %16:anyi8
+  $x = COPY %17:anyi8
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %4:imag8
+  $rc5 = COPY %5:imag8
+  $rc6 = COPY %6:imag8
+  $rc7 = COPY %7:imag8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:imag8 = COPY $a
+  %147:imag8 = COPY $x
+  %148:imag8 = COPY $rc2
+  %149:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %49:cc = LDImm1 0
+  %130:ac, %131:cc, dead %185:vc = ADCImag8 %130:ac(tied-def 0), %4:imag8, %49:cc
+  %132:ac, %133:cc, dead %184:vc = ADCImag8 %132:ac(tied-def 0), %5:imag8, %131:cc
+  %134:ac, %135:cc, dead %183:vc = ADCImag8 %134:ac(tied-def 0), %6:imag8, %133:cc
+  %136:ac, dead %137:cc, dead %182:vc = ADCImag8 %136:ac(tied-def 0), %7:imag8, %135:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %130:ac
+  $x = COPY %132:ac
+  $rc2 = COPY %134:ac
+  $rc3 = COPY %136:ac
+  $rc4 = COPY %8:anyi8
+  $rc5 = COPY %9:anyi8
+  $rc6 = COPY %10:anyi8
+  $rc7 = COPY %11:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %58:ac = COPY $a
+  %60:ac = COPY $x
+  %62:ac = COPY $rc2
+  %64:ac = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %102:ac = COPY %158:imag8
+  %102:ac, %103:cc, dead %180:vc = ADCImag8 %102:ac(tied-def 0), %146:imag8, %49:cc
+  %104:ac = COPY %159:imag8
+  %104:ac, %105:cc, dead %178:vc = ADCImag8 %104:ac(tied-def 0), %147:imag8, %103:cc
+  %106:ac = COPY %160:imag8
+  %106:ac, %107:cc, dead %176:vc = ADCImag8 %106:ac(tied-def 0), %148:imag8, %105:cc
+  %108:ac = COPY %161:imag8
+  %108:ac, dead %109:cc, dead %174:vc = ADCImag8 %108:ac(tied-def 0), %149:imag8, %107:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $a = COPY %102:ac
+  $x = COPY %104:ac
+  $rc2 = COPY %106:ac
+  $rc3 = COPY %108:ac
+  $rc4 = COPY %58:ac
+  $rc5 = COPY %60:ac
+  $rc6 = COPY %62:ac
+  $rc7 = COPY %64:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:imag8 = COPY $a
+  %91:imag8 = COPY $x
+  %92:imag8 = COPY $rc2
+  %93:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %58:ac, %75:cc, dead %173:vc = ADCImag8 %58:ac(tied-def 0), %158:imag8, %49:cc
+  %60:ac, %77:cc, dead %172:vc = ADCImag8 %60:ac(tied-def 0), %159:imag8, %75:cc
+  %62:ac, %79:cc, dead %171:vc = ADCImag8 %62:ac(tied-def 0), %160:imag8, %77:cc
+  %64:ac, dead %81:cc, dead %170:vc = ADCImag8 %64:ac(tied-def 0), %161:imag8, %79:cc
+  %58:ac, %59:cc, dead %169:vc = ADCImag8 %58:ac(tied-def 0), %146:imag8, %49:cc
+  %60:ac, %61:cc, dead %168:vc = ADCImag8 %60:ac(tied-def 0), %147:imag8, %59:cc
+  %62:ac, %63:cc, dead %167:vc = ADCImag8 %62:ac(tied-def 0), %148:imag8, %61:cc
+  %64:ac, dead %65:cc, dead %166:vc = ADCImag8 %64:ac(tied-def 0), %149:imag8, %63:cc
+  %58:ac, %42:cc, dead %165:vc = ADCImag8 %58:ac(tied-def 0), %90:imag8, %49:cc
+  %60:ac, %44:cc, dead %164:vc = ADCImag8 %60:ac(tied-def 0), %91:imag8, %42:cc
+  %62:ac, %46:cc, dead %163:vc = ADCImag8 %62:ac(tied-def 0), %92:imag8, %44:cc
+  %64:ac, dead %48:cc, dead %162:vc = ADCImag8 %64:ac(tied-def 0), %93:imag8, %46:cc
+  $a = COPY %58:ac
+  $x = COPY %60:ac
+  $rc2 = COPY %62:ac
+  $rc3 = COPY %64:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Register Coalescer (register-coalescer) on pressure_high omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on pressure_high omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on pressure_high omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %8:anyi8 = COPY $rc4
+  %9:anyi8 = COPY $rc5
+  %10:anyi8 = COPY $rc6
+  %11:anyi8 = COPY $rc7
+  %130:ac = COPY $rc8
+  %132:ac = COPY $rc9
+  %134:ac = COPY $rc10
+  %136:ac = COPY $rc11
+  %16:anyi8 = COPY $rc12
+  %17:anyi8 = COPY $rc13
+  %18:anyi8 = COPY $rc14
+  %19:anyi8 = COPY $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %130:ac
+  $rc5 = COPY %132:ac
+  $rc6 = COPY %134:ac
+  $rc7 = COPY %136:ac
+  $x = COPY %17:anyi8
+  $a = COPY %16:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %158:imag8 = COPY $a
+  %159:imag8 = COPY $x
+  %160:imag8 = COPY $rc2
+  %161:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %4:imag8
+  $rc5 = COPY %5:imag8
+  $rc6 = COPY %6:imag8
+  $rc7 = COPY %7:imag8
+  $x = COPY %17:anyi8
+  $a = COPY %16:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:imag8 = COPY $a
+  %147:imag8 = COPY $x
+  %148:imag8 = COPY $rc2
+  %149:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %49:cc = LDImm1 0
+  %130:ac, %131:cc, dead %185:vc = ADCImag8 %130:ac(tied-def 0), %4:imag8, %49:cc
+  %132:ac, %133:cc, dead %184:vc = ADCImag8 %132:ac(tied-def 0), %5:imag8, %131:cc
+  %134:ac, %135:cc, dead %183:vc = ADCImag8 %134:ac(tied-def 0), %6:imag8, %133:cc
+  %136:ac, dead %137:cc, dead %182:vc = ADCImag8 %136:ac(tied-def 0), %7:imag8, %135:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %134:ac
+  $rc3 = COPY %136:ac
+  $rc4 = COPY %8:anyi8
+  $rc5 = COPY %9:anyi8
+  $rc6 = COPY %10:anyi8
+  $rc7 = COPY %11:anyi8
+  $x = COPY %132:ac
+  $a = COPY %130:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %58:ac = COPY $a
+  %60:ac = COPY $x
+  %62:ac = COPY $rc2
+  %64:ac = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %102:ac = COPY %158:imag8
+  %102:ac, %103:cc, dead %180:vc = ADCImag8 %102:ac(tied-def 0), %146:imag8, %49:cc
+  %104:ac = COPY %159:imag8
+  %104:ac, %105:cc, dead %178:vc = ADCImag8 %104:ac(tied-def 0), %147:imag8, %103:cc
+  %106:ac = COPY %160:imag8
+  %106:ac, %107:cc, dead %176:vc = ADCImag8 %106:ac(tied-def 0), %148:imag8, %105:cc
+  %108:ac = COPY %161:imag8
+  %108:ac, dead %109:cc, dead %174:vc = ADCImag8 %108:ac(tied-def 0), %149:imag8, %107:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %106:ac
+  $rc3 = COPY %108:ac
+  $rc4 = COPY %58:ac
+  $rc5 = COPY %60:ac
+  $rc6 = COPY %62:ac
+  $rc7 = COPY %64:ac
+  $x = COPY %104:ac
+  $a = COPY %102:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:imag8 = COPY $a
+  %91:imag8 = COPY $x
+  %92:imag8 = COPY $rc2
+  %93:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %58:ac, %75:cc, dead %173:vc = ADCImag8 %58:ac(tied-def 0), %158:imag8, %49:cc
+  %60:ac, %77:cc, dead %172:vc = ADCImag8 %60:ac(tied-def 0), %159:imag8, %75:cc
+  %62:ac, %79:cc, dead %171:vc = ADCImag8 %62:ac(tied-def 0), %160:imag8, %77:cc
+  %64:ac, dead %81:cc, dead %170:vc = ADCImag8 %64:ac(tied-def 0), %161:imag8, %79:cc
+  %58:ac, %59:cc, dead %169:vc = ADCImag8 %58:ac(tied-def 0), %146:imag8, %49:cc
+  %60:ac, %61:cc, dead %168:vc = ADCImag8 %60:ac(tied-def 0), %147:imag8, %59:cc
+  %62:ac, %63:cc, dead %167:vc = ADCImag8 %62:ac(tied-def 0), %148:imag8, %61:cc
+  %64:ac, dead %65:cc, dead %166:vc = ADCImag8 %64:ac(tied-def 0), %149:imag8, %63:cc
+  %58:ac, %42:cc, dead %165:vc = ADCImag8 %58:ac(tied-def 0), %90:imag8, %49:cc
+  %60:ac, %44:cc, dead %164:vc = ADCImag8 %60:ac(tied-def 0), %91:imag8, %42:cc
+  %62:ac, %46:cc, dead %163:vc = ADCImag8 %62:ac(tied-def 0), %92:imag8, %44:cc
+  %64:ac, dead %48:cc, dead %162:vc = ADCImag8 %64:ac(tied-def 0), %93:imag8, %46:cc
+  $rc2 = COPY %62:ac
+  $rc3 = COPY %64:ac
+  $x = COPY %60:ac
+  $a = COPY %58:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %8:anyi8 = COPY $rc4
+  %9:anyi8 = COPY $rc5
+  %10:anyi8 = COPY $rc6
+  %11:anyi8 = COPY $rc7
+  %130:ac = COPY $rc8
+  %132:ac = COPY $rc9
+  %134:ac = COPY $rc10
+  %136:ac = COPY $rc11
+  %16:anyi8 = COPY $rc12
+  %17:anyi8 = COPY $rc13
+  %18:anyi8 = COPY $rc14
+  %19:anyi8 = COPY $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %130:ac
+  $rc5 = COPY %132:ac
+  $rc6 = COPY %134:ac
+  $rc7 = COPY %136:ac
+  $x = COPY %17:anyi8
+  $a = COPY %16:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %158:imag8 = COPY $a
+  %159:imag8 = COPY $x
+  %160:imag8 = COPY $rc2
+  %161:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %4:imag8
+  $rc5 = COPY %5:imag8
+  $rc6 = COPY %6:imag8
+  $rc7 = COPY %7:imag8
+  $x = COPY %17:anyi8
+  $a = COPY %16:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:imag8 = COPY $a
+  %147:imag8 = COPY $x
+  %148:imag8 = COPY $rc2
+  %149:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %49:cc = LDImm1 0
+  %130:ac, %131:cc, dead %185:vc = ADCImag8 %130:ac(tied-def 0), %4:imag8, %49:cc
+  %132:ac, %133:cc, dead %184:vc = ADCImag8 %132:ac(tied-def 0), %5:imag8, %131:cc
+  %134:ac, %135:cc, dead %183:vc = ADCImag8 %134:ac(tied-def 0), %6:imag8, %133:cc
+  %136:ac, dead %137:cc, dead %182:vc = ADCImag8 %136:ac(tied-def 0), %7:imag8, %135:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %134:ac
+  $rc3 = COPY %136:ac
+  $rc4 = COPY %8:anyi8
+  $rc5 = COPY %9:anyi8
+  $rc6 = COPY %10:anyi8
+  $rc7 = COPY %11:anyi8
+  $x = COPY %132:ac
+  $a = COPY %130:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %58:ac = COPY $a
+  %60:ac = COPY $x
+  %62:ac = COPY $rc2
+  %64:ac = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %102:ac = COPY %158:imag8
+  %102:ac, %103:cc, dead %180:vc = ADCImag8 %102:ac(tied-def 0), %146:imag8, %49:cc
+  %104:ac = COPY %159:imag8
+  %104:ac, %105:cc, dead %178:vc = ADCImag8 %104:ac(tied-def 0), %147:imag8, %103:cc
+  %106:ac = COPY %160:imag8
+  %106:ac, %107:cc, dead %176:vc = ADCImag8 %106:ac(tied-def 0), %148:imag8, %105:cc
+  %108:ac = COPY %161:imag8
+  %108:ac, dead %109:cc, dead %174:vc = ADCImag8 %108:ac(tied-def 0), %149:imag8, %107:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %106:ac
+  $rc3 = COPY %108:ac
+  $rc4 = COPY %58:ac
+  $rc5 = COPY %60:ac
+  $rc6 = COPY %62:ac
+  $rc7 = COPY %64:ac
+  $x = COPY %104:ac
+  $a = COPY %102:ac
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:imag8 = COPY $a
+  %91:imag8 = COPY $x
+  %92:imag8 = COPY $rc2
+  %93:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %58:ac, %75:cc, dead %173:vc = ADCImag8 %58:ac(tied-def 0), %158:imag8, %49:cc
+  %60:ac, %77:cc, dead %172:vc = ADCImag8 %60:ac(tied-def 0), %159:imag8, %75:cc
+  %62:ac, %79:cc, dead %171:vc = ADCImag8 %62:ac(tied-def 0), %160:imag8, %77:cc
+  %64:ac, dead %81:cc, dead %170:vc = ADCImag8 %64:ac(tied-def 0), %161:imag8, %79:cc
+  %58:ac, %59:cc, dead %169:vc = ADCImag8 %58:ac(tied-def 0), %146:imag8, %49:cc
+  %60:ac, %61:cc, dead %168:vc = ADCImag8 %60:ac(tied-def 0), %147:imag8, %59:cc
+  %62:ac, %63:cc, dead %167:vc = ADCImag8 %62:ac(tied-def 0), %148:imag8, %61:cc
+  %64:ac, dead %65:cc, dead %166:vc = ADCImag8 %64:ac(tied-def 0), %149:imag8, %63:cc
+  %58:ac, %42:cc, dead %165:vc = ADCImag8 %58:ac(tied-def 0), %90:imag8, %49:cc
+  %60:ac, %44:cc, dead %164:vc = ADCImag8 %60:ac(tied-def 0), %91:imag8, %42:cc
+  %62:ac, %46:cc, dead %163:vc = ADCImag8 %62:ac(tied-def 0), %92:imag8, %44:cc
+  %64:ac, dead %48:cc, dead %162:vc = ADCImag8 %64:ac(tied-def 0), %93:imag8, %46:cc
+  $rc2 = COPY %62:ac
+  $rc3 = COPY %64:ac
+  $x = COPY %60:ac
+  $a = COPY %58:ac
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on pressure_high omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on pressure_high omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on pressure_high omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on pressure_high omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on pressure_high omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on pressure_high omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on pressure_high omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: size=1, align=1, at location [SP]
+  fi#1: size=1, align=1, at location [SP]
+  fi#2: size=1, align=1, at location [SP]
+  fi#3: size=1, align=1, at location [SP]
+  fi#4: size=1, align=1, at location [SP]
+  fi#5: size=1, align=1, at location [SP]
+  fi#6: size=1, align=1, at location [SP]
+  fi#7: size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %201:anyi8 = COPY $rc4
+  %202:gpr = COPY %201:anyi8
+  STAbs %202:gpr, %stack.0 :: (store (s8) into %stack.0)
+  %205:anyi8 = COPY $rc5
+  %206:gpr = COPY %205:anyi8
+  STAbs %206:gpr, %stack.1 :: (store (s8) into %stack.1)
+  %209:anyi8 = COPY $rc6
+  %210:gpr = COPY %209:anyi8
+  STAbs %210:gpr, %stack.2 :: (store (s8) into %stack.2)
+  %213:anyi8 = COPY $rc7
+  %214:gpr = COPY %213:anyi8
+  STAbs %214:gpr, %stack.3 :: (store (s8) into %stack.3)
+  %200:anyi8 = COPY $rc8
+  %218:anyi8 = COPY $rc9
+  %233:anyi8 = COPY $rc10
+  %242:anyi8 = COPY $rc11
+  %16:anyi8 = COPY $rc12
+  %17:anyi8 = COPY $rc13
+  %18:anyi8 = COPY $rc14
+  %19:anyi8 = COPY $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %200:anyi8
+  %248:anyi8 = COPY %200:anyi8
+  $rc5 = COPY %218:anyi8
+  %257:anyi8 = COPY %218:anyi8
+  $rc6 = COPY %233:anyi8
+  $rc7 = COPY %242:anyi8
+  %266:anyi8 = COPY %242:anyi8
+  $x = COPY %17:anyi8
+  $a = COPY %16:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %271:anyi8 = COPY $a
+  %272:gpr = COPY %271:anyi8
+  STAbs %272:gpr, %stack.7 :: (store (s8) into %stack.7)
+  %262:anyi8 = COPY $x
+  %263:gpr = COPY %262:anyi8
+  STAbs %263:gpr, %stack.6 :: (store (s8) into %stack.6)
+  %253:anyi8 = COPY $rc2
+  %254:gpr = COPY %253:anyi8
+  STAbs %254:gpr, %stack.5 :: (store (s8) into %stack.5)
+  %237:anyi8 = COPY $rc3
+  %238:gpr = COPY %237:anyi8
+  STAbs %238:gpr, %stack.4 :: (store (s8) into %stack.4)
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %18:anyi8
+  $rc3 = COPY %19:anyi8
+  $rc4 = COPY %4:imag8
+  $rc5 = COPY %5:imag8
+  $rc6 = COPY %6:imag8
+  $rc7 = COPY %7:imag8
+  $x = COPY %17:anyi8
+  $a = COPY %16:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %146:imag8 = COPY $a
+  %147:imag8 = COPY $x
+  %148:imag8 = COPY $rc2
+  %149:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %188:cc = LDImm1 0
+  %249:ac = COPY %248:anyi8
+  %249:ac, %131:cc, dead %185:vc = ADCImag8 %249:ac(tied-def 0), %4:imag8, %188:cc
+  %250:anyi8 = COPY %249:ac
+  %258:ac = COPY %257:anyi8
+  %258:ac, %133:cc, dead %184:vc = ADCImag8 %258:ac(tied-def 0), %5:imag8, %131:cc
+  %259:anyi8 = COPY %258:ac
+  %291:ac = COPY %233:anyi8
+  %291:ac, %135:cc, dead %183:vc = ADCImag8 %291:ac(tied-def 0), %6:imag8, %133:cc
+  %290:anyi8 = COPY %291:ac
+  %267:ac = COPY %266:anyi8
+  %267:ac, dead %137:cc, dead %182:vc = ADCImag8 %267:ac(tied-def 0), %7:imag8, %135:cc
+  %268:anyi8 = COPY %267:ac
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %290:anyi8
+  $rc3 = COPY %268:anyi8
+  %204:gpr = LDAbs %stack.0 :: (load (s8) from %stack.0)
+  %203:anyi8 = COPY %204:gpr
+  $rc4 = COPY %203:anyi8
+  %208:gpr = LDAbs %stack.1 :: (load (s8) from %stack.1)
+  %207:anyi8 = COPY %208:gpr
+  $rc5 = COPY %207:anyi8
+  %212:gpr = LDAbs %stack.2 :: (load (s8) from %stack.2)
+  %211:anyi8 = COPY %212:gpr
+  $rc6 = COPY %211:anyi8
+  %216:gpr = LDAbs %stack.3 :: (load (s8) from %stack.3)
+  %215:anyi8 = COPY %216:gpr
+  $rc7 = COPY %215:anyi8
+  $x = COPY %259:anyi8
+  $a = COPY %250:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %194:anyi8 = COPY $a
+  %243:anyi8 = COPY $x
+  %219:anyi8 = COPY $rc2
+  %228:anyi8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %274:gpr = LDAbs %stack.7 :: (load (s8) from %stack.7)
+  %273:anyi8 = COPY %274:gpr
+  %270:imag8 = COPY %273:anyi8
+  %276:ac = COPY %270:imag8
+  %189:cc = LDImm1 0
+  %276:ac, %103:cc, dead %180:vc = ADCImag8 %276:ac(tied-def 0), %146:imag8, %189:cc
+  %275:anyi8 = COPY %276:ac
+  %265:gpr = LDAbs %stack.6 :: (load (s8) from %stack.6)
+  %264:anyi8 = COPY %265:gpr
+  %261:imag8 = COPY %264:anyi8
+  %278:ac = COPY %261:imag8
+  %278:ac, %105:cc, dead %178:vc = ADCImag8 %278:ac(tied-def 0), %147:imag8, %103:cc
+  %277:anyi8 = COPY %278:ac
+  %256:gpr = LDAbs %stack.5 :: (load (s8) from %stack.5)
+  %255:anyi8 = COPY %256:gpr
+  %252:imag8 = COPY %255:anyi8
+  %289:ac = COPY %252:imag8
+  %289:ac, %107:cc, dead %176:vc = ADCImag8 %289:ac(tied-def 0), %148:imag8, %105:cc
+  %288:anyi8 = COPY %289:ac
+  %240:gpr = LDAbs %stack.4 :: (load (s8) from %stack.4)
+  %239:anyi8 = COPY %240:gpr
+  %236:imag8 = COPY %239:anyi8
+  %108:ac = COPY %236:imag8
+  %108:ac, dead %109:cc, dead %174:vc = ADCImag8 %108:ac(tied-def 0), %149:imag8, %107:cc
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY %288:anyi8
+  $rc3 = COPY %108:ac
+  $rc4 = COPY %194:anyi8
+  $rc5 = COPY %243:anyi8
+  $rc6 = COPY %219:anyi8
+  $rc7 = COPY %228:anyi8
+  $x = COPY %277:anyi8
+  $a = COPY %275:anyi8
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  %90:imag8 = COPY $a
+  %91:imag8 = COPY $x
+  %92:imag8 = COPY $rc2
+  %93:imag8 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  %190:cc = LDImm1 0
+  %282:ac = COPY %194:anyi8
+  %282:ac, %75:cc, dead %173:vc = ADCImag8 %282:ac(tied-def 0), %270:imag8, %190:cc
+  %283:anyi8 = COPY %282:ac
+  %244:ac = COPY %243:anyi8
+  %244:ac, %77:cc, dead %172:vc = ADCImag8 %244:ac(tied-def 0), %261:imag8, %75:cc
+  %246:anyi8 = COPY %244:ac
+  %220:ac = COPY %219:anyi8
+  %220:ac, %79:cc, dead %171:vc = ADCImag8 %220:ac(tied-def 0), %252:imag8, %77:cc
+  %223:anyi8 = COPY %220:ac
+  %229:ac = COPY %228:anyi8
+  %229:ac, dead %81:cc, dead %170:vc = ADCImag8 %229:ac(tied-def 0), %236:imag8, %79:cc
+  %231:anyi8 = COPY %229:ac
+  %191:cc = LDImm1 0
+  %284:ac = COPY %283:anyi8
+  %284:ac, %59:cc, dead %169:vc = ADCImag8 %284:ac(tied-def 0), %146:imag8, %191:cc
+  %285:anyi8 = COPY %284:ac
+  %245:ac = COPY %246:anyi8
+  %245:ac, %61:cc, dead %168:vc = ADCImag8 %245:ac(tied-def 0), %147:imag8, %59:cc
+  %247:anyi8 = COPY %245:ac
+  %221:ac = COPY %223:anyi8
+  %221:ac, %63:cc, dead %167:vc = ADCImag8 %221:ac(tied-def 0), %148:imag8, %61:cc
+  %224:anyi8 = COPY %221:ac
+  %230:ac = COPY %231:anyi8
+  %230:ac, dead %65:cc, dead %166:vc = ADCImag8 %230:ac(tied-def 0), %149:imag8, %63:cc
+  %232:anyi8 = COPY %230:ac
+  %192:cc = LDImm1 0
+  %280:ac = COPY %285:anyi8
+  %280:ac, %42:cc, dead %165:vc = ADCImag8 %280:ac(tied-def 0), %90:imag8, %192:cc
+  %196:anyi8 = COPY %280:ac
+  %287:ac = COPY %247:anyi8
+  %287:ac, %44:cc, dead %164:vc = ADCImag8 %287:ac(tied-def 0), %91:imag8, %42:cc
+  %286:anyi8 = COPY %287:ac
+  %222:ac = COPY %224:anyi8
+  %222:ac, %46:cc, dead %163:vc = ADCImag8 %222:ac(tied-def 0), %92:imag8, %44:cc
+  %225:anyi8 = COPY %222:ac
+  %227:ac = COPY %232:anyi8
+  %227:ac, dead %48:cc, dead %162:vc = ADCImag8 %227:ac(tied-def 0), %93:imag8, %46:cc
+  $rc2 = COPY %225:anyi8
+  $rc3 = COPY %227:ac
+  $x = COPY %286:anyi8
+  $a = COPY %196:anyi8
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: size=1, align=1, at location [SP]
+  fi#1: size=1, align=1, at location [SP]
+  fi#2: size=1, align=1, at location [SP]
+  fi#3: size=1, align=1, at location [SP]
+  fi#4: size=1, align=1, at location [SP]
+  fi#5: size=1, align=1, at location [SP]
+  fi#6: size=1, align=1, at location [SP]
+  fi#7: size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  renamable $rc24 = COPY $a
+  renamable $rc25 = COPY $x
+  renamable $rc26 = COPY $rc2
+  renamable $rc27 = COPY $rc3
+  renamable $x = COPY killed renamable $rc4
+  STAbs killed renamable $x, %stack.0 :: (store (s8) into %stack.0)
+  renamable $x = COPY killed renamable $rc5
+  STAbs killed renamable $x, %stack.1 :: (store (s8) into %stack.1)
+  renamable $x = COPY killed renamable $rc6
+  STAbs killed renamable $x, %stack.2 :: (store (s8) into %stack.2)
+  renamable $x = COPY killed renamable $rc7
+  STAbs killed renamable $x, %stack.3 :: (store (s8) into %stack.3)
+  renamable $rc21 = COPY $rc8
+  renamable $rc30 = COPY $rc9
+  renamable $rc20 = COPY $rc10
+  renamable $rc31 = COPY $rc11
+  renamable $rc22 = COPY $rc12
+  renamable $rc23 = COPY $rc13
+  renamable $rc28 = COPY $rc14
+  renamable $rc29 = COPY $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY renamable $rc28
+  $rc3 = COPY renamable $rc29
+  $rc4 = COPY renamable $rc21
+  $rc5 = COPY renamable $rc30
+  $rc6 = COPY renamable $rc20
+  $rc7 = COPY renamable $rc31
+  $x = COPY renamable $rc23
+  $a = COPY renamable $rc22
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  STAbs killed renamable $a, %stack.7 :: (store (s8) into %stack.7)
+  STAbs killed renamable $x, %stack.6 :: (store (s8) into %stack.6)
+  renamable $x = COPY killed renamable $rc2
+  STAbs killed renamable $x, %stack.5 :: (store (s8) into %stack.5)
+  renamable $x = COPY killed renamable $rc3
+  STAbs killed renamable $x, %stack.4 :: (store (s8) into %stack.4)
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY killed renamable $rc28
+  $rc3 = COPY killed renamable $rc29
+  $rc4 = COPY renamable $rc24
+  $rc5 = COPY renamable $rc25
+  $rc6 = COPY renamable $rc26
+  $rc7 = COPY renamable $rc27
+  $x = COPY killed renamable $rc23
+  $a = COPY killed renamable $rc22
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  renamable $rc29 = COPY $a
+  renamable $rc28 = COPY $x
+  renamable $rc23 = COPY $rc2
+  renamable $rc22 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc21
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc24, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc30
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc25, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc20
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc26, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc31
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc27, killed renamable $c
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc3 = COPY killed renamable $a
+  renamable $x = LDAbs %stack.0 :: (load (s8) from %stack.0)
+  renamable $rc4 = COPY killed renamable $x
+  renamable $x = LDAbs %stack.1 :: (load (s8) from %stack.1)
+  renamable $rc5 = COPY killed renamable $x
+  renamable $x = LDAbs %stack.2 :: (load (s8) from %stack.2)
+  renamable $rc6 = COPY killed renamable $x
+  renamable $x = LDAbs %stack.3 :: (load (s8) from %stack.3)
+  renamable $rc7 = COPY killed renamable $x
+  $x = COPY killed renamable $rc8
+  $a = COPY killed renamable $y
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  renamable $rc24 = COPY $a
+  renamable $rc27 = COPY $x
+  renamable $rc25 = COPY $rc2
+  renamable $rc26 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  renamable $x = LDAbs %stack.7 :: (load (s8) from %stack.7)
+  renamable $rc31 = COPY killed renamable $x
+  renamable $a = COPY renamable $rc31
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc29, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $x = LDAbs %stack.6 :: (load (s8) from %stack.6)
+  renamable $rc30 = COPY killed renamable $x
+  renamable $a = COPY renamable $rc30
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc28, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $x = LDAbs %stack.5 :: (load (s8) from %stack.5)
+  renamable $rc21 = COPY killed renamable $x
+  renamable $a = COPY renamable $rc21
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc23, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $x = LDAbs %stack.4 :: (load (s8) from %stack.4)
+  renamable $rc20 = COPY killed renamable $x
+  renamable $a = COPY renamable $rc20
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc22, killed renamable $c
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc3 = COPY killed renamable $a
+  $rc4 = COPY renamable $rc24
+  $rc5 = COPY renamable $rc27
+  $rc6 = COPY renamable $rc25
+  $rc7 = COPY renamable $rc26
+  $x = COPY killed renamable $rc8
+  $a = COPY killed renamable $y
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  renamable $rc4 = COPY $a
+  renamable $rc5 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc24
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc31, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc27
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc30, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc25
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc21, killed renamable $c
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc26
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc20, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc29, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc8
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc28, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc23, killed renamable $c
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc7
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc22, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $y
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc4, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc8
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc5, killed renamable $c
+  renamable $rc4 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc3 = COPY killed renamable $a
+  $x = COPY killed renamable $rc4
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on pressure_high omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on pressure_high omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: size=1, align=1, at location [SP]
+  fi#1: size=1, align=1, at location [SP]
+  fi#2: size=1, align=1, at location [SP]
+  fi#3: size=1, align=1, at location [SP]
+  fi#4: size=1, align=1, at location [SP]
+  fi#5: size=1, align=1, at location [SP]
+  fi#6: size=1, align=1, at location [SP]
+  fi#7: size=1, align=1, at location [SP]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15
+  renamable $rc24 = COPY $a
+  renamable $rc25 = COPY $x
+  renamable $rc26 = COPY $rc2
+  renamable $rc27 = COPY $rc3
+  renamable $x = COPY killed renamable $rc4
+  STAbs killed renamable $x, %stack.0 :: (store (s8) into %stack.0)
+  renamable $x = COPY killed renamable $rc5
+  STAbs killed renamable $x, %stack.1 :: (store (s8) into %stack.1)
+  renamable $x = COPY killed renamable $rc6
+  STAbs killed renamable $x, %stack.2 :: (store (s8) into %stack.2)
+  renamable $x = COPY killed renamable $rc7
+  STAbs killed renamable $x, %stack.3 :: (store (s8) into %stack.3)
+  renamable $rc21 = COPY $rc8
+  renamable $rc30 = COPY $rc9
+  renamable $rc20 = COPY $rc10
+  renamable $rc31 = COPY $rc11
+  renamable $rc22 = COPY $rc12
+  renamable $rc23 = COPY $rc13
+  renamable $rc28 = COPY $rc14
+  renamable $rc29 = COPY $rc15
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY $rc14
+  $rc3 = COPY $rc15
+  $rc4 = COPY $rc8
+  $rc5 = COPY $rc9
+  $rc6 = COPY $rc10
+  $rc7 = COPY $rc11
+  $x = COPY $rc13
+  $a = COPY $rc12
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  STAbs killed renamable $a, %stack.7 :: (store (s8) into %stack.7)
+  STAbs killed renamable $x, %stack.6 :: (store (s8) into %stack.6)
+  renamable $x = COPY killed renamable $rc2
+  STAbs killed renamable $x, %stack.5 :: (store (s8) into %stack.5)
+  renamable $x = COPY killed renamable $rc3
+  STAbs killed renamable $x, %stack.4 :: (store (s8) into %stack.4)
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc2 = COPY killed renamable $rc28
+  $rc3 = COPY killed renamable $rc29
+  $rc4 = COPY renamable $rc24
+  $rc5 = COPY renamable $rc25
+  $rc6 = COPY renamable $rc26
+  $rc7 = COPY renamable $rc27
+  $x = COPY killed renamable $rc23
+  $a = COPY killed renamable $rc22
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  renamable $rc29 = COPY $a
+  renamable $rc28 = COPY $x
+  renamable $rc23 = COPY $rc2
+  renamable $rc22 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc21
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc24, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc30
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc25, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc20
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc26, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc31
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc27, killed renamable $c
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc3 = COPY killed renamable $a
+  renamable $x = LDAbs %stack.0 :: (load (s8) from %stack.0)
+  renamable $rc4 = COPY killed renamable $x
+  renamable $x = LDAbs %stack.1 :: (load (s8) from %stack.1)
+  renamable $rc5 = COPY killed renamable $x
+  renamable $x = LDAbs %stack.2 :: (load (s8) from %stack.2)
+  renamable $rc6 = COPY killed renamable $x
+  renamable $x = LDAbs %stack.3 :: (load (s8) from %stack.3)
+  renamable $rc7 = COPY killed renamable $x
+  $x = COPY killed renamable $rc8
+  $a = COPY killed renamable $y
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  renamable $rc24 = COPY $a
+  renamable $rc27 = COPY $x
+  renamable $rc25 = COPY $rc2
+  renamable $rc26 = COPY $rc3
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  renamable $x = LDAbs %stack.7 :: (load (s8) from %stack.7)
+  renamable $rc31 = COPY renamable $x
+  renamable $a = COPY $x
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc29, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $x = LDAbs %stack.6 :: (load (s8) from %stack.6)
+  renamable $rc30 = COPY renamable $x
+  renamable $a = COPY $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc28, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $x = LDAbs %stack.5 :: (load (s8) from %stack.5)
+  renamable $rc21 = COPY renamable $x
+  renamable $a = COPY $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc23, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $x = LDAbs %stack.4 :: (load (s8) from %stack.4)
+  renamable $rc20 = COPY renamable $x
+  renamable $a = COPY $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc22, killed renamable $c
+  ADJCALLSTACKDOWN 0, 0, implicit-def $rs0, implicit $rs0
+  $rc3 = COPY killed renamable $a
+  $rc4 = COPY renamable $rc24
+  $rc5 = COPY renamable $rc27
+  $rc6 = COPY renamable $rc25
+  $rc7 = COPY renamable $rc26
+  $x = COPY killed renamable $rc8
+  $a = COPY killed renamable $y
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  renamable $rc4 = COPY $a
+  renamable $rc5 = COPY $x
+  ADJCALLSTACKUP 0, 0, implicit-def $rs0, implicit $rs0
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc24
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc31, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc27
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc30, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc25
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc21, killed renamable $c
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc26
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc20, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc29, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc8
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc28, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc23, killed renamable $c
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc7
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc22, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $y
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc4, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc8
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc5, killed renamable $c
+  renamable $rc4 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc3 = COPY killed renamable $a
+  $x = COPY killed renamable $rc4
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on pressure_high omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on pressure_high omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on pressure_high omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on pressure_high omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on pressure_high omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_high omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on pressure_high omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on pressure_high omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on pressure_high omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on pressure_high omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on pressure_high omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on pressure_high omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+  fi#1: id=5 size=1, align=1, at location [SP+1]
+  fi#2: id=5 size=1, align=1, at location [SP+2]
+  fi#3: id=5 size=1, align=1, at location [SP+3]
+  fi#4: id=5 size=1, align=1, at location [SP+4]
+  fi#5: id=5 size=1, align=1, at location [SP+5]
+  fi#6: id=5 size=1, align=1, at location [SP+6]
+  fi#7: id=5 size=1, align=1, at location [SP+7]
+  fi#8: id=5 size=1, align=1, at location [SP+8]
+  fi#9: id=5 size=1, align=1, at location [SP+9]
+  fi#10: id=5 size=1, align=1, at location [SP+10]
+  fi#11: id=5 size=1, align=1, at location [SP+11]
+  fi#12: id=5 size=1, align=1, at location [SP+12]
+  fi#13: id=5 size=1, align=1, at location [SP+13]
+  fi#14: id=5 size=1, align=1, at location [SP+14]
+  fi#15: id=5 size=1, align=1, at location [SP+15]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  $rc16 = STImag8 $a
+  $a = frame-setup COPY $rc20
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc21
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc22
+  frame-setup PH killed $a
+  $a = frame-setup COPY $rc23
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $y = frame-setup COPY $rc24
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 8 :: (store (s8) into %stack.8)
+  $y = frame-setup COPY $rc25
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 9 :: (store (s8) into %stack.9)
+  $y = frame-setup COPY $rc26
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 10 :: (store (s8) into %stack.10)
+  $y = frame-setup COPY $rc27
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 11 :: (store (s8) into %stack.11)
+  $y = frame-setup COPY $rc28
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 12 :: (store (s8) into %stack.12)
+  $y = frame-setup COPY $rc29
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 13 :: (store (s8) into %stack.13)
+  $y = frame-setup COPY $rc30
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 14 :: (store (s8) into %stack.14)
+  $y = frame-setup COPY $rc31
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 15 :: (store (s8) into %stack.15)
+  renamable $rc24 = COPY $a
+  renamable $rc25 = COPY $x
+  renamable $rc26 = COPY $rc2
+  renamable $rc27 = COPY $rc3
+  renamable $x = COPY killed renamable $rc4
+  STAbs killed renamable $x, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  renamable $x = COPY killed renamable $rc5
+  STAbs killed renamable $x, target-index(mos-static-stack) + 1 :: (store (s8) into %stack.1)
+  renamable $x = COPY killed renamable $rc6
+  STAbs killed renamable $x, target-index(mos-static-stack) + 2 :: (store (s8) into %stack.2)
+  renamable $x = COPY killed renamable $rc7
+  STAbs killed renamable $x, target-index(mos-static-stack) + 3 :: (store (s8) into %stack.3)
+  renamable $rc21 = COPY $rc8
+  renamable $rc30 = COPY $rc9
+  renamable $rc20 = COPY $rc10
+  renamable $rc31 = COPY $rc11
+  renamable $rc22 = COPY $rc12
+  renamable $rc23 = COPY $rc13
+  renamable $rc28 = COPY $rc14
+  renamable $rc29 = COPY $rc15
+  $rc2 = COPY $rc14
+  $rc3 = COPY $rc15
+  $rc4 = COPY $rc8
+  $rc5 = COPY $rc9
+  $rc6 = COPY $rc10
+  $rc7 = COPY $rc11
+  $x = COPY $rc13
+  $a = COPY $rc12
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  STAbs killed renamable $a, target-index(mos-static-stack) + 7 :: (store (s8) into %stack.7)
+  STAbs killed renamable $x, target-index(mos-static-stack) + 6 :: (store (s8) into %stack.6)
+  renamable $x = COPY killed renamable $rc2
+  STAbs killed renamable $x, target-index(mos-static-stack) + 5 :: (store (s8) into %stack.5)
+  renamable $x = COPY killed renamable $rc3
+  STAbs killed renamable $x, target-index(mos-static-stack) + 4 :: (store (s8) into %stack.4)
+  $rc2 = COPY killed renamable $rc28
+  $rc3 = COPY killed renamable $rc29
+  $rc4 = COPY renamable $rc24
+  $rc5 = COPY renamable $rc25
+  $rc6 = COPY renamable $rc26
+  $rc7 = COPY renamable $rc27
+  $x = COPY killed renamable $rc23
+  $a = COPY killed renamable $rc22
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  renamable $rc29 = COPY $a
+  renamable $rc28 = COPY $x
+  renamable $rc23 = COPY $rc2
+  renamable $rc22 = COPY $rc3
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc21
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc24, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc30
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc25, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc20
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc26, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc31
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc27, killed renamable $c
+  $rc3 = COPY killed renamable $a
+  renamable $x = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  renamable $rc4 = COPY killed renamable $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 1 :: (load (s8) from %stack.1)
+  renamable $rc5 = COPY killed renamable $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 2 :: (load (s8) from %stack.2)
+  renamable $rc6 = COPY killed renamable $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 3 :: (load (s8) from %stack.3)
+  renamable $rc7 = COPY killed renamable $x
+  $x = COPY killed renamable $rc8
+  $a = COPY killed renamable $y
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  renamable $rc24 = COPY $a
+  renamable $rc27 = COPY $x
+  renamable $rc25 = COPY $rc2
+  renamable $rc26 = COPY $rc3
+  renamable $x = LDAbs target-index(mos-static-stack) + 7 :: (load (s8) from %stack.7)
+  renamable $rc31 = COPY renamable $x
+  renamable $a = COPY $x
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc29, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $x = LDAbs target-index(mos-static-stack) + 6 :: (load (s8) from %stack.6)
+  renamable $rc30 = COPY renamable $x
+  renamable $a = COPY $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc28, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $x = LDAbs target-index(mos-static-stack) + 5 :: (load (s8) from %stack.5)
+  renamable $rc21 = COPY renamable $x
+  renamable $a = COPY $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc23, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $x = LDAbs target-index(mos-static-stack) + 4 :: (load (s8) from %stack.4)
+  renamable $rc20 = COPY renamable $x
+  renamable $a = COPY $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc22, killed renamable $c
+  $rc3 = COPY killed renamable $a
+  $rc4 = COPY renamable $rc24
+  $rc5 = COPY renamable $rc27
+  $rc6 = COPY renamable $rc25
+  $rc7 = COPY renamable $rc26
+  $x = COPY killed renamable $rc8
+  $a = COPY killed renamable $y
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc4, implicit $rc5, implicit $rc6, implicit $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  renamable $rc4 = COPY $a
+  renamable $rc5 = COPY $x
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc24
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc31, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc27
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc30, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc25
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc21, killed renamable $c
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc26
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc20, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc29, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc8
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc28, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc23, killed renamable $c
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc7
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc22, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $y
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc4, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc8
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc5, killed renamable $c
+  renamable $rc4 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc3 = COPY killed renamable $a
+  $x = COPY killed renamable $rc4
+  $a = COPY killed renamable $y
+  $rc16 = STImag8 $a
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 15 :: (load (s8) from %stack.15)
+  $rc31 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 14 :: (load (s8) from %stack.14)
+  $rc30 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 13 :: (load (s8) from %stack.13)
+  $rc29 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 12 :: (load (s8) from %stack.12)
+  $rc28 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 11 :: (load (s8) from %stack.11)
+  $rc27 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 10 :: (load (s8) from %stack.10)
+  $rc26 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 9 :: (load (s8) from %stack.9)
+  $rc25 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 8 :: (load (s8) from %stack.8)
+  $rc24 = frame-destroy COPY killed $y
+  $a = frame-destroy PL
+  $rc23 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc22 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc21 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc20 = frame-destroy COPY killed $a
+  $a = LDImag8 $rc16
+  RTS implicit $a, implicit $x, implicit $rc2, implicit $rc3, implicit $rc20, implicit $rc21, implicit $rc22, implicit $rc23, implicit $rc24, implicit $rc25, implicit $rc26, implicit $rc27, implicit $rc28, implicit $rc29, implicit $rc30, implicit $rc31
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on pressure_high omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_high omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on pressure_high omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on pressure_high omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on pressure_high omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on pressure_high omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on pressure_high omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on pressure_high omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+  fi#1: id=5 size=1, align=1, at location [SP+1]
+  fi#2: id=5 size=1, align=1, at location [SP+2]
+  fi#3: id=5 size=1, align=1, at location [SP+3]
+  fi#4: id=5 size=1, align=1, at location [SP+4]
+  fi#5: id=5 size=1, align=1, at location [SP+5]
+  fi#6: id=5 size=1, align=1, at location [SP+6]
+  fi#7: id=5 size=1, align=1, at location [SP+7]
+  fi#8: id=5 size=1, align=1, at location [SP+8]
+  fi#9: id=5 size=1, align=1, at location [SP+9]
+  fi#10: id=5 size=1, align=1, at location [SP+10]
+  fi#11: id=5 size=1, align=1, at location [SP+11]
+  fi#12: id=5 size=1, align=1, at location [SP+12]
+  fi#13: id=5 size=1, align=1, at location [SP+13]
+  fi#14: id=5 size=1, align=1, at location [SP+14]
+  fi#15: id=5 size=1, align=1, at location [SP+15]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  $rc16 = STImag8 killed $a
+  $a = frame-setup COPY killed $rc20
+  frame-setup PH killed $a
+  $a = frame-setup COPY killed $rc21
+  frame-setup PH killed $a
+  $a = frame-setup COPY killed $rc22
+  frame-setup PH killed $a
+  $a = frame-setup COPY killed $rc23
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $y = frame-setup COPY killed $rc24
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 8 :: (store (s8) into %stack.8)
+  $y = frame-setup COPY killed $rc25
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 9 :: (store (s8) into %stack.9)
+  $y = frame-setup COPY killed $rc26
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 10 :: (store (s8) into %stack.10)
+  $y = frame-setup COPY killed $rc27
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 11 :: (store (s8) into %stack.11)
+  $y = frame-setup COPY killed $rc28
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 12 :: (store (s8) into %stack.12)
+  $y = frame-setup COPY killed $rc29
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 13 :: (store (s8) into %stack.13)
+  $y = frame-setup COPY killed $rc30
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 14 :: (store (s8) into %stack.14)
+  $y = frame-setup COPY killed $rc31
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 15 :: (store (s8) into %stack.15)
+  renamable $rc24 = COPY killed $a
+  renamable $rc25 = COPY killed $x
+  renamable $rc26 = COPY killed $rc2
+  renamable $rc27 = COPY killed $rc3
+  renamable $x = COPY killed renamable $rc4
+  STAbs killed renamable $x, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  renamable $x = COPY killed renamable $rc5
+  STAbs killed renamable $x, target-index(mos-static-stack) + 1 :: (store (s8) into %stack.1)
+  renamable $x = COPY killed renamable $rc6
+  STAbs killed renamable $x, target-index(mos-static-stack) + 2 :: (store (s8) into %stack.2)
+  renamable $x = COPY killed renamable $rc7
+  STAbs killed renamable $x, target-index(mos-static-stack) + 3 :: (store (s8) into %stack.3)
+  renamable $rc21 = COPY $rc8
+  renamable $rc30 = COPY $rc9
+  renamable $rc20 = COPY $rc10
+  renamable $rc31 = COPY $rc11
+  renamable $rc22 = COPY $rc12
+  renamable $rc23 = COPY $rc13
+  renamable $rc28 = COPY $rc14
+  renamable $rc29 = COPY $rc15
+  $rc2 = COPY killed $rc14
+  $rc3 = COPY killed $rc15
+  $rc4 = COPY killed $rc8
+  $rc5 = COPY killed $rc9
+  $rc6 = COPY killed $rc10
+  $rc7 = COPY killed $rc11
+  $x = COPY killed $rc13
+  $a = COPY killed $rc12
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  STAbs killed renamable $a, target-index(mos-static-stack) + 7 :: (store (s8) into %stack.7)
+  STAbs killed renamable $x, target-index(mos-static-stack) + 6 :: (store (s8) into %stack.6)
+  renamable $x = COPY killed renamable $rc2
+  STAbs killed renamable $x, target-index(mos-static-stack) + 5 :: (store (s8) into %stack.5)
+  renamable $x = COPY killed renamable $rc3
+  STAbs killed renamable $x, target-index(mos-static-stack) + 4 :: (store (s8) into %stack.4)
+  $rc2 = COPY killed renamable $rc28
+  $rc3 = COPY killed renamable $rc29
+  $rc4 = COPY renamable $rc24
+  $rc5 = COPY renamable $rc25
+  $rc6 = COPY renamable $rc26
+  $rc7 = COPY renamable $rc27
+  $x = COPY killed renamable $rc23
+  $a = COPY killed renamable $rc22
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  renamable $rc29 = COPY killed $a
+  renamable $rc28 = COPY killed $x
+  renamable $rc23 = COPY killed $rc2
+  renamable $rc22 = COPY killed $rc3
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc21
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc24, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc30
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc25, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc20
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc26, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc31
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc27, killed renamable $c
+  $rc3 = COPY killed renamable $a
+  renamable $x = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  renamable $rc4 = COPY killed renamable $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 1 :: (load (s8) from %stack.1)
+  renamable $rc5 = COPY killed renamable $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 2 :: (load (s8) from %stack.2)
+  renamable $rc6 = COPY killed renamable $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 3 :: (load (s8) from %stack.3)
+  renamable $rc7 = COPY killed renamable $x
+  $x = COPY killed renamable $rc8
+  $a = COPY killed renamable $y
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  renamable $rc24 = COPY killed $a
+  renamable $rc27 = COPY killed $x
+  renamable $rc25 = COPY killed $rc2
+  renamable $rc26 = COPY killed $rc3
+  renamable $x = LDAbs target-index(mos-static-stack) + 7 :: (load (s8) from %stack.7)
+  renamable $rc31 = COPY renamable $x
+  renamable $a = COPY killed $x
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc29, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $x = LDAbs target-index(mos-static-stack) + 6 :: (load (s8) from %stack.6)
+  renamable $rc30 = COPY renamable $x
+  renamable $a = COPY killed $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc28, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $x = LDAbs target-index(mos-static-stack) + 5 :: (load (s8) from %stack.5)
+  renamable $rc21 = COPY renamable $x
+  renamable $a = COPY killed $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc23, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $x = LDAbs target-index(mos-static-stack) + 4 :: (load (s8) from %stack.4)
+  renamable $rc20 = COPY renamable $x
+  renamable $a = COPY killed $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc22, killed renamable $c
+  $rc3 = COPY killed renamable $a
+  $rc4 = COPY renamable $rc24
+  $rc5 = COPY renamable $rc27
+  $rc6 = COPY renamable $rc25
+  $rc7 = COPY renamable $rc26
+  $x = COPY killed renamable $rc8
+  $a = COPY killed renamable $y
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  renamable $rc4 = COPY killed $a
+  renamable $rc5 = COPY killed $x
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $rc24
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc31, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc27
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc30, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc25
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc21, killed renamable $c
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc26
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc20, killed renamable $c
+  renamable $rc7 = COPY killed renamable $a
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc29, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc8
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc28, killed renamable $c
+  renamable $rc8 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc23, killed renamable $c
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc7
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc22, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $c = LDImm1 0
+  renamable $a = COPY killed renamable $y
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc4, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc8
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc5, killed renamable $c
+  renamable $rc4 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc3 = COPY killed renamable $a
+  $x = COPY killed renamable $rc4
+  $a = COPY killed renamable $y
+  $rc16 = STImag8 killed $a
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 15 :: (load (s8) from %stack.15)
+  $rc31 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 14 :: (load (s8) from %stack.14)
+  $rc30 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 13 :: (load (s8) from %stack.13)
+  $rc29 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 12 :: (load (s8) from %stack.12)
+  $rc28 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 11 :: (load (s8) from %stack.11)
+  $rc27 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 10 :: (load (s8) from %stack.10)
+  $rc26 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 9 :: (load (s8) from %stack.9)
+  $rc25 = frame-destroy COPY killed $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 8 :: (load (s8) from %stack.8)
+  $rc24 = frame-destroy COPY killed $y
+  $a = frame-destroy PL
+  $rc23 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc22 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc21 = frame-destroy COPY killed $a
+  $a = frame-destroy PL
+  $rc20 = frame-destroy COPY killed $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit $rc20, implicit $rc21, implicit $rc22, implicit $rc23, implicit $rc24, implicit $rc25, implicit $rc26, implicit $rc27, implicit $rc28, implicit $rc29, implicit $rc30, implicit $rc31
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+  fi#1: id=5 size=1, align=1, at location [SP+1]
+  fi#2: id=5 size=1, align=1, at location [SP+2]
+  fi#3: id=5 size=1, align=1, at location [SP+3]
+  fi#4: id=5 size=1, align=1, at location [SP+4]
+  fi#5: id=5 size=1, align=1, at location [SP+5]
+  fi#6: id=5 size=1, align=1, at location [SP+6]
+  fi#7: id=5 size=1, align=1, at location [SP+7]
+  fi#8: id=5 size=1, align=1, at location [SP+8]
+  fi#9: id=5 size=1, align=1, at location [SP+9]
+  fi#10: id=5 size=1, align=1, at location [SP+10]
+  fi#11: id=5 size=1, align=1, at location [SP+11]
+  fi#12: id=5 size=1, align=1, at location [SP+12]
+  fi#13: id=5 size=1, align=1, at location [SP+13]
+  fi#14: id=5 size=1, align=1, at location [SP+14]
+  fi#15: id=5 size=1, align=1, at location [SP+15]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  $rc16 = STImag8 killed $a
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc22
+  frame-setup PH killed $a
+  $a = LDImag8 $rc23
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $y = LDImag8 $rc24
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 8 :: (store (s8) into %stack.8)
+  $y = LDImag8 $rc25
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 9 :: (store (s8) into %stack.9)
+  $y = LDImag8 $rc26
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 10 :: (store (s8) into %stack.10)
+  $y = LDImag8 $rc27
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 11 :: (store (s8) into %stack.11)
+  $y = LDImag8 $rc28
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 12 :: (store (s8) into %stack.12)
+  $y = LDImag8 $rc29
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 13 :: (store (s8) into %stack.13)
+  $y = LDImag8 $rc30
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 14 :: (store (s8) into %stack.14)
+  $y = LDImag8 $rc31
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 15 :: (store (s8) into %stack.15)
+  $rc24 = STImag8 $a
+  $rc25 = STImag8 $x
+  %0:gpr = LDImag8 $rc2
+  $rc26 = STImag8 %0:gpr
+  %1:gpr = LDImag8 $rc3
+  $rc27 = STImag8 %1:gpr
+  $x = LDImag8 $rc4
+  STAbs killed renamable $x, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  $x = LDImag8 $rc5
+  STAbs killed renamable $x, target-index(mos-static-stack) + 1 :: (store (s8) into %stack.1)
+  $x = LDImag8 $rc6
+  STAbs killed renamable $x, target-index(mos-static-stack) + 2 :: (store (s8) into %stack.2)
+  $x = LDImag8 $rc7
+  STAbs killed renamable $x, target-index(mos-static-stack) + 3 :: (store (s8) into %stack.3)
+  %2:gpr = LDImag8 $rc8
+  $rc21 = STImag8 %2:gpr
+  %3:gpr = LDImag8 $rc9
+  $rc30 = STImag8 %3:gpr
+  %4:gpr = LDImag8 $rc10
+  $rc20 = STImag8 %4:gpr
+  %5:gpr = LDImag8 $rc11
+  $rc31 = STImag8 %5:gpr
+  %6:gpr = LDImag8 $rc12
+  $rc22 = STImag8 %6:gpr
+  %7:gpr = LDImag8 $rc13
+  $rc23 = STImag8 %7:gpr
+  %8:gpr = LDImag8 $rc14
+  $rc28 = STImag8 %8:gpr
+  %9:gpr = LDImag8 $rc15
+  $rc29 = STImag8 %9:gpr
+  %10:gpr = LDImag8 $rc14
+  $rc2 = STImag8 %10:gpr
+  %11:gpr = LDImag8 $rc15
+  $rc3 = STImag8 %11:gpr
+  %12:gpr = LDImag8 $rc8
+  $rc4 = STImag8 %12:gpr
+  %13:gpr = LDImag8 $rc9
+  $rc5 = STImag8 %13:gpr
+  %14:gpr = LDImag8 $rc10
+  $rc6 = STImag8 %14:gpr
+  %15:gpr = LDImag8 $rc11
+  $rc7 = STImag8 %15:gpr
+  $x = LDImag8 $rc13
+  $a = LDImag8 $rc12
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  STAbs killed renamable $a, target-index(mos-static-stack) + 7 :: (store (s8) into %stack.7)
+  STAbs killed renamable $x, target-index(mos-static-stack) + 6 :: (store (s8) into %stack.6)
+  $x = LDImag8 $rc2
+  STAbs killed renamable $x, target-index(mos-static-stack) + 5 :: (store (s8) into %stack.5)
+  $x = LDImag8 $rc3
+  STAbs killed renamable $x, target-index(mos-static-stack) + 4 :: (store (s8) into %stack.4)
+  %16:gpr = LDImag8 $rc28
+  $rc2 = STImag8 %16:gpr
+  %17:gpr = LDImag8 $rc29
+  $rc3 = STImag8 %17:gpr
+  %18:gpr = LDImag8 $rc24
+  $rc4 = STImag8 %18:gpr
+  %19:gpr = LDImag8 $rc25
+  $rc5 = STImag8 %19:gpr
+  %20:gpr = LDImag8 $rc26
+  $rc6 = STImag8 %20:gpr
+  %21:gpr = LDImag8 $rc27
+  $rc7 = STImag8 %21:gpr
+  $x = LDImag8 $rc23
+  $a = LDImag8 $rc22
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  $rc29 = STImag8 $a
+  $rc28 = STImag8 $x
+  %22:gpr = LDImag8 $rc2
+  $rc23 = STImag8 %22:gpr
+  %23:gpr = LDImag8 $rc3
+  $rc22 = STImag8 %23:gpr
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc21
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc24, killed renamable $c
+  $y = TA $a
+  $a = LDImag8 $rc30
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc25, killed renamable $c
+  $rc8 = STImag8 $a
+  $a = LDImag8 $rc20
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc26, killed renamable $c
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc31
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc27, killed renamable $c
+  $rc3 = STImag8 $a
+  renamable $x = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  $rc4 = STImag8 $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 1 :: (load (s8) from %stack.1)
+  $rc5 = STImag8 $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 2 :: (load (s8) from %stack.2)
+  $rc6 = STImag8 $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 3 :: (load (s8) from %stack.3)
+  $rc7 = STImag8 $x
+  $x = LDImag8 $rc8
+  $a = T_A $y
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  $rc24 = STImag8 $a
+  $rc27 = STImag8 $x
+  %24:gpr = LDImag8 $rc2
+  $rc25 = STImag8 %24:gpr
+  %25:gpr = LDImag8 $rc3
+  $rc26 = STImag8 %25:gpr
+  renamable $x = LDAbs target-index(mos-static-stack) + 7 :: (load (s8) from %stack.7)
+  $rc31 = STImag8 $x
+  $a = T_A $x
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc29, killed renamable $c
+  $y = TA $a
+  renamable $x = LDAbs target-index(mos-static-stack) + 6 :: (load (s8) from %stack.6)
+  $rc30 = STImag8 $x
+  $a = T_A $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc28, killed renamable $c
+  $rc8 = STImag8 $a
+  renamable $x = LDAbs target-index(mos-static-stack) + 5 :: (load (s8) from %stack.5)
+  $rc21 = STImag8 $x
+  $a = T_A $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc23, killed renamable $c
+  $rc2 = STImag8 $a
+  renamable $x = LDAbs target-index(mos-static-stack) + 4 :: (load (s8) from %stack.4)
+  $rc20 = STImag8 $x
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc22, killed renamable $c
+  $rc3 = STImag8 $a
+  %26:gpr = LDImag8 $rc24
+  $rc4 = STImag8 %26:gpr
+  %27:gpr = LDImag8 $rc27
+  $rc5 = STImag8 %27:gpr
+  %28:gpr = LDImag8 $rc25
+  $rc6 = STImag8 %28:gpr
+  %29:gpr = LDImag8 $rc26
+  $rc7 = STImag8 %29:gpr
+  $x = LDImag8 $rc8
+  $a = T_A $y
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  $rc4 = STImag8 $a
+  $rc5 = STImag8 $x
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc24
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc31, killed renamable $c
+  $x = TA $a
+  $a = LDImag8 $rc27
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc30, killed renamable $c
+  $rc8 = STImag8 $a
+  $a = LDImag8 $rc25
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc21, killed renamable $c
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc26
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc20, killed renamable $c
+  $rc7 = STImag8 $a
+  renamable $c = LDCImm 0
+  $a = T_A $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc29, killed renamable $c
+  $y = TA $a
+  $a = LDImag8 $rc8
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc28, killed renamable $c
+  $rc8 = STImag8 $a
+  $a = LDImag8 $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc23, killed renamable $c
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc7
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc22, killed renamable $c
+  $x = TA $a
+  renamable $c = LDCImm 0
+  $a = T_A $y
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc4, killed renamable $c
+  $y = TA $a
+  $a = LDImag8 $rc8
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc5, killed renamable $c
+  $rc4 = STImag8 $a
+  $a = LDImag8 $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $rc2 = STImag8 $a
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc3 = STImag8 $a
+  $x = LDImag8 $rc4
+  $a = T_A $y
+  $rc16 = STImag8 killed $a
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 15 :: (load (s8) from %stack.15)
+  $rc31 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 14 :: (load (s8) from %stack.14)
+  $rc30 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 13 :: (load (s8) from %stack.13)
+  $rc29 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 12 :: (load (s8) from %stack.12)
+  $rc28 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 11 :: (load (s8) from %stack.11)
+  $rc27 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 10 :: (load (s8) from %stack.10)
+  $rc26 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 9 :: (load (s8) from %stack.9)
+  $rc25 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 8 :: (load (s8) from %stack.8)
+  $rc24 = STImag8 $y
+  $a = frame-destroy PL
+  $rc23 = STImag8 $a
+  $a = frame-destroy PL
+  $rc22 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit $rc20, implicit $rc21, implicit $rc22, implicit $rc23, implicit $rc24, implicit $rc25, implicit $rc26, implicit $rc27, implicit $rc28, implicit $rc29, implicit $rc30, implicit $rc31
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on pressure_high ***
+# Machine code for function pressure_high: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+Frame Objects:
+  fi#0: id=5 size=1, align=1, at location [SP]
+  fi#1: id=5 size=1, align=1, at location [SP+1]
+  fi#2: id=5 size=1, align=1, at location [SP+2]
+  fi#3: id=5 size=1, align=1, at location [SP+3]
+  fi#4: id=5 size=1, align=1, at location [SP+4]
+  fi#5: id=5 size=1, align=1, at location [SP+5]
+  fi#6: id=5 size=1, align=1, at location [SP+6]
+  fi#7: id=5 size=1, align=1, at location [SP+7]
+  fi#8: id=5 size=1, align=1, at location [SP+8]
+  fi#9: id=5 size=1, align=1, at location [SP+9]
+  fi#10: id=5 size=1, align=1, at location [SP+10]
+  fi#11: id=5 size=1, align=1, at location [SP+11]
+  fi#12: id=5 size=1, align=1, at location [SP+12]
+  fi#13: id=5 size=1, align=1, at location [SP+13]
+  fi#14: id=5 size=1, align=1, at location [SP+14]
+  fi#15: id=5 size=1, align=1, at location [SP+15]
+save/restore points:
+save points are empty
+restore points are empty
+
+bb.0 (%ir-block.4):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11, $rc12, $rc13, $rc14, $rc15, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  $rc16 = STImag8 killed $a
+  $a = LDImag8 $rc20
+  frame-setup PH killed $a
+  $a = LDImag8 $rc21
+  frame-setup PH killed $a
+  $a = LDImag8 $rc22
+  frame-setup PH killed $a
+  $a = LDImag8 $rc23
+  frame-setup PH killed $a
+  $a = LDImag8 $rc16
+  $y = LDImag8 $rc24
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 8 :: (store (s8) into %stack.8)
+  $y = LDImag8 $rc25
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 9 :: (store (s8) into %stack.9)
+  $y = LDImag8 $rc26
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 10 :: (store (s8) into %stack.10)
+  $y = LDImag8 $rc27
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 11 :: (store (s8) into %stack.11)
+  $y = LDImag8 $rc28
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 12 :: (store (s8) into %stack.12)
+  $y = LDImag8 $rc29
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 13 :: (store (s8) into %stack.13)
+  $y = LDImag8 $rc30
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 14 :: (store (s8) into %stack.14)
+  $y = LDImag8 $rc31
+  frame-setup STAbs killed $y, target-index(mos-static-stack) + 15 :: (store (s8) into %stack.15)
+  $rc24 = STImag8 $a
+  $rc25 = STImag8 $x
+  $x = LDImag8 $rc2
+  $rc26 = STImag8 killed $x
+  $x = LDImag8 $rc3
+  $rc27 = STImag8 killed $x
+  $x = LDImag8 $rc4
+  STAbs killed renamable $x, target-index(mos-static-stack) :: (store (s8) into %stack.0)
+  $x = LDImag8 $rc5
+  STAbs killed renamable $x, target-index(mos-static-stack) + 1 :: (store (s8) into %stack.1)
+  $x = LDImag8 $rc6
+  STAbs killed renamable $x, target-index(mos-static-stack) + 2 :: (store (s8) into %stack.2)
+  $x = LDImag8 $rc7
+  STAbs killed renamable $x, target-index(mos-static-stack) + 3 :: (store (s8) into %stack.3)
+  $x = LDImag8 $rc8
+  $rc21 = STImag8 killed $x
+  $x = LDImag8 $rc9
+  $rc30 = STImag8 killed $x
+  $x = LDImag8 $rc10
+  $rc20 = STImag8 killed $x
+  $x = LDImag8 $rc11
+  $rc31 = STImag8 killed $x
+  $x = LDImag8 $rc12
+  $rc22 = STImag8 killed $x
+  $x = LDImag8 $rc13
+  $rc23 = STImag8 killed $x
+  $x = LDImag8 $rc14
+  $rc28 = STImag8 killed $x
+  $x = LDImag8 $rc15
+  $rc29 = STImag8 killed $x
+  $x = LDImag8 $rc14
+  $rc2 = STImag8 killed $x
+  $x = LDImag8 $rc15
+  $rc3 = STImag8 killed $x
+  $x = LDImag8 $rc8
+  $rc4 = STImag8 killed $x
+  $x = LDImag8 $rc9
+  $rc5 = STImag8 killed $x
+  $x = LDImag8 $rc10
+  $rc6 = STImag8 killed $x
+  $x = LDImag8 $rc11
+  $rc7 = STImag8 killed $x
+  $x = LDImag8 $rc13
+  $a = LDImag8 $rc12
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  STAbs killed renamable $a, target-index(mos-static-stack) + 7 :: (store (s8) into %stack.7)
+  STAbs killed renamable $x, target-index(mos-static-stack) + 6 :: (store (s8) into %stack.6)
+  $x = LDImag8 $rc2
+  STAbs killed renamable $x, target-index(mos-static-stack) + 5 :: (store (s8) into %stack.5)
+  $x = LDImag8 $rc3
+  STAbs killed renamable $x, target-index(mos-static-stack) + 4 :: (store (s8) into %stack.4)
+  $x = LDImag8 $rc28
+  $rc2 = STImag8 killed $x
+  $x = LDImag8 $rc29
+  $rc3 = STImag8 killed $x
+  $x = LDImag8 $rc24
+  $rc4 = STImag8 killed $x
+  $x = LDImag8 $rc25
+  $rc5 = STImag8 killed $x
+  $x = LDImag8 $rc26
+  $rc6 = STImag8 killed $x
+  $x = LDImag8 $rc27
+  $rc7 = STImag8 killed $x
+  $x = LDImag8 $rc23
+  $a = LDImag8 $rc22
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  $rc29 = STImag8 $a
+  $rc28 = STImag8 $x
+  $x = LDImag8 $rc2
+  $rc23 = STImag8 killed $x
+  $x = LDImag8 $rc3
+  $rc22 = STImag8 killed $x
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc21
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc24, killed renamable $c
+  $y = TA $a
+  $a = LDImag8 $rc30
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc25, killed renamable $c
+  $rc8 = STImag8 $a
+  $a = LDImag8 $rc20
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc26, killed renamable $c
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc31
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc27, killed renamable $c
+  $rc3 = STImag8 $a
+  renamable $x = LDAbs target-index(mos-static-stack) :: (load (s8) from %stack.0)
+  $rc4 = STImag8 $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 1 :: (load (s8) from %stack.1)
+  $rc5 = STImag8 $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 2 :: (load (s8) from %stack.2)
+  $rc6 = STImag8 $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 3 :: (load (s8) from %stack.3)
+  $rc7 = STImag8 $x
+  $x = LDImag8 $rc8
+  $a = T_A $y
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  $rc24 = STImag8 $a
+  $rc27 = STImag8 $x
+  $x = LDImag8 $rc2
+  $rc25 = STImag8 killed $x
+  $x = LDImag8 $rc3
+  $rc26 = STImag8 killed $x
+  renamable $x = LDAbs target-index(mos-static-stack) + 7 :: (load (s8) from %stack.7)
+  $rc31 = STImag8 $x
+  $a = T_A $x
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc29, killed renamable $c
+  $y = TA $a
+  renamable $x = LDAbs target-index(mos-static-stack) + 6 :: (load (s8) from %stack.6)
+  $rc30 = STImag8 $x
+  $a = T_A $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc28, killed renamable $c
+  $rc8 = STImag8 $a
+  renamable $x = LDAbs target-index(mos-static-stack) + 5 :: (load (s8) from %stack.5)
+  $rc21 = STImag8 $x
+  $a = T_A $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc23, killed renamable $c
+  $rc2 = STImag8 $a
+  renamable $x = LDAbs target-index(mos-static-stack) + 4 :: (load (s8) from %stack.4)
+  $rc20 = STImag8 $x
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), renamable $rc22, killed renamable $c
+  $rc3 = STImag8 $a
+  $x = LDImag8 $rc24
+  $rc4 = STImag8 killed $x
+  $x = LDImag8 $rc27
+  $rc5 = STImag8 killed $x
+  $x = LDImag8 $rc25
+  $rc6 = STImag8 killed $x
+  $x = LDImag8 $rc26
+  $rc7 = STImag8 killed $x
+  $x = LDImag8 $rc8
+  $a = T_A $y
+  JSR &__mulsi3, <regmask $rc20 $rc21 $rc22 $rc23 $rc24 $rc25 $rc26 $rc27 $rc28 $rc29 $rc30 $rc31 $rs10 $rs11 $rs12 $rs13 $rs14 $rs15 $rc20lsb $rc21lsb $rc22lsb $rc23lsb $rc24lsb $rc25lsb $rc26lsb $rc27lsb $rc28lsb $rc29lsb $rc30lsb $rc31lsb>, implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit killed $rc4, implicit killed $rc5, implicit killed $rc6, implicit killed $rc7, implicit-def $a, implicit-def $x, implicit-def $rc2, implicit-def $rc3
+  $rc4 = STImag8 $a
+  $rc5 = STImag8 $x
+  renamable $c = LDCImm 0
+  $a = LDImag8 $rc24
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc31, killed renamable $c
+  $x = TA $a
+  $a = LDImag8 $rc27
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc30, killed renamable $c
+  $rc8 = STImag8 $a
+  $a = LDImag8 $rc25
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc21, killed renamable $c
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc26
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc20, killed renamable $c
+  $rc7 = STImag8 $a
+  renamable $c = LDCImm 0
+  $a = T_A $x
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc29, killed renamable $c
+  $y = TA $a
+  $a = LDImag8 $rc8
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc28, killed renamable $c
+  $rc8 = STImag8 $a
+  $a = LDImag8 $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc23, killed renamable $c
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc7
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc22, killed renamable $c
+  $x = TA $a
+  renamable $c = LDCImm 0
+  $a = T_A $y
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc4, killed renamable $c
+  $y = TA $a
+  $a = LDImag8 $rc8
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc5, killed renamable $c
+  $rc4 = STImag8 $a
+  $a = LDImag8 $rc6
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $rc2 = STImag8 $a
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc3 = STImag8 $a
+  $x = LDImag8 $rc4
+  $a = T_A $y
+  $rc16 = STImag8 killed $a
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 15 :: (load (s8) from %stack.15)
+  $rc31 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 14 :: (load (s8) from %stack.14)
+  $rc30 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 13 :: (load (s8) from %stack.13)
+  $rc29 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 12 :: (load (s8) from %stack.12)
+  $rc28 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 11 :: (load (s8) from %stack.11)
+  $rc27 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 10 :: (load (s8) from %stack.10)
+  $rc26 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 9 :: (load (s8) from %stack.9)
+  $rc25 = STImag8 $y
+  $y = frame-destroy LDAbs target-index(mos-static-stack) + 8 :: (load (s8) from %stack.8)
+  $rc24 = STImag8 $y
+  $a = frame-destroy PL
+  $rc23 = STImag8 $a
+  $a = frame-destroy PL
+  $rc22 = STImag8 $a
+  $a = frame-destroy PL
+  $rc21 = STImag8 $a
+  $a = frame-destroy PL
+  $rc20 = STImag8 $a
+  $a = LDImag8 $rc16
+  RTS implicit killed $a, implicit killed $x, implicit killed $rc2, implicit killed $rc3, implicit $rc20, implicit $rc21, implicit $rc22, implicit $rc23, implicit $rc24, implicit $rc25, implicit $rc26, implicit $rc27, implicit $rc28, implicit $rc29, implicit $rc30, implicit $rc31
+
+# End machine code for function pressure_high.
+
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on pressure_high omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on pressure_high omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on pressure_high omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on pressure_high omitted because no change ***
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on pressure_high omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on pressure_high omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on pressure_high omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on pressure_high omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on pressure_high omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on pressure_high omitted because no change ***
+*** IR Dump After Insert fentry calls (fentry-insert) on pressure_high omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on pressure_high omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on pressure_high omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on pressure_high omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on pressure_high omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on pressure_high omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on pressure_high omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on pressure_high omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on pressure_high omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on pressure_high omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on pressure_high omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on pressure_high omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on pressure_high omitted because no change ***

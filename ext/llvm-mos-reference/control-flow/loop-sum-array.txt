@@ -1,0 +1,3659 @@
+*** IR Dump At Start ***
+; ModuleID = './control-flow/loop-sum-array.c'
+source_filename = "./control-flow/loop-sum-array.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef %0, i16 noundef %1) #0 {
+  %3 = alloca ptr, align 1
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  store ptr %0, ptr %3, align 1, !tbaa !6
+  store i16 %1, ptr %4, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %5) #2
+  store i16 0, ptr %5, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %6) #2
+  store i16 0, ptr %6, align 1, !tbaa !2
+  br label %7
+
+7:                                                ; preds = %19, %2
+  %8 = load i16, ptr %6, align 1, !tbaa !2
+  %9 = load i16, ptr %4, align 1, !tbaa !2
+  %10 = icmp slt i16 %8, %9
+  br i1 %10, label %12, label %11
+
+11:                                               ; preds = %7
+  call void @llvm.lifetime.end.p0(ptr %6) #2
+  br label %22
+
+12:                                               ; preds = %7
+  %13 = load ptr, ptr %3, align 1, !tbaa !6
+  %14 = load i16, ptr %6, align 1, !tbaa !2
+  %15 = getelementptr inbounds i16, ptr %13, i16 %14
+  %16 = load i16, ptr %15, align 1, !tbaa !2
+  %17 = load i16, ptr %5, align 1, !tbaa !2
+  %18 = add nsw i16 %17, %16
+  store i16 %18, ptr %5, align 1, !tbaa !2
+  br label %19
+
+19:                                               ; preds = %12
+  %20 = load i16, ptr %6, align 1, !tbaa !2
+  %21 = add nsw i16 %20, 1
+  store i16 %21, ptr %6, align 1, !tbaa !2
+  br label %7, !llvm.loop !9
+
+22:                                               ; preds = %11
+  %23 = load i16, ptr %5, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %5) #2
+  ret i16 %23
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = !{!7, !7, i64 0}
+!7 = !{!"p1 int", !8, i64 0}
+!8 = !{!"any pointer", !4, i64 0}
+!9 = distinct !{!9, !10}
+!10 = !{!"llvm.loop.mustprogress"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] ***
+; ModuleID = './control-flow/loop-sum-array.c'
+source_filename = "./control-flow/loop-sum-array.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef %0, i16 noundef %1) #0 {
+  %3 = alloca ptr, align 1
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  store ptr %0, ptr %3, align 1, !tbaa !6
+  store i16 %1, ptr %4, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %5) #2
+  store i16 0, ptr %5, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %6) #2
+  store i16 0, ptr %6, align 1, !tbaa !2
+  br label %7
+
+7:                                                ; preds = %19, %2
+  %8 = load i16, ptr %6, align 1, !tbaa !2
+  %9 = load i16, ptr %4, align 1, !tbaa !2
+  %10 = icmp slt i16 %8, %9
+  br i1 %10, label %12, label %11
+
+11:                                               ; preds = %7
+  call void @llvm.lifetime.end.p0(ptr %6) #2
+  br label %22
+
+12:                                               ; preds = %7
+  %13 = load ptr, ptr %3, align 1, !tbaa !6
+  %14 = load i16, ptr %6, align 1, !tbaa !2
+  %15 = getelementptr inbounds i16, ptr %13, i16 %14
+  %16 = load i16, ptr %15, align 1, !tbaa !2
+  %17 = load i16, ptr %5, align 1, !tbaa !2
+  %18 = add nsw i16 %17, %16
+  store i16 %18, ptr %5, align 1, !tbaa !2
+  br label %19
+
+19:                                               ; preds = %12
+  %20 = load i16, ptr %6, align 1, !tbaa !2
+  %21 = add nsw i16 %20, 1
+  store i16 %21, ptr %6, align 1, !tbaa !2
+  br label %7, !llvm.loop !9
+
+22:                                               ; preds = %11
+  %23 = load i16, ptr %5, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %5) #2
+  ret i16 %23
+}
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = !{!7, !7, i64 0}
+!7 = !{!"p1 int", !8, i64 0}
+!8 = !{!"any pointer", !4, i64 0}
+!9 = distinct !{!9, !10}
+!10 = !{!"llvm.loop.mustprogress"}
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on loop_sum_array omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on loop_sum_array omitted because no change ***
+*** IR Dump After SimplifyCFGPass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef %0, i16 noundef %1) #0 {
+  %3 = alloca ptr, align 1
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  store ptr %0, ptr %3, align 1, !tbaa !6
+  store i16 %1, ptr %4, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %5) #2
+  store i16 0, ptr %5, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %6) #2
+  store i16 0, ptr %6, align 1, !tbaa !2
+  br label %7
+
+7:                                                ; preds = %13, %2
+  %8 = load i16, ptr %6, align 1, !tbaa !2
+  %9 = load i16, ptr %4, align 1, !tbaa !2
+  %10 = icmp slt i16 %8, %9
+  br i1 %10, label %13, label %11
+
+11:                                               ; preds = %7
+  call void @llvm.lifetime.end.p0(ptr %6) #2
+  %12 = load i16, ptr %5, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %5) #2
+  ret i16 %12
+
+13:                                               ; preds = %7
+  %14 = load ptr, ptr %3, align 1, !tbaa !6
+  %15 = load i16, ptr %6, align 1, !tbaa !2
+  %16 = getelementptr inbounds i16, ptr %14, i16 %15
+  %17 = load i16, ptr %16, align 1, !tbaa !2
+  %18 = load i16, ptr %5, align 1, !tbaa !2
+  %19 = add nsw i16 %18, %17
+  store i16 %19, ptr %5, align 1, !tbaa !2
+  %20 = load i16, ptr %6, align 1, !tbaa !2
+  %21 = add nsw i16 %20, 1
+  store i16 %21, ptr %6, align 1, !tbaa !2
+  br label %7, !llvm.loop !9
+}
+*** IR Dump After SROAPass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef %0, i16 noundef %1) #0 {
+  br label %3
+
+3:                                                ; preds = %8, %2
+  %4 = phi i16 [ 0, %2 ], [ %11, %8 ]
+  %5 = phi i16 [ 0, %2 ], [ %12, %8 ]
+  %6 = icmp slt i16 %5, %1
+  br i1 %6, label %8, label %7
+
+7:                                                ; preds = %3
+  ret i16 %4
+
+8:                                                ; preds = %3
+  %9 = getelementptr inbounds i16, ptr %0, i16 %5
+  %10 = load i16, ptr %9, align 1, !tbaa !2
+  %11 = add nsw i16 %4, %10
+  %12 = add nsw i16 %5, 1
+  br label %3, !llvm.loop !6
+}
+*** IR Dump After EarlyCSEPass on loop_sum_array omitted because no change ***
+*** IR Pass PassManager<Function> on loop_sum_array ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './control-flow/loop-sum-array.c'
+source_filename = "./control-flow/loop-sum-array.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  br label %3
+
+3:                                                ; preds = %8, %2
+  %4 = phi i16 [ 0, %2 ], [ %11, %8 ]
+  %5 = phi i16 [ 0, %2 ], [ %12, %8 ]
+  %6 = icmp slt i16 %5, %1
+  br i1 %6, label %8, label %7
+
+7:                                                ; preds = %3
+  ret i16 %4
+
+8:                                                ; preds = %3
+  %9 = getelementptr inbounds i16, ptr %0, i16 %5
+  %10 = load i16, ptr %9, align 1, !tbaa !2
+  %11 = add nsw i16 %4, %10
+  %12 = add nsw i16 %5, 1
+  br label %3, !llvm.loop !6
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+!6 = distinct !{!6, !7}
+!7 = !{!"llvm.loop.mustprogress"}
+*** IR Dump After PromotePass on loop_sum_array omitted because no change ***
+*** IR Dump After InstCombinePass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  br label %3
+
+3:                                                ; preds = %8, %2
+  %4 = phi i16 [ 0, %2 ], [ %11, %8 ]
+  %5 = phi i16 [ 0, %2 ], [ %12, %8 ]
+  %6 = icmp slt i16 %5, %1
+  br i1 %6, label %8, label %7
+
+7:                                                ; preds = %3
+  ret i16 %4
+
+8:                                                ; preds = %3
+  %9 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %5
+  %10 = load i16, ptr %9, align 1, !tbaa !2
+  %11 = add nsw i16 %4, %10
+  %12 = add nuw nsw i16 %5, 1
+  br label %3, !llvm.loop !6
+}
+*** IR Dump After SimplifyCFGPass on loop_sum_array omitted because no change ***
+*** IR Pass PassManager<Function> on loop_sum_array ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on loop_sum_array omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (loop_sum_array) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (loop_sum_array) ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  br label %3
+
+3:                                                ; preds = %8, %2
+  %4 = phi i16 [ 0, %2 ], [ %11, %8 ]
+  %5 = phi i16 [ 0, %2 ], [ %12, %8 ]
+  %6 = icmp slt i16 %5, %1
+  br i1 %6, label %8, label %7
+
+7:                                                ; preds = %3
+  ret i16 %4
+
+8:                                                ; preds = %3
+  %9 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %5
+  %10 = load i16, ptr %9, align 1, !tbaa !2
+  %11 = add nsw i16 %4, %10
+  %12 = add nuw nsw i16 %5, 1
+  br label %3, !llvm.loop !6
+}
+*** IR Dump After SROAPass on loop_sum_array omitted because no change ***
+*** IR Dump After EarlyCSEPass on loop_sum_array omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on loop_sum_array omitted because no change ***
+*** IR Dump After JumpThreadingPass on loop_sum_array omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on loop_sum_array omitted because no change ***
+*** IR Dump After SimplifyCFGPass on loop_sum_array omitted because no change ***
+*** IR Dump After InstCombinePass on loop_sum_array omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on loop_sum_array omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on loop_sum_array omitted because no change ***
+*** IR Dump After TailCallElimPass on loop_sum_array omitted because no change ***
+*** IR Dump After SimplifyCFGPass on loop_sum_array omitted because no change ***
+*** IR Dump After ReassociatePass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  br label %3
+
+3:                                                ; preds = %8, %2
+  %4 = phi i16 [ 0, %2 ], [ %11, %8 ]
+  %5 = phi i16 [ 0, %2 ], [ %12, %8 ]
+  %6 = icmp slt i16 %5, %1
+  br i1 %6, label %8, label %7
+
+7:                                                ; preds = %3
+  ret i16 %4
+
+8:                                                ; preds = %3
+  %9 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %5
+  %10 = load i16, ptr %9, align 1, !tbaa !2
+  %11 = add nsw i16 %10, %4
+  %12 = add nuw nsw i16 %5, 1
+  br label %3, !llvm.loop !6
+}
+*** IR Dump After ConstraintEliminationPass on loop_sum_array omitted because no change ***
+*** IR Dump After LoopSimplifyPass on loop_sum_array omitted because no change ***
+*** IR Dump After LCSSAPass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  br label %3
+
+3:                                                ; preds = %9, %2
+  %4 = phi i16 [ 0, %2 ], [ %12, %9 ]
+  %5 = phi i16 [ 0, %2 ], [ %13, %9 ]
+  %6 = icmp slt i16 %5, %1
+  br i1 %6, label %9, label %7
+
+7:                                                ; preds = %3
+  %8 = phi i16 [ %4, %3 ]
+  ret i16 %8
+
+9:                                                ; preds = %3
+  %10 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %5
+  %11 = load i16, ptr %10, align 1, !tbaa !2
+  %12 = add nsw i16 %11, %4
+  %13 = add nuw nsw i16 %5, 1
+  br label %3, !llvm.loop !6
+}
+*** IR Pass PassManager<Function> on loop_sum_array ignored ***
+*** IR Dump After LoopInstSimplifyPass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Dump After LoopSimplifyCFGPass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Dump After LICMPass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Dump After LoopRotatePass on loop %<unnamed loop> in function loop_sum_array ***
+
+; Preheader:
+4:                                                ; preds = %2
+  br label %9
+
+; Loop:
+9:                                                ; preds = %4, %9
+  %10 = phi i16 [ 0, %4 ], [ %15, %9 ]
+  %11 = phi i16 [ 0, %4 ], [ %14, %9 ]
+  %12 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %10
+  %13 = load i16, ptr %12, align 1, !tbaa !2
+  %14 = add nsw i16 %13, %11
+  %15 = add nuw nsw i16 %10, 1
+  %16 = icmp slt i16 %15, %1
+  br i1 %16, label %9, label %5, !llvm.loop !6
+
+; Exit blocks
+5:                                                ; preds = %9
+  %6 = phi i16 [ %14, %9 ]
+  br label %7
+*** IR Dump After LICMPass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Dump After SimpleLoopUnswitchPass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Pass PassManager<Loop, LoopAnalysisManager, LoopStandardAnalysisResults &, LPMUpdater &> on loop %<unnamed loop> in function loop_sum_array ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on loop_sum_array ignored ***
+*** IR Dump After SimplifyCFGPass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp slt i16 0, %1
+  br i1 %3, label %6, label %4
+
+4:                                                ; preds = %6, %2
+  %5 = phi i16 [ 0, %2 ], [ %11, %6 ]
+  ret i16 %5
+
+6:                                                ; preds = %2, %6
+  %7 = phi i16 [ %12, %6 ], [ 0, %2 ]
+  %8 = phi i16 [ %11, %6 ], [ 0, %2 ]
+  %9 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %7
+  %10 = load i16, ptr %9, align 1, !tbaa !2
+  %11 = add nsw i16 %10, %8
+  %12 = add nuw nsw i16 %7, 1
+  %13 = icmp slt i16 %12, %1
+  br i1 %13, label %6, label %4, !llvm.loop !6
+}
+*** IR Dump After InstCombinePass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %6, label %4
+
+4:                                                ; preds = %6, %2
+  %5 = phi i16 [ 0, %2 ], [ %11, %6 ]
+  ret i16 %5
+
+6:                                                ; preds = %2, %6
+  %7 = phi i16 [ %12, %6 ], [ 0, %2 ]
+  %8 = phi i16 [ %11, %6 ], [ 0, %2 ]
+  %9 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %7
+  %10 = load i16, ptr %9, align 1, !tbaa !2
+  %11 = add nsw i16 %10, %8
+  %12 = add nuw nsw i16 %7, 1
+  %13 = icmp slt i16 %12, %1
+  br i1 %13, label %6, label %4, !llvm.loop !6
+}
+*** IR Dump After LoopSimplifyPass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %6
+
+4:                                                ; preds = %2
+  br label %8
+
+5:                                                ; preds = %8
+  br label %6
+
+6:                                                ; preds = %5, %2
+  %7 = phi i16 [ 0, %2 ], [ %13, %5 ]
+  ret i16 %7
+
+8:                                                ; preds = %4, %8
+  %9 = phi i16 [ %14, %8 ], [ 0, %4 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %4 ]
+  %11 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %9
+  %12 = load i16, ptr %11, align 1, !tbaa !2
+  %13 = add nsw i16 %12, %10
+  %14 = add nuw nsw i16 %9, 1
+  %15 = icmp slt i16 %14, %1
+  br i1 %15, label %8, label %5, !llvm.loop !6
+}
+*** IR Dump After LCSSAPass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %7
+
+4:                                                ; preds = %2
+  br label %9
+
+5:                                                ; preds = %9
+  %6 = phi i16 [ %14, %9 ]
+  br label %7
+
+7:                                                ; preds = %5, %2
+  %8 = phi i16 [ 0, %2 ], [ %6, %5 ]
+  ret i16 %8
+
+9:                                                ; preds = %4, %9
+  %10 = phi i16 [ %15, %9 ], [ 0, %4 ]
+  %11 = phi i16 [ %14, %9 ], [ 0, %4 ]
+  %12 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %10
+  %13 = load i16, ptr %12, align 1, !tbaa !2
+  %14 = add nsw i16 %13, %11
+  %15 = add nuw nsw i16 %10, 1
+  %16 = icmp slt i16 %15, %1
+  br i1 %16, label %9, label %5, !llvm.loop !6
+}
+*** IR Pass PassManager<Function> on loop_sum_array ignored ***
+*** IR Dump After LoopIdiomRecognizePass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Dump After IndVarSimplifyPass on loop %<unnamed loop> in function loop_sum_array ***
+
+; Preheader:
+4:                                                ; preds = %2
+  br label %9
+
+; Loop:
+9:                                                ; preds = %4, %9
+  %10 = phi i16 [ %15, %9 ], [ 0, %4 ]
+  %11 = phi i16 [ %14, %9 ], [ 0, %4 ]
+  %12 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %10
+  %13 = load i16, ptr %12, align 1, !tbaa !2
+  %14 = add nsw i16 %13, %11
+  %15 = add nuw nsw i16 %10, 1
+  %16 = icmp ne i16 %15, %1
+  br i1 %16, label %9, label %5, !llvm.loop !6
+
+; Exit blocks
+5:                                                ; preds = %9
+  %6 = phi i16 [ %14, %9 ]
+  br label %7
+*** IR Pass ExtraLoopPassManager<llvm::ShouldRunExtraSimpleLoopUnswitch> on loop %<unnamed loop> in function loop_sum_array ignored ***
+*** IR Dump After MOSIndexIV on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Dump After IndVarSimplifyPass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Dump After LoopDeletionPass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Dump After LoopFullUnrollPass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Pass PassManager<Loop, LoopAnalysisManager, LoopStandardAnalysisResults &, LPMUpdater &> on loop %<unnamed loop> in function loop_sum_array ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on loop_sum_array ignored ***
+*** IR Dump After SROAPass on loop_sum_array omitted because no change ***
+*** IR Dump After VectorCombinePass on loop_sum_array omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on loop_sum_array omitted because no change ***
+*** IR Dump After GVNPass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %6
+
+4:                                                ; preds = %2
+  br label %8
+
+5:                                                ; preds = %8
+  br label %6
+
+6:                                                ; preds = %5, %2
+  %7 = phi i16 [ 0, %2 ], [ %13, %5 ]
+  ret i16 %7
+
+8:                                                ; preds = %4, %8
+  %9 = phi i16 [ %14, %8 ], [ 0, %4 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %4 ]
+  %11 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %9
+  %12 = load i16, ptr %11, align 1, !tbaa !2
+  %13 = add nsw i16 %12, %10
+  %14 = add nuw nsw i16 %9, 1
+  %15 = icmp ne i16 %14, %1
+  br i1 %15, label %8, label %5, !llvm.loop !6
+}
+*** IR Dump After SCCPPass on loop_sum_array omitted because no change ***
+*** IR Dump After BDCEPass on loop_sum_array omitted because no change ***
+*** IR Dump After InstCombinePass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %6
+
+4:                                                ; preds = %2
+  br label %8
+
+5:                                                ; preds = %8
+  br label %6
+
+6:                                                ; preds = %5, %2
+  %7 = phi i16 [ 0, %2 ], [ %13, %5 ]
+  ret i16 %7
+
+8:                                                ; preds = %4, %8
+  %9 = phi i16 [ %14, %8 ], [ 0, %4 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %4 ]
+  %11 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %9
+  %12 = load i16, ptr %11, align 1, !tbaa !2
+  %13 = add nsw i16 %12, %10
+  %14 = add nuw nsw i16 %9, 1
+  %15 = icmp eq i16 %14, %1
+  br i1 %15, label %5, label %8, !llvm.loop !6
+}
+*** IR Dump After JumpThreadingPass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %5
+
+4:                                                ; preds = %2
+  br label %7
+
+5:                                                ; preds = %7, %2
+  %6 = phi i16 [ 0, %2 ], [ %12, %7 ]
+  ret i16 %6
+
+7:                                                ; preds = %4, %7
+  %8 = phi i16 [ %13, %7 ], [ 0, %4 ]
+  %9 = phi i16 [ %12, %7 ], [ 0, %4 ]
+  %10 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %8
+  %11 = load i16, ptr %10, align 1, !tbaa !2
+  %12 = add nsw i16 %11, %9
+  %13 = add nuw nsw i16 %8, 1
+  %14 = icmp eq i16 %13, %1
+  br i1 %14, label %5, label %7, !llvm.loop !6
+}
+*** IR Dump After CorrelatedValuePropagationPass on loop_sum_array omitted because no change ***
+*** IR Dump After ADCEPass on loop_sum_array omitted because no change ***
+*** IR Dump After MemCpyOptPass on loop_sum_array omitted because no change ***
+*** IR Dump After DSEPass on loop_sum_array omitted because no change ***
+*** IR Dump After MoveAutoInitPass on loop_sum_array omitted because no change ***
+*** IR Dump After LoopSimplifyPass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %6
+
+4:                                                ; preds = %2
+  br label %8
+
+5:                                                ; preds = %8
+  br label %6
+
+6:                                                ; preds = %5, %2
+  %7 = phi i16 [ 0, %2 ], [ %13, %5 ]
+  ret i16 %7
+
+8:                                                ; preds = %4, %8
+  %9 = phi i16 [ %14, %8 ], [ 0, %4 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %4 ]
+  %11 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %9
+  %12 = load i16, ptr %11, align 1, !tbaa !2
+  %13 = add nsw i16 %12, %10
+  %14 = add nuw nsw i16 %9, 1
+  %15 = icmp eq i16 %14, %1
+  br i1 %15, label %5, label %8, !llvm.loop !6
+}
+*** IR Dump After LCSSAPass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %7
+
+4:                                                ; preds = %2
+  br label %9
+
+5:                                                ; preds = %9
+  %6 = phi i16 [ %14, %9 ]
+  br label %7
+
+7:                                                ; preds = %5, %2
+  %8 = phi i16 [ 0, %2 ], [ %6, %5 ]
+  ret i16 %8
+
+9:                                                ; preds = %4, %9
+  %10 = phi i16 [ %15, %9 ], [ 0, %4 ]
+  %11 = phi i16 [ %14, %9 ], [ 0, %4 ]
+  %12 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %10
+  %13 = load i16, ptr %12, align 1, !tbaa !2
+  %14 = add nsw i16 %13, %11
+  %15 = add nuw nsw i16 %10, 1
+  %16 = icmp eq i16 %15, %1
+  br i1 %16, label %5, label %9, !llvm.loop !6
+}
+*** IR Pass PassManager<Function> on loop_sum_array ignored ***
+*** IR Dump After LICMPass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Pass FunctionToLoopPassAdaptor on loop_sum_array ignored ***
+*** IR Dump After CoroElidePass on loop_sum_array omitted because no change ***
+*** IR Dump After SimplifyCFGPass on loop_sum_array ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %6, label %4
+
+4:                                                ; preds = %6, %2
+  %5 = phi i16 [ 0, %2 ], [ %11, %6 ]
+  ret i16 %5
+
+6:                                                ; preds = %2, %6
+  %7 = phi i16 [ %12, %6 ], [ 0, %2 ]
+  %8 = phi i16 [ %11, %6 ], [ 0, %2 ]
+  %9 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %7
+  %10 = load i16, ptr %9, align 1, !tbaa !2
+  %11 = add nsw i16 %10, %8
+  %12 = add nuw nsw i16 %7, 1
+  %13 = icmp eq i16 %12, %1
+  br i1 %13, label %4, label %6, !llvm.loop !6
+}
+*** IR Dump After InstCombinePass on loop_sum_array omitted because no change ***
+*** IR Pass PassManager<Function> on loop_sum_array ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (loop_sum_array) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (loop_sum_array) ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(argmem: read)
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %6, label %4
+
+4:                                                ; preds = %6, %2
+  %5 = phi i16 [ 0, %2 ], [ %11, %6 ]
+  ret i16 %5
+
+6:                                                ; preds = %2, %6
+  %7 = phi i16 [ %12, %6 ], [ 0, %2 ]
+  %8 = phi i16 [ %11, %6 ], [ 0, %2 ]
+  %9 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %7
+  %10 = load i16, ptr %9, align 1, !tbaa !2
+  %11 = add nsw i16 %10, %8
+  %12 = add nuw nsw i16 %7, 1
+  %13 = icmp eq i16 %12, %1
+  br i1 %13, label %4, label %6, !llvm.loop !6
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on loop_sum_array omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (loop_sum_array) ignored ***
+*** IR Dump After CoroSplitPass on (loop_sum_array) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (loop_sum_array) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (loop_sum_array) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (loop_sum_array) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on loop_sum_array omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on loop_sum_array omitted because no change ***
+*** IR Dump After Float2IntPass on loop_sum_array omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on loop_sum_array omitted because no change ***
+*** IR Dump After LoopSimplifyPass on loop_sum_array ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(argmem: read)
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %6
+
+4:                                                ; preds = %2
+  br label %8
+
+5:                                                ; preds = %8
+  br label %6
+
+6:                                                ; preds = %5, %2
+  %7 = phi i16 [ 0, %2 ], [ %13, %5 ]
+  ret i16 %7
+
+8:                                                ; preds = %4, %8
+  %9 = phi i16 [ %14, %8 ], [ 0, %4 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %4 ]
+  %11 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %9
+  %12 = load i16, ptr %11, align 1, !tbaa !2
+  %13 = add nsw i16 %12, %10
+  %14 = add nuw nsw i16 %9, 1
+  %15 = icmp eq i16 %14, %1
+  br i1 %15, label %5, label %8, !llvm.loop !6
+}
+*** IR Dump After LCSSAPass on loop_sum_array ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(argmem: read)
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %7
+
+4:                                                ; preds = %2
+  br label %9
+
+5:                                                ; preds = %9
+  %6 = phi i16 [ %14, %9 ]
+  br label %7
+
+7:                                                ; preds = %5, %2
+  %8 = phi i16 [ 0, %2 ], [ %6, %5 ]
+  ret i16 %8
+
+9:                                                ; preds = %4, %9
+  %10 = phi i16 [ %15, %9 ], [ 0, %4 ]
+  %11 = phi i16 [ %14, %9 ], [ 0, %4 ]
+  %12 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %10
+  %13 = load i16, ptr %12, align 1, !tbaa !2
+  %14 = add nsw i16 %13, %11
+  %15 = add nuw nsw i16 %10, 1
+  %16 = icmp eq i16 %15, %1
+  br i1 %16, label %5, label %9, !llvm.loop !6
+}
+*** IR Pass PassManager<Function> on loop_sum_array ignored ***
+*** IR Dump After LoopRotatePass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Dump After LoopDeletionPass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Pass PassManager<Loop, LoopAnalysisManager, LoopStandardAnalysisResults &, LPMUpdater &> on loop %<unnamed loop> in function loop_sum_array ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on loop_sum_array ignored ***
+*** IR Dump After LoopDistributePass on loop_sum_array omitted because no change ***
+*** IR Dump After InjectTLIMappings on loop_sum_array omitted because no change ***
+*** IR Dump After LoopVectorizePass on loop_sum_array omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on loop_sum_array omitted because no change ***
+*** IR Dump After InferAlignmentPass on loop_sum_array omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on loop_sum_array omitted because no change ***
+*** IR Dump After InstCombinePass on loop_sum_array ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(argmem: read)
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %6
+
+4:                                                ; preds = %2
+  br label %8
+
+5:                                                ; preds = %8
+  br label %6
+
+6:                                                ; preds = %5, %2
+  %7 = phi i16 [ 0, %2 ], [ %13, %5 ]
+  ret i16 %7
+
+8:                                                ; preds = %4, %8
+  %9 = phi i16 [ %14, %8 ], [ 0, %4 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %4 ]
+  %11 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %9
+  %12 = load i16, ptr %11, align 1, !tbaa !2
+  %13 = add nsw i16 %12, %10
+  %14 = add nuw nsw i16 %9, 1
+  %15 = icmp eq i16 %14, %1
+  br i1 %15, label %5, label %8, !llvm.loop !6
+}
+*** IR Dump After SimplifyCFGPass on loop_sum_array ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(argmem: read)
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %6, label %4
+
+4:                                                ; preds = %6, %2
+  %5 = phi i16 [ 0, %2 ], [ %11, %6 ]
+  ret i16 %5
+
+6:                                                ; preds = %2, %6
+  %7 = phi i16 [ %12, %6 ], [ 0, %2 ]
+  %8 = phi i16 [ %11, %6 ], [ 0, %2 ]
+  %9 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %7
+  %10 = load i16, ptr %9, align 1, !tbaa !2
+  %11 = add nsw i16 %10, %8
+  %12 = add nuw nsw i16 %7, 1
+  %13 = icmp eq i16 %12, %1
+  br i1 %13, label %4, label %6, !llvm.loop !6
+}
+*** IR Dump After SLPVectorizerPass on loop_sum_array omitted because no change ***
+*** IR Dump After VectorCombinePass on loop_sum_array omitted because no change ***
+*** IR Dump After InstCombinePass on loop_sum_array omitted because no change ***
+*** IR Dump After LoopUnrollPass on loop_sum_array ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(argmem: read)
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %7
+
+4:                                                ; preds = %2
+  br label %9
+
+5:                                                ; preds = %9
+  %6 = phi i16 [ %14, %9 ]
+  br label %7
+
+7:                                                ; preds = %5, %2
+  %8 = phi i16 [ 0, %2 ], [ %6, %5 ]
+  ret i16 %8
+
+9:                                                ; preds = %4, %9
+  %10 = phi i16 [ %15, %9 ], [ 0, %4 ]
+  %11 = phi i16 [ %14, %9 ], [ 0, %4 ]
+  %12 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %10
+  %13 = load i16, ptr %12, align 1, !tbaa !2
+  %14 = add nsw i16 %13, %11
+  %15 = add nuw nsw i16 %10, 1
+  %16 = icmp eq i16 %15, %1
+  br i1 %16, label %5, label %9, !llvm.loop !6
+}
+*** IR Dump After WarnMissedTransformationsPass on loop_sum_array omitted because no change ***
+*** IR Dump After SROAPass on loop_sum_array omitted because no change ***
+*** IR Dump After InferAlignmentPass on loop_sum_array omitted because no change ***
+*** IR Dump After InstCombinePass on loop_sum_array ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(argmem: read)
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %6
+
+4:                                                ; preds = %2
+  br label %8
+
+5:                                                ; preds = %8
+  br label %6
+
+6:                                                ; preds = %5, %2
+  %7 = phi i16 [ 0, %2 ], [ %13, %5 ]
+  ret i16 %7
+
+8:                                                ; preds = %4, %8
+  %9 = phi i16 [ %14, %8 ], [ 0, %4 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %4 ]
+  %11 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %9
+  %12 = load i16, ptr %11, align 1, !tbaa !2
+  %13 = add nsw i16 %12, %10
+  %14 = add nuw nsw i16 %9, 1
+  %15 = icmp eq i16 %14, %1
+  br i1 %15, label %5, label %8, !llvm.loop !6
+}
+*** IR Dump After LoopSimplifyPass on loop_sum_array omitted because no change ***
+*** IR Dump After LCSSAPass on loop_sum_array ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(argmem: read)
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %7
+
+4:                                                ; preds = %2
+  br label %9
+
+5:                                                ; preds = %9
+  %6 = phi i16 [ %14, %9 ]
+  br label %7
+
+7:                                                ; preds = %5, %2
+  %8 = phi i16 [ 0, %2 ], [ %6, %5 ]
+  ret i16 %8
+
+9:                                                ; preds = %4, %9
+  %10 = phi i16 [ %15, %9 ], [ 0, %4 ]
+  %11 = phi i16 [ %14, %9 ], [ 0, %4 ]
+  %12 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %10
+  %13 = load i16, ptr %12, align 1, !tbaa !2
+  %14 = add nsw i16 %13, %11
+  %15 = add nuw nsw i16 %10, 1
+  %16 = icmp eq i16 %15, %1
+  br i1 %16, label %5, label %9, !llvm.loop !6
+}
+*** IR Pass PassManager<Function> on loop_sum_array ignored ***
+*** IR Dump After LICMPass on loop %<unnamed loop> in function loop_sum_array omitted because no change ***
+*** IR Pass FunctionToLoopPassAdaptor on loop_sum_array ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on loop_sum_array omitted because no change ***
+*** IR Dump After LoopSinkPass on loop_sum_array omitted because no change ***
+*** IR Dump After InstSimplifyPass on loop_sum_array ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(argmem: read)
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %4, label %6
+
+4:                                                ; preds = %2
+  br label %8
+
+5:                                                ; preds = %8
+  br label %6
+
+6:                                                ; preds = %5, %2
+  %7 = phi i16 [ 0, %2 ], [ %13, %5 ]
+  ret i16 %7
+
+8:                                                ; preds = %4, %8
+  %9 = phi i16 [ %14, %8 ], [ 0, %4 ]
+  %10 = phi i16 [ %13, %8 ], [ 0, %4 ]
+  %11 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %9
+  %12 = load i16, ptr %11, align 1, !tbaa !2
+  %13 = add nsw i16 %12, %10
+  %14 = add nuw nsw i16 %9, 1
+  %15 = icmp eq i16 %14, %1
+  br i1 %15, label %5, label %8, !llvm.loop !6
+}
+*** IR Dump After DivRemPairsPass on loop_sum_array omitted because no change ***
+*** IR Dump After MergeICmpsPass on loop_sum_array omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on loop_sum_array omitted because no change ***
+*** IR Dump After TailCallElimPass on loop_sum_array omitted because no change ***
+*** IR Dump After SimplifyCFGPass on loop_sum_array ***
+; Function Attrs: nofree norecurse nosync nounwind optsize memory(argmem: read)
+define dso_local i16 @loop_sum_array(ptr noundef readonly captures(none) %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = icmp sgt i16 %1, 0
+  br i1 %3, label %6, label %4
+
+4:                                                ; preds = %6, %2
+  %5 = phi i16 [ 0, %2 ], [ %11, %6 ]
+  ret i16 %5
+
+6:                                                ; preds = %2, %6
+  %7 = phi i16 [ %12, %6 ], [ 0, %2 ]
+  %8 = phi i16 [ %11, %6 ], [ 0, %2 ]
+  %9 = getelementptr inbounds nuw [2 x i8], ptr %0, i16 %7
+  %10 = load i16, ptr %9, align 1, !tbaa !2
+  %11 = add nsw i16 %10, %8
+  %12 = add nuw nsw i16 %7, 1
+  %13 = icmp eq i16 %12, %1
+  br i1 %13, label %4, label %6, !llvm.loop !6
+}
+*** IR Pass PassManager<Function> on loop_sum_array ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on loop_sum_array omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on loop_sum_array omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.2):
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+  liveins: $a, $x, $rs1
+  %0:_(p0) = COPY $rs1
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %1:_(s16) = G_MERGE_VALUES %2:_(s8), %3:_(s8)
+  %4:_(s16) = G_CONSTANT i16 0
+  %11:_(s16) = G_CONSTANT i16 -1
+  %5:_(s1) = G_ICMP intpred(sgt), %1:_(s16), %4:_
+  G_BRCOND %5:_(s1), %bb.2
+  G_BR %bb.3
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.1, %bb.4
+
+  %16:_(s16) = G_PHI %4:_(s16), %bb.1, %10:_(s16), %bb.4
+  %17:_(s8), %18:_(s8) = G_UNMERGE_VALUES %16:_(s16)
+  $a = COPY %17:_(s8)
+  $x = COPY %18:_(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %6:_(p0) = G_PHI %0:_(p0), %bb.2, %14:_(p0), %bb.4
+  %7:_(s16) = G_PHI %1:_(s16), %bb.2, %12:_(s16), %bb.4
+  %8:_(s16) = G_PHI %4:_(s16), %bb.2, %10:_(s16), %bb.4
+  %9:_(s16) = G_LOAD %6:_(p0) :: (load (s16) from %ir.8, align 1, !tbaa !2)
+  %10:_(s16) = nsw G_ADD %9:_, %8:_
+  %12:_(s16) = G_ADD %7:_, %11:_
+  %13:_(s16) = G_CONSTANT i16 2
+  %14:_(p0) = G_PTR_ADD %6:_, %13:_(s16)
+  %15:_(s1) = G_ICMP intpred(eq), %12:_(s16), %4:_
+  G_BRCOND %15:_(s1), %bb.3
+  G_BR %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on loop_sum_array omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on loop_sum_array omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on loop_sum_array omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.2):
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+  liveins: $a, $x, $rs1
+  %0:_(p0) = COPY $rs1
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %1:_(s16) = G_MERGE_VALUES %2:_(s8), %3:_(s8)
+  %4:_(s16) = G_CONSTANT i16 0
+  %11:_(s16) = G_CONSTANT i16 -1
+  %5:_(s1) = G_ICMP intpred(sle), %1:_(s16), %4:_
+  G_BRCOND %5:_(s1), %bb.3
+  G_BR %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.1, %bb.4
+
+  %16:_(s16) = G_PHI %4:_(s16), %bb.1, %10:_(s16), %bb.4
+  %17:_(s8), %18:_(s8) = G_UNMERGE_VALUES %16:_(s16)
+  $a = COPY %17:_(s8)
+  $x = COPY %18:_(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %6:_(p0) = G_PHI %0:_(p0), %bb.2, %14:_(p0), %bb.4
+  %7:_(s16) = G_PHI %1:_(s16), %bb.2, %12:_(s16), %bb.4
+  %8:_(s16) = G_PHI %4:_(s16), %bb.2, %10:_(s16), %bb.4
+  %9:_(s16) = G_LOAD %6:_(p0) :: (load (s16) from %ir.8, align 1, !tbaa !2)
+  %10:_(s16) = nsw G_ADD %9:_, %8:_
+  %12:_(s16) = G_ADD %7:_, %11:_
+  %13:_(s16) = G_CONSTANT i16 2
+  %14:_(p0) = G_PTR_ADD %6:_, %13:_(s16)
+  %15:_(s1) = G_ICMP intpred(eq), %12:_(s16), %4:_
+  G_BRCOND %15:_(s1), %bb.3
+  G_BR %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on loop_sum_array omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on loop_sum_array omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on loop_sum_array omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.2):
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+  liveins: $a, $x, $rs1
+  %0:_(p0) = COPY $rs1
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %89:_(s8) = G_CONSTANT i8 0
+  %96:_(s8) = G_CONSTANT i8 1
+  %76:_(s1) = G_CONSTANT i1 true
+  %77:_(s8), %78:_(s1), %79:_, %80:_, %81:_ = G_SBC %2:_, %96:_, %76:_
+  %82:_(s8), %83:_(s1), %84:_, %85:_, %86:_ = G_SBC %3:_, %89:_, %78:_
+  %87:_(s8) = G_CONSTANT i8 -128
+  %88:_(s8) = G_XOR %82:_, %87:_
+  %90:_(s8) = G_SELECT %85:_(s1), %88:_, %82:_
+  %91:_(s8), %92:_(s1), %93:_, %94:_, %95:_ = G_SBC %90:_, %89:_, %76:_
+  %5:_(s1) = COPY %93:_(s1)
+  G_BRCOND_IMM %5:_(s1), %bb.3, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.1, %bb.4
+
+  %25:_(s8) = G_PHI %89:_(s8), %bb.1, %50:_(s8), %bb.4
+  %26:_(s8) = G_PHI %89:_(s8), %bb.1, %52:_(s8), %bb.4
+  $a = COPY %25:_(s8)
+  $x = COPY %26:_(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %6:_(p0) = G_PHI %0:_(p0), %bb.2, %14:_(p0), %bb.4
+  %69:_(s8) = G_PHI %2:_(s8), %bb.2, %44:_(s8), %bb.4
+  %70:_(s8) = G_PHI %3:_(s8), %bb.2, %45:_(s8), %bb.4
+  %63:_(s8) = G_PHI %89:_(s8), %bb.2, %50:_(s8), %bb.4
+  %64:_(s8) = G_PHI %89:_(s8), %bb.2, %52:_(s8), %bb.4
+  %41:_(s8) = G_CONSTANT i8 0
+  %54:_(s8) = G_LOAD_INDIR_IDX %6:_(p0), %41:_ :: (load (s8) from %ir.8, !tbaa !2)
+  %58:_(s8) = G_CONSTANT i8 1
+  %57:_(s8) = G_LOAD_INDIR_IDX %6:_(p0), %58:_ :: (load (s8) from %ir.8 + 1, !tbaa !2)
+  %39:_(s1) = G_CONSTANT i1 false
+  %50:_(s8), %51:_(s1) = G_UADDE %54:_, %63:_, %39:_
+  %52:_(s8), %53:_(s1) = G_UADDE %57:_, %64:_, %51:_
+  %44:_(s8), %45:_(s8) = G_DEC %69:_(s8), %70:_(s8)
+  %40:_(s8) = G_CONSTANT i8 2
+  %29:_(s16) = G_PTRTOINT %6:_(p0)
+  %31:_(s8), %32:_(s8) = G_UNMERGE_VALUES %29:_(s16)
+  %35:_(s8), %36:_(s1) = G_UADDE %31:_, %40:_, %39:_
+  %37:_(s8), %38:_(s1) = G_UADDE %32:_, %41:_, %36:_
+  %30:_(s16) = G_MERGE_VALUES %35:_(s8), %37:_(s8)
+  %14:_(p0) = G_INTTOPTR %30:_(s16)
+  %15:_(s1) = G_CMPZ %44:_(s8), %45:_(s8)
+  G_BRCOND_IMM %15:_(s1), %bb.3, 1
+  G_BR %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on loop_sum_array omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on loop_sum_array omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on loop_sum_array omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.2):
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+  liveins: $a, $x, $rs1
+  %0:_(p0) = COPY $rs1
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %89:_(s8) = G_CONSTANT i8 0
+  %96:_(s8) = G_CONSTANT i8 1
+  %76:_(s1) = G_CONSTANT i1 true
+  %77:_(s8), %78:_(s1), %79:_, %80:_, %81:_ = G_SBC %2:_, %96:_, %76:_
+  %82:_(s8), %83:_(s1), %84:_, %85:_, %86:_ = G_SBC %3:_, %89:_, %78:_
+  %87:_(s8) = G_CONSTANT i8 -128
+  %88:_(s8) = G_XOR %82:_, %87:_
+  %90:_(s8) = G_SELECT %85:_(s1), %88:_, %82:_
+  %91:_(s8), %92:_(s1), %93:_, %94:_, %95:_ = G_SBC %90:_, %89:_, %76:_
+  G_BRCOND_IMM %93:_(s1), %bb.3, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.1, %bb.4
+
+  %25:_(s8) = G_PHI %89:_(s8), %bb.1, %50:_(s8), %bb.4
+  %26:_(s8) = G_PHI %89:_(s8), %bb.1, %52:_(s8), %bb.4
+  $a = COPY %25:_(s8)
+  $x = COPY %26:_(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %6:_(p0) = G_PHI %0:_(p0), %bb.2, %14:_(p0), %bb.4
+  %69:_(s8) = G_PHI %2:_(s8), %bb.2, %44:_(s8), %bb.4
+  %70:_(s8) = G_PHI %3:_(s8), %bb.2, %45:_(s8), %bb.4
+  %63:_(s8) = G_PHI %89:_(s8), %bb.2, %50:_(s8), %bb.4
+  %64:_(s8) = G_PHI %89:_(s8), %bb.2, %52:_(s8), %bb.4
+  %41:_(s8) = G_CONSTANT i8 0
+  %54:_(s8) = G_LOAD_INDIR_IDX %6:_(p0), %41:_ :: (load (s8) from %ir.8, !tbaa !2)
+  %58:_(s8) = G_CONSTANT i8 1
+  %57:_(s8) = G_LOAD_INDIR_IDX %6:_(p0), %58:_ :: (load (s8) from %ir.8 + 1, !tbaa !2)
+  %39:_(s1) = G_CONSTANT i1 false
+  %50:_(s8), %51:_(s1) = G_UADDE %54:_, %63:_, %39:_
+  %52:_(s8), %53:_(s1) = G_UADDE %57:_, %64:_, %51:_
+  %44:_(s8), %45:_(s8) = G_DEC %69:_(s8), %70:_(s8)
+  %40:_(s8) = G_CONSTANT i8 2
+  %29:_(s16) = G_PTRTOINT %6:_(p0)
+  %31:_(s8), %32:_(s8) = G_UNMERGE_VALUES %29:_(s16)
+  %35:_(s8), %36:_(s1) = G_UADDE %31:_, %40:_, %39:_
+  %37:_(s8), %38:_(s1) = G_UADDE %32:_, %41:_, %36:_
+  %30:_(s16) = G_MERGE_VALUES %35:_(s8), %37:_(s8)
+  %14:_(p0) = G_INTTOPTR %30:_(s16)
+  %15:_(s1) = G_CMPZ %44:_(s8), %45:_(s8)
+  G_BRCOND_IMM %15:_(s1), %bb.3, 1
+  G_BR %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.2):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x, $rs1
+  %0:_(p0) = COPY $rs1
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %89:_(s8) = G_CONSTANT i8 0
+  %96:_(s8) = G_CONSTANT i8 1
+  %76:_(s1) = G_CONSTANT i1 true
+  %77:_(s8), %78:_(s1), %79:_, %80:_, %81:_ = G_SBC %2:_, %96:_, %76:_
+  %82:_(s8), %83:_(s1), %84:_, %85:_, %86:_ = G_SBC %3:_, %89:_, %78:_
+  G_BRCOND_IMM %85:_(s1), %bb.5, 1
+  G_BR %bb.6
+
+bb.5 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %87:_(s8) = G_CONSTANT i8 -128
+  %88:_(s8) = G_XOR %82:_, %87:_
+  G_BR %bb.7
+
+bb.6 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  G_BR %bb.7
+
+bb.7 (%ir-block.2):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+
+  %90:_(s8) = G_PHI %88:_(s8), %bb.5, %82:_(s8), %bb.6
+  %91:_(s8), %92:_(s1), %93:_, %94:_, %95:_ = G_SBC %90:_, %89:_, %76:_
+  G_BRCOND_IMM %93:_(s1), %bb.3, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.4, %bb.7
+
+  %25:_(s8) = G_PHI %89:_(s8), %bb.7, %50:_(s8), %bb.4
+  %26:_(s8) = G_PHI %89:_(s8), %bb.7, %52:_(s8), %bb.4
+  $a = COPY %25:_(s8)
+  $x = COPY %26:_(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %6:_(p0) = G_PHI %0:_(p0), %bb.2, %14:_(p0), %bb.4
+  %69:_(s8) = G_PHI %2:_(s8), %bb.2, %44:_(s8), %bb.4
+  %70:_(s8) = G_PHI %3:_(s8), %bb.2, %45:_(s8), %bb.4
+  %63:_(s8) = G_PHI %89:_(s8), %bb.2, %50:_(s8), %bb.4
+  %64:_(s8) = G_PHI %89:_(s8), %bb.2, %52:_(s8), %bb.4
+  %41:_(s8) = G_CONSTANT i8 0
+  %54:_(s8) = G_LOAD_INDIR_IDX %6:_(p0), %41:_ :: (load (s8) from %ir.8, !tbaa !2)
+  %58:_(s8) = G_CONSTANT i8 1
+  %57:_(s8) = G_LOAD_INDIR_IDX %6:_(p0), %58:_ :: (load (s8) from %ir.8 + 1, !tbaa !2)
+  %39:_(s1) = G_CONSTANT i1 false
+  %50:_(s8), %51:_(s1) = G_UADDE %54:_, %63:_, %39:_
+  %52:_(s8), %53:_(s1) = G_UADDE %57:_, %64:_, %51:_
+  %44:_(s8), %45:_(s8) = G_DEC %69:_(s8), %70:_(s8)
+  %40:_(s8) = G_CONSTANT i8 2
+  %29:_(s16) = G_PTRTOINT %6:_(p0)
+  %31:_(s8), %32:_(s8) = G_UNMERGE_VALUES %29:_(s16)
+  %35:_(s8), %36:_(s1) = G_UADDE %31:_, %40:_, %39:_
+  %37:_(s8), %38:_(s1) = G_UADDE %32:_, %41:_, %36:_
+  %30:_(s16) = G_MERGE_VALUES %35:_(s8), %37:_(s8)
+  %14:_(p0) = G_INTTOPTR %30:_(s16)
+  %15:_(s1) = G_CMPZ %44:_(s8), %45:_(s8)
+  G_BRCOND_IMM %15:_(s1), %bb.3, 1
+  G_BR %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After RegBankSelect (regbankselect) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.2):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x, $rs1
+  %0:any(p0) = COPY $rs1
+  %2:any(s8) = COPY $a
+  %3:any(s8) = COPY $x
+  %89:any(s8) = G_CONSTANT i8 0
+  %96:any(s8) = G_CONSTANT i8 1
+  %76:any(s1) = G_CONSTANT i1 true
+  %77:any(s8), %78:any(s1), %79:any, %80:any, %81:any = G_SBC %2:any, %96:any, %76:any
+  %82:any(s8), %83:any(s1), %84:any, %85:any, %86:any = G_SBC %3:any, %89:any, %78:any
+  G_BRCOND_IMM %85:any(s1), %bb.5, 1
+  G_BR %bb.6
+
+bb.5 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %87:any(s8) = G_CONSTANT i8 -128
+  %88:any(s8) = G_XOR %82:any, %87:any
+  G_BR %bb.7
+
+bb.6 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  G_BR %bb.7
+
+bb.7 (%ir-block.2):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+
+  %90:any(s8) = G_PHI %88:any(s8), %bb.5, %82:any(s8), %bb.6
+  %91:any(s8), %92:any(s1), %93:any, %94:any, %95:any = G_SBC %90:any, %89:any, %76:any
+  G_BRCOND_IMM %93:any(s1), %bb.3, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  G_BR %bb.4
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.4, %bb.7
+
+  %25:any(s8) = G_PHI %89:any(s8), %bb.7, %50:any(s8), %bb.4
+  %26:any(s8) = G_PHI %89:any(s8), %bb.7, %52:any(s8), %bb.4
+  $a = COPY %25:any(s8)
+  $x = COPY %26:any(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %6:any(p0) = G_PHI %0:any(p0), %bb.2, %14:any(p0), %bb.4
+  %69:any(s8) = G_PHI %2:any(s8), %bb.2, %44:any(s8), %bb.4
+  %70:any(s8) = G_PHI %3:any(s8), %bb.2, %45:any(s8), %bb.4
+  %63:any(s8) = G_PHI %89:any(s8), %bb.2, %50:any(s8), %bb.4
+  %64:any(s8) = G_PHI %89:any(s8), %bb.2, %52:any(s8), %bb.4
+  %41:any(s8) = G_CONSTANT i8 0
+  %54:any(s8) = G_LOAD_INDIR_IDX %6:any(p0), %41:any :: (load (s8) from %ir.8, !tbaa !2)
+  %58:any(s8) = G_CONSTANT i8 1
+  %57:any(s8) = G_LOAD_INDIR_IDX %6:any(p0), %58:any :: (load (s8) from %ir.8 + 1, !tbaa !2)
+  %39:any(s1) = G_CONSTANT i1 false
+  %50:any(s8), %51:any(s1) = G_UADDE %54:any, %63:any, %39:any
+  %52:any(s8), %53:any(s1) = G_UADDE %57:any, %64:any, %51:any
+  %44:any(s8), %45:any(s8) = G_DEC %69:any(s8), %70:any(s8)
+  %40:any(s8) = G_CONSTANT i8 2
+  %29:any(s16) = G_PTRTOINT %6:any(p0)
+  %31:any(s8), %32:any(s8) = G_UNMERGE_VALUES %29:any(s16)
+  %35:any(s8), %36:any(s1) = G_UADDE %31:any, %40:any, %39:any
+  %37:any(s8), %38:any(s1) = G_UADDE %32:any, %41:any, %36:any
+  %30:any(s16) = G_MERGE_VALUES %35:any(s8), %37:any(s8)
+  %14:any(p0) = G_INTTOPTR %30:any(s16)
+  %15:any(s1) = G_CMPZ %44:any(s8), %45:any(s8)
+  G_BRCOND_IMM %15:any(s1), %bb.3, 1
+  G_BR %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Localizer (localizer) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.2):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x, $rs1
+  %0:any(p0) = COPY $rs1
+  %2:any(s8) = COPY $a
+  %3:any(s8) = COPY $x
+  %76:any(s1) = G_CONSTANT i1 true
+  %96:any(s8) = G_CONSTANT i8 1
+  %77:any(s8), %78:any(s1), %79:any, %80:any, %81:any = G_SBC %2:any, %96:any, %76:any
+  %89:any(s8) = G_CONSTANT i8 0
+  %82:any(s8), %83:any(s1), %84:any, %85:any, %86:any = G_SBC %3:any, %89:any, %78:any
+  G_BRCOND_IMM %85:any(s1), %bb.5, 1
+  G_BR %bb.6
+
+bb.5 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %87:any(s8) = G_CONSTANT i8 -128
+  %88:any(s8) = G_XOR %82:any, %87:any
+  G_BR %bb.7
+
+bb.6 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  G_BR %bb.7
+
+bb.7 (%ir-block.2):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+
+  %90:any(s8) = G_PHI %88:any(s8), %bb.5, %82:any(s8), %bb.6
+  %97:any(s1) = G_CONSTANT i1 true
+  %98:any(s8) = G_CONSTANT i8 0
+  %91:any(s8), %92:any(s1), %93:any, %94:any, %95:any = G_SBC %90:any, %98:any, %97:any
+  G_BRCOND_IMM %93:any(s1), %bb.3, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %99:any(s8) = G_CONSTANT i8 0
+  G_BR %bb.4
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.4, %bb.7
+
+  %25:any(s8) = G_PHI %98:any(s8), %bb.7, %50:any(s8), %bb.4
+  %26:any(s8) = G_PHI %98:any(s8), %bb.7, %52:any(s8), %bb.4
+  $a = COPY %25:any(s8)
+  $x = COPY %26:any(s8)
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %6:any(p0) = G_PHI %0:any(p0), %bb.2, %14:any(p0), %bb.4
+  %69:any(s8) = G_PHI %2:any(s8), %bb.2, %44:any(s8), %bb.4
+  %70:any(s8) = G_PHI %3:any(s8), %bb.2, %45:any(s8), %bb.4
+  %63:any(s8) = G_PHI %99:any(s8), %bb.2, %50:any(s8), %bb.4
+  %64:any(s8) = G_PHI %99:any(s8), %bb.2, %52:any(s8), %bb.4
+  %41:any(s8) = G_CONSTANT i8 0
+  %54:any(s8) = G_LOAD_INDIR_IDX %6:any(p0), %41:any :: (load (s8) from %ir.8, !tbaa !2)
+  %58:any(s8) = G_CONSTANT i8 1
+  %57:any(s8) = G_LOAD_INDIR_IDX %6:any(p0), %58:any :: (load (s8) from %ir.8 + 1, !tbaa !2)
+  %39:any(s1) = G_CONSTANT i1 false
+  %50:any(s8), %51:any(s1) = G_UADDE %54:any, %63:any, %39:any
+  %52:any(s8), %53:any(s1) = G_UADDE %57:any, %64:any, %51:any
+  %44:any(s8), %45:any(s8) = G_DEC %69:any(s8), %70:any(s8)
+  %40:any(s8) = G_CONSTANT i8 2
+  %29:any(s16) = G_PTRTOINT %6:any(p0)
+  %31:any(s8), %32:any(s8) = G_UNMERGE_VALUES %29:any(s16)
+  %35:any(s8), %36:any(s1) = G_UADDE %31:any, %40:any, %39:any
+  %37:any(s8), %38:any(s1) = G_UADDE %32:any, %41:any, %36:any
+  %30:any(s16) = G_MERGE_VALUES %35:any(s8), %37:any(s8)
+  %14:any(p0) = G_INTTOPTR %30:any(s16)
+  %15:any(s1) = G_CMPZ %44:any(s8), %45:any(s8)
+  G_BRCOND_IMM %15:any(s1), %bb.3, 1
+  G_BR %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on loop_sum_array omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %2:gpr = COPY $a
+  %3:ac = COPY $x
+  %78:cc = CMPImm %2:gpr, 1
+  %82:ac, %83:cc, %85:vc = SBCImm %3:ac(tied-def 0), 0, %78:cc(tied-def 1)
+  GBR %bb.5, %85:vc, 1, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %88:ac = EORImm %82:ac(tied-def 0), -128
+  JMP %bb.7
+
+bb.6 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  JMP %bb.7
+
+bb.7 (%ir-block.2):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+
+  %90:anyi8 = PHI %88:ac, %bb.5, %82:ac, %bb.6
+  %98:gpr = LDImm 0
+  CmpBrZero %bb.3, undef $n, 1, %90:anyi8, implicit-def $c
+  JMP %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %99:gpr = LDImm 0
+  JMP %bb.4
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.4, %bb.7
+
+  %25:anyi8 = PHI %98:gpr, %bb.7, %50:ac, %bb.4
+  %26:anyi8 = PHI %98:gpr, %bb.7, %52:ac, %bb.4
+  $a = COPY %25:anyi8
+  $x = COPY %26:anyi8
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %6:imag16 = PHI %0:imag16, %bb.2, %30:imag16, %bb.4
+  %69:anyi8 = PHI %2:gpr, %bb.2, %44:anyi8, %bb.4
+  %70:anyi8 = PHI %3:ac, %bb.2, %45:anyi8, %bb.4
+  %63:ac = PHI %99:gpr, %bb.2, %50:ac, %bb.4
+  %64:ac = PHI %99:gpr, %bb.2, %52:ac, %bb.4
+  %41:yc = LDImm 0
+  %58:yc = LDImm 1
+  %39:cc = LDImm1 0
+  %50:ac, %51:cc, %104:vc = ADCIndirIdx %63:ac(tied-def 0), %6:imag16, %41:yc, %39:cc(tied-def 1)
+  %52:ac, %53:cc, %103:vc = ADCIndirIdx %64:ac(tied-def 0), %6:imag16, %58:yc, %51:cc(tied-def 1)
+  early-clobber %102:gpr, %44:anyi8, %45:anyi8 = DecMB %69:anyi8(tied-def 1), %70:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  %31:ac = COPY %6.sublo:imag16
+  %32:ac = COPY %6.subhi:imag16
+  %35:ac, %36:cc, %101:vc = ADCImm %31:ac(tied-def 0), 2, %39:cc(tied-def 1)
+  %37:ac, %38:cc, %100:vc = ADCImm %32:ac(tied-def 0), 0, %36:cc(tied-def 1)
+  %30:imag16 = REG_SEQUENCE %35:ac, %subreg.sublo, %37:ac, %subreg.subhi
+  CmpBrZeroMultiByte %bb.3, 1, %44:anyi8, %45:anyi8, implicit-def $c
+  JMP %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After ResetMachineFunction on loop_sum_array omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on loop_sum_array omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on loop_sum_array omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on loop_sum_array omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on loop_sum_array omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on loop_sum_array omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on loop_sum_array omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on loop_sum_array omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on loop_sum_array omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on loop_sum_array omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %2:gpr = COPY $a
+  %3:ac = COPY $x
+  %78:cc = CMPImm %2:gpr, 1
+  %82:ac, %83:cc, %85:vc = SBCImm %3:ac(tied-def 0), 0, %78:cc(tied-def 1)
+  GBR %bb.5, %85:vc, 1, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %88:ac = EORImm %82:ac(tied-def 0), -128
+  JMP %bb.7
+
+bb.6 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  JMP %bb.7
+
+bb.7 (%ir-block.2):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.3(0x30000000); %bb.2(62.50%), %bb.3(37.50%)
+
+  %90:anyi8 = PHI %88:ac, %bb.5, %82:ac, %bb.6
+  %98:gpr = LDImm 0
+  CmpBrZero %bb.3, undef $n, 1, %90:anyi8, implicit-def $c
+  JMP %bb.2
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %99:yc = LDImm 0
+  %58:yc = LDImm 1
+  %39:cc = LDImm1 0
+  JMP %bb.4
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.4, %bb.7
+
+  %25:anyi8 = PHI %98:gpr, %bb.7, %50:ac, %bb.4
+  %26:anyi8 = PHI %98:gpr, %bb.7, %52:ac, %bb.4
+  $a = COPY %25:anyi8
+  $x = COPY %26:anyi8
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %6:imag16 = PHI %0:imag16, %bb.2, %30:imag16, %bb.4
+  %69:anyi8 = PHI %2:gpr, %bb.2, %44:anyi8, %bb.4
+  %70:anyi8 = PHI %3:ac, %bb.2, %45:anyi8, %bb.4
+  %63:ac = PHI %99:yc, %bb.2, %50:ac, %bb.4
+  %64:ac = PHI %99:yc, %bb.2, %52:ac, %bb.4
+  %50:ac, %51:cc, %104:vc = ADCIndirIdx %63:ac(tied-def 0), %6:imag16, %99:yc, %39:cc(tied-def 1)
+  %52:ac, %53:cc, %103:vc = ADCIndirIdx %64:ac(tied-def 0), %6:imag16, %58:yc, %51:cc(tied-def 1)
+  early-clobber %102:gpr, %44:anyi8, %45:anyi8 = DecMB %69:anyi8(tied-def 1), %70:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  %31:ac = COPY %6.sublo:imag16
+  %32:ac = COPY %6.subhi:imag16
+  %35:ac, %36:cc, %101:vc = ADCImm %31:ac(tied-def 0), 2, %39:cc(tied-def 1)
+  %37:ac, %38:cc, %100:vc = ADCImm %32:ac(tied-def 0), 0, %36:cc(tied-def 1)
+  %30:imag16 = REG_SEQUENCE %35:ac, %subreg.sublo, %37:ac, %subreg.subhi
+  CmpBrZeroMultiByte %bb.3, 1, %44:anyi8, %45:anyi8, implicit-def $c
+  JMP %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on loop_sum_array omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %2:gpr = COPY $a
+  %3:ac = COPY $x
+  %78:cc = CMPImm %2:gpr, 1
+  %82:ac, %83:cc, %85:vc = SBCImm %3:ac(tied-def 0), 0, %78:cc(tied-def 1)
+  GBR %bb.5, %85:vc, 1, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %88:ac = EORImm %82:ac(tied-def 0), -128
+  JMP %bb.7
+
+bb.6 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  JMP %bb.7
+
+bb.7 (%ir-block.2):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.8(0x30000000); %bb.2(62.50%), %bb.8(37.50%)
+
+  %90:anyi8 = PHI %88:ac, %bb.5, %82:ac, %bb.6
+  CmpBrZero %bb.2, undef $n, 0, %90:anyi8, implicit-def $c
+
+bb.8:
+; predecessors: %bb.7
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %98:gpr = LDImm 0
+  JMP %bb.3
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %99:yc = LDImm 0
+  %58:yc = LDImm 1
+  %39:cc = LDImm1 0
+  JMP %bb.4
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.4, %bb.8
+
+  %25:anyi8 = PHI %98:gpr, %bb.8, %50:ac, %bb.4
+  %26:anyi8 = PHI %98:gpr, %bb.8, %52:ac, %bb.4
+  $a = COPY %25:anyi8
+  $x = COPY %26:anyi8
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %6:imag16 = PHI %0:imag16, %bb.2, %30:imag16, %bb.4
+  %69:anyi8 = PHI %2:gpr, %bb.2, %44:anyi8, %bb.4
+  %70:anyi8 = PHI %3:ac, %bb.2, %45:anyi8, %bb.4
+  %63:ac = PHI %99:yc, %bb.2, %50:ac, %bb.4
+  %64:ac = PHI %99:yc, %bb.2, %52:ac, %bb.4
+  %50:ac, %51:cc, %104:vc = ADCIndirIdx %63:ac(tied-def 0), %6:imag16, %99:yc, %39:cc(tied-def 1)
+  %52:ac, %53:cc, %103:vc = ADCIndirIdx %64:ac(tied-def 0), %6:imag16, %58:yc, %51:cc(tied-def 1)
+  early-clobber %102:gpr, %44:anyi8, %45:anyi8 = DecMB %69:anyi8(tied-def 1), %70:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  %31:ac = COPY %6.sublo:imag16
+  %32:ac = COPY %6.subhi:imag16
+  %35:ac, %36:cc, %101:vc = ADCImm %31:ac(tied-def 0), 2, %39:cc(tied-def 1)
+  %37:ac, %38:cc, %100:vc = ADCImm %32:ac(tied-def 0), 0, %36:cc(tied-def 1)
+  %30:imag16 = REG_SEQUENCE %35:ac, %subreg.sublo, %37:ac, %subreg.subhi
+  CmpBrZeroMultiByte %bb.3, 1, %44:anyi8, %45:anyi8, implicit-def $c
+  JMP %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Peephole Optimizations (peephole-opt) on loop_sum_array omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on loop_sum_array omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on loop_sum_array omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  successors: %bb.5(0x40000000), %bb.6(0x40000000); %bb.5(50.00%), %bb.6(50.00%)
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %2:gpr = COPY $a
+  %3:ac = COPY $x
+  %78:cc = CMPImm %2:gpr, 1
+  %82:ac, dead %83:cc, %85:vc = SBCImm %3:ac(tied-def 0), 0, %78:cc(tied-def 1)
+  GBR %bb.5, %85:vc, 1, implicit-def $c
+  JMP %bb.6
+
+bb.5 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %88:ac = EORImm %82:ac(tied-def 0), -128
+  JMP %bb.7
+
+bb.6 (%ir-block.2):
+; predecessors: %bb.1
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  JMP %bb.7
+
+bb.7 (%ir-block.2):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.2(0x50000000), %bb.8(0x30000000); %bb.2(62.50%), %bb.8(37.50%)
+
+  %90:anyi8 = PHI %88:ac, %bb.5, %82:ac, %bb.6
+  CmpBrZero %bb.2, undef $n, 0, %90:anyi8, implicit-def $c
+
+bb.8:
+; predecessors: %bb.7
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %98:gpr = LDImm 0
+  JMP %bb.3
+
+bb.2 (%ir-block.4):
+; predecessors: %bb.7
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %99:yc = LDImm 0
+  %58:yc = LDImm 1
+  %39:cc = LDImm1 0
+  JMP %bb.4
+
+bb.3 (%ir-block.5):
+; predecessors: %bb.4, %bb.8
+
+  %25:anyi8 = PHI %98:gpr, %bb.8, %50:ac, %bb.4
+  %26:anyi8 = PHI %98:gpr, %bb.8, %52:ac, %bb.4
+  $a = COPY %25:anyi8
+  $x = COPY %26:anyi8
+  RTS implicit $a, implicit $x
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.2, %bb.4
+  successors: %bb.3(0x04000000), %bb.4(0x7c000000); %bb.3(3.12%), %bb.4(96.88%)
+
+  %6:imag16 = PHI %0:imag16, %bb.2, %30:imag16, %bb.4
+  %69:anyi8 = PHI %2:gpr, %bb.2, %44:anyi8, %bb.4
+  %70:anyi8 = PHI %3:ac, %bb.2, %45:anyi8, %bb.4
+  %63:ac = PHI %99:yc, %bb.2, %50:ac, %bb.4
+  %64:ac = PHI %99:yc, %bb.2, %52:ac, %bb.4
+  %50:ac, %51:cc, dead %104:vc = ADCIndirIdx %63:ac(tied-def 0), %6:imag16, %99:yc, %39:cc(tied-def 1)
+  %52:ac, dead %53:cc, dead %103:vc = ADCIndirIdx %64:ac(tied-def 0), %6:imag16, %58:yc, %51:cc(tied-def 1)
+  dead early-clobber %102:gpr, %44:anyi8, %45:anyi8 = DecMB %69:anyi8(tied-def 1), %70:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  %31:ac = COPY %6.sublo:imag16
+  %32:ac = COPY %6.subhi:imag16
+  %35:ac, %36:cc, dead %101:vc = ADCImm %31:ac(tied-def 0), 2, %39:cc(tied-def 1)
+  %37:ac, dead %38:cc, dead %100:vc = ADCImm %32:ac(tied-def 0), 0, %36:cc(tied-def 1)
+  %30:imag16 = REG_SEQUENCE %35:ac, %subreg.sublo, %37:ac, %subreg.subhi
+  CmpBrZeroMultiByte %bb.3, 1, %44:anyi8, %45:anyi8, implicit-def $c
+  JMP %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Init Undef Pass (init-undef) on loop_sum_array omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on loop_sum_array omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %2:gpr = COPY $a
+  %3:ac = COPY $x
+  %78:cc = CMPImm %2:gpr, 1
+  %82:ac, dead %83:cc, %85:vc = SBCImm %3:ac(tied-def 0), 0, %78:cc(tied-def 1)
+  GBR %bb.1, %85:vc, 1, implicit-def $c
+  JMP %bb.2
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %88:ac = EORImm %82:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  %90:anyi8 = PHI %88:ac, %bb.1, %82:ac, %bb.2
+  CmpBrZero %bb.5, undef $n, 0, %90:anyi8, implicit-def $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %98:gpr = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %99:yc = LDImm 0
+  %58:yc = LDImm 1
+  %39:cc = LDImm1 0
+  JMP %bb.7
+
+bb.6 (%ir-block.5):
+; predecessors: %bb.7, %bb.4
+
+  %25:anyi8 = PHI %98:gpr, %bb.4, %50:ac, %bb.7
+  %26:anyi8 = PHI %98:gpr, %bb.4, %52:ac, %bb.7
+  $a = COPY %25:anyi8
+  $x = COPY %26:anyi8
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %6:imag16 = PHI %0:imag16, %bb.5, %30:imag16, %bb.7
+  %69:anyi8 = PHI %2:gpr, %bb.5, %44:anyi8, %bb.7
+  %70:anyi8 = PHI %3:ac, %bb.5, %45:anyi8, %bb.7
+  %63:ac = PHI %99:yc, %bb.5, %50:ac, %bb.7
+  %64:ac = PHI %99:yc, %bb.5, %52:ac, %bb.7
+  %50:ac, %51:cc, dead %104:vc = ADCIndirIdx %63:ac(tied-def 0), %6:imag16, %99:yc, %39:cc(tied-def 1)
+  %52:ac, dead %53:cc, dead %103:vc = ADCIndirIdx %64:ac(tied-def 0), %6:imag16, %58:yc, %51:cc(tied-def 1)
+  dead early-clobber %102:gpr, %44:anyi8, %45:anyi8 = DecMB %69:anyi8(tied-def 1), %70:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  %31:ac = COPY %6.sublo:imag16
+  %32:ac = COPY %6.subhi:imag16
+  %35:ac, %36:cc, dead %101:vc = ADCImm %31:ac(tied-def 0), 2, %39:cc(tied-def 1)
+  %37:ac, dead %38:cc, dead %100:vc = ADCImm %32:ac(tied-def 0), 0, %36:cc(tied-def 1)
+  %30:imag16 = REG_SEQUENCE %35:ac, %subreg.sublo, %37:ac, %subreg.subhi
+  CmpBrZeroMultiByte %bb.6, 1, %44:anyi8, %45:anyi8, implicit-def $c
+  JMP %bb.7
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Live Variable Analysis (livevars) on loop_sum_array ***
+# Machine code for function loop_sum_array: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY killed $rs1
+  %2:gpr = COPY killed $a
+  %3:ac = COPY killed $x
+  %78:cc = CMPImm %2:gpr, 1
+  %82:ac, dead %83:cc, %85:vc = SBCImm %3:ac(tied-def 0), 0, killed %78:cc(tied-def 1)
+  GBR %bb.1, killed %85:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %88:ac = EORImm killed %82:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  %90:anyi8 = PHI %88:ac, %bb.1, %82:ac, %bb.2
+  CmpBrZero %bb.5, undef $n, 0, killed %90:anyi8, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %98:gpr = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %99:yc = LDImm 0
+  %58:yc = LDImm 1
+  %39:cc = LDImm1 0
+  JMP %bb.7
+
+bb.6 (%ir-block.5):
+; predecessors: %bb.7, %bb.4
+
+  %25:anyi8 = PHI %98:gpr, %bb.4, %50:ac, %bb.7
+  %26:anyi8 = PHI %98:gpr, %bb.4, %52:ac, %bb.7
+  $a = COPY killed %25:anyi8
+  $x = COPY killed %26:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %6:imag16 = PHI %0:imag16, %bb.5, %30:imag16, %bb.7
+  %69:anyi8 = PHI %2:gpr, %bb.5, %44:anyi8, %bb.7
+  %70:anyi8 = PHI %3:ac, %bb.5, %45:anyi8, %bb.7
+  %63:ac = PHI %99:yc, %bb.5, %50:ac, %bb.7
+  %64:ac = PHI %99:yc, %bb.5, %52:ac, %bb.7
+  %50:ac, %51:cc, dead %104:vc = ADCIndirIdx killed %63:ac(tied-def 0), %6:imag16, %99:yc, %39:cc(tied-def 1)
+  %52:ac, dead %53:cc, dead %103:vc = ADCIndirIdx killed %64:ac(tied-def 0), %6:imag16, %58:yc, killed %51:cc(tied-def 1)
+  dead early-clobber %102:gpr, %44:anyi8, %45:anyi8 = DecMB killed %69:anyi8(tied-def 1), killed %70:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %31:ac = COPY %6.sublo:imag16
+  %32:ac = COPY killed %6.subhi:imag16
+  %35:ac, %36:cc, dead %101:vc = ADCImm killed %31:ac(tied-def 0), 2, %39:cc(tied-def 1)
+  %37:ac, dead %38:cc, dead %100:vc = ADCImm killed %32:ac(tied-def 0), 0, killed %36:cc(tied-def 1)
+  %30:imag16 = REG_SEQUENCE killed %35:ac, %subreg.sublo, killed %37:ac, %subreg.subhi
+  CmpBrZeroMultiByte %bb.6, 1, %44:anyi8, %45:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on loop_sum_array omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY killed $rs1
+  %2:gpr = COPY killed $a
+  %3:ac = COPY killed $x
+  %78:cc = CMPImm %2:gpr, 1
+  %82:ac, dead %83:cc, %85:vc = SBCImm %3:ac(tied-def 0), 0, killed %78:cc(tied-def 1)
+  GBR %bb.1, killed %85:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %88:ac = EORImm killed %82:ac(tied-def 0), -128
+  %105:anyi8 = COPY killed %88:ac
+  JMP %bb.3
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %105:anyi8 = COPY killed %82:ac
+  JMP %bb.3
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  %90:anyi8 = COPY killed %105:anyi8
+  CmpBrZero %bb.5, undef $n, 0, killed %90:anyi8, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %98:gpr = LDImm 0
+  %106:anyi8 = COPY %98:gpr
+  %107:anyi8 = COPY killed %98:gpr
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %99:yc = LDImm 0
+  %58:yc = LDImm 1
+  %39:cc = LDImm1 0
+  %108:imag16 = COPY killed %0:imag16
+  %109:anyi8 = COPY killed %2:gpr
+  %110:anyi8 = COPY killed %3:ac
+  %111:ac = COPY %99:yc
+  %112:ac = COPY %99:yc
+  JMP %bb.7
+
+bb.6 (%ir-block.5):
+; predecessors: %bb.7, %bb.4
+
+  %26:anyi8 = COPY killed %107:anyi8
+  %25:anyi8 = COPY killed %106:anyi8
+  $a = COPY killed %25:anyi8
+  $x = COPY killed %26:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %64:ac = COPY killed %112:ac
+  %63:ac = COPY killed %111:ac
+  %70:anyi8 = COPY killed %110:anyi8
+  %69:anyi8 = COPY killed %109:anyi8
+  %6:imag16 = COPY killed %108:imag16
+  %50:ac, %51:cc, dead %104:vc = ADCIndirIdx killed %63:ac(tied-def 0), %6:imag16, %99:yc, %39:cc(tied-def 1)
+  %52:ac, dead %53:cc, dead %103:vc = ADCIndirIdx killed %64:ac(tied-def 0), %6:imag16, %58:yc, killed %51:cc(tied-def 1)
+  dead early-clobber %102:gpr, %44:anyi8, %45:anyi8 = DecMB killed %69:anyi8(tied-def 1), killed %70:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %31:ac = COPY %6.sublo:imag16
+  %32:ac = COPY killed %6.subhi:imag16
+  %35:ac, %36:cc, dead %101:vc = ADCImm killed %31:ac(tied-def 0), 2, %39:cc(tied-def 1)
+  %37:ac, dead %38:cc, dead %100:vc = ADCImm killed %32:ac(tied-def 0), 0, killed %36:cc(tied-def 1)
+  %30:imag16 = REG_SEQUENCE killed %35:ac, %subreg.sublo, killed %37:ac, %subreg.subhi
+  %106:anyi8 = COPY %50:ac
+  %107:anyi8 = COPY %52:ac
+  %108:imag16 = COPY killed %30:imag16
+  %109:anyi8 = COPY %44:anyi8
+  %110:anyi8 = COPY %45:anyi8
+  %111:ac = COPY killed %50:ac
+  %112:ac = COPY killed %52:ac
+  CmpBrZeroMultiByte %bb.6, 1, killed %44:anyi8, killed %45:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY killed $rs1
+  %2:gpr = COPY killed $a
+  %3:ac = COPY killed $x
+  %78:cc = CMPImm %2:gpr, 1
+  %83:cc = COPY killed %78:cc
+  %82:ac = COPY %3:ac
+  %82:ac, dead %83:cc, %85:vc = SBCImm %82:ac(tied-def 0), 0, %83:cc(tied-def 1)
+  GBR %bb.1, killed %85:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %88:ac = COPY killed %82:ac
+  %88:ac = EORImm %88:ac(tied-def 0), -128
+  %105:anyi8 = COPY killed %88:ac
+  JMP %bb.3
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %105:anyi8 = COPY killed %82:ac
+  JMP %bb.3
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  %90:anyi8 = COPY killed %105:anyi8
+  CmpBrZero %bb.5, undef $n, 0, killed %90:anyi8, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %98:gpr = LDImm 0
+  %106:anyi8 = COPY %98:gpr
+  %107:anyi8 = COPY killed %98:gpr
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %99:yc = LDImm 0
+  %58:yc = LDImm 1
+  %39:cc = LDImm1 0
+  %108:imag16 = COPY killed %0:imag16
+  %109:anyi8 = COPY killed %2:gpr
+  %110:anyi8 = COPY killed %3:ac
+  %111:ac = COPY %99:yc
+  %112:ac = COPY %99:yc
+  JMP %bb.7
+
+bb.6 (%ir-block.5):
+; predecessors: %bb.7, %bb.4
+
+  %26:anyi8 = COPY killed %107:anyi8
+  %25:anyi8 = COPY killed %106:anyi8
+  $a = COPY killed %25:anyi8
+  $x = COPY killed %26:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %64:ac = COPY killed %112:ac
+  %63:ac = COPY killed %111:ac
+  %70:anyi8 = COPY killed %110:anyi8
+  %69:anyi8 = COPY killed %109:anyi8
+  %6:imag16 = COPY killed %108:imag16
+  %51:cc = COPY %39:cc
+  %50:ac = COPY killed %63:ac
+  %50:ac, %51:cc, dead %104:vc = ADCIndirIdx %50:ac(tied-def 0), %6:imag16, %99:yc, %51:cc(tied-def 1)
+  %52:ac = COPY killed %64:ac
+  %53:cc = COPY killed %51:cc
+  %52:ac, dead %53:cc, dead %103:vc = ADCIndirIdx %52:ac(tied-def 0), %6:imag16, %58:yc, %53:cc(tied-def 1)
+  %44:anyi8 = COPY killed %69:anyi8
+  %45:anyi8 = COPY killed %70:anyi8
+  dead early-clobber %102:gpr, %44:anyi8, %45:anyi8 = DecMB %44:anyi8(tied-def 1), %45:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %31:ac = COPY %6.sublo:imag16
+  %32:ac = COPY killed %6.subhi:imag16
+  %36:cc = COPY %39:cc
+  %35:ac = COPY killed %31:ac
+  %35:ac, %36:cc, dead %101:vc = ADCImm %35:ac(tied-def 0), 2, %36:cc(tied-def 1)
+  %37:ac = COPY killed %32:ac
+  %38:cc = COPY killed %36:cc
+  %37:ac, dead %38:cc, dead %100:vc = ADCImm %37:ac(tied-def 0), 0, %38:cc(tied-def 1)
+  undef %30.sublo:imag16 = COPY killed %35:ac
+  %30.subhi:imag16 = COPY killed %37:ac
+  %106:anyi8 = COPY %50:ac
+  %107:anyi8 = COPY %52:ac
+  %108:imag16 = COPY killed %30:imag16
+  %109:anyi8 = COPY %44:anyi8
+  %110:anyi8 = COPY %45:anyi8
+  %111:ac = COPY killed %50:ac
+  %112:ac = COPY killed %52:ac
+  CmpBrZeroMultiByte %bb.6, 1, killed %44:anyi8, killed %45:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Slot index numbering (slotindexes) on loop_sum_array omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  %0:imag16 = COPY $rs1
+  %2:gpr = COPY $a
+  %3:ac = COPY $x
+  %78:cc = CMPImm %2:gpr, 1
+  %83:cc = COPY %78:cc
+  %82:ac = COPY %3:ac
+  %82:ac, dead %83:cc, %85:vc = SBCImm %82:ac(tied-def 0), 0, %83:cc(tied-def 1)
+  GBR %bb.1, %85:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %88:ac = COPY %82:ac
+  %88:ac = EORImm %88:ac(tied-def 0), -128
+  %105:anyi8 = COPY %88:ac
+  JMP %bb.3
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %105:anyi8 = COPY %82:ac
+  JMP %bb.3
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  %90:anyi8 = COPY %105:anyi8
+  CmpBrZero %bb.5, undef $n, 0, %90:anyi8, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %98:gpr = LDImm 0
+  %106:anyi8 = COPY %98:gpr
+  %107:anyi8 = COPY %98:gpr
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %99:yc = LDImm 0
+  %58:yc = LDImm 1
+  %39:cc = LDImm1 0
+  %108:imag16 = COPY %0:imag16
+  %109:anyi8 = COPY %2:gpr
+  %110:anyi8 = COPY %3:ac
+  %111:ac = COPY %99:yc
+  %112:ac = COPY %99:yc
+  JMP %bb.7
+
+bb.6 (%ir-block.5):
+; predecessors: %bb.7, %bb.4
+
+  %26:anyi8 = COPY %107:anyi8
+  %25:anyi8 = COPY %106:anyi8
+  $a = COPY %25:anyi8
+  $x = COPY %26:anyi8
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %64:ac = COPY %112:ac
+  %63:ac = COPY %111:ac
+  %70:anyi8 = COPY %110:anyi8
+  %69:anyi8 = COPY %109:anyi8
+  %6:imag16 = COPY %108:imag16
+  %51:cc = COPY %39:cc
+  %50:ac = COPY %63:ac
+  %50:ac, %51:cc, dead %104:vc = ADCIndirIdx %50:ac(tied-def 0), %6:imag16, %99:yc, %51:cc(tied-def 1)
+  %52:ac = COPY %64:ac
+  %53:cc = COPY %51:cc
+  %52:ac, dead %53:cc, dead %103:vc = ADCIndirIdx %52:ac(tied-def 0), %6:imag16, %58:yc, %53:cc(tied-def 1)
+  %44:anyi8 = COPY %69:anyi8
+  %45:anyi8 = COPY %70:anyi8
+  dead early-clobber %102:gpr, %44:anyi8, %45:anyi8 = DecMB %44:anyi8(tied-def 1), %45:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %31:ac = COPY %6.sublo:imag16
+  %32:ac = COPY %6.subhi:imag16
+  %36:cc = COPY %39:cc
+  %35:ac = COPY %31:ac
+  %35:ac, %36:cc, dead %101:vc = ADCImm %35:ac(tied-def 0), 2, %36:cc(tied-def 1)
+  %37:ac = COPY %32:ac
+  %38:cc = COPY %36:cc
+  %37:ac, dead %38:cc, dead %100:vc = ADCImm %37:ac(tied-def 0), 0, %38:cc(tied-def 1)
+  undef %30.sublo:imag16 = COPY %35:ac
+  %30.subhi:imag16 = COPY %37:ac
+  %106:anyi8 = COPY %50:ac
+  %107:anyi8 = COPY %52:ac
+  %108:imag16 = COPY %30:imag16
+  %109:anyi8 = COPY %44:anyi8
+  %110:anyi8 = COPY %45:anyi8
+  %111:ac = COPY %50:ac
+  %112:ac = COPY %52:ac
+  CmpBrZeroMultiByte %bb.6, 1, %44:anyi8, %45:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Register Coalescer (register-coalescer) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  %108:imag16 = COPY $rs1
+  %2:gpr = COPY $a
+  %110:anyi8 = COPY $x
+  %83:cc = CMPImm %2:gpr, 1
+  %105:ac = COPY %110:anyi8
+  %105:ac, dead %83:cc, %85:vc = SBCImm %105:ac(tied-def 0), 0, %83:cc(tied-def 1)
+  GBR %bb.1, %85:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %105:ac = EORImm %105:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  CmpBrZero %bb.5, undef $n, 0, %105:ac, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %106:ac = LDImm 0
+  %107:ac = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %99:yc = LDImm 0
+  %58:yc = LDImm 1
+  %109:anyi8 = COPY %2:gpr
+  %106:ac = COPY %99:yc
+  %107:ac = COPY %99:yc
+  JMP %bb.7
+
+bb.6 (%ir-block.5):
+; predecessors: %bb.7, %bb.4
+
+  $a = COPY %106:ac
+  $x = COPY %107:ac
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %53:cc = LDImm1 0
+  %106:ac, %53:cc, dead %104:vc = ADCIndirIdx %106:ac(tied-def 0), %108:imag16, %99:yc, %53:cc(tied-def 1)
+  %107:ac, dead %53:cc, dead %103:vc = ADCIndirIdx %107:ac(tied-def 0), %108:imag16, %58:yc, %53:cc(tied-def 1)
+  dead early-clobber %102:gpr, %109:anyi8, %110:anyi8 = DecMB %109:anyi8(tied-def 1), %110:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %35:ac = COPY %108.sublo:imag16
+  %37:ac = COPY %108.subhi:imag16
+  %38:cc = LDImm1 0
+  %35:ac, %38:cc, dead %101:vc = ADCImm %35:ac(tied-def 0), 2, %38:cc(tied-def 1)
+  %37:ac, dead %38:cc, dead %100:vc = ADCImm %37:ac(tied-def 0), 0, %38:cc(tied-def 1)
+  undef %108.sublo:imag16 = COPY %35:ac
+  %108.subhi:imag16 = COPY %37:ac
+  CmpBrZeroMultiByte %bb.6, 1, %109:anyi8, %110:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Register Coalescer (register-coalescer) on loop_sum_array omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  %2:gpr = COPY $a
+  %110:anyi8 = COPY $x
+  %108:imag16 = COPY $rs1
+  %83:cc = CMPImm %2:gpr, 1
+  %105:ac = COPY %110:anyi8
+  %105:ac, dead %83:cc, %85:vc = SBCImm %105:ac(tied-def 0), 0, %83:cc(tied-def 1)
+  GBR %bb.1, %85:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %105:ac = EORImm %105:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  CmpBrZero %bb.5, undef $n, 0, %105:ac, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %106:ac = LDImm 0
+  %107:ac = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %99:yc = LDImm 0
+  %58:yc = LDImm 1
+  %109:anyi8 = COPY %2:gpr
+  %106:ac = COPY %99:yc
+  %107:ac = COPY %99:yc
+  JMP %bb.7
+
+bb.6 (%ir-block.5):
+; predecessors: %bb.7, %bb.4
+
+  $x = COPY %107:ac
+  $a = COPY %106:ac
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %53:cc = LDImm1 0
+  %106:ac, %53:cc, dead %104:vc = ADCIndirIdx %106:ac(tied-def 0), %108:imag16, %99:yc, %53:cc(tied-def 1)
+  %107:ac, dead %53:cc, dead %103:vc = ADCIndirIdx %107:ac(tied-def 0), %108:imag16, %58:yc, %53:cc(tied-def 1)
+  %35:ac = COPY %108.sublo:imag16
+  %37:ac = COPY %108.subhi:imag16
+  %38:cc = LDImm1 0
+  %35:ac, %38:cc, dead %101:vc = ADCImm %35:ac(tied-def 0), 2, %38:cc(tied-def 1)
+  %37:ac, dead %38:cc, dead %100:vc = ADCImm %37:ac(tied-def 0), 0, %38:cc(tied-def 1)
+  undef %108.sublo:imag16 = COPY %35:ac
+  dead early-clobber %102:gpr, %109:anyi8, %110:anyi8 = DecMB %109:anyi8(tied-def 1), %110:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %108.subhi:imag16 = COPY %37:ac
+  CmpBrZeroMultiByte %bb.6, 1, %109:anyi8, %110:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  %2:gpr = COPY $a
+  %110:anyi8 = COPY $x
+  %108:imag16 = COPY $rs1
+  %83:cc = CMPImm %2:gpr, 1
+  %105:ac = COPY %110:anyi8
+  %105:ac, dead %83:cc, %85:vc = SBCImm %105:ac(tied-def 0), 0, %83:cc(tied-def 1)
+  GBR %bb.1, %85:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %105:ac = EORImm %105:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  CmpBrZero %bb.5, undef $n, 0, %105:ac, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %106:ac = LDImm 0
+  %107:ac = LDImm 0
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %99:yc = LDImm 0
+  %58:yc = LDImm 1
+  %109:anyi8 = COPY %2:gpr
+  %106:ac = COPY %99:yc
+  %107:ac = COPY %99:yc
+  JMP %bb.7
+
+bb.6 (%ir-block.5):
+; predecessors: %bb.7, %bb.4
+
+  $x = COPY %107:ac
+  $a = COPY %106:ac
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %53:cc = LDImm1 0
+  %106:ac, %53:cc, dead %104:vc = ADCIndirIdx %106:ac(tied-def 0), %108:imag16, %99:yc, %53:cc(tied-def 1)
+  %107:ac, dead %53:cc, dead %103:vc = ADCIndirIdx %107:ac(tied-def 0), %108:imag16, %58:yc, %53:cc(tied-def 1)
+  %35:ac = COPY %108.sublo:imag16
+  %37:ac = COPY %108.subhi:imag16
+  %38:cc = LDImm1 0
+  %35:ac, %38:cc, dead %101:vc = ADCImm %35:ac(tied-def 0), 2, %38:cc(tied-def 1)
+  %37:ac, dead %38:cc, dead %100:vc = ADCImm %37:ac(tied-def 0), 0, %38:cc(tied-def 1)
+  undef %108.sublo:imag16 = COPY %35:ac
+  dead early-clobber %102:gpr, %109:anyi8, %110:anyi8 = DecMB %109:anyi8(tied-def 1), %110:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %108.subhi:imag16 = COPY %37:ac
+  CmpBrZeroMultiByte %bb.6, 1, %109:anyi8, %110:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on loop_sum_array omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on loop_sum_array omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on loop_sum_array omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on loop_sum_array omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on loop_sum_array omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on loop_sum_array omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  %133:gpr = COPY $a
+  %110:anyi8 = COPY $x
+  %108:imag16 = COPY $rs1
+  %83:cc = CMPImm %133:gpr, 1
+  %136:ac = COPY %110:anyi8
+  %136:ac, dead %83:cc, %85:vc = SBCImm %136:ac(tied-def 0), 0, %83:cc(tied-def 1)
+  GBR %bb.1, %85:vc, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %136:ac = EORImm %136:ac(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  JMP %bb.3
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+
+  CmpBrZero %bb.5, undef $n, 0, %136:ac, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  %128:gpr = LDImm 0
+  %127:gpr = LDImm 0
+  %126:anyi8 = COPY %127:gpr
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+
+  %134:anyi8 = COPY %133:gpr
+  %120:gpr = LDImm 0
+  %109:anyi8 = COPY %134:anyi8
+  %128:gpr = COPY %120:gpr
+  %126:anyi8 = COPY %120:gpr
+  JMP %bb.7
+
+bb.6 (%ir-block.5):
+; predecessors: %bb.7, %bb.4
+
+  $x = COPY %126:anyi8
+  $a = COPY %128:gpr
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+
+  %53:cc = LDImm1 0
+  %121:yc = LDImm 0
+  %143:ac = COPY %128:gpr
+  %143:ac, %53:cc, dead %104:vc = ADCIndirIdx %143:ac(tied-def 0), %108:imag16, %121:yc, %53:cc(tied-def 1)
+  %142:anyi8 = COPY %143:ac
+  %117:yc = LDImm 1
+  %124:ac = COPY %126:anyi8
+  %124:ac, dead %53:cc, dead %103:vc = ADCIndirIdx %124:ac(tied-def 0), %108:imag16, %117:yc, %53:cc(tied-def 1)
+  %126:anyi8 = COPY %124:ac
+  %113:anyi8 = COPY %142:anyi8
+  %141:ac = COPY %108.sublo:imag16
+  %137:anyi8 = COPY %108.subhi:imag16
+  %38:cc = LDImm1 0
+  %141:ac, %38:cc, dead %101:vc = ADCImm %141:ac(tied-def 0), 2, %38:cc(tied-def 1)
+  %140:anyi8 = COPY %141:ac
+  %138:ac = COPY %137:anyi8
+  %138:ac, dead %38:cc, dead %100:vc = ADCImm %138:ac(tied-def 0), 0, %38:cc(tied-def 1)
+  %139:anyi8 = COPY %138:ac
+  undef %108.sublo:imag16 = COPY %140:anyi8
+  dead early-clobber %102:gpr, %109:anyi8, %110:anyi8 = DecMB %109:anyi8(tied-def 1), %110:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %128:gpr = COPY %113:anyi8
+  %108.subhi:imag16 = COPY %139:anyi8
+  CmpBrZeroMultiByte %bb.6, 1, %109:anyi8, %110:anyi8, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  renamable $y = COPY $a
+  renamable $c = CMPImm renamable $y, 1
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y, $rs1:0x0000000000000022
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y, $rs1:0x0000000000000022
+  JMP %bb.3
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+  liveins: $a, $x, $y, $rs1:0x0000000000000022
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $x = LDImm 0
+  renamable $rc6 = COPY killed renamable $x
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $y, $rs1:0x0000000000000022
+  renamable $rc4 = COPY killed renamable $y
+  renamable $y = LDImm 0
+  renamable $a = COPY renamable $y
+  renamable $rc6 = COPY killed renamable $y
+  JMP %bb.7
+
+bb.6 (%ir-block.5):
+; predecessors: %bb.7, %bb.4
+  liveins: $a, $rc6
+  $x = COPY killed renamable $rc6
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+  liveins: $a, $x, $rc4, $rc6, $rs1:0x0000000000000022
+  renamable $c = LDImm1 0
+  renamable $y = LDImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  renamable $rc5 = COPY killed renamable $a
+  renamable $y = LDImm 1
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  dead early-clobber renamable $a, renamable $rc4, renamable $x = DecMB killed renamable $rc4(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $a = COPY killed renamable $rc5
+  CmpBrZeroMultiByte %bb.6, 1, renamable $rc4, renamable $x, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on loop_sum_array omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  renamable $y = COPY $a
+  renamable $c = CMPImm $a, 1
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y, $rs1:0x0000000000000022
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y, $rs1:0x0000000000000022
+  JMP %bb.3
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+  liveins: $a, $x, $y, $rs1:0x0000000000000022
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $x = LDImm 0
+  renamable $rc6 = COPY killed renamable $x
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $y, $rs1:0x0000000000000022
+  renamable $rc4 = COPY killed renamable $y
+  renamable $y = LDImm 0
+  renamable $a = COPY renamable $y
+  renamable $rc6 = COPY killed renamable $y
+  JMP %bb.7
+
+bb.6 (%ir-block.5):
+; predecessors: %bb.7, %bb.4
+  liveins: $a, $rc6
+  $x = COPY killed renamable $rc6
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.6(0x04000000), %bb.7(0x7c000000); %bb.6(3.12%), %bb.7(96.88%)
+  liveins: $a, $x, $rc4, $rc6, $rs1:0x0000000000000022
+  renamable $c = LDImm1 0
+  renamable $y = LDImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  renamable $rc5 = COPY killed renamable $a
+  renamable $y = LDImm 1
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  dead early-clobber renamable $a, renamable $rc4, renamable $x = DecMB killed renamable $rc4(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $a = COPY killed renamable $rc5
+  CmpBrZeroMultiByte %bb.6, 1, renamable $rc4, renamable $x, implicit-def dead $c
+  JMP %bb.7
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on loop_sum_array omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on loop_sum_array omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on loop_sum_array omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on loop_sum_array omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on loop_sum_array omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on loop_sum_array omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on loop_sum_array omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  renamable $y = COPY $a
+  renamable $c = CMPImm $a, 1
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.1, killed renamable $v, 1, implicit-def dead $c
+  JMP %bb.2
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y, $rs1:0x0000000000000022
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+  JMP %bb.3
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $a, $x, $y, $rs1:0x0000000000000022
+  JMP %bb.3
+
+bb.3 (%ir-block.2):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.5(0x50000000), %bb.4(0x30000000); %bb.5(62.50%), %bb.4(37.50%)
+  liveins: $a, $x, $y, $rs1:0x0000000000000022
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.4:
+; predecessors: %bb.3
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $x = LDImm 0
+  renamable $rc6 = COPY killed renamable $x
+  JMP %bb.6
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.3
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $y, $rs1:0x0000000000000022
+  renamable $rc4 = COPY killed renamable $y
+  renamable $y = LDImm 0
+  renamable $a = COPY renamable $y
+  renamable $rc6 = COPY killed renamable $y
+  JMP %bb.7
+
+bb.6 (%ir-block.5):
+; predecessors: %bb.4, %bb.8
+  liveins: $a, $rc6
+  $x = COPY killed renamable $rc6
+  RTS implicit $a, implicit $x
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.5, %bb.7
+  successors: %bb.8(0x04000000), %bb.7(0x7c000000); %bb.8(3.12%), %bb.7(96.88%)
+  liveins: $a, $x, $rc4, $rc6, $rs1:0x0000000000000022
+  renamable $c = LDImm1 0
+  renamable $y = LDImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  renamable $rc5 = COPY killed renamable $a
+  renamable $y = LDImm 1
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  dead early-clobber renamable $a, renamable $rc4, renamable $x = DecMB killed renamable $rc4(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $a = COPY killed renamable $rc5
+  CmpBrZeroMultiByte %bb.8, 1, renamable $rc4, renamable $x, implicit-def dead $c
+  JMP %bb.7
+
+bb.8:
+; predecessors: %bb.7
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $a, $rc6
+  JMP %bb.6
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on loop_sum_array omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on loop_sum_array omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on loop_sum_array omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  renamable $y = COPY $a
+  renamable $c = CMPImm $a, 1
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.2, killed renamable $v, 0, implicit-def $c
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $a, $x, $y, $rs1:0x0000000000000022
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $a, $x, $y, $rs1:0x0000000000000022
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $x = LDImm 0
+  renamable $rc6 = COPY killed renamable $x
+
+bb.4 (%ir-block.5):
+; predecessors: %bb.3, %bb.6
+  liveins: $a, $rc6
+  $x = COPY killed renamable $rc6
+  RTS implicit $a, implicit $x
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y, $rs1:0x0000000000000022
+  renamable $rc4 = COPY killed renamable $y
+  renamable $y = LDImm 0
+  renamable $a = COPY renamable $y
+  renamable $rc6 = COPY killed renamable $y
+
+bb.6 (%ir-block.7):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $a, $x, $rc4, $rc6, $rs1:0x0000000000000022
+  renamable $c = LDImm1 0
+  renamable $y = LDImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  renamable $rc5 = COPY killed renamable $a
+  renamable $y = LDImm 1
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  dead early-clobber renamable $a, renamable $rc4, renamable $x = DecMB killed renamable $rc4(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $a = COPY killed renamable $rc5
+  CmpBrZeroMultiByte %bb.6, 0, renamable $rc4, renamable $x, implicit-def $c
+  JMP %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on loop_sum_array omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on loop_sum_array omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  renamable $y = COPY $a
+  renamable $c = CMPImm killed $a, 1
+  renamable $a = COPY renamable $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  GBR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rs1, $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $rs1, $x, $y, $a
+  CmpBrZero %bb.5, undef $n, 0, killed renamable $a, implicit-def dead $c
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $x = LDImm 0
+  renamable $rc6 = COPY killed renamable $x
+
+bb.4 (%ir-block.5):
+; predecessors: %bb.3, %bb.6
+  liveins: $a, $rc6
+  $x = COPY killed renamable $rc6
+  RTS implicit killed $a, implicit killed $x
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $rs1, $x, $y
+  renamable $rc4 = COPY killed renamable $y
+  renamable $y = LDImm 0
+  renamable $a = COPY renamable $y
+  renamable $rc6 = COPY killed renamable $y
+
+bb.6 (%ir-block.7):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $rs1, $rc6, $rc4, $x, $a
+  renamable $c = LDImm1 0
+  renamable $y = LDImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  renamable $rc5 = COPY killed renamable $a
+  renamable $y = LDImm 1
+  renamable $a = COPY killed renamable $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  renamable $rc3 = COPY killed renamable $a
+  dead early-clobber renamable $a, renamable $rc4, renamable $x = DecMB killed renamable $rc4(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $a = COPY killed renamable $rc5
+  CmpBrZeroMultiByte %bb.6, 0, renamable $rc4, renamable $x, implicit-def dead $c
+  JMP %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rs1, $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $rs1, $x, $y, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.5, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $x = LDImm 0
+  $rc6 = STImag8 $x
+
+bb.4 (%ir-block.5):
+; predecessors: %bb.3, %bb.6
+  liveins: $a, $rc6
+  $x = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $rs1, $x, $y
+  $rc4 = STImag8 $y
+  renamable $y = LDImm 0
+  $a = T_A $y
+  $rc6 = STImag8 $y
+
+bb.6 (%ir-block.7):
+; predecessors: %bb.5, %bb.6
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $rs1, $rc6, $rc4, $x, $a
+  renamable $c = LDCImm 0
+  renamable $y = LDImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  $rc5 = STImag8 $a
+  renamable $y = LDImm 1
+  $a = LDImag8 $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc2
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  dead early-clobber renamable $a, renamable $rc4, renamable $x = DecMB killed renamable $rc4(tied-def 1), killed renamable $x(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  $a = LDImag8 $rc5
+  CmpBrZeroMultiByte %bb.6, 0, renamable $rc4, renamable $x, implicit-def dead $c
+  JMP %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on loop_sum_array omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rs1, $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $rs1, $x, $y, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.5, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $x = LDImm 0
+  $rc6 = STImag8 $x
+
+bb.4 (%ir-block.5):
+; predecessors: %bb.3, %bb.9
+  liveins: $a, $rc6
+  $x = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $rs1, $x, $y
+  $rc4 = STImag8 $y
+  renamable $y = LDImm 0
+  $a = T_A $y
+  $rc6 = STImag8 $y
+
+bb.6 (%ir-block.7):
+; predecessors: %bb.5, %bb.7, %bb.9
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $rs1, $rc6, $rc4, $x, $a
+  renamable $c = LDCImm 0
+  renamable $y = LDImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  $rc5 = STImag8 $a
+  renamable $y = LDImm 1
+  $a = LDImag8 $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc2
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = LDImm 255
+  $rc4 = DecNMOS $rc4(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $a, killed renamable $rc4, implicit-def $z
+  BR %bb.8, $z, -1
+  JMP %bb.7
+
+bb.8 (%ir-block.7):
+; predecessors: %bb.6
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1
+  renamable $x = DecNMOS killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.7
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.6, %bb.8
+  successors: %bb.9(0x04000000), %bb.6(0x7c000000); %bb.9(3.12%), %bb.6(96.88%)
+  liveins: $x, $rc4, $rc5, $rc6, $rs1
+  $a = LDImag8 $rc5
+  CmpBrZero %bb.6, undef $z, 0, renamable $x, implicit-def $c
+  JMP %bb.9
+
+bb.9 (%ir-block.7):
+; predecessors: %bb.7
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $a, $x, $rc4, $rc6, $rs1
+  CmpBrZero %bb.6, undef $z, 0, renamable $rc4, implicit-def $c
+  JMP %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rs1, $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $rs1, $x, $y, $a
+  CmpZero killed renamable $a, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.5, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $x = LDImm 0
+  $rc6 = STImag8 $x
+
+bb.4 (%ir-block.5):
+; predecessors: %bb.3, %bb.9
+  liveins: $a, $rc6
+  $x = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $rs1, $x, $y
+  $rc4 = STImag8 $y
+  renamable $y = LDImm 0
+  $a = T_A $y
+  $rc6 = STImag8 $y
+
+bb.6 (%ir-block.7):
+; predecessors: %bb.5, %bb.7, %bb.9
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $rs1, $rc6, $rc4, $x, $a
+  renamable $c = LDCImm 0
+  renamable $y = LDImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  $rc5 = STImag8 $a
+  renamable $y = LDImm 1
+  $a = LDImag8 $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc2
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = LDImm 255
+  $rc4 = DEC $rc4(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $a, killed renamable $rc4, implicit-def $z
+  BR %bb.8, $z, -1
+  JMP %bb.7
+
+bb.8 (%ir-block.7):
+; predecessors: %bb.6
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1
+  renamable $x = DEC killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.7
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.6, %bb.8
+  successors: %bb.9(0x04000000), %bb.6(0x7c000000); %bb.9(3.12%), %bb.6(96.88%)
+  liveins: $x, $rc4, $rc5, $rc6, $rs1
+  $a = LDImag8 $rc5
+  CmpZero renamable $x, implicit-def $c, implicit-def $c, implicit-def $z
+  BR %bb.6, killed $z, 0
+  JMP %bb.9
+
+bb.9 (%ir-block.7):
+; predecessors: %bb.7
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $a, $x, $rc4, $rc6, $rs1
+  CmpZero renamable $rc4, implicit-def $c, implicit-def $c, implicit-def $z
+  BR %bb.6, killed $z, 0
+  JMP %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on loop_sum_array omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0, implicit-def dead $c
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rs1, $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $rs1, $x, $y, $a
+  dead $c = CMPImm $a, 0, implicit-def $nz
+  BR %bb.5, killed $n, 0
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $x = TA $a
+  $rc6 = STImag8 $x
+
+bb.4 (%ir-block.5):
+; predecessors: %bb.3, %bb.9
+  liveins: $a, $rc6
+  $x = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $rs1, $x, $y
+  $rc4 = STImag8 $y
+  renamable $y = LDImm 0
+  $a = T_A $y
+  $rc6 = STImag8 $y
+
+bb.6 (%ir-block.7):
+; predecessors: %bb.5, %bb.7, %bb.9
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $rs1, $rc6, $rc4, $x, $a
+  renamable $c = LDCImm 0
+  renamable $y = LDImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, renamable $y, killed renamable $c(tied-def 1)
+  $rc5 = STImag8 $a
+  renamable $y = INC killed $y(tied-def 0)
+  $a = LDImag8 $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc2
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = LDImm 255
+  $rc4 = DEC $rc4(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $a, killed renamable $rc4, implicit-def $z
+  BR %bb.8, $z, -1
+  JMP %bb.7
+
+bb.8 (%ir-block.7):
+; predecessors: %bb.6
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1
+  renamable $x = DEC killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.7
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.6, %bb.8
+  successors: %bb.9(0x04000000), %bb.6(0x7c000000); %bb.9(3.12%), %bb.6(96.88%)
+  liveins: $x, $rc4, $rc5, $rc6, $rs1
+  $a = LDImag8 $rc5
+  dead $c = CMPImm $x, 0, implicit-def $nz
+  BR %bb.6, killed $z, 0
+  JMP %bb.9
+
+bb.9 (%ir-block.7):
+; predecessors: %bb.7
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $a, $x, $rc4, $rc6, $rs1
+  dead $y = LDImag8 $rc4, implicit-def $nz
+  BR %bb.6, killed $z, 0
+  JMP %bb.4
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on loop_sum_array omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on loop_sum_array omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on loop_sum_array omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rs1, $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.5(0x50000000), %bb.3(0x30000000); %bb.5(62.50%), %bb.3(37.50%)
+  liveins: $rs1, $x, $y, $a
+  dead $c = CMPImm $a, 0, implicit-def $nz
+  BR %bb.3, killed $n, 1
+
+bb.5 (%ir-block.4):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $rs1, $x, $y
+  $rc4 = STImag8 $y
+  renamable $y = LDImm 0
+  $a = T_A $y
+  $rc6 = STImag8 $y
+
+bb.6 (%ir-block.7):
+; predecessors: %bb.5, %bb.7, %bb.9
+  successors: %bb.7(0x40000000), %bb.8(0x40000000); %bb.7(50.00%), %bb.8(50.00%)
+  liveins: $rs1, $rc6, $rc4, $x, $a
+  renamable $c = LDCImm 0
+  renamable $y = LDImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, renamable $y, killed renamable $c(tied-def 1)
+  $rc5 = STImag8 $a
+  renamable $y = INC killed $y(tied-def 0)
+  $a = LDImag8 $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc2
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = LDImm 255
+  $rc4 = DEC $rc4(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $a, killed renamable $rc4, implicit-def $z
+  BR %bb.7, $z, 0
+
+bb.8 (%ir-block.7):
+; predecessors: %bb.6
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $x, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1
+  renamable $x = DEC killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.6, %bb.8
+  successors: %bb.9(0x04000000), %bb.6(0x7c000000); %bb.9(3.12%), %bb.6(96.88%)
+  liveins: $x, $rc4, $rc5, $rc6, $rs1
+  $a = LDImag8 $rc5
+  dead $c = CMPImm $x, 0, implicit-def $nz
+  BR %bb.6, killed $z, 0
+
+bb.9 (%ir-block.7):
+; predecessors: %bb.7
+  successors: %bb.4(0x04000000), %bb.6(0x7c000000); %bb.4(3.12%), %bb.6(96.88%)
+  liveins: $a, $x, $rc4, $rc6, $rs1
+  dead $y = LDImag8 $rc4, implicit-def $nz
+  BR %bb.6, killed $z, 0
+  JMP %bb.4
+
+bb.3:
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $x = TA $a
+  $rc6 = STImag8 $x
+
+bb.4 (%ir-block.5):
+; predecessors: %bb.3, %bb.9
+  liveins: $a, $rc6
+  $x = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Insert fentry calls (fentry-insert) on loop_sum_array omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on loop_sum_array omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on loop_sum_array omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on loop_sum_array ***
+# Machine code for function loop_sum_array: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  successors: %bb.1(0x40000000), %bb.2(0x40000000); %bb.1(50.00%), %bb.2(50.00%)
+  liveins: $a, $x, $rs1
+  $y = TA $a
+  renamable $c = CMPImm killed $a, 1
+  $a = T_A $x
+  renamable $a, dead renamable $c, renamable $v = SBCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  BR %bb.2, killed renamable $v, 0
+
+bb.1 (%ir-block.2):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rs1, $x, $y, $a
+  renamable $a = EORImm killed renamable $a(tied-def 0), -128
+
+bb.2 (%ir-block.2):
+; predecessors: %bb.1, %bb.0
+  successors: %bb.3(0x50000000), %bb.8(0x30000000); %bb.3(62.50%), %bb.8(37.50%)
+  liveins: $rs1, $x, $y, $a
+  dead $c = CMPImm $a, 0, implicit-def $nz
+  BR %bb.8, killed $n, 1
+
+bb.3 (%ir-block.4):
+; predecessors: %bb.2
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+  liveins: $rs1, $x, $y
+  $rc4 = STImag8 $y
+  renamable $y = LDImm 0
+  $a = T_A $y
+  $rc6 = STImag8 $y
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.3, %bb.6, %bb.7
+  successors: %bb.6(0x40000000), %bb.5(0x40000000); %bb.6(50.00%), %bb.5(50.00%)
+  liveins: $rs1, $rc6, $rc4, $x, $a
+  renamable $c = LDCImm 0
+  renamable $y = LDImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, renamable $y, killed renamable $c(tied-def 1)
+  $rc5 = STImag8 $a
+  renamable $y = INC killed $y(tied-def 0)
+  $a = LDImag8 $rc6
+  renamable $a, dead renamable $c, dead renamable $v = ADCIndirIdx killed renamable $a(tied-def 0), renamable $rs1, killed renamable $y, killed renamable $c(tied-def 1)
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc2
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 2, killed renamable $c(tied-def 1)
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImm killed renamable $a(tied-def 0), 0, killed renamable $c(tied-def 1)
+  $rc3 = STImag8 $a
+  $a = LDImm 255
+  $rc4 = DEC $rc4(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $a, killed renamable $rc4, implicit-def $z
+  BR %bb.6, $z, 0
+
+bb.5 (%ir-block.7):
+; predecessors: %bb.4
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rs1
+  renamable $x = DEC killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v
+
+bb.6 (%ir-block.7):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x04000000), %bb.4(0x7c000000); %bb.7(3.12%), %bb.4(96.88%)
+  liveins: $x, $rc4, $rc5, $rc6, $rs1
+  $a = LDImag8 $rc5
+  dead $c = CMPImm $x, 0, implicit-def $nz
+  BR %bb.4, killed $z, 0
+
+bb.7 (%ir-block.7):
+; predecessors: %bb.6
+  successors: %bb.9(0x04000000), %bb.4(0x7c000000); %bb.9(3.12%), %bb.4(96.88%)
+  liveins: $a, $x, $rc4, $rc6, $rs1
+  dead $y = LDImag8 $rc4, implicit-def $nz
+  BR %bb.4, killed $z, 0
+  JMP %bb.9
+
+bb.8:
+; predecessors: %bb.2
+  successors: %bb.9(0x80000000); %bb.9(100.00%)
+
+  renamable $a = LDImm 0
+  renamable $x = TA $a
+  $rc6 = STImag8 $x
+
+bb.9 (%ir-block.5):
+; predecessors: %bb.8, %bb.7
+  liveins: $a, $rc6
+  $x = LDImag8 $rc6
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function loop_sum_array.
+
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on loop_sum_array omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on loop_sum_array omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on loop_sum_array omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on loop_sum_array omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on loop_sum_array omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on loop_sum_array omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on loop_sum_array omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on loop_sum_array omitted because no change ***

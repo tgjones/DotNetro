@@ -1,0 +1,85 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/control-flow/loop-counter
+; A counted loop with a loop-carried accumulator and induction variable, both
+; live across the back edge -- the canonical reason RA cares about loop
+; structure. Faithful to the corpus C (s += i). Note: llvm-mos
+; strength-reduces this loop to a closed-form multiply (__mulsi3 call), an
+; optimisation Irie's pipeline does not perform, so the instruction-count
+; comparison is apples-to-oranges -- expect Irie to differ markedly here.
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Compare against ext/llvm-mos-reference/control-flow/loop-counter.s; close gaps via irie-report.
+
+; CHECK:     loop_counter:
+; CHECK:     STA \$09
+; CHECK:     STX \$08
+; CHECK:     LDA \#\$00
+; CHECK:     STA \$05
+; CHECK:     LDA \#\$00
+; CHECK:     STA \$04
+; CHECK:     LDA \$05
+; CHECK:     STA \$07
+; CHECK:     LDA \$04
+; CHECK:     STA \$06
+; CHECK:     JMP \.bb1
+; CHECK:     \.bb1:
+; CHECK:     LDA \$07
+; CHECK:     STA \$03
+; CHECK:     LDA \$06
+; CHECK:     LDX \$09
+; CHECK:     STX \$0A
+; CHECK:     LDX \$08
+; CHECK:     EOR \#\$80
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     EOR \#\$80
+; CHECK:     STA \$02
+; CHECK:     TYA
+; CHECK:     CMP \$02
+; CHECK:     BCC \.bb2
+; CHECK:     BNE \.bb3
+; CHECK:     LDA \$03
+; CHECK:     CMP \$0A
+; CHECK:     BCC \.bb2
+; CHECK:     JMP \.bb3
+; CHECK:     \.bb2:
+; CHECK:     CLC
+; CHECK:     LDA \$05
+; CHECK:     ADC \$07
+; CHECK:     STA \$05
+; CHECK:     LDA \$04
+; CHECK:     ADC \$06
+; CHECK:     STA \$04
+; CHECK:     LDA \#\$01
+; CHECK:     STA \$03
+; CHECK:     LDA \#\$00
+; CHECK:     STA \$02
+; CHECK:     CLC
+; CHECK:     LDA \$07
+; CHECK:     ADC \$03
+; CHECK:     STA \$07
+; CHECK:     LDA \$06
+; CHECK:     ADC \$02
+; CHECK:     STA \$06
+; CHECK:     JMP \.bb1
+; CHECK:     \.bb3:
+; CHECK:     LDA \$05
+; CHECK:     LDX \$04
+; CHECK:     RTS
+
+func @loop_counter : (i16) -> i16 {
+bb0(%0 : i16):
+    %1 : i16 = arith.constant 0
+    cf.br bb1(%1, %1)
+bb1(%2 : i16, %3 : i16):
+    %4 : i1 = arith.cmpi slt, %2, %0
+    cf.cond_br %4, bb2(), bb3()
+bb2():
+    %5 : i16 = arith.addi %3, %2
+    %6 : i16 = arith.constant 1
+    %7 : i16 = arith.addi %2, %6
+    cf.br bb1(%7, %5)
+bb3():
+    core.return %3
+}

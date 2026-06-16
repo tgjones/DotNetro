@@ -1,0 +1,1124 @@
+*** IR Dump At Start ***
+; ModuleID = './coalescing/redundant-copy.c'
+source_filename = "./coalescing/redundant-copy.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @redundant_copy(i16 noundef %0, i16 noundef %1, i16 noundef %2) #0 {
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  %7 = alloca i16, align 1
+  store i16 %0, ptr %4, align 1, !tbaa !2
+  store i16 %1, ptr %5, align 1, !tbaa !2
+  store i16 %2, ptr %6, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %7) #2
+  %8 = load i16, ptr %4, align 1, !tbaa !2
+  %9 = icmp ne i16 %8, 0
+  br i1 %9, label %10, label %12
+
+10:                                               ; preds = %3
+  %11 = load i16, ptr %5, align 1, !tbaa !2
+  store i16 %11, ptr %7, align 1, !tbaa !2
+  br label %14
+
+12:                                               ; preds = %3
+  %13 = load i16, ptr %6, align 1, !tbaa !2
+  store i16 %13, ptr %7, align 1, !tbaa !2
+  br label %14
+
+14:                                               ; preds = %12, %10
+  %15 = load i16, ptr %7, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %7) #2
+  ret i16 %15
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] ***
+; ModuleID = './coalescing/redundant-copy.c'
+source_filename = "./coalescing/redundant-copy.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @redundant_copy(i16 noundef %0, i16 noundef %1, i16 noundef %2) #0 {
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  %7 = alloca i16, align 1
+  store i16 %0, ptr %4, align 1, !tbaa !2
+  store i16 %1, ptr %5, align 1, !tbaa !2
+  store i16 %2, ptr %6, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %7) #2
+  %8 = load i16, ptr %4, align 1, !tbaa !2
+  %9 = icmp ne i16 %8, 0
+  br i1 %9, label %10, label %12
+
+10:                                               ; preds = %3
+  %11 = load i16, ptr %5, align 1, !tbaa !2
+  store i16 %11, ptr %7, align 1, !tbaa !2
+  br label %14
+
+12:                                               ; preds = %3
+  %13 = load i16, ptr %6, align 1, !tbaa !2
+  store i16 %13, ptr %7, align 1, !tbaa !2
+  br label %14
+
+14:                                               ; preds = %12, %10
+  %15 = load i16, ptr %7, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %7) #2
+  ret i16 %15
+}
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on redundant_copy omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on redundant_copy omitted because no change ***
+*** IR Dump After SimplifyCFGPass on redundant_copy omitted because no change ***
+*** IR Dump After SROAPass on redundant_copy ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @redundant_copy(i16 noundef %0, i16 noundef %1, i16 noundef %2) #0 {
+  %4 = icmp ne i16 %0, 0
+  br i1 %4, label %5, label %6
+
+5:                                                ; preds = %3
+  br label %7
+
+6:                                                ; preds = %3
+  br label %7
+
+7:                                                ; preds = %6, %5
+  %8 = phi i16 [ %1, %5 ], [ %2, %6 ]
+  ret i16 %8
+}
+*** IR Dump After EarlyCSEPass on redundant_copy omitted because no change ***
+*** IR Pass PassManager<Function> on redundant_copy ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './coalescing/redundant-copy.c'
+source_filename = "./coalescing/redundant-copy.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @redundant_copy(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+  %4 = icmp ne i16 %0, 0
+  br i1 %4, label %5, label %6
+
+5:                                                ; preds = %3
+  br label %7
+
+6:                                                ; preds = %3
+  br label %7
+
+7:                                                ; preds = %6, %5
+  %8 = phi i16 [ %1, %5 ], [ %2, %6 ]
+  ret i16 %8
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on redundant_copy omitted because no change ***
+*** IR Dump After InstCombinePass on redundant_copy ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @redundant_copy(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+  %4 = icmp eq i16 %0, 0
+  br i1 %4, label %6, label %5
+
+5:                                                ; preds = %3
+  br label %7
+
+6:                                                ; preds = %3
+  br label %7
+
+7:                                                ; preds = %6, %5
+  %8 = phi i16 [ %1, %5 ], [ %2, %6 ]
+  ret i16 %8
+}
+*** IR Dump After SimplifyCFGPass on redundant_copy ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @redundant_copy(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+  %4 = icmp eq i16 %0, 0
+  %5 = select i1 %4, i16 %2, i16 %1
+  ret i16 %5
+}
+*** IR Pass PassManager<Function> on redundant_copy ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on redundant_copy omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (redundant_copy) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (redundant_copy) omitted because no change ***
+*** IR Dump After SROAPass on redundant_copy omitted because no change ***
+*** IR Dump After EarlyCSEPass on redundant_copy omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on redundant_copy omitted because no change ***
+*** IR Dump After JumpThreadingPass on redundant_copy omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on redundant_copy omitted because no change ***
+*** IR Dump After SimplifyCFGPass on redundant_copy omitted because no change ***
+*** IR Dump After InstCombinePass on redundant_copy omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on redundant_copy omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on redundant_copy omitted because no change ***
+*** IR Dump After TailCallElimPass on redundant_copy omitted because no change ***
+*** IR Dump After SimplifyCFGPass on redundant_copy omitted because no change ***
+*** IR Dump After ReassociatePass on redundant_copy omitted because no change ***
+*** IR Dump After ConstraintEliminationPass on redundant_copy omitted because no change ***
+*** IR Dump After LoopSimplifyPass on redundant_copy omitted because no change ***
+*** IR Dump After LCSSAPass on redundant_copy omitted because no change ***
+*** IR Pass PassManager<Function> on redundant_copy ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on redundant_copy ignored ***
+*** IR Dump After SimplifyCFGPass on redundant_copy omitted because no change ***
+*** IR Dump After InstCombinePass on redundant_copy omitted because no change ***
+*** IR Dump After LoopSimplifyPass on redundant_copy omitted because no change ***
+*** IR Dump After LCSSAPass on redundant_copy omitted because no change ***
+*** IR Pass PassManager<Function> on redundant_copy ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on redundant_copy ignored ***
+*** IR Dump After SROAPass on redundant_copy omitted because no change ***
+*** IR Dump After VectorCombinePass on redundant_copy omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on redundant_copy omitted because no change ***
+*** IR Dump After GVNPass on redundant_copy omitted because no change ***
+*** IR Dump After SCCPPass on redundant_copy omitted because no change ***
+*** IR Dump After BDCEPass on redundant_copy omitted because no change ***
+*** IR Dump After InstCombinePass on redundant_copy omitted because no change ***
+*** IR Dump After JumpThreadingPass on redundant_copy omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on redundant_copy omitted because no change ***
+*** IR Dump After ADCEPass on redundant_copy omitted because no change ***
+*** IR Dump After MemCpyOptPass on redundant_copy omitted because no change ***
+*** IR Dump After DSEPass on redundant_copy omitted because no change ***
+*** IR Dump After MoveAutoInitPass on redundant_copy omitted because no change ***
+*** IR Dump After LoopSimplifyPass on redundant_copy omitted because no change ***
+*** IR Dump After LCSSAPass on redundant_copy omitted because no change ***
+*** IR Pass PassManager<Function> on redundant_copy ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on redundant_copy ignored ***
+*** IR Dump After CoroElidePass on redundant_copy omitted because no change ***
+*** IR Dump After SimplifyCFGPass on redundant_copy omitted because no change ***
+*** IR Dump After InstCombinePass on redundant_copy omitted because no change ***
+*** IR Pass PassManager<Function> on redundant_copy ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (redundant_copy) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (redundant_copy) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local noundef i16 @redundant_copy(i16 noundef %0, i16 noundef %1, i16 noundef %2) local_unnamed_addr #0 {
+  %4 = icmp eq i16 %0, 0
+  %5 = select i1 %4, i16 %2, i16 %1
+  ret i16 %5
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on redundant_copy omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (redundant_copy) ignored ***
+*** IR Dump After CoroSplitPass on (redundant_copy) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (redundant_copy) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (redundant_copy) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (redundant_copy) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on redundant_copy omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on redundant_copy omitted because no change ***
+*** IR Dump After Float2IntPass on redundant_copy omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on redundant_copy omitted because no change ***
+*** IR Dump After LoopSimplifyPass on redundant_copy omitted because no change ***
+*** IR Dump After LCSSAPass on redundant_copy omitted because no change ***
+*** IR Pass PassManager<Function> on redundant_copy ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on redundant_copy ignored ***
+*** IR Dump After LoopDistributePass on redundant_copy omitted because no change ***
+*** IR Dump After InjectTLIMappings on redundant_copy omitted because no change ***
+*** IR Dump After LoopVectorizePass on redundant_copy omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on redundant_copy omitted because no change ***
+*** IR Dump After InferAlignmentPass on redundant_copy omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on redundant_copy omitted because no change ***
+*** IR Dump After InstCombinePass on redundant_copy omitted because no change ***
+*** IR Dump After SimplifyCFGPass on redundant_copy omitted because no change ***
+*** IR Dump After SLPVectorizerPass on redundant_copy omitted because no change ***
+*** IR Dump After VectorCombinePass on redundant_copy omitted because no change ***
+*** IR Dump After InstCombinePass on redundant_copy omitted because no change ***
+*** IR Dump After LoopUnrollPass on redundant_copy omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on redundant_copy omitted because no change ***
+*** IR Dump After SROAPass on redundant_copy omitted because no change ***
+*** IR Dump After InferAlignmentPass on redundant_copy omitted because no change ***
+*** IR Dump After InstCombinePass on redundant_copy omitted because no change ***
+*** IR Dump After LoopSimplifyPass on redundant_copy omitted because no change ***
+*** IR Dump After LCSSAPass on redundant_copy omitted because no change ***
+*** IR Pass PassManager<Function> on redundant_copy ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on redundant_copy ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on redundant_copy omitted because no change ***
+*** IR Dump After LoopSinkPass on redundant_copy omitted because no change ***
+*** IR Dump After InstSimplifyPass on redundant_copy omitted because no change ***
+*** IR Dump After DivRemPairsPass on redundant_copy omitted because no change ***
+*** IR Dump After MergeICmpsPass on redundant_copy omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on redundant_copy omitted because no change ***
+*** IR Dump After TailCallElimPass on redundant_copy omitted because no change ***
+*** IR Dump After SimplifyCFGPass on redundant_copy omitted because no change ***
+*** IR Pass PassManager<Function> on redundant_copy ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on redundant_copy omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on redundant_copy omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on redundant_copy ***
+# Machine code for function redundant_copy: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.3):
+  successors: %bb.3(0x30000000), %bb.2(0x50000000); %bb.3(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:_(s8) = COPY $a
+  %4:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %3:_(s8), %4:_(s8)
+  %5:_(s8) = COPY $rc2
+  %6:_(s8) = COPY $rc3
+  %1:_(s16) = G_MERGE_VALUES %5:_(s8), %6:_(s8)
+  %7:_(s8) = COPY $rc4
+  %8:_(s8) = COPY $rc5
+  %2:_(s16) = G_MERGE_VALUES %7:_(s8), %8:_(s8)
+  %10:_(s16) = G_CONSTANT i16 0
+  %9:_(s16) = G_FREEZE %0:_
+  %11:_(s1) = G_ICMP intpred(eq), %9:_(s16), %10:_
+  G_BRCOND %11:_(s1), %bb.3
+  G_BR %bb.2
+
+bb.2 (%ir-block.6):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.7):
+; predecessors: %bb.1, %bb.2
+
+  %12:_(s16) = G_PHI %2:_(s16), %bb.1, %1:_(s16), %bb.2
+  %13:_(s8), %14:_(s8) = G_UNMERGE_VALUES %12:_(s16)
+  $a = COPY %13:_(s8)
+  $x = COPY %14:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on redundant_copy omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on redundant_copy omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on redundant_copy omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on redundant_copy omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on redundant_copy omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on redundant_copy omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on redundant_copy omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on redundant_copy ***
+# Machine code for function redundant_copy: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.3):
+  successors: %bb.3(0x30000000), %bb.2(0x50000000); %bb.3(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:_(s8) = COPY $a
+  %4:_(s8) = COPY $x
+  %5:_(s8) = COPY $rc2
+  %6:_(s8) = COPY $rc3
+  %7:_(s8) = COPY $rc4
+  %8:_(s8) = COPY $rc5
+  %11:_(s1) = G_CMPZ %3:_(s8), %4:_(s8)
+  G_BRCOND_IMM %11:_(s1), %bb.3, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.6):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.7):
+; predecessors: %bb.1, %bb.2
+
+  %19:_(s8) = G_PHI %7:_(s8), %bb.1, %5:_(s8), %bb.2
+  %20:_(s8) = G_PHI %8:_(s8), %bb.1, %6:_(s8), %bb.2
+  $a = COPY %19:_(s8)
+  $x = COPY %20:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on redundant_copy omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on redundant_copy omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on redundant_copy omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on redundant_copy omitted because no change ***
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on redundant_copy omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on redundant_copy ***
+# Machine code for function redundant_copy: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.3):
+  successors: %bb.3(0x30000000), %bb.2(0x50000000); %bb.3(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:any(s8) = COPY $a
+  %4:any(s8) = COPY $x
+  %5:any(s8) = COPY $rc2
+  %6:any(s8) = COPY $rc3
+  %7:any(s8) = COPY $rc4
+  %8:any(s8) = COPY $rc5
+  %11:any(s1) = G_CMPZ %3:any(s8), %4:any(s8)
+  G_BRCOND_IMM %11:any(s1), %bb.3, 1
+  G_BR %bb.2
+
+bb.2 (%ir-block.6):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.7):
+; predecessors: %bb.1, %bb.2
+
+  %19:any(s8) = G_PHI %7:any(s8), %bb.1, %5:any(s8), %bb.2
+  %20:any(s8) = G_PHI %8:any(s8), %bb.1, %6:any(s8), %bb.2
+  $a = COPY %19:any(s8)
+  $x = COPY %20:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Localizer (localizer) on redundant_copy omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on redundant_copy omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on redundant_copy ***
+# Machine code for function redundant_copy: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.3):
+  successors: %bb.3(0x30000000), %bb.2(0x50000000); %bb.3(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:anyi8 = COPY $a
+  %4:anyi8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %7:anyi8 = COPY $rc4
+  %8:anyi8 = COPY $rc5
+  CmpBrZeroMultiByte %bb.3, 1, %3:anyi8, %4:anyi8, implicit-def $c
+  JMP %bb.2
+
+bb.2 (%ir-block.6):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+
+bb.3 (%ir-block.7):
+; predecessors: %bb.1, %bb.2
+
+  %19:anyi8 = PHI %7:anyi8, %bb.1, %5:anyi8, %bb.2
+  %20:anyi8 = PHI %8:anyi8, %bb.1, %6:anyi8, %bb.2
+  $a = COPY %19:anyi8
+  $x = COPY %20:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After ResetMachineFunction on redundant_copy omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on redundant_copy omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on redundant_copy omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on redundant_copy omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on redundant_copy omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on redundant_copy omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on redundant_copy omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on redundant_copy omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on redundant_copy omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on redundant_copy omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on redundant_copy omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on redundant_copy omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on redundant_copy omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on redundant_copy omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on redundant_copy omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on redundant_copy omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on redundant_copy omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on redundant_copy omitted because no change ***
+*** IR Dump After Init Undef Pass (init-undef) on redundant_copy omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on redundant_copy omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on redundant_copy ***
+# Machine code for function redundant_copy: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:anyi8 = COPY $a
+  %4:anyi8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %7:anyi8 = COPY $rc4
+  %8:anyi8 = COPY $rc5
+  CmpBrZeroMultiByte %bb.2, 1, %3:anyi8, %4:anyi8, implicit-def $c
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+
+  %19:anyi8 = PHI %7:anyi8, %bb.0, %5:anyi8, %bb.1
+  %20:anyi8 = PHI %8:anyi8, %bb.0, %6:anyi8, %bb.1
+  $a = COPY %19:anyi8
+  $x = COPY %20:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Live Variable Analysis (livevars) on redundant_copy ***
+# Machine code for function redundant_copy: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:anyi8 = COPY killed $a
+  %4:anyi8 = COPY killed $x
+  %5:anyi8 = COPY killed $rc2
+  %6:anyi8 = COPY killed $rc3
+  %7:anyi8 = COPY killed $rc4
+  %8:anyi8 = COPY killed $rc5
+  CmpBrZeroMultiByte %bb.2, 1, killed %3:anyi8, killed %4:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+
+  %19:anyi8 = PHI %7:anyi8, %bb.0, %5:anyi8, %bb.1
+  %20:anyi8 = PHI %8:anyi8, %bb.0, %6:anyi8, %bb.1
+  $a = COPY killed %19:anyi8
+  $x = COPY killed %20:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on redundant_copy omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:anyi8 = COPY killed $a
+  %4:anyi8 = COPY killed $x
+  %5:anyi8 = COPY killed $rc2
+  %6:anyi8 = COPY killed $rc3
+  %7:anyi8 = COPY killed $rc4
+  %8:anyi8 = COPY killed $rc5
+  %27:anyi8 = COPY killed %7:anyi8
+  %28:anyi8 = COPY killed %8:anyi8
+  CmpBrZeroMultiByte %bb.2, 1, killed %3:anyi8, killed %4:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  %27:anyi8 = COPY killed %5:anyi8
+  %28:anyi8 = COPY killed %6:anyi8
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+
+  %20:anyi8 = COPY killed %28:anyi8
+  %19:anyi8 = COPY killed %27:anyi8
+  $a = COPY killed %19:anyi8
+  $x = COPY killed %20:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:anyi8 = COPY killed $a
+  %4:anyi8 = COPY killed $x
+  %5:anyi8 = COPY killed $rc2
+  %6:anyi8 = COPY killed $rc3
+  %7:anyi8 = COPY killed $rc4
+  %8:anyi8 = COPY killed $rc5
+  %27:anyi8 = COPY killed %7:anyi8
+  %28:anyi8 = COPY killed %8:anyi8
+  CmpBrZeroMultiByte %bb.2, 1, killed %3:anyi8, killed %4:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  %27:anyi8 = COPY killed %5:anyi8
+  %28:anyi8 = COPY killed %6:anyi8
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+
+  %20:anyi8 = COPY killed %28:anyi8
+  %19:anyi8 = COPY killed %27:anyi8
+  $a = COPY killed %19:anyi8
+  $x = COPY killed %20:anyi8
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Slot index numbering (slotindexes) on redundant_copy omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:anyi8 = COPY $a
+  %4:anyi8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %7:anyi8 = COPY $rc4
+  %8:anyi8 = COPY $rc5
+  %27:anyi8 = COPY %7:anyi8
+  %28:anyi8 = COPY %8:anyi8
+  CmpBrZeroMultiByte %bb.2, 1, %3:anyi8, %4:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  %27:anyi8 = COPY %5:anyi8
+  %28:anyi8 = COPY %6:anyi8
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+
+  %20:anyi8 = COPY %28:anyi8
+  %19:anyi8 = COPY %27:anyi8
+  $a = COPY %19:anyi8
+  $x = COPY %20:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Register Coalescer (register-coalescer) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:anyi8 = COPY $a
+  %4:anyi8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %27:anyi8 = COPY $rc4
+  %28:anyi8 = COPY $rc5
+  CmpBrZeroMultiByte %bb.2, 1, %3:anyi8, %4:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  %27:anyi8 = COPY %5:anyi8
+  %28:anyi8 = COPY %6:anyi8
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+
+  $a = COPY %27:anyi8
+  $x = COPY %28:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Register Coalescer (register-coalescer) on redundant_copy omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:anyi8 = COPY $a
+  %4:anyi8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %27:anyi8 = COPY $rc4
+  %28:anyi8 = COPY $rc5
+  CmpBrZeroMultiByte %bb.2, 1, %3:anyi8, %4:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  %27:anyi8 = COPY %5:anyi8
+  %28:anyi8 = COPY %6:anyi8
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+
+  $x = COPY %28:anyi8
+  $a = COPY %27:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  %3:anyi8 = COPY $a
+  %4:anyi8 = COPY $x
+  %5:anyi8 = COPY $rc2
+  %6:anyi8 = COPY $rc3
+  %27:anyi8 = COPY $rc4
+  %28:anyi8 = COPY $rc5
+  CmpBrZeroMultiByte %bb.2, 1, %3:anyi8, %4:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+
+  %27:anyi8 = COPY %5:anyi8
+  %28:anyi8 = COPY %6:anyi8
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+
+  $x = COPY %28:anyi8
+  $a = COPY %27:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on redundant_copy omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on redundant_copy omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on redundant_copy omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on redundant_copy omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on redundant_copy omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on redundant_copy omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on redundant_copy omitted because no change ***
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  renamable $rc6 = COPY $x
+  renamable $x = COPY $rc2
+  renamable $y = COPY $rc3
+  CmpBrZeroMultiByte %bb.2, 1, killed renamable $a, killed renamable $rc6, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $x, $y
+  renamable $rc4 = COPY killed renamable $x
+  renamable $rc5 = COPY killed renamable $y
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+  liveins: $rc4, $rc5
+  $x = COPY killed renamable $rc5
+  $a = COPY killed renamable $rc4
+  RTS implicit $a, implicit $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on redundant_copy omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on redundant_copy omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on redundant_copy omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on redundant_copy omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  renamable $rc6 = COPY $x
+  CmpBrZeroMultiByte %bb.2, 1, killed renamable $a, killed renamable $rc6, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc2, $rc3
+  renamable $x = COPY $rc2
+  renamable $y = COPY $rc3
+  renamable $rc4 = COPY killed renamable $x
+  renamable $rc5 = COPY killed renamable $y
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+  liveins: $rc4, $rc5
+  $x = COPY killed renamable $rc5
+  $a = COPY killed renamable $rc4
+  RTS implicit $a, implicit $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on redundant_copy omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on redundant_copy omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on redundant_copy omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on redundant_copy omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on redundant_copy omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on redundant_copy omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on redundant_copy omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on redundant_copy omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  renamable $rc6 = COPY $x
+  CmpBrZeroMultiByte %bb.2, 1, killed renamable $a, killed renamable $rc6, implicit-def $c
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc2, $rc3
+  renamable $x = COPY $rc2
+  renamable $y = COPY $rc3
+  renamable $rc4 = COPY killed renamable $x
+  renamable $rc5 = COPY killed renamable $y
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+  liveins: $rc4, $rc5
+  $x = COPY killed renamable $rc5
+  $a = COPY killed renamable $rc4
+  RTS implicit $a, implicit $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on redundant_copy omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on redundant_copy omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  renamable $rc6 = COPY killed $x
+  CmpBrZeroMultiByte %bb.2, 1, killed renamable $a, killed renamable $rc6, implicit-def dead $c
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc3, $rc2
+  renamable $x = COPY killed $rc2
+  renamable $y = COPY killed $rc3
+  renamable $rc4 = COPY killed renamable $x
+  renamable $rc5 = COPY killed renamable $y
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+  liveins: $rc4, $rc5
+  $x = COPY killed renamable $rc5
+  $a = COPY killed renamable $rc4
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  $rc6 = STImag8 $x
+  CmpBrZeroMultiByte %bb.2, 1, killed renamable $a, killed renamable $rc6, implicit-def dead $c
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc3, $rc2
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+  $rc4 = STImag8 $x
+  $rc5 = STImag8 $y
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.0, %bb.1
+  liveins: $rc4, $rc5
+  $x = LDImag8 $rc5
+  $a = LDImag8 $rc4
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on redundant_copy omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.3(0x30000000), %bb.1(0x50000000); %bb.3(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  $rc6 = STImag8 $x
+  CmpBrZero %bb.1, undef $z, 0, killed renamable $rc6, implicit-def $c
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $rc2, $rc3, $rc4, $rc5
+  CmpBrZero %bb.2, undef $z, 1, killed renamable $a, implicit-def $c
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0, %bb.3
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc3, $rc2
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+  $rc4 = STImag8 $x
+  $rc5 = STImag8 $y
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1, %bb.3
+  liveins: $rc4, $rc5
+  $x = LDImag8 $rc5
+  $a = LDImag8 $rc4
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.3(0x30000000), %bb.1(0x50000000); %bb.3(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  $rc6 = STImag8 $x
+  CmpZero killed renamable $rc6, implicit-def $c, implicit-def $c, implicit-def $z
+  BR %bb.1, killed $z, 0
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $rc2, $rc3, $rc4, $rc5
+  CmpZero killed renamable $a, implicit-def $c, implicit-def $c, implicit-def $z
+  BR %bb.2, killed $z, 1
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0, %bb.3
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc3, $rc2
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+  $rc4 = STImag8 $x
+  $rc5 = STImag8 $y
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1, %bb.3
+  liveins: $rc4, $rc5
+  $x = LDImag8 $rc5
+  $a = LDImag8 $rc4
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on redundant_copy omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.3(0x30000000), %bb.1(0x50000000); %bb.3(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  $rc6 = STImag8 $x
+  dead $x = LDImag8 $rc6, implicit-def $nz
+  BR %bb.1, killed $z, 0
+  JMP %bb.3
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $rc2, $rc3, $rc4, $rc5
+  dead $x = TA $a, implicit-def $nz
+  BR %bb.2, killed $z, 1
+  JMP %bb.1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0, %bb.3
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc3, $rc2
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+  $rc4 = STImag8 $x
+  $rc5 = STImag8 $y
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1, %bb.3
+  liveins: $rc4, $rc5
+  $x = LDImag8 $rc5
+  $a = LDImag8 $rc4
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on redundant_copy omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on redundant_copy omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on redundant_copy omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.3(0x30000000), %bb.1(0x50000000); %bb.3(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  $rc6 = STImag8 $x
+  dead $x = LDImag8 $rc6, implicit-def $nz
+  BR %bb.1, killed $z, 0
+
+bb.3 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.2(0x30000000), %bb.1(0x50000000); %bb.2(37.50%), %bb.1(62.50%)
+  liveins: $a, $rc2, $rc3, $rc4, $rc5
+  dead $x = TA $a, implicit-def $nz
+  BR %bb.2, killed $z, 1
+
+bb.1 (%ir-block.6):
+; predecessors: %bb.0, %bb.3
+  successors: %bb.2(0x80000000); %bb.2(100.00%)
+  liveins: $rc3, $rc2
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+  $rc4 = STImag8 $x
+  $rc5 = STImag8 $y
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1, %bb.3
+  liveins: $rc4, $rc5
+  $x = LDImag8 $rc5
+  $a = LDImag8 $rc4
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Insert fentry calls (fentry-insert) on redundant_copy omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on redundant_copy omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on redundant_copy omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on redundant_copy ***
+# Machine code for function redundant_copy: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.3):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5
+  $rc6 = STImag8 $x
+  dead $x = LDImag8 $rc6, implicit-def $nz
+  BR %bb.2, killed $z, 0
+
+bb.1 (%ir-block.3):
+; predecessors: %bb.0
+  successors: %bb.3(0x30000000), %bb.2(0x50000000); %bb.3(37.50%), %bb.2(62.50%)
+  liveins: $a, $rc2, $rc3, $rc4, $rc5
+  dead $x = TA $a, implicit-def $nz
+  BR %bb.3, killed $z, 1
+
+bb.2 (%ir-block.6):
+; predecessors: %bb.0, %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc3, $rc2
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+  $rc4 = STImag8 $x
+  $rc5 = STImag8 $y
+
+bb.3 (%ir-block.7):
+; predecessors: %bb.2, %bb.1
+  liveins: $rc4, $rc5
+  $x = LDImag8 $rc5
+  $a = LDImag8 $rc4
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function redundant_copy.
+
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on redundant_copy omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on redundant_copy omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on redundant_copy omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on redundant_copy omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on redundant_copy omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on redundant_copy omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on redundant_copy omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on redundant_copy omitted because no change ***

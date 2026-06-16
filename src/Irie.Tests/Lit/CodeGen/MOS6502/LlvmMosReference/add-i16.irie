@@ -1,0 +1,23 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/basics/add-i16
+; i16 add = a 2-byte carry chain (ADC x2 threading the carry).
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Compare against ext/llvm-mos-reference/basics/add-i16.s; close gaps via irie-report.
+
+; CHECK:     add_i16:
+; CHECK:     CLC
+; CHECK:     ADC \$02
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC \$03
+; CHECK:     TAX
+; CHECK:     TYA
+; CHECK:     RTS
+
+func @add_i16 : (i16, i16) -> i16 {
+bb0(%0 : i16, %1 : i16):
+    %2 : i16 = arith.addi %0, %1
+    core.return %2
+}

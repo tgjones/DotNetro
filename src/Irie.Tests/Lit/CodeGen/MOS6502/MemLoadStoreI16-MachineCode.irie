@@ -2,23 +2,19 @@
 
 ; End-to-end check for mem.load.i16 / mem.store.i16 through a mem.symbol
 ; address. The Custom legalizer rewrites each wide op into a chain of
-; per-byte mem.load.byte_at / mem.store.byte_at calls at offsets 0..1, and
-; isel lowers those to LDA/STA ($zp),Y with Y stepping through the byte
-; index. The pointer setup ($00 / $01) is cached across the chain.
+; per-byte mem.load.byte_at / mem.store.byte_at calls at offsets 0..1. Because
+; the address resolves to a static symbol, isel selects absolute addressing
+; (lda.abs / sta.abs @ptr and @ptr+1) — no zero-page pointer pair, no LDY.
 
 ; CHECK: TestMemI16:
-; CHECK:     LDA #<ptr
-; CHECK:     STA \$00
-; CHECK:     LDA #>ptr
-; CHECK:     STA \$01
-; CHECK:     LDY #\$00
-; CHECK:     LDA \(\$00\),Y
-; CHECK:     LDY #\$01
-; CHECK:     LDA \(\$00\),Y
-; CHECK:     LDY #\$00
-; CHECK:     STA \(\$00\),Y
-; CHECK:     LDY #\$01
-; CHECK:     STA \(\$00\),Y
+; CHECK:     LDA ptr
+; CHECK:     TAY
+; CHECK:     LDA ptr\+1
+; CHECK:     TAX
+; CHECK:     TYA
+; CHECK:     STA ptr
+; CHECK:     TXA
+; CHECK:     STA ptr\+1
 ; CHECK:     RTS
 
 global @ptr : i32

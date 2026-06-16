@@ -13,4 +13,8 @@ public sealed record Immediate(long Value) : MirOperand;
 // parameters.
 public sealed record BlockTarget(MirBlock Block, MirOperand[] Args) : MirOperand;
 
-public sealed record Symbol(string Name) : MirOperand;
+// A named symbol reference, optionally with a byte Offset added to the
+// symbol's address (e.g. `@counter+1` to address the high byte of an i16
+// global). Offset defaults to 0; the writer omits `+0` so existing goldens
+// are unchanged.
+public sealed record Symbol(string Name, int Offset = 0) : MirOperand;

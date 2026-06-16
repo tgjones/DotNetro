@@ -1,0 +1,987 @@
+*** IR Dump At Start ***
+; ModuleID = './basics/many-args.c'
+source_filename = "./basics/many-args.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @many_args(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3, i16 noundef %4, i16 noundef %5) #0 {
+  %7 = alloca i16, align 1
+  %8 = alloca i16, align 1
+  %9 = alloca i16, align 1
+  %10 = alloca i16, align 1
+  %11 = alloca i16, align 1
+  %12 = alloca i16, align 1
+  store i16 %0, ptr %7, align 1, !tbaa !2
+  store i16 %1, ptr %8, align 1, !tbaa !2
+  store i16 %2, ptr %9, align 1, !tbaa !2
+  store i16 %3, ptr %10, align 1, !tbaa !2
+  store i16 %4, ptr %11, align 1, !tbaa !2
+  store i16 %5, ptr %12, align 1, !tbaa !2
+  %13 = load i16, ptr %7, align 1, !tbaa !2
+  %14 = load i16, ptr %8, align 1, !tbaa !2
+  %15 = add nsw i16 %13, %14
+  %16 = load i16, ptr %9, align 1, !tbaa !2
+  %17 = add nsw i16 %15, %16
+  %18 = load i16, ptr %10, align 1, !tbaa !2
+  %19 = add nsw i16 %17, %18
+  %20 = load i16, ptr %11, align 1, !tbaa !2
+  %21 = add nsw i16 %19, %20
+  %22 = load i16, ptr %12, align 1, !tbaa !2
+  %23 = add nsw i16 %21, %22
+  ret i16 %23
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on many_args omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on many_args omitted because no change ***
+*** IR Dump After SimplifyCFGPass on many_args omitted because no change ***
+*** IR Dump After SROAPass on many_args ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @many_args(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3, i16 noundef %4, i16 noundef %5) #0 {
+  %7 = add nsw i16 %0, %1
+  %8 = add nsw i16 %7, %2
+  %9 = add nsw i16 %8, %3
+  %10 = add nsw i16 %9, %4
+  %11 = add nsw i16 %10, %5
+  ret i16 %11
+}
+*** IR Dump After EarlyCSEPass on many_args omitted because no change ***
+*** IR Pass PassManager<Function> on many_args ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './basics/many-args.c'
+source_filename = "./basics/many-args.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @many_args(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3, i16 noundef %4, i16 noundef %5) local_unnamed_addr #0 {
+  %7 = add nsw i16 %0, %1
+  %8 = add nsw i16 %7, %2
+  %9 = add nsw i16 %8, %3
+  %10 = add nsw i16 %9, %4
+  %11 = add nsw i16 %10, %5
+  ret i16 %11
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on many_args omitted because no change ***
+*** IR Dump After InstCombinePass on many_args omitted because no change ***
+*** IR Dump After SimplifyCFGPass on many_args omitted because no change ***
+*** IR Pass PassManager<Function> on many_args ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on many_args omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (many_args) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (many_args) omitted because no change ***
+*** IR Dump After SROAPass on many_args omitted because no change ***
+*** IR Dump After EarlyCSEPass on many_args omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on many_args omitted because no change ***
+*** IR Dump After JumpThreadingPass on many_args omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on many_args omitted because no change ***
+*** IR Dump After SimplifyCFGPass on many_args omitted because no change ***
+*** IR Dump After InstCombinePass on many_args omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on many_args omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on many_args omitted because no change ***
+*** IR Dump After TailCallElimPass on many_args omitted because no change ***
+*** IR Dump After SimplifyCFGPass on many_args omitted because no change ***
+*** IR Dump After ReassociatePass on many_args ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @many_args(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3, i16 noundef %4, i16 noundef %5) local_unnamed_addr #0 {
+  %7 = add nsw i16 %1, %0
+  %8 = add nsw i16 %7, %2
+  %9 = add nsw i16 %8, %3
+  %10 = add nsw i16 %9, %4
+  %11 = add nsw i16 %10, %5
+  ret i16 %11
+}
+*** IR Dump After ConstraintEliminationPass on many_args omitted because no change ***
+*** IR Dump After LoopSimplifyPass on many_args omitted because no change ***
+*** IR Dump After LCSSAPass on many_args omitted because no change ***
+*** IR Pass PassManager<Function> on many_args ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on many_args ignored ***
+*** IR Dump After SimplifyCFGPass on many_args omitted because no change ***
+*** IR Dump After InstCombinePass on many_args omitted because no change ***
+*** IR Dump After LoopSimplifyPass on many_args omitted because no change ***
+*** IR Dump After LCSSAPass on many_args omitted because no change ***
+*** IR Pass PassManager<Function> on many_args ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on many_args ignored ***
+*** IR Dump After SROAPass on many_args omitted because no change ***
+*** IR Dump After VectorCombinePass on many_args omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on many_args omitted because no change ***
+*** IR Dump After GVNPass on many_args omitted because no change ***
+*** IR Dump After SCCPPass on many_args omitted because no change ***
+*** IR Dump After BDCEPass on many_args omitted because no change ***
+*** IR Dump After InstCombinePass on many_args omitted because no change ***
+*** IR Dump After JumpThreadingPass on many_args omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on many_args omitted because no change ***
+*** IR Dump After ADCEPass on many_args omitted because no change ***
+*** IR Dump After MemCpyOptPass on many_args omitted because no change ***
+*** IR Dump After DSEPass on many_args omitted because no change ***
+*** IR Dump After MoveAutoInitPass on many_args omitted because no change ***
+*** IR Dump After LoopSimplifyPass on many_args omitted because no change ***
+*** IR Dump After LCSSAPass on many_args omitted because no change ***
+*** IR Pass PassManager<Function> on many_args ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on many_args ignored ***
+*** IR Dump After CoroElidePass on many_args omitted because no change ***
+*** IR Dump After SimplifyCFGPass on many_args omitted because no change ***
+*** IR Dump After InstCombinePass on many_args omitted because no change ***
+*** IR Pass PassManager<Function> on many_args ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (many_args) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (many_args) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local i16 @many_args(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3, i16 noundef %4, i16 noundef %5) local_unnamed_addr #0 {
+  %7 = add nsw i16 %1, %0
+  %8 = add nsw i16 %7, %2
+  %9 = add nsw i16 %8, %3
+  %10 = add nsw i16 %9, %4
+  %11 = add nsw i16 %10, %5
+  ret i16 %11
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on many_args omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (many_args) ignored ***
+*** IR Dump After CoroSplitPass on (many_args) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (many_args) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (many_args) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (many_args) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on many_args omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on many_args omitted because no change ***
+*** IR Dump After Float2IntPass on many_args omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on many_args omitted because no change ***
+*** IR Dump After LoopSimplifyPass on many_args omitted because no change ***
+*** IR Dump After LCSSAPass on many_args omitted because no change ***
+*** IR Pass PassManager<Function> on many_args ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on many_args ignored ***
+*** IR Dump After LoopDistributePass on many_args omitted because no change ***
+*** IR Dump After InjectTLIMappings on many_args omitted because no change ***
+*** IR Dump After LoopVectorizePass on many_args omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on many_args omitted because no change ***
+*** IR Dump After InferAlignmentPass on many_args omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on many_args omitted because no change ***
+*** IR Dump After InstCombinePass on many_args omitted because no change ***
+*** IR Dump After SimplifyCFGPass on many_args omitted because no change ***
+*** IR Dump After SLPVectorizerPass on many_args omitted because no change ***
+*** IR Dump After VectorCombinePass on many_args omitted because no change ***
+*** IR Dump After InstCombinePass on many_args omitted because no change ***
+*** IR Dump After LoopUnrollPass on many_args omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on many_args omitted because no change ***
+*** IR Dump After SROAPass on many_args omitted because no change ***
+*** IR Dump After InferAlignmentPass on many_args omitted because no change ***
+*** IR Dump After InstCombinePass on many_args omitted because no change ***
+*** IR Dump After LoopSimplifyPass on many_args omitted because no change ***
+*** IR Dump After LCSSAPass on many_args omitted because no change ***
+*** IR Pass PassManager<Function> on many_args ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on many_args ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on many_args omitted because no change ***
+*** IR Dump After LoopSinkPass on many_args omitted because no change ***
+*** IR Dump After InstSimplifyPass on many_args omitted because no change ***
+*** IR Dump After DivRemPairsPass on many_args omitted because no change ***
+*** IR Dump After MergeICmpsPass on many_args omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on many_args omitted because no change ***
+*** IR Dump After TailCallElimPass on many_args omitted because no change ***
+*** IR Dump After SimplifyCFGPass on many_args omitted because no change ***
+*** IR Pass PassManager<Function> on many_args ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on many_args omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on many_args omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on many_args ***
+# Machine code for function many_args: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %6:_(s8) = COPY $a
+  %7:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %6:_(s8), %7:_(s8)
+  %8:_(s8) = COPY $rc2
+  %9:_(s8) = COPY $rc3
+  %1:_(s16) = G_MERGE_VALUES %8:_(s8), %9:_(s8)
+  %10:_(s8) = COPY $rc4
+  %11:_(s8) = COPY $rc5
+  %2:_(s16) = G_MERGE_VALUES %10:_(s8), %11:_(s8)
+  %12:_(s8) = COPY $rc6
+  %13:_(s8) = COPY $rc7
+  %3:_(s16) = G_MERGE_VALUES %12:_(s8), %13:_(s8)
+  %14:_(s8) = COPY $rc8
+  %15:_(s8) = COPY $rc9
+  %4:_(s16) = G_MERGE_VALUES %14:_(s8), %15:_(s8)
+  %16:_(s8) = COPY $rc10
+  %17:_(s8) = COPY $rc11
+  %5:_(s16) = G_MERGE_VALUES %16:_(s8), %17:_(s8)
+  %18:_(s16) = nsw G_ADD %1:_, %0:_
+  %19:_(s16) = nsw G_ADD %18:_, %2:_
+  %20:_(s16) = nsw G_ADD %19:_, %3:_
+  %21:_(s16) = nsw G_ADD %20:_, %4:_
+  %22:_(s16) = nsw G_ADD %21:_, %5:_
+  %23:_(s8), %24:_(s8) = G_UNMERGE_VALUES %22:_(s16)
+  $a = COPY %23:_(s8)
+  $x = COPY %24:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on many_args omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on many_args omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on many_args omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on many_args omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on many_args omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on many_args omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on many_args omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on many_args ***
+# Machine code for function many_args: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %6:_(s8) = COPY $a
+  %7:_(s8) = COPY $x
+  %8:_(s8) = COPY $rc2
+  %9:_(s8) = COPY $rc3
+  %10:_(s8) = COPY $rc4
+  %11:_(s8) = COPY $rc5
+  %12:_(s8) = COPY $rc6
+  %13:_(s8) = COPY $rc7
+  %14:_(s8) = COPY $rc8
+  %15:_(s8) = COPY $rc9
+  %16:_(s8) = COPY $rc10
+  %17:_(s8) = COPY $rc11
+  %33:_(s1) = G_CONSTANT i1 false
+  %62:_(s8), %63:_(s1) = G_UADDE %8:_, %6:_, %33:_
+  %64:_(s8), %65:_(s1) = G_UADDE %9:_, %7:_, %63:_
+  %54:_(s8), %55:_(s1) = G_UADDE %62:_, %10:_, %33:_
+  %56:_(s8), %57:_(s1) = G_UADDE %64:_, %11:_, %55:_
+  %46:_(s8), %47:_(s1) = G_UADDE %54:_, %12:_, %33:_
+  %48:_(s8), %49:_(s1) = G_UADDE %56:_, %13:_, %47:_
+  %38:_(s8), %39:_(s1) = G_UADDE %46:_, %14:_, %33:_
+  %40:_(s8), %41:_(s1) = G_UADDE %48:_, %15:_, %39:_
+  %29:_(s8), %30:_(s1) = G_UADDE %38:_, %16:_, %33:_
+  %31:_(s8), %32:_(s1) = G_UADDE %40:_, %17:_, %30:_
+  $a = COPY %29:_(s8)
+  $x = COPY %31:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on many_args omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on many_args omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on many_args omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on many_args omitted because no change ***
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on many_args omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on many_args ***
+# Machine code for function many_args: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %6:any(s8) = COPY $a
+  %7:any(s8) = COPY $x
+  %8:any(s8) = COPY $rc2
+  %9:any(s8) = COPY $rc3
+  %10:any(s8) = COPY $rc4
+  %11:any(s8) = COPY $rc5
+  %12:any(s8) = COPY $rc6
+  %13:any(s8) = COPY $rc7
+  %14:any(s8) = COPY $rc8
+  %15:any(s8) = COPY $rc9
+  %16:any(s8) = COPY $rc10
+  %17:any(s8) = COPY $rc11
+  %33:any(s1) = G_CONSTANT i1 false
+  %62:any(s8), %63:any(s1) = G_UADDE %8:any, %6:any, %33:any
+  %64:any(s8), %65:any(s1) = G_UADDE %9:any, %7:any, %63:any
+  %54:any(s8), %55:any(s1) = G_UADDE %62:any, %10:any, %33:any
+  %56:any(s8), %57:any(s1) = G_UADDE %64:any, %11:any, %55:any
+  %46:any(s8), %47:any(s1) = G_UADDE %54:any, %12:any, %33:any
+  %48:any(s8), %49:any(s1) = G_UADDE %56:any, %13:any, %47:any
+  %38:any(s8), %39:any(s1) = G_UADDE %46:any, %14:any, %33:any
+  %40:any(s8), %41:any(s1) = G_UADDE %48:any, %15:any, %39:any
+  %29:any(s8), %30:any(s1) = G_UADDE %38:any, %16:any, %33:any
+  %31:any(s8), %32:any(s1) = G_UADDE %40:any, %17:any, %30:any
+  $a = COPY %29:any(s8)
+  $x = COPY %31:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Localizer (localizer) on many_args omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on many_args omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on many_args ***
+# Machine code for function many_args: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %6:imag8 = COPY $a
+  %7:imag8 = COPY $x
+  %8:ac = COPY $rc2
+  %9:ac = COPY $rc3
+  %10:imag8 = COPY $rc4
+  %11:imag8 = COPY $rc5
+  %12:imag8 = COPY $rc6
+  %13:imag8 = COPY $rc7
+  %14:imag8 = COPY $rc8
+  %15:imag8 = COPY $rc9
+  %16:imag8 = COPY $rc10
+  %17:imag8 = COPY $rc11
+  %33:cc = LDImm1 0
+  %62:ac, %63:cc, %75:vc = ADCImag8 %8:ac(tied-def 0), %6:imag8, %33:cc
+  %64:ac, %65:cc, %74:vc = ADCImag8 %9:ac(tied-def 0), %7:imag8, %63:cc
+  %54:ac, %55:cc, %73:vc = ADCImag8 %62:ac(tied-def 0), %10:imag8, %33:cc
+  %56:ac, %57:cc, %72:vc = ADCImag8 %64:ac(tied-def 0), %11:imag8, %55:cc
+  %46:ac, %47:cc, %71:vc = ADCImag8 %54:ac(tied-def 0), %12:imag8, %33:cc
+  %48:ac, %49:cc, %70:vc = ADCImag8 %56:ac(tied-def 0), %13:imag8, %47:cc
+  %38:ac, %39:cc, %69:vc = ADCImag8 %46:ac(tied-def 0), %14:imag8, %33:cc
+  %40:ac, %41:cc, %68:vc = ADCImag8 %48:ac(tied-def 0), %15:imag8, %39:cc
+  %29:ac, %30:cc, %67:vc = ADCImag8 %38:ac(tied-def 0), %16:imag8, %33:cc
+  %31:ac, %32:cc, %66:vc = ADCImag8 %40:ac(tied-def 0), %17:imag8, %30:cc
+  $a = COPY %29:ac
+  $x = COPY %31:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function many_args.
+
+*** IR Dump After ResetMachineFunction on many_args omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on many_args omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on many_args omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on many_args omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on many_args omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on many_args omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on many_args omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on many_args omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on many_args omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on many_args omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on many_args omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on many_args omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on many_args omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on many_args omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on many_args omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on many_args omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on many_args omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on many_args omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on many_args omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on many_args omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on many_args omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on many_args omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on many_args ***
+# Machine code for function many_args: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %6:imag8 = COPY $a
+  %7:imag8 = COPY $x
+  %8:ac = COPY $rc2
+  %9:ac = COPY $rc3
+  %10:imag8 = COPY $rc4
+  %11:imag8 = COPY $rc5
+  %12:imag8 = COPY $rc6
+  %13:imag8 = COPY $rc7
+  %14:imag8 = COPY $rc8
+  %15:imag8 = COPY $rc9
+  %16:imag8 = COPY $rc10
+  %17:imag8 = COPY $rc11
+  %33:cc = LDImm1 0
+  %62:ac, %63:cc, dead %75:vc = ADCImag8 %8:ac(tied-def 0), %6:imag8, %33:cc
+  %64:ac, dead %65:cc, dead %74:vc = ADCImag8 %9:ac(tied-def 0), %7:imag8, %63:cc
+  %54:ac, %55:cc, dead %73:vc = ADCImag8 %62:ac(tied-def 0), %10:imag8, %33:cc
+  %56:ac, dead %57:cc, dead %72:vc = ADCImag8 %64:ac(tied-def 0), %11:imag8, %55:cc
+  %46:ac, %47:cc, dead %71:vc = ADCImag8 %54:ac(tied-def 0), %12:imag8, %33:cc
+  %48:ac, dead %49:cc, dead %70:vc = ADCImag8 %56:ac(tied-def 0), %13:imag8, %47:cc
+  %38:ac, %39:cc, dead %69:vc = ADCImag8 %46:ac(tied-def 0), %14:imag8, %33:cc
+  %40:ac, dead %41:cc, dead %68:vc = ADCImag8 %48:ac(tied-def 0), %15:imag8, %39:cc
+  %29:ac, %30:cc, dead %67:vc = ADCImag8 %38:ac(tied-def 0), %16:imag8, %33:cc
+  %31:ac, dead %32:cc, dead %66:vc = ADCImag8 %40:ac(tied-def 0), %17:imag8, %30:cc
+  $a = COPY %29:ac
+  $x = COPY %31:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Init Undef Pass (init-undef) on many_args omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on many_args omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on many_args ***
+# Machine code for function many_args: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %6:imag8 = COPY $a
+  %7:imag8 = COPY $x
+  %8:ac = COPY $rc2
+  %9:ac = COPY $rc3
+  %10:imag8 = COPY $rc4
+  %11:imag8 = COPY $rc5
+  %12:imag8 = COPY $rc6
+  %13:imag8 = COPY $rc7
+  %14:imag8 = COPY $rc8
+  %15:imag8 = COPY $rc9
+  %16:imag8 = COPY $rc10
+  %17:imag8 = COPY $rc11
+  %33:cc = LDImm1 0
+  %62:ac, %63:cc, dead %75:vc = ADCImag8 %8:ac(tied-def 0), %6:imag8, %33:cc
+  %64:ac, dead %65:cc, dead %74:vc = ADCImag8 %9:ac(tied-def 0), %7:imag8, %63:cc
+  %54:ac, %55:cc, dead %73:vc = ADCImag8 %62:ac(tied-def 0), %10:imag8, %33:cc
+  %56:ac, dead %57:cc, dead %72:vc = ADCImag8 %64:ac(tied-def 0), %11:imag8, %55:cc
+  %46:ac, %47:cc, dead %71:vc = ADCImag8 %54:ac(tied-def 0), %12:imag8, %33:cc
+  %48:ac, dead %49:cc, dead %70:vc = ADCImag8 %56:ac(tied-def 0), %13:imag8, %47:cc
+  %38:ac, %39:cc, dead %69:vc = ADCImag8 %46:ac(tied-def 0), %14:imag8, %33:cc
+  %40:ac, dead %41:cc, dead %68:vc = ADCImag8 %48:ac(tied-def 0), %15:imag8, %39:cc
+  %29:ac, %30:cc, dead %67:vc = ADCImag8 %38:ac(tied-def 0), %16:imag8, %33:cc
+  %31:ac, dead %32:cc, dead %66:vc = ADCImag8 %40:ac(tied-def 0), %17:imag8, %30:cc
+  $a = COPY %29:ac
+  $x = COPY %31:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Live Variable Analysis (livevars) on many_args ***
+# Machine code for function many_args: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %6:imag8 = COPY killed $a
+  %7:imag8 = COPY killed $x
+  %8:ac = COPY killed $rc2
+  %9:ac = COPY killed $rc3
+  %10:imag8 = COPY killed $rc4
+  %11:imag8 = COPY killed $rc5
+  %12:imag8 = COPY killed $rc6
+  %13:imag8 = COPY killed $rc7
+  %14:imag8 = COPY killed $rc8
+  %15:imag8 = COPY killed $rc9
+  %16:imag8 = COPY killed $rc10
+  %17:imag8 = COPY killed $rc11
+  %33:cc = LDImm1 0
+  %62:ac, %63:cc, dead %75:vc = ADCImag8 killed %8:ac(tied-def 0), killed %6:imag8, %33:cc
+  %64:ac, dead %65:cc, dead %74:vc = ADCImag8 killed %9:ac(tied-def 0), killed %7:imag8, killed %63:cc
+  %54:ac, %55:cc, dead %73:vc = ADCImag8 killed %62:ac(tied-def 0), killed %10:imag8, %33:cc
+  %56:ac, dead %57:cc, dead %72:vc = ADCImag8 killed %64:ac(tied-def 0), killed %11:imag8, killed %55:cc
+  %46:ac, %47:cc, dead %71:vc = ADCImag8 killed %54:ac(tied-def 0), killed %12:imag8, %33:cc
+  %48:ac, dead %49:cc, dead %70:vc = ADCImag8 killed %56:ac(tied-def 0), killed %13:imag8, killed %47:cc
+  %38:ac, %39:cc, dead %69:vc = ADCImag8 killed %46:ac(tied-def 0), killed %14:imag8, %33:cc
+  %40:ac, dead %41:cc, dead %68:vc = ADCImag8 killed %48:ac(tied-def 0), killed %15:imag8, killed %39:cc
+  %29:ac, %30:cc, dead %67:vc = ADCImag8 killed %38:ac(tied-def 0), killed %16:imag8, killed %33:cc
+  %31:ac, dead %32:cc, dead %66:vc = ADCImag8 killed %40:ac(tied-def 0), killed %17:imag8, killed %30:cc
+  $a = COPY killed %29:ac
+  $x = COPY killed %31:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function many_args.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on many_args omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on many_args omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on many_args ***
+# Machine code for function many_args: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %6:imag8 = COPY killed $a
+  %7:imag8 = COPY killed $x
+  %8:ac = COPY killed $rc2
+  %9:ac = COPY killed $rc3
+  %10:imag8 = COPY killed $rc4
+  %11:imag8 = COPY killed $rc5
+  %12:imag8 = COPY killed $rc6
+  %13:imag8 = COPY killed $rc7
+  %14:imag8 = COPY killed $rc8
+  %15:imag8 = COPY killed $rc9
+  %16:imag8 = COPY killed $rc10
+  %17:imag8 = COPY killed $rc11
+  %33:cc = LDImm1 0
+  %62:ac, %63:cc, dead %75:vc = ADCImag8 killed %8:ac(tied-def 0), killed %6:imag8, %33:cc
+  %64:ac, dead %65:cc, dead %74:vc = ADCImag8 killed %9:ac(tied-def 0), killed %7:imag8, killed %63:cc
+  %54:ac, %55:cc, dead %73:vc = ADCImag8 killed %62:ac(tied-def 0), killed %10:imag8, %33:cc
+  %56:ac, dead %57:cc, dead %72:vc = ADCImag8 killed %64:ac(tied-def 0), killed %11:imag8, killed %55:cc
+  %46:ac, %47:cc, dead %71:vc = ADCImag8 killed %54:ac(tied-def 0), killed %12:imag8, %33:cc
+  %48:ac, dead %49:cc, dead %70:vc = ADCImag8 killed %56:ac(tied-def 0), killed %13:imag8, killed %47:cc
+  %38:ac, %39:cc, dead %69:vc = ADCImag8 killed %46:ac(tied-def 0), killed %14:imag8, %33:cc
+  %40:ac, dead %41:cc, dead %68:vc = ADCImag8 killed %48:ac(tied-def 0), killed %15:imag8, killed %39:cc
+  %29:ac, %30:cc, dead %67:vc = ADCImag8 killed %38:ac(tied-def 0), killed %16:imag8, killed %33:cc
+  %31:ac, dead %32:cc, dead %66:vc = ADCImag8 killed %40:ac(tied-def 0), killed %17:imag8, killed %30:cc
+  $a = COPY killed %29:ac
+  $x = COPY killed %31:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on many_args ***
+# Machine code for function many_args: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %6:ac = COPY killed $a
+  %7:ac = COPY killed $x
+  %8:imag8 = COPY killed $rc2
+  %9:imag8 = COPY killed $rc3
+  %10:imag8 = COPY killed $rc4
+  %11:imag8 = COPY killed $rc5
+  %12:imag8 = COPY killed $rc6
+  %13:imag8 = COPY killed $rc7
+  %14:imag8 = COPY killed $rc8
+  %15:imag8 = COPY killed $rc9
+  %16:imag8 = COPY killed $rc10
+  %17:imag8 = COPY killed $rc11
+  %33:cc = LDImm1 0
+  %62:ac = COPY killed %6:ac
+  %62:ac, %63:cc, dead %75:vc = ADCImag8 %62:ac(tied-def 0), killed %8:imag8, %33:cc
+  %64:ac = COPY killed %7:ac
+  %64:ac, dead %65:cc, dead %74:vc = ADCImag8 %64:ac(tied-def 0), killed %9:imag8, killed %63:cc
+  %54:ac = COPY killed %62:ac
+  %54:ac, %55:cc, dead %73:vc = ADCImag8 %54:ac(tied-def 0), killed %10:imag8, %33:cc
+  %56:ac = COPY killed %64:ac
+  %56:ac, dead %57:cc, dead %72:vc = ADCImag8 %56:ac(tied-def 0), killed %11:imag8, killed %55:cc
+  %46:ac = COPY killed %54:ac
+  %46:ac, %47:cc, dead %71:vc = ADCImag8 %46:ac(tied-def 0), killed %12:imag8, %33:cc
+  %48:ac = COPY killed %56:ac
+  %48:ac, dead %49:cc, dead %70:vc = ADCImag8 %48:ac(tied-def 0), killed %13:imag8, killed %47:cc
+  %38:ac = COPY killed %46:ac
+  %38:ac, %39:cc, dead %69:vc = ADCImag8 %38:ac(tied-def 0), killed %14:imag8, %33:cc
+  %40:ac = COPY killed %48:ac
+  %40:ac, dead %41:cc, dead %68:vc = ADCImag8 %40:ac(tied-def 0), killed %15:imag8, killed %39:cc
+  %29:ac = COPY killed %38:ac
+  %29:ac, %30:cc, dead %67:vc = ADCImag8 %29:ac(tied-def 0), killed %16:imag8, killed %33:cc
+  %31:ac = COPY killed %40:ac
+  %31:ac, dead %32:cc, dead %66:vc = ADCImag8 %31:ac(tied-def 0), killed %17:imag8, killed %30:cc
+  $a = COPY killed %29:ac
+  $x = COPY killed %31:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Slot index numbering (slotindexes) on many_args omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on many_args ***
+# Machine code for function many_args: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %6:ac = COPY $a
+  %7:ac = COPY $x
+  %8:imag8 = COPY $rc2
+  %9:imag8 = COPY $rc3
+  %10:imag8 = COPY $rc4
+  %11:imag8 = COPY $rc5
+  %12:imag8 = COPY $rc6
+  %13:imag8 = COPY $rc7
+  %14:imag8 = COPY $rc8
+  %15:imag8 = COPY $rc9
+  %16:imag8 = COPY $rc10
+  %17:imag8 = COPY $rc11
+  %33:cc = LDImm1 0
+  %62:ac = COPY %6:ac
+  %62:ac, %63:cc, dead %75:vc = ADCImag8 %62:ac(tied-def 0), %8:imag8, %33:cc
+  %64:ac = COPY %7:ac
+  %64:ac, dead %65:cc, dead %74:vc = ADCImag8 %64:ac(tied-def 0), %9:imag8, %63:cc
+  %54:ac = COPY %62:ac
+  %54:ac, %55:cc, dead %73:vc = ADCImag8 %54:ac(tied-def 0), %10:imag8, %33:cc
+  %56:ac = COPY %64:ac
+  %56:ac, dead %57:cc, dead %72:vc = ADCImag8 %56:ac(tied-def 0), %11:imag8, %55:cc
+  %46:ac = COPY %54:ac
+  %46:ac, %47:cc, dead %71:vc = ADCImag8 %46:ac(tied-def 0), %12:imag8, %33:cc
+  %48:ac = COPY %56:ac
+  %48:ac, dead %49:cc, dead %70:vc = ADCImag8 %48:ac(tied-def 0), %13:imag8, %47:cc
+  %38:ac = COPY %46:ac
+  %38:ac, %39:cc, dead %69:vc = ADCImag8 %38:ac(tied-def 0), %14:imag8, %33:cc
+  %40:ac = COPY %48:ac
+  %40:ac, dead %41:cc, dead %68:vc = ADCImag8 %40:ac(tied-def 0), %15:imag8, %39:cc
+  %29:ac = COPY %38:ac
+  %29:ac, %30:cc, dead %67:vc = ADCImag8 %29:ac(tied-def 0), %16:imag8, %33:cc
+  %31:ac = COPY %40:ac
+  %31:ac, dead %32:cc, dead %66:vc = ADCImag8 %31:ac(tied-def 0), %17:imag8, %30:cc
+  $a = COPY %29:ac
+  $x = COPY %31:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Register Coalescer (register-coalescer) on many_args ***
+# Machine code for function many_args: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %54:ac = COPY $a
+  %56:ac = COPY $x
+  %8:imag8 = COPY $rc2
+  %9:imag8 = COPY $rc3
+  %10:imag8 = COPY $rc4
+  %11:imag8 = COPY $rc5
+  %12:imag8 = COPY $rc6
+  %13:imag8 = COPY $rc7
+  %14:imag8 = COPY $rc8
+  %15:imag8 = COPY $rc9
+  %16:imag8 = COPY $rc10
+  %17:imag8 = COPY $rc11
+  %33:cc = LDImm1 0
+  %54:ac, %63:cc, dead %75:vc = ADCImag8 %54:ac(tied-def 0), %8:imag8, %33:cc
+  %56:ac, dead %65:cc, dead %74:vc = ADCImag8 %56:ac(tied-def 0), %9:imag8, %63:cc
+  %54:ac, %55:cc, dead %73:vc = ADCImag8 %54:ac(tied-def 0), %10:imag8, %33:cc
+  %56:ac, dead %57:cc, dead %72:vc = ADCImag8 %56:ac(tied-def 0), %11:imag8, %55:cc
+  %54:ac, %47:cc, dead %71:vc = ADCImag8 %54:ac(tied-def 0), %12:imag8, %33:cc
+  %56:ac, dead %49:cc, dead %70:vc = ADCImag8 %56:ac(tied-def 0), %13:imag8, %47:cc
+  %54:ac, %39:cc, dead %69:vc = ADCImag8 %54:ac(tied-def 0), %14:imag8, %33:cc
+  %56:ac, dead %41:cc, dead %68:vc = ADCImag8 %56:ac(tied-def 0), %15:imag8, %39:cc
+  %54:ac, %30:cc, dead %67:vc = ADCImag8 %54:ac(tied-def 0), %16:imag8, %33:cc
+  %56:ac, dead %32:cc, dead %66:vc = ADCImag8 %56:ac(tied-def 0), %17:imag8, %30:cc
+  $a = COPY %54:ac
+  $x = COPY %56:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Register Coalescer (register-coalescer) on many_args omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on many_args omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on many_args omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on many_args ***
+# Machine code for function many_args: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %54:ac = COPY $a
+  %56:ac = COPY $x
+  %8:imag8 = COPY $rc2
+  %9:imag8 = COPY $rc3
+  %10:imag8 = COPY $rc4
+  %11:imag8 = COPY $rc5
+  %12:imag8 = COPY $rc6
+  %13:imag8 = COPY $rc7
+  %14:imag8 = COPY $rc8
+  %15:imag8 = COPY $rc9
+  %16:imag8 = COPY $rc10
+  %17:imag8 = COPY $rc11
+  %33:cc = LDImm1 0
+  %54:ac, %63:cc, dead %75:vc = ADCImag8 %54:ac(tied-def 0), %8:imag8, %33:cc
+  %56:ac, dead %65:cc, dead %74:vc = ADCImag8 %56:ac(tied-def 0), %9:imag8, %63:cc
+  %54:ac, %55:cc, dead %73:vc = ADCImag8 %54:ac(tied-def 0), %10:imag8, %33:cc
+  %56:ac, dead %57:cc, dead %72:vc = ADCImag8 %56:ac(tied-def 0), %11:imag8, %55:cc
+  %54:ac, %47:cc, dead %71:vc = ADCImag8 %54:ac(tied-def 0), %12:imag8, %33:cc
+  %56:ac, dead %49:cc, dead %70:vc = ADCImag8 %56:ac(tied-def 0), %13:imag8, %47:cc
+  %54:ac, %39:cc, dead %69:vc = ADCImag8 %54:ac(tied-def 0), %14:imag8, %33:cc
+  %56:ac, dead %41:cc, dead %68:vc = ADCImag8 %56:ac(tied-def 0), %15:imag8, %39:cc
+  %54:ac, %30:cc, dead %67:vc = ADCImag8 %54:ac(tied-def 0), %16:imag8, %33:cc
+  %56:ac, dead %32:cc, dead %66:vc = ADCImag8 %56:ac(tied-def 0), %17:imag8, %30:cc
+  $x = COPY %56:ac
+  $a = COPY %54:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on many_args ***
+# Machine code for function many_args: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %54:ac = COPY $a
+  %56:ac = COPY $x
+  %8:imag8 = COPY $rc2
+  %9:imag8 = COPY $rc3
+  %10:imag8 = COPY $rc4
+  %11:imag8 = COPY $rc5
+  %12:imag8 = COPY $rc6
+  %13:imag8 = COPY $rc7
+  %14:imag8 = COPY $rc8
+  %15:imag8 = COPY $rc9
+  %16:imag8 = COPY $rc10
+  %17:imag8 = COPY $rc11
+  %33:cc = LDImm1 0
+  %54:ac, %63:cc, dead %75:vc = ADCImag8 %54:ac(tied-def 0), %8:imag8, %33:cc
+  %56:ac, dead %65:cc, dead %74:vc = ADCImag8 %56:ac(tied-def 0), %9:imag8, %63:cc
+  %54:ac, %55:cc, dead %73:vc = ADCImag8 %54:ac(tied-def 0), %10:imag8, %33:cc
+  %56:ac, dead %57:cc, dead %72:vc = ADCImag8 %56:ac(tied-def 0), %11:imag8, %55:cc
+  %54:ac, %47:cc, dead %71:vc = ADCImag8 %54:ac(tied-def 0), %12:imag8, %33:cc
+  %56:ac, dead %49:cc, dead %70:vc = ADCImag8 %56:ac(tied-def 0), %13:imag8, %47:cc
+  %54:ac, %39:cc, dead %69:vc = ADCImag8 %54:ac(tied-def 0), %14:imag8, %33:cc
+  %56:ac, dead %41:cc, dead %68:vc = ADCImag8 %56:ac(tied-def 0), %15:imag8, %39:cc
+  %54:ac, %30:cc, dead %67:vc = ADCImag8 %54:ac(tied-def 0), %16:imag8, %33:cc
+  %56:ac, dead %32:cc, dead %66:vc = ADCImag8 %56:ac(tied-def 0), %17:imag8, %30:cc
+  $x = COPY %56:ac
+  $a = COPY %54:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on many_args omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on many_args omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on many_args omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on many_args omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on many_args omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on many_args omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on many_args omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on many_args ***
+# Machine code for function many_args: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  %76:anyi8 = COPY $a
+  %89:anyi8 = COPY $x
+  %8:imag8 = COPY $rc2
+  %9:imag8 = COPY $rc3
+  %10:imag8 = COPY $rc4
+  %11:imag8 = COPY $rc5
+  %12:imag8 = COPY $rc6
+  %13:imag8 = COPY $rc7
+  %14:imag8 = COPY $rc8
+  %15:imag8 = COPY $rc9
+  %16:imag8 = COPY $rc10
+  %17:imag8 = COPY $rc11
+  %77:ac = COPY %76:anyi8
+  %100:cc = LDImm1 0
+  %77:ac, %63:cc, dead %75:vc = ADCImag8 %77:ac(tied-def 0), %8:imag8, %100:cc
+  %82:anyi8 = COPY %77:ac
+  %90:ac = COPY %89:anyi8
+  %90:ac, dead %65:cc, dead %74:vc = ADCImag8 %90:ac(tied-def 0), %9:imag8, %63:cc
+  %94:anyi8 = COPY %90:ac
+  %78:ac = COPY %82:anyi8
+  %101:cc = LDImm1 0
+  %78:ac, %55:cc, dead %73:vc = ADCImag8 %78:ac(tied-def 0), %10:imag8, %101:cc
+  %83:anyi8 = COPY %78:ac
+  %91:ac = COPY %94:anyi8
+  %91:ac, dead %57:cc, dead %72:vc = ADCImag8 %91:ac(tied-def 0), %11:imag8, %55:cc
+  %95:anyi8 = COPY %91:ac
+  %79:ac = COPY %83:anyi8
+  %102:cc = LDImm1 0
+  %79:ac, %47:cc, dead %71:vc = ADCImag8 %79:ac(tied-def 0), %12:imag8, %102:cc
+  %84:anyi8 = COPY %79:ac
+  %92:ac = COPY %95:anyi8
+  %92:ac, dead %49:cc, dead %70:vc = ADCImag8 %92:ac(tied-def 0), %13:imag8, %47:cc
+  %96:anyi8 = COPY %92:ac
+  %80:ac = COPY %84:anyi8
+  %103:cc = LDImm1 0
+  %80:ac, %39:cc, dead %69:vc = ADCImag8 %80:ac(tied-def 0), %14:imag8, %103:cc
+  %85:anyi8 = COPY %80:ac
+  %93:ac = COPY %96:anyi8
+  %93:ac, dead %41:cc, dead %68:vc = ADCImag8 %93:ac(tied-def 0), %15:imag8, %39:cc
+  %97:anyi8 = COPY %93:ac
+  %81:ac = COPY %85:anyi8
+  %104:cc = LDImm1 0
+  %81:ac, %30:cc, dead %67:vc = ADCImag8 %81:ac(tied-def 0), %16:imag8, %104:cc
+  %86:anyi8 = COPY %81:ac
+  %88:ac = COPY %97:anyi8
+  %88:ac, dead %32:cc, dead %66:vc = ADCImag8 %88:ac(tied-def 0), %17:imag8, %30:cc
+  $x = COPY %88:ac
+  $a = COPY %86:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on many_args ***
+# Machine code for function many_args: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc4, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc5, killed renamable $c
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc6, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc7, killed renamable $c
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc9, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc10, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc11, killed renamable $c
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on many_args omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on many_args omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on many_args omitted because no change ***
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on many_args omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on many_args omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on many_args omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on many_args omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on many_args omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on many_args omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on many_args omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on many_args omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on many_args omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on many_args omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on many_args omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on many_args omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on many_args omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on many_args omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on many_args omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on many_args omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on many_args omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on many_args omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on many_args omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on many_args omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on many_args omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on many_args ***
+# Machine code for function many_args: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc4, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc5, killed renamable $c
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc6, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc7, killed renamable $c
+  renamable $rc3 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  renamable $rc2 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc9, killed renamable $c
+  renamable $x = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc2
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc10, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc11, killed renamable $c
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on many_args ***
+# Machine code for function many_args: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.6):
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7, $rc8, $rc9, $rc10, $rc11
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $rc2 = STImag8 $a
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc3 = STImag8 $a
+  $a = LDImag8 $rc2
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc4, killed renamable $c
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc5, killed renamable $c
+  $rc3 = STImag8 $a
+  $a = LDImag8 $rc2
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc6, killed renamable $c
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc7, killed renamable $c
+  $rc3 = STImag8 $a
+  $a = LDImag8 $rc2
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc8, killed renamable $c
+  $rc2 = STImag8 $a
+  $a = LDImag8 $rc3
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc9, killed renamable $c
+  $x = TA $a
+  $a = LDImag8 $rc2
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc10, killed renamable $c
+  $y = TA $a
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc11, killed renamable $c
+  $x = TA $a
+  $a = T_A $y
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function many_args.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on many_args omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on many_args omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on many_args omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on many_args omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on many_args omitted because no change ***
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on many_args omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on many_args omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on many_args omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on many_args omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on many_args omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on many_args omitted because no change ***
+*** IR Dump After Insert fentry calls (fentry-insert) on many_args omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on many_args omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on many_args omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on many_args omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on many_args omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on many_args omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on many_args omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on many_args omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on many_args omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on many_args omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on many_args omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on many_args omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on many_args omitted because no change ***

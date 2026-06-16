@@ -1,0 +1,666 @@
+*** IR Dump At Start ***
+; ModuleID = './coalescing/commutative.c'
+source_filename = "./coalescing/commutative.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @commutative(i16 noundef %0, i16 noundef %1) #0 {
+  %3 = alloca i16, align 1
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  store i16 %0, ptr %3, align 1, !tbaa !2
+  store i16 %1, ptr %4, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %5) #2
+  %6 = load i16, ptr %3, align 1, !tbaa !2
+  %7 = load i16, ptr %4, align 1, !tbaa !2
+  %8 = add nsw i16 %6, %7
+  store i16 %8, ptr %5, align 1, !tbaa !2
+  %9 = load i16, ptr %5, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %5) #2
+  ret i16 %9
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] ***
+; ModuleID = './coalescing/commutative.c'
+source_filename = "./coalescing/commutative.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @commutative(i16 noundef %0, i16 noundef %1) #0 {
+  %3 = alloca i16, align 1
+  %4 = alloca i16, align 1
+  %5 = alloca i16, align 1
+  store i16 %0, ptr %3, align 1, !tbaa !2
+  store i16 %1, ptr %4, align 1, !tbaa !2
+  call void @llvm.lifetime.start.p0(ptr %5) #2
+  %6 = load i16, ptr %3, align 1, !tbaa !2
+  %7 = load i16, ptr %4, align 1, !tbaa !2
+  %8 = add nsw i16 %6, %7
+  store i16 %8, ptr %5, align 1, !tbaa !2
+  %9 = load i16, ptr %5, align 1, !tbaa !2
+  call void @llvm.lifetime.end.p0(ptr %5) #2
+  ret i16 %9
+}
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(ptr captures(none)) #1
+
+; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(ptr captures(none)) #1
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { mustprogress nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nounwind }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on commutative omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on commutative omitted because no change ***
+*** IR Dump After SimplifyCFGPass on commutative omitted because no change ***
+*** IR Dump After SROAPass on commutative ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @commutative(i16 noundef %0, i16 noundef %1) #0 {
+  %3 = add nsw i16 %0, %1
+  ret i16 %3
+}
+*** IR Dump After EarlyCSEPass on commutative omitted because no change ***
+*** IR Pass PassManager<Function> on commutative ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = './coalescing/commutative.c'
+source_filename = "./coalescing/commutative.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+; Function Attrs: nounwind optsize
+define dso_local i16 @commutative(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = add nsw i16 %0, %1
+  ret i16 %3
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on commutative omitted because no change ***
+*** IR Dump After InstCombinePass on commutative omitted because no change ***
+*** IR Dump After SimplifyCFGPass on commutative omitted because no change ***
+*** IR Pass PassManager<Function> on commutative ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on commutative omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (commutative) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (commutative) omitted because no change ***
+*** IR Dump After SROAPass on commutative omitted because no change ***
+*** IR Dump After EarlyCSEPass on commutative omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on commutative omitted because no change ***
+*** IR Dump After JumpThreadingPass on commutative omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on commutative omitted because no change ***
+*** IR Dump After SimplifyCFGPass on commutative omitted because no change ***
+*** IR Dump After InstCombinePass on commutative omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on commutative omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on commutative omitted because no change ***
+*** IR Dump After TailCallElimPass on commutative omitted because no change ***
+*** IR Dump After SimplifyCFGPass on commutative omitted because no change ***
+*** IR Dump After ReassociatePass on commutative ***
+; Function Attrs: nounwind optsize
+define dso_local i16 @commutative(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = add nsw i16 %1, %0
+  ret i16 %3
+}
+*** IR Dump After ConstraintEliminationPass on commutative omitted because no change ***
+*** IR Dump After LoopSimplifyPass on commutative omitted because no change ***
+*** IR Dump After LCSSAPass on commutative omitted because no change ***
+*** IR Pass PassManager<Function> on commutative ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on commutative ignored ***
+*** IR Dump After SimplifyCFGPass on commutative omitted because no change ***
+*** IR Dump After InstCombinePass on commutative omitted because no change ***
+*** IR Dump After LoopSimplifyPass on commutative omitted because no change ***
+*** IR Dump After LCSSAPass on commutative omitted because no change ***
+*** IR Pass PassManager<Function> on commutative ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on commutative ignored ***
+*** IR Dump After SROAPass on commutative omitted because no change ***
+*** IR Dump After VectorCombinePass on commutative omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on commutative omitted because no change ***
+*** IR Dump After GVNPass on commutative omitted because no change ***
+*** IR Dump After SCCPPass on commutative omitted because no change ***
+*** IR Dump After BDCEPass on commutative omitted because no change ***
+*** IR Dump After InstCombinePass on commutative omitted because no change ***
+*** IR Dump After JumpThreadingPass on commutative omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on commutative omitted because no change ***
+*** IR Dump After ADCEPass on commutative omitted because no change ***
+*** IR Dump After MemCpyOptPass on commutative omitted because no change ***
+*** IR Dump After DSEPass on commutative omitted because no change ***
+*** IR Dump After MoveAutoInitPass on commutative omitted because no change ***
+*** IR Dump After LoopSimplifyPass on commutative omitted because no change ***
+*** IR Dump After LCSSAPass on commutative omitted because no change ***
+*** IR Pass PassManager<Function> on commutative ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on commutative ignored ***
+*** IR Dump After CoroElidePass on commutative omitted because no change ***
+*** IR Dump After SimplifyCFGPass on commutative omitted because no change ***
+*** IR Dump After InstCombinePass on commutative omitted because no change ***
+*** IR Pass PassManager<Function> on commutative ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (commutative) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (commutative) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(none)
+define dso_local i16 @commutative(i16 noundef %0, i16 noundef %1) local_unnamed_addr #0 {
+  %3 = add nsw i16 %1, %0
+  ret i16 %3
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on commutative omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (commutative) ignored ***
+*** IR Dump After CoroSplitPass on (commutative) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (commutative) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (commutative) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (commutative) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on commutative omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on commutative omitted because no change ***
+*** IR Dump After Float2IntPass on commutative omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on commutative omitted because no change ***
+*** IR Dump After LoopSimplifyPass on commutative omitted because no change ***
+*** IR Dump After LCSSAPass on commutative omitted because no change ***
+*** IR Pass PassManager<Function> on commutative ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on commutative ignored ***
+*** IR Dump After LoopDistributePass on commutative omitted because no change ***
+*** IR Dump After InjectTLIMappings on commutative omitted because no change ***
+*** IR Dump After LoopVectorizePass on commutative omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on commutative omitted because no change ***
+*** IR Dump After InferAlignmentPass on commutative omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on commutative omitted because no change ***
+*** IR Dump After InstCombinePass on commutative omitted because no change ***
+*** IR Dump After SimplifyCFGPass on commutative omitted because no change ***
+*** IR Dump After SLPVectorizerPass on commutative omitted because no change ***
+*** IR Dump After VectorCombinePass on commutative omitted because no change ***
+*** IR Dump After InstCombinePass on commutative omitted because no change ***
+*** IR Dump After LoopUnrollPass on commutative omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on commutative omitted because no change ***
+*** IR Dump After SROAPass on commutative omitted because no change ***
+*** IR Dump After InferAlignmentPass on commutative omitted because no change ***
+*** IR Dump After InstCombinePass on commutative omitted because no change ***
+*** IR Dump After LoopSimplifyPass on commutative omitted because no change ***
+*** IR Dump After LCSSAPass on commutative omitted because no change ***
+*** IR Pass PassManager<Function> on commutative ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on commutative ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on commutative omitted because no change ***
+*** IR Dump After LoopSinkPass on commutative omitted because no change ***
+*** IR Dump After InstSimplifyPass on commutative omitted because no change ***
+*** IR Dump After DivRemPairsPass on commutative omitted because no change ***
+*** IR Dump After MergeICmpsPass on commutative omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on commutative omitted because no change ***
+*** IR Dump After TailCallElimPass on commutative omitted because no change ***
+*** IR Dump After SimplifyCFGPass on commutative omitted because no change ***
+*** IR Pass PassManager<Function> on commutative ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on commutative omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on commutative omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on commutative ***
+# Machine code for function commutative: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %2:_(s8), %3:_(s8)
+  %4:_(s8) = COPY $rc2
+  %5:_(s8) = COPY $rc3
+  %1:_(s16) = G_MERGE_VALUES %4:_(s8), %5:_(s8)
+  %6:_(s16) = nsw G_ADD %1:_, %0:_
+  %7:_(s8), %8:_(s8) = G_UNMERGE_VALUES %6:_(s16)
+  $a = COPY %7:_(s8)
+  $x = COPY %8:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on commutative omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on commutative omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on commutative omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on commutative omitted because no change ***
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on commutative omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on commutative omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on commutative omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on commutative ***
+# Machine code for function commutative: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:_(s8) = COPY $a
+  %3:_(s8) = COPY $x
+  %4:_(s8) = COPY $rc2
+  %5:_(s8) = COPY $rc3
+  %17:_(s1) = G_CONSTANT i1 false
+  %13:_(s8), %14:_(s1) = G_UADDE %4:_, %2:_, %17:_
+  %15:_(s8), %16:_(s1) = G_UADDE %5:_, %3:_, %14:_
+  $a = COPY %13:_(s8)
+  $x = COPY %15:_(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on commutative omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on commutative omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on commutative omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on commutative omitted because no change ***
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on commutative omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on commutative ***
+# Machine code for function commutative: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:any(s8) = COPY $a
+  %3:any(s8) = COPY $x
+  %4:any(s8) = COPY $rc2
+  %5:any(s8) = COPY $rc3
+  %17:any(s1) = G_CONSTANT i1 false
+  %13:any(s8), %14:any(s1) = G_UADDE %4:any, %2:any, %17:any
+  %15:any(s8), %16:any(s1) = G_UADDE %5:any, %3:any, %14:any
+  $a = COPY %13:any(s8)
+  $x = COPY %15:any(s8)
+  RTS implicit $a, implicit $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Localizer (localizer) on commutative omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on commutative omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on commutative ***
+# Machine code for function commutative: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:imag8 = COPY $a
+  %3:imag8 = COPY $x
+  %4:ac = COPY $rc2
+  %5:ac = COPY $rc3
+  %17:cc = LDImm1 0
+  %13:ac, %14:cc, %19:vc = ADCImag8 %4:ac(tied-def 0), %2:imag8, %17:cc
+  %15:ac, %16:cc, %18:vc = ADCImag8 %5:ac(tied-def 0), %3:imag8, %14:cc
+  $a = COPY %13:ac
+  $x = COPY %15:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function commutative.
+
+*** IR Dump After ResetMachineFunction on commutative omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on commutative omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on commutative omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on commutative omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on commutative omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on commutative omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on commutative omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on commutative omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on commutative omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on commutative omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on commutative omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on commutative omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on commutative omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on commutative omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on commutative omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on commutative omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on commutative omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on commutative omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on commutative omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on commutative omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on commutative omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on commutative omitted because no change ***
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on commutative ***
+# Machine code for function commutative: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:imag8 = COPY $a
+  %3:imag8 = COPY $x
+  %4:ac = COPY $rc2
+  %5:ac = COPY $rc3
+  %17:cc = LDImm1 0
+  %13:ac, %14:cc, dead %19:vc = ADCImag8 %4:ac(tied-def 0), %2:imag8, %17:cc
+  %15:ac, dead %16:cc, dead %18:vc = ADCImag8 %5:ac(tied-def 0), %3:imag8, %14:cc
+  $a = COPY %13:ac
+  $x = COPY %15:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Init Undef Pass (init-undef) on commutative omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on commutative omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on commutative ***
+# Machine code for function commutative: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:imag8 = COPY $a
+  %3:imag8 = COPY $x
+  %4:ac = COPY $rc2
+  %5:ac = COPY $rc3
+  %17:cc = LDImm1 0
+  %13:ac, %14:cc, dead %19:vc = ADCImag8 %4:ac(tied-def 0), %2:imag8, %17:cc
+  %15:ac, dead %16:cc, dead %18:vc = ADCImag8 %5:ac(tied-def 0), %3:imag8, %14:cc
+  $a = COPY %13:ac
+  $x = COPY %15:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Live Variable Analysis (livevars) on commutative ***
+# Machine code for function commutative: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:imag8 = COPY killed $a
+  %3:imag8 = COPY killed $x
+  %4:ac = COPY killed $rc2
+  %5:ac = COPY killed $rc3
+  %17:cc = LDImm1 0
+  %13:ac, %14:cc, dead %19:vc = ADCImag8 killed %4:ac(tied-def 0), killed %2:imag8, killed %17:cc
+  %15:ac, dead %16:cc, dead %18:vc = ADCImag8 killed %5:ac(tied-def 0), killed %3:imag8, killed %14:cc
+  $a = COPY killed %13:ac
+  $x = COPY killed %15:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function commutative.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on commutative omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on commutative omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on commutative ***
+# Machine code for function commutative: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:imag8 = COPY killed $a
+  %3:imag8 = COPY killed $x
+  %4:ac = COPY killed $rc2
+  %5:ac = COPY killed $rc3
+  %17:cc = LDImm1 0
+  %13:ac, %14:cc, dead %19:vc = ADCImag8 killed %4:ac(tied-def 0), killed %2:imag8, killed %17:cc
+  %15:ac, dead %16:cc, dead %18:vc = ADCImag8 killed %5:ac(tied-def 0), killed %3:imag8, killed %14:cc
+  $a = COPY killed %13:ac
+  $x = COPY killed %15:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on commutative ***
+# Machine code for function commutative: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:ac = COPY killed $a
+  %3:ac = COPY killed $x
+  %4:imag8 = COPY killed $rc2
+  %5:imag8 = COPY killed $rc3
+  %17:cc = LDImm1 0
+  %13:ac = COPY killed %2:ac
+  %13:ac, %14:cc, dead %19:vc = ADCImag8 %13:ac(tied-def 0), killed %4:imag8, killed %17:cc
+  %15:ac = COPY killed %3:ac
+  %15:ac, dead %16:cc, dead %18:vc = ADCImag8 %15:ac(tied-def 0), killed %5:imag8, killed %14:cc
+  $a = COPY killed %13:ac
+  $x = COPY killed %15:ac
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Slot index numbering (slotindexes) on commutative omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on commutative ***
+# Machine code for function commutative: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %2:ac = COPY $a
+  %3:ac = COPY $x
+  %4:imag8 = COPY $rc2
+  %5:imag8 = COPY $rc3
+  %17:cc = LDImm1 0
+  %13:ac = COPY %2:ac
+  %13:ac, %14:cc, dead %19:vc = ADCImag8 %13:ac(tied-def 0), %4:imag8, %17:cc
+  %15:ac = COPY %3:ac
+  %15:ac, dead %16:cc, dead %18:vc = ADCImag8 %15:ac(tied-def 0), %5:imag8, %14:cc
+  $a = COPY %13:ac
+  $x = COPY %15:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Register Coalescer (register-coalescer) on commutative ***
+# Machine code for function commutative: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %13:ac = COPY $a
+  %15:ac = COPY $x
+  %4:imag8 = COPY $rc2
+  %5:imag8 = COPY $rc3
+  %17:cc = LDImm1 0
+  %13:ac, %14:cc, dead %19:vc = ADCImag8 %13:ac(tied-def 0), %4:imag8, %17:cc
+  %15:ac, dead %16:cc, dead %18:vc = ADCImag8 %15:ac(tied-def 0), %5:imag8, %14:cc
+  $a = COPY %13:ac
+  $x = COPY %15:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Register Coalescer (register-coalescer) on commutative omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on commutative omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on commutative omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on commutative ***
+# Machine code for function commutative: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %13:ac = COPY $a
+  %15:ac = COPY $x
+  %4:imag8 = COPY $rc2
+  %5:imag8 = COPY $rc3
+  %17:cc = LDImm1 0
+  %13:ac, %14:cc, dead %19:vc = ADCImag8 %13:ac(tied-def 0), %4:imag8, %17:cc
+  %15:ac, dead %16:cc, dead %18:vc = ADCImag8 %15:ac(tied-def 0), %5:imag8, %14:cc
+  $x = COPY %15:ac
+  $a = COPY %13:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Debug Variable Analysis (livedebugvars) on commutative ***
+# Machine code for function commutative: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %13:ac = COPY $a
+  %15:ac = COPY $x
+  %4:imag8 = COPY $rc2
+  %5:imag8 = COPY $rc3
+  %17:cc = LDImm1 0
+  %13:ac, %14:cc, dead %19:vc = ADCImag8 %13:ac(tied-def 0), %4:imag8, %17:cc
+  %15:ac, dead %16:cc, dead %18:vc = ADCImag8 %15:ac(tied-def 0), %5:imag8, %14:cc
+  $x = COPY %15:ac
+  $a = COPY %13:ac
+  RTS implicit $a, implicit $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on commutative omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on commutative omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on commutative omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on commutative omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on commutative omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on commutative omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on commutative omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on commutative ***
+# Machine code for function commutative: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  %20:anyi8 = COPY $a
+  %23:anyi8 = COPY $x
+  %4:imag8 = COPY $rc2
+  %5:imag8 = COPY $rc3
+  %17:cc = LDImm1 0
+  %21:ac = COPY %20:anyi8
+  %21:ac, %14:cc, dead %19:vc = ADCImag8 %21:ac(tied-def 0), %4:imag8, %17:cc
+  %22:anyi8 = COPY %21:ac
+  %24:ac = COPY %23:anyi8
+  %24:ac, dead %16:cc, dead %18:vc = ADCImag8 %24:ac(tied-def 0), %5:imag8, %14:cc
+  $x = COPY %24:ac
+  $a = COPY %22:anyi8
+  RTS implicit $a, implicit $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on commutative ***
+# Machine code for function commutative: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit $a, implicit $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on commutative omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on commutative omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on commutative omitted because no change ***
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on commutative omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on commutative omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on commutative omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on commutative omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on commutative omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on commutative omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on commutative omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on commutative omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on commutative omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on commutative omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on commutative omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on commutative omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on commutative omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on commutative omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on commutative omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on commutative omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on commutative omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on commutative omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on commutative omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on commutative omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on commutative omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on commutative ***
+# Machine code for function commutative: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $y = COPY killed renamable $a
+  renamable $a = COPY killed renamable $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = COPY killed renamable $a
+  $a = COPY killed renamable $y
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on commutative ***
+# Machine code for function commutative: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.2):
+  liveins: $a, $x, $rc2, $rc3
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $y = TA $a
+  $a = T_A $x
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $x = TA $a
+  $a = T_A $y
+  RTS implicit killed $a, implicit killed $x
+
+# End machine code for function commutative.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on commutative omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on commutative omitted because no change ***
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on commutative omitted because no change ***
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on commutative omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on commutative omitted because no change ***
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on commutative omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on commutative omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on commutative omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on commutative omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on commutative omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on commutative omitted because no change ***
+*** IR Dump After Insert fentry calls (fentry-insert) on commutative omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on commutative omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on commutative omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on commutative omitted because no change ***
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on commutative omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on commutative omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on commutative omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on commutative omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on commutative omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on commutative omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on commutative omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on commutative omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on commutative omitted because no change ***

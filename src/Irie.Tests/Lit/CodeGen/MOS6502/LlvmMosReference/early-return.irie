@@ -1,0 +1,77 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/control-flow/early-return
+; A guard clause: one early exit plus a fall-through that consumes all three
+; args; staggered live-range ends.
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Compare against ext/llvm-mos-reference/control-flow/early-return.s; close gaps via irie-report.
+
+; CHECK:     early_return:
+; CHECK:     STA \$07
+; CHECK:     STX \$06
+; CHECK:     LDA \$02
+; CHECK:     STA \$0B
+; CHECK:     LDA \$03
+; CHECK:     STA \$0A
+; CHECK:     LDA \$04
+; CHECK:     STA \$09
+; CHECK:     LDA \$05
+; CHECK:     STA \$08
+; CHECK:     LDA \#\$00
+; CHECK:     STA \$05
+; CHECK:     LDA \#\$00
+; CHECK:     STA \$04
+; CHECK:     LDA \$07
+; CHECK:     STA \$03
+; CHECK:     LDA \$06
+; CHECK:     LDX \$05
+; CHECK:     STX \$0C
+; CHECK:     LDX \$04
+; CHECK:     EOR \#\$80
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     EOR \#\$80
+; CHECK:     STA \$02
+; CHECK:     TYA
+; CHECK:     CMP \$02
+; CHECK:     BCC \.bb1
+; CHECK:     BNE \.bb2
+; CHECK:     LDA \$03
+; CHECK:     CMP \$0C
+; CHECK:     BCC \.bb1
+; CHECK:     JMP \.bb2
+; CHECK:     \.bb1:
+; CHECK:     LDA \$05
+; CHECK:     LDX \$04
+; CHECK:     RTS
+; CHECK:     \.bb2:
+; CHECK:     CLC
+; CHECK:     LDA \$0B
+; CHECK:     ADC \$09
+; CHECK:     TAY
+; CHECK:     LDA \$0A
+; CHECK:     ADC \$08
+; CHECK:     TAX
+; CHECK:     CLC
+; CHECK:     TYA
+; CHECK:     ADC \$07
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC \$06
+; CHECK:     TAX
+; CHECK:     TYA
+; CHECK:     RTS
+
+func @early_return : (i16, i16, i16) -> i16 {
+bb0(%0 : i16, %1 : i16, %2 : i16):
+    %3 : i16 = arith.constant 0
+    %4 : i1 = arith.cmpi slt, %0, %3
+    cf.cond_br %4, bb1(), bb2()
+bb1():
+    core.return %3
+bb2():
+    %5 : i16 = arith.addi %1, %2
+    %6 : i16 = arith.addi %5, %0
+    core.return %6
+}

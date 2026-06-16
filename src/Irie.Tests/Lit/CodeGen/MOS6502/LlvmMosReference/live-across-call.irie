@@ -1,0 +1,46 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/pressure/live-across-call
+; The arg must survive the call to @g (which clobbers caller-saved registers)
+; so it can be added to the result; watch where Irie parks it across the JSR.
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden).
+; Compare against ext/llvm-mos-reference/pressure/live-across-call.s; close gaps via irie-report.
+
+; CHECK:     g:
+; CHECK:     RTS
+; CHECK:     live_across_call:
+; CHECK:     TAY
+; CHECK:     LDA \$14
+; CHECK:     PHA
+; CHECK:     LDA \$15
+; CHECK:     PHA
+; CHECK:     TYA
+; CHECK:     STA \$15
+; CHECK:     STX \$14
+; CHECK:     JSR g
+; CHECK:     CLC
+; CHECK:     ADC \$15
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     ADC \$14
+; CHECK:     TAX
+; CHECK:     TYA
+; CHECK:     TAY
+; CHECK:     PLA
+; CHECK:     STA \$15
+; CHECK:     PLA
+; CHECK:     STA \$14
+; CHECK:     TYA
+; CHECK:     RTS
+
+func @g : (i16) -> i16 {
+bb0(%0 : i16):
+    core.return %0
+}
+func @live_across_call : (i16) -> i16 {
+bb0(%0 : i16):
+    %1 : i16 = call.func @g, %0
+    %2 : i16 = arith.addi %1, %0
+    core.return %2
+}
