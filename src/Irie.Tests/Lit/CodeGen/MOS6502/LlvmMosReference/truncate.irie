@@ -1,17 +1,30 @@
 ; RUN: @iriec --target mos6502 --emit=asm @file
 
 ; Corpus: llvm-mos-reference/widths/truncate
-; Truncating i32 -> i16 drops the high two bytes; their live ranges end early
-; so the allocator frees those registers promptly.
+;   char truncate(int a, int b) { return (char)(a + b); }
+; Two i16 args, added, then truncated to i8. Truncation drops the high byte of
+; the sum, so its live range ends early and the allocator should be able to skip
+; computing it entirely.
 ;
 ; CHECK pins Irie's current --emit=asm output (characterization / golden).
 ; Compare against ext/llvm-mos-reference/widths/truncate.s; close gaps via irie-report.
+; Gap: llvm-mos emits just `clc; adc __rc2; rts` (high byte never computed),
+; whereas Irie still computes the dead high byte (TYA / ADC $03).
 
-; CHECK:     truncate_i32:
-; CHECK:     RTS
+; CHECK:     truncate:
+; CHECK:         STX \$04
+; CHECK:         LDY \$04
+; CHECK:         CLC
+; CHECK:         ADC \$02
+; CHECK:         TAX
+; CHECK:         TYA
+; CHECK:         ADC \$03
+; CHECK:         TXA
+; CHECK:         RTS
 
-func @truncate_i32 : (i32) -> i16 {
-bb0(%0 : i32):
-    %1 : i16 = cast.trunc %0
-    core.return %1
+func @truncate : (i16, i16) -> i8 {
+bb0(%0 : i16, %1 : i16):
+    %2 : i16 = arith.addi %0, %1
+    %3 : i8 = cast.trunc %2
+    core.return %3
 }
