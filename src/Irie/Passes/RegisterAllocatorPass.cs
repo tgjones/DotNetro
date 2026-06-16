@@ -54,11 +54,11 @@ namespace Irie.Passes;
 //     of coalescing — a copy whose two ends can share a register vanishes; a
 //     dead copy is a copy that coalesces with its source and disappears.
 //
-// Spilling is still NOT implemented (Phase 4). We use Briggs' OPTIMISTIC
-// colouring: a node that cannot be proven low-degree is pushed onto the select
-// stack anyway ("spill candidate") in the hope a colour is free when we pop it.
-// Only a genuine select failure — a popped node with no free colour — throws
-// NotImplementedException. Phase 4 turns that throw into a real spill.
+// Spilling IS implemented (Phase 4). We use Briggs' OPTIMISTIC colouring: a node
+// that cannot be proven low-degree is pushed onto the select stack anyway ("spill
+// candidate") in the hope a colour is free when we pop it. A genuine select
+// failure — a popped node with no free colour — becomes an actual spill, which
+// SpillVregs (below) rewrites to memory traffic before the colouring is re-run.
 public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : MirFunctionPass
 {
     public override string Name => "RegisterAllocator";
