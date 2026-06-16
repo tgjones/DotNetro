@@ -8,6 +8,13 @@ public sealed class PassManager(string? stopAfterPass = null, string? startAtPas
     private bool _stopped;
     private bool _started = startAtPass == null;
 
+    /// <summary>
+    /// Optional hook invoked after each pass runs, with the pass that just ran
+    /// and the compilation context. Used by iriec's --print-after-all /
+    /// --print-changed pass-tracing flags.
+    /// </summary>
+    public Action<Pass, CompilationContext>? AfterEachPass { get; set; }
+
     public void AddPass(Pass pass)
     {
         if (_stopped) return;
@@ -30,7 +37,10 @@ public sealed class PassManager(string? stopAfterPass = null, string? startAtPas
     public void Run(CompilationContext context)
     {
         foreach (var pass in _passes)
+        {
             pass.Run(context);
+            AfterEachPass?.Invoke(pass, context);
+        }
     }
 
     public TResult GetAnalysis<T, TResult>(MirFunction function) where T : MirFunctionAnalysis<TResult>, new()

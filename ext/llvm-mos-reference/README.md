@@ -126,13 +126,30 @@ scoreboard. To close a gap:
 
 1. Build `iriec`, run `irie-report`, open `report.html`; sort by worst ratio.
 2. For the worst case, read its `.s` (what llvm-mos emitted) and `.txt` (the
-   `-print-after-all` dump pinpoints which pass produced the better sequence).
+   `-print-changed` dump pinpoints which pass produced the better sequence).
    Per CLAUDE.md, also read the responsible llvm-mos source pass under
    `llvm/lib/Target/MOS/`.
-3. Improve the corresponding Irie pass; re-run that case's lit test under
+3. Get the symmetric view of *Irie's* pipeline on the same case by running the
+   matching `.irie` test through `iriec --print-changed` — the Irie analogue of
+   the llvm-mos `.txt`. Like clang's `-print-changed`, it lists every pass but
+   only dumps the MIR for passes that changed it; unchanged passes collapse to a
+   one-line `*** MIR Dump After <Pass> omitted because no change ***` marker, so
+   the full pass order stays visible. Dumps go to stderr, so you can read Irie's
+   per-pass behaviour side-by-side with llvm-mos's and see exactly where the two
+   pipelines diverge:
+
+   ```bash
+   # dumps go to stderr; --emit=asm keeps the final asm on stdout
+   iriec --target mos6502 --emit=asm --print-changed \
+       src/Irie.Tests/Lit/CodeGen/MOS6502/LlvmMosReference/<case>.irie 2>&1 >/dev/null
+   ```
+
+   (Use `--print-after-all` instead to dump the MIR in full after every pass,
+   including the ones that made no change.)
+4. Improve the corresponding Irie pass; re-run that case's lit test under
    `src/Irie.Tests/.../LlvmMosReference/`, regenerate its golden `CHECK` block,
    re-run the report, and watch the headline ratio move.
-4. The full lit suite + golden `CHECK` blocks catch regressions across all cases.
+5. The full lit suite + golden `CHECK` blocks catch regressions across all cases.
 
 ## Case index
 

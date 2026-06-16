@@ -21,6 +21,10 @@ var runPass = new Option<string>("--run-pass") { Description = "Run only the spe
 
 var emitOption = new Option<string>("--emit") { Description = "Output form: 'mir' (default) writes post-pipeline MIR text; 'asm' writes target assembly text; 'mc' writes structured MachineCode binary to stdout; 'bin' writes flat machine-code bytes (optionally packaged by the target) to stdout" };
 
+var printAfterAll = new Option<bool>("--print-after-all") { Description = "Print the MIR to stderr after every pass (for debugging)" };
+
+var printChanged = new Option<bool>("--print-changed") { Description = "Like --print-after-all, but print to stderr only after a pass that changed the MIR" };
+
 var originOption = new Option<string?>("--origin")
 {
     Description = "Origin (load address) for --emit=bin, as hex (0x1900) or decimal. " +
@@ -35,6 +39,8 @@ rootCommand.Options.Add(startAt);
 rootCommand.Options.Add(runPass);
 rootCommand.Options.Add(emitOption);
 rootCommand.Options.Add(originOption);
+rootCommand.Options.Add(printAfterAll);
+rootCommand.Options.Add(printChanged);
 
 rootCommand.SetAction(parseResult =>
 {
@@ -44,6 +50,8 @@ rootCommand.SetAction(parseResult =>
     var stopAfterPass = runPassName ?? parseResult.GetValue(stopAfter);
     var startAtPass   = runPassName ?? parseResult.GetValue(startAt);
     var emit          = parseResult.GetValue(emitOption) ?? "mir";
+    var printAll      = parseResult.GetValue(printAfterAll);
+    var printDiff     = parseResult.GetValue(printChanged);
 
     var inputReader = (input == null || input == "-")
         ? Console.In
@@ -81,6 +89,41 @@ rootCommand.SetAction(parseResult =>
     // dead at that point and drives the final lowering, leaving no vregs behind
     // (plan §3.6, llvm-mos order: RA → pseudo expansion → scavenging).
     passMgr.AddPass(new RegisterScavengingPass(target.RegisterInfo, target.PseudoExpander));
+
+    if (printAll || printDiff)
+    {
+        string Render()
+        {
+            var sw = new StringWriter();
+            module.Write(sw, target.GetRegisterName);
+            return sw.ToString();
+        }
+
+        var previous = printDiff ? Render() : null;
+
+        passMgr.AfterEachPass = (pass, _) =>
+        {
+            var current = Render();
+            var changed = current != previous;
+            previous = current;
+
+            // --print-changed (without --print-after-all) lists every pass but
+            // only dumps the MIR for passes that changed it; unchanged passes
+            // collapse to a one-line marker, mirroring clang's -print-changed so
+            // the full pass order stays visible. --print-after-all always dumps.
+            if (printDiff && !printAll && !changed)
+            {
+                Console.Error.WriteLine($"; *** MIR Dump After {pass.Name} omitted because no change ***");
+                return;
+            }
+
+            Console.Error.WriteLine($"; *** MIR Dump After {pass.Name} ***");
+            Console.Error.Write(current);
+            if (!current.EndsWith('\n'))
+                Console.Error.WriteLine();
+        };
+    }
+
     passMgr.Run(context);
 
     switch (emit)
