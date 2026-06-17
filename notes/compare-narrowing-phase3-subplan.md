@@ -38,14 +38,15 @@ instruction via the `m_CmpNZ*` matchers — i.e. the data-flow boolean is collap
 back into a branch tree at isel time, so the final code is a CMP/branch ladder,
 not a materialized boolean.
 
-**Two hard constraints make a faithful copy a non-goal for Irie:**
+**Two properties of Irie shape the design** (the first is the parent plan's
+`G_SBC` Non-goal — treated here as a re-evaluable tradeoff, not a hard rule; see
+Option A′):
 
-1. The parent plan's **Non-goals** forbid a `G_SBC`-style op that yields N/V/Z/C
-   as generic SSA values: "Irie jumps straight from `arith.cmpi i8` to
-   `mos6502.cmp` (physical flags); keep that. The legalizer narrows to
-   `arith.cmpi i8`, not to a generic flag op." So Irie cannot use the `N⊕V`-via-V
-   trick (no V as an SSA value) and must keep the existing **`EOR #$80` sign-bias**
-   for signed compares.
+1. Irie currently jumps straight from `arith.cmpi i8` to `mos6502.cmp` (physical
+   flags) rather than producing a generic `G_SBC` that yields N/V/Z/C as SSA
+   values. Keeping that means no `N⊕V`-via-V trick (no V as an SSA value) and the
+   existing **`EOR #$80` sign-bias** for signed compares. Option A′ weighs
+   *adding* the generic flag op on its merits.
 2. Irie **always** fuses compare + `cf.cond_br` (the `i1` never materializes;
    `arith.select` for `cond ? a : b` is not even produced by the frontend — it
    lowers to a control-flow diamond + block-arg phi, see
@@ -128,6 +129,45 @@ isel because Irie fuses compare+branch and never materializes the `i1`:
    against that consumer's actual shape rather than speculatively.
 
 **Cost/risk:** minimal; documents intent; no code churn; no regression risk.
+
+## Option A′ — generic subtract-with-flags op (the `G_SBC` analog), Non-goal relaxed
+
+The parent plan's "no `G_SBC`" is **not** a hard rule; this option weighs adding
+one on the merits. The appeal is **symmetry**: Irie already lowers wide *add* to
+an `arith.addi_with_carry` chain, and already has `arith.subi_with_borrow`
+(result + borrow-out). A compare is a subtract-discarding-result, so "wide
+compare = `subi_with_borrow` chain, branch on the final flags" would unify
+add/sub/compare narrowing under one chain primitive — the most uniform design on
+paper.
+
+Worked against Irie's specifics, it does not come out simpler:
+
+1. **Multi-flag reuse is inherently physical.** The efficient ladder reuses one
+   `CMP`'s physical flags for several branch decisions (`BCC` for `<` + `BNE` for
+   `≠` per byte decides all three orderings). A generic op that yields one
+   predicate/`i1` cannot express "one compare, two flag tests" without
+   recomputing, so any generic data-flow form (select- or flag-SSA-based) loses
+   the reuse and must be **re-fused** into the ladder at isel — which is most of
+   the work and just re-derives `SelectCmpIMultiByte`.
+2. **`subi_with_borrow` only yields the unsigned answer cleanly.** Final borrow =
+   C = the `uge` result. But `eq` needs Z accumulated across all bytes and `slt`
+   needs N⊕V of the final subtraction, so covering `{eq, uge, slt}` forces the op
+   to grow N/V/Z outputs — i.e. a full flag-SSA `G_SBC`, a new IR concept
+   (generic flag vregs needing a register class + physical-flag mapping), not a
+   small extension to the existing op.
+3. **`EOR #$80` is cheaper than N⊕V.** llvm uses N⊕V only because it commits to
+   SBC-everywhere; it costs an extra SBC + conditional EOR + re-examine. Irie's
+   sign bias is 2 EORs reusing the unsigned path. The "trick" we'd replace is the
+   better code.
+
+The generic-flag op pays off for llvm because llvm must materialize booleans in
+general (compare results stored/returned/used as values). Irie never does
+(i1-materialization is unsupported and the frontend lowers `?:` to a CFG
+diamond), so the layer would be created in the legalizer and immediately
+re-collapsed in isel. Verdict: **even with the Non-goal relaxed, this does not
+make Irie simpler or its codegen better** — it adds an IR concept and a re-fusion
+pass to reproduce today's ladder. Revisit only if Irie ever needs genuine
+non-fused boolean compares (which would force materialization regardless).
 
 ## Recommendation
 
