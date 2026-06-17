@@ -2,8 +2,9 @@
 
 ; Checks the predicate encoding on arith.cmpi: the predicate is stored as an
 ; Immediate operand at use position 0; the writer/parser render it
-; symbolically (`slt`, `eq`, etc.). cmpi i8 is Legal on MOS6502 — passes
-; through the legalizer unchanged.
+; symbolically (`slt`, `eq`, etc.). The legalizer normalizes cmpi predicates to
+; {eq, uge, slt}; `slt` is already canonical, so this i8 compare against a
+; non-zero operand passes through unchanged.
 ;
 ; The function uses cf.cond_br to consume the i1 result (instead of returning
 ; it) to keep this test focused on the cmpi predicate encoding. Multi-byte

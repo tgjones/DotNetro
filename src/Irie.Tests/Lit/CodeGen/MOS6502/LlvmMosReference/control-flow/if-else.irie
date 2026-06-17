@@ -23,8 +23,8 @@
 ; CHECK:     BNE \.bb2
 ; CHECK:     TXA
 ; CHECK:     CMP \$07
-; CHECK:     BCC \.bb1
-; CHECK:     JMP \.bb2
+; CHECK:     BCS \.bb2
+; CHECK:     JMP \.bb1
 ; CHECK:     \.bb1:
 ; CHECK:     SEC
 ; CHECK:     LDA \$02

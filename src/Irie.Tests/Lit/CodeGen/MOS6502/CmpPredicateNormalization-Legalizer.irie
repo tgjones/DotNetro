@@ -1,0 +1,99 @@
+; RUN: @iriec --target mos6502 --stop-after Legalizer @file
+
+; The legalizer normalizes every fused compare predicate to the canonical
+; {eq, uge, slt} set the 6502 flags express directly (mirrors llvm-mos
+; MOSLegalizerInfo::legalizeICmp). Two moves reach the canonical set:
+;   - negate (ne/ult/sge): invert the predicate and swap the cf.cond_br's
+;     true/false edges, so the fused branch still selects the right successor.
+;   - operand swap (ule/ugt/sle/sgt): reverse the predicate and the a/b operands
+;     (ugt/sle then need a further negate to land in the set).
+; Predicates already in the set (eq/uge/slt) pass through untouched, and a
+; compare not feeding a cond_br is left alone (i1 materialization, rejected later
+; just as before — verified by CmpI8-AllPredicates).
+;
+; This pins the predicate + operand order + branch edges after normalization;
+; the downstream asm is exercised by the *-MachineCode tests.
+
+; ne → eq, edges swapped.
+; CHECK: func @Ne : \(i8, i8\) -> void \{
+; CHECK:     %2 : i1 = arith.cmpi eq, %0, %1
+; CHECK:     cf.cond_br %2, bb2, bb1
+func @Ne : (i8, i8) -> void {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi ne, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1(): core.return
+bb2(): core.return
+}
+
+; ult → uge, edges swapped.
+; CHECK: func @Ult : \(i8, i8\) -> void \{
+; CHECK:     %2 : i1 = arith.cmpi uge, %0, %1
+; CHECK:     cf.cond_br %2, bb2, bb1
+func @Ult : (i8, i8) -> void {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi ult, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1(): core.return
+bb2(): core.return
+}
+
+; ugt → swap operands to ult, then negate to uge: uge %1, %0 + edges swapped.
+; CHECK: func @Ugt : \(i8, i8\) -> void \{
+; CHECK:     %2 : i1 = arith.cmpi uge, %1, %0
+; CHECK:     cf.cond_br %2, bb2, bb1
+func @Ugt : (i8, i8) -> void {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi ugt, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1(): core.return
+bb2(): core.return
+}
+
+; ule → swap operands to uge: uge %1, %0, edges unchanged.
+; CHECK: func @Ule : \(i8, i8\) -> void \{
+; CHECK:     %2 : i1 = arith.cmpi uge, %1, %0
+; CHECK:     cf.cond_br %2, bb1, bb2
+func @Ule : (i8, i8) -> void {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi ule, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1(): core.return
+bb2(): core.return
+}
+
+; sgt → swap operands to slt: slt %1, %0, edges unchanged.
+; CHECK: func @Sgt : \(i8, i8\) -> void \{
+; CHECK:     %2 : i1 = arith.cmpi slt, %1, %0
+; CHECK:     cf.cond_br %2, bb1, bb2
+func @Sgt : (i8, i8) -> void {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi sgt, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1(): core.return
+bb2(): core.return
+}
+
+; sle → swap operands to sge, then negate to slt: slt %1, %0 + edges swapped.
+; CHECK: func @Sle : \(i8, i8\) -> void \{
+; CHECK:     %2 : i1 = arith.cmpi slt, %1, %0
+; CHECK:     cf.cond_br %2, bb2, bb1
+func @Sle : (i8, i8) -> void {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi sle, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1(): core.return
+bb2(): core.return
+}
+
+; sge → negate to slt: slt %0, %1 + edges swapped.
+; CHECK: func @Sge : \(i8, i8\) -> void \{
+; CHECK:     %2 : i1 = arith.cmpi slt, %0, %1
+; CHECK:     cf.cond_br %2, bb2, bb1
+func @Sge : (i8, i8) -> void {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi sge, %0, %1
+    cf.cond_br %2, bb1, bb2
+bb1(): core.return
+bb2(): core.return
+}

@@ -24,7 +24,7 @@
 ; CHECK:     INX
 ; CHECK:     TXA
 ; CHECK:     CMP \$02
-; CHECK:     BCC .bb3
+; CHECK:     BCS .bb3
 
 func @Inc : (i8, i8) -> i8 {
 bb0(%0 : i8, %1 : i8):

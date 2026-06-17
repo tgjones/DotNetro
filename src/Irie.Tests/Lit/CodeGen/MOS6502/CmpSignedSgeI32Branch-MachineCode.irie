@@ -1,10 +1,12 @@
 ; RUN: @iriec --target mos6502 --emit=asm @file
 
 ; Step 9 (il-to-mir plan): signed i32 arith.cmpi (sge) fused with cf.cond_br.
-; `sge` is the negation of `slt`, so it reuses the unsigned `uge` ladder after
-; the same sign-bit flip (EOR #$80 on each operand's top byte). The uge ladder
-; sends BCC to the false target and BNE to the true target on the higher bytes,
-; then ends with BCS on the last byte.
+; The legalizer normalizes `sge` to its inverse `slt` with the branch edges
+; swapped, and the selector lowers `slt` via the unsigned `ult` ladder after the
+; sign-bit flip (EOR #$80 on each operand's top byte). The ult ladder sends BCC
+; to the (swapped) true target and BNE to the false target on the higher bytes,
+; then ends with BCC on the last byte — identical to the old uge ladder on the
+; higher bytes, with only the last-byte branch sense flipped.
 
 ; CHECK: TestSge32:
 ; CHECK:     EOR #\$80
@@ -19,8 +21,8 @@
 ; CHECK:     BCC \.bb2
 ; CHECK:     BNE \.bb1
 ; CHECK:     CMP
-; CHECK:     BCS \.bb1
-; CHECK:     JMP \.bb2
+; CHECK:     BCC \.bb2
+; CHECK:     JMP \.bb1
 
 func @TestSge32 : (i32, i32) -> i8 {
 bb0(%0 : i32, %1 : i32):

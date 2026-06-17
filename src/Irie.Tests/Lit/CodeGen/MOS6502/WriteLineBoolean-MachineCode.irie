@@ -16,8 +16,8 @@
 ; CHECK:     LDX #\$00
 ; CHECK:     STX \$02
 ; CHECK:     CMP \$02
-; CHECK:     BNE \.bb1
-; CHECK:     JMP \.bb2
+; CHECK:     BEQ \.bb2
+; CHECK:     JMP \.bb1
 ; CHECK: \.bb1:
 ; CHECK:     LDA #<True_String
 ; CHECK:     LDA #>True_String

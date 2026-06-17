@@ -18,6 +18,43 @@ public enum ArithCmpPredicate
     Uge = 9,
 }
 
+public static class ArithCmpPredicateOps
+{
+    // The inverse (logical negation) of a predicate: the relation that holds
+    // exactly when this one does not. eq↔ne, slt↔sge, sgt↔sle, ult↔uge, ugt↔ule.
+    public static ArithCmpPredicate Inverse(ArithCmpPredicate predicate) => predicate switch
+    {
+        ArithCmpPredicate.Eq  => ArithCmpPredicate.Ne,
+        ArithCmpPredicate.Ne  => ArithCmpPredicate.Eq,
+        ArithCmpPredicate.Slt => ArithCmpPredicate.Sge,
+        ArithCmpPredicate.Sge => ArithCmpPredicate.Slt,
+        ArithCmpPredicate.Sgt => ArithCmpPredicate.Sle,
+        ArithCmpPredicate.Sle => ArithCmpPredicate.Sgt,
+        ArithCmpPredicate.Ult => ArithCmpPredicate.Uge,
+        ArithCmpPredicate.Uge => ArithCmpPredicate.Ult,
+        ArithCmpPredicate.Ugt => ArithCmpPredicate.Ule,
+        ArithCmpPredicate.Ule => ArithCmpPredicate.Ugt,
+        _ => throw new ArgumentOutOfRangeException(nameof(predicate), predicate, "Unknown ArithCmpPredicate"),
+    };
+
+    // The predicate that holds for swapped operands: `a P b` ⟺ `b Swapped(P) a`.
+    // eq/ne are symmetric; the orderings reverse (slt↔sgt, sle↔sge, ult↔ugt, ule↔uge).
+    public static ArithCmpPredicate Swapped(ArithCmpPredicate predicate) => predicate switch
+    {
+        ArithCmpPredicate.Eq  => ArithCmpPredicate.Eq,
+        ArithCmpPredicate.Ne  => ArithCmpPredicate.Ne,
+        ArithCmpPredicate.Slt => ArithCmpPredicate.Sgt,
+        ArithCmpPredicate.Sgt => ArithCmpPredicate.Slt,
+        ArithCmpPredicate.Sle => ArithCmpPredicate.Sge,
+        ArithCmpPredicate.Sge => ArithCmpPredicate.Sle,
+        ArithCmpPredicate.Ult => ArithCmpPredicate.Ugt,
+        ArithCmpPredicate.Ugt => ArithCmpPredicate.Ult,
+        ArithCmpPredicate.Ule => ArithCmpPredicate.Uge,
+        ArithCmpPredicate.Uge => ArithCmpPredicate.Ule,
+        _ => throw new ArgumentOutOfRangeException(nameof(predicate), predicate, "Unknown ArithCmpPredicate"),
+    };
+}
+
 public static class ArithCmpPredicateNames
 {
     public static string ToText(ArithCmpPredicate predicate) => predicate switch

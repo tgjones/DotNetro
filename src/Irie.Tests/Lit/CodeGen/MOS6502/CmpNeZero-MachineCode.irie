@@ -1,24 +1,28 @@
 ; RUN: @iriec --target mos6502 --emit=asm @file
 
 ; Step 16 (plan §6 G5): brtrue lowers to `arith.cmpi <ne>, %x, <0>` + cf.cond_br.
-; Verify the ne-against-constant-0 path end-to-end at i8, i16, and i32. Mirror
-; of CmpEqZero-MachineCode.irie but with the true/false targets swapped: any
-; BNE early-exits to the true block, and full equality falls through to false.
-; This is the regression guard for the frontend's `brtrue`.
+; Verify the ne-against-constant-0 path end-to-end at i8, i16, and i32. This is
+; the regression guard for the frontend's `brtrue`.
+;
+; The legalizer normalizes `ne` to `eq` with the branch's true/false edges
+; swapped. For the multi-byte cases that reproduces the original BNE-to-true
+; ladder exactly (the eq ladder's BNE-to-false becomes BNE-to-true once the
+; edges are swapped); for the single-byte i8 case it emits BEQ-to-false +
+; JMP-to-true.
 ;
 ; As in CmpEqZero, the const-0 materialization's scratch GPR is chosen post-RA
 ; by RegisterScavengingPass (plan §3.6): the dead $x for i8, the dead $y for
 ; i16/i32. The live-in byte stays in $a (no eviction) and the CMP reads it
 ; directly. (The old RA $a-scratch reservation, now deleted, used to evict it.)
 
-; --- i8: materialise 0 via dead $x, single CMP of $a vs 0, BNE true / JMP false. ---
+; --- i8: materialise 0 via dead $x, single CMP of $a vs 0, BEQ false / JMP true. ---
 
 ; CHECK: CmpNeZeroI8:
 ; CHECK:     LDX #\$00
 ; CHECK:     STX \$02
 ; CHECK:     CMP \$02
-; CHECK:     BNE \.bb1
-; CHECK:     JMP \.bb2
+; CHECK:     BEQ \.bb2
+; CHECK:     JMP \.bb1
 ; CHECK: \.bb1:
 ; CHECK:     RTS
 ; CHECK: \.bb2:

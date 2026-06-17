@@ -1,0 +1,35 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Signed i8 arith.cmpi (slt) against a non-zero operand, fused with cf.cond_br.
+; This is the i8 counterpart of CmpSignedI16/I32Branch: a general signed compare
+; (not the against-zero sign test) biases both operands by EOR #$80 so the
+; unsigned CMP + BCC computes the signed less-than. `a <s b` ⟺ (a^$80) <u (b^$80).
+;
+; The two bytes arrive in $a (%0) and $x (%1); each is funneled through $a to be
+; EOR'd, the biased %1 is parked in zero page, and the biased %0 is compared
+; against it. BCC takes the true edge (a < b); otherwise JMP to the false edge.
+
+; CHECK: TestSltI8:
+; CHECK:     EOR #\$80
+; CHECK:     EOR #\$80
+; CHECK:     CMP \$02
+; CHECK:     BCC \.bb1
+; CHECK:     JMP \.bb2
+; CHECK: \.bb1:
+; CHECK:     LDA #\$01
+; CHECK:     RTS
+; CHECK: \.bb2:
+; CHECK:     LDA #\$00
+; CHECK:     RTS
+
+func @TestSltI8 : (i8, i8) -> i8 {
+bb0(%0 : i8, %1 : i8):
+    %2 : i1 = arith.cmpi slt, %0, %1
+    cf.cond_br %2, bb1(), bb2()
+bb1():
+    %3 : i8 = arith.constant 1
+    core.return %3
+bb2():
+    %4 : i8 = arith.constant 0
+    core.return %4
+}

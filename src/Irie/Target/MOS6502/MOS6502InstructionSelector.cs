@@ -583,53 +583,61 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
                 "MOS6502InstructionSelector: arith.cmpi whose result is used outside cf.cond_br " +
                 "is not yet supported (i1 result materialisation deferred).");
 
-        // Signed predicates are only supported as a sign test against an
-        // immediate 0 (the shape the legalizer narrows a wide `x <s 0` into):
-        // `cmp %high, #0` sets N from bit 7, and BMI/BPL branch on it. General
-        // signed i8 compares (non-zero RHS) land later.
-        var isSignTest = predicate is ArithCmpPredicate.Slt or ArithCmpPredicate.Sge;
-        if (isSignTest && bOperand is not Immediate { Value: 0 })
-            throw new NotSupportedException(
-                "MOS6502InstructionSelector: signed i8 arith.cmpi is only supported against an " +
-                "immediate 0 (sign test); general signed i8 compares land later.");
-
-        var branchOp = predicate switch
-        {
-            ArithCmpPredicate.Eq  => MOS6502Op.Beq,
-            ArithCmpPredicate.Ne  => MOS6502Op.Bne,
-            ArithCmpPredicate.Ult => MOS6502Op.Bcc,
-            ArithCmpPredicate.Uge => MOS6502Op.Bcs,
-            ArithCmpPredicate.Slt => MOS6502Op.Bmi,
-            ArithCmpPredicate.Sge => MOS6502Op.Bpl,
-            _ => throw new NotSupportedException(
-                $"MOS6502InstructionSelector: arith.cmpi predicate '{ArithCmpPredicateNames.ToText(predicate)}' " +
-                "is not yet implemented for the cmp+cond_br fusion path. " +
-                "Coverage so far: eq, ne, ult, uge, and slt/sge against 0. ugt/ule/sgt/sle land later."),
-        };
-
-        // The CMP's RHS is the immediate 0 for a sign test, otherwise the b vreg.
-        MirOperand cmpRhs = isSignTest
-            ? new Immediate(0)
-            : new VirtualReg(((VirtualReg)bOperand).Id, IsDefinition: false);
-
         builder.SetInsertionPointBefore(cmpi);
 
-        // Funnel %a through a fresh `Ac` vreg instead of pinning aVreg in place.
-        // cmp's use[0] is *not* tied, so an in-place `Ac` reclassify would be a
-        // direct pin — and if the same value is also used as a zero-page operand
-        // elsewhere, Ac ∩ Imag8 = ∅ in RA (plan §3.2). Routing the `Ac`
-        // requirement through a copy leaves aVreg broad; the coalescer collapses
-        // the copy whenever $a is free. Modelled on the multi-byte compare path.
-        // bVreg stays broad as use[1]; the `Imag8` operand constraint from
-        // CmpInfo applies to it directly and, with no `Ac` pin reaching it,
-        // cannot conflict.
+        // The legalizer normalizes every compare to the canonical {eq, uge, slt}
+        // set the 6502 flags express directly, so only those three reach here:
+        //   - eq  → CMP + BEQ;  uge → CMP + BCS.
+        //   - slt against an immediate 0 → a sign test: CMP #0 sets N from bit 7,
+        //     BMI branches when negative.
+        //   - general slt → bias both operands by EOR #$80 (mirrors the multi-byte
+        //     signed path), so the unsigned CMP + BCC computes signed less-than.
+        // The value funneled into $a (cmpAVreg) and the CMP's RHS (cmpRhs) vary by
+        // case; the shared funnel + CMP + branch sequence below emits all three.
+        var cmpAVreg = aVreg;
+        MirOperand cmpRhs;
+        MOS6502Op branchOp;
+        switch (predicate)
+        {
+            case ArithCmpPredicate.Eq:
+                branchOp = MOS6502Op.Beq;
+                cmpRhs = new VirtualReg(((VirtualReg)bOperand).Id, IsDefinition: false);
+                break;
+            case ArithCmpPredicate.Uge:
+                branchOp = MOS6502Op.Bcs;
+                cmpRhs = new VirtualReg(((VirtualReg)bOperand).Id, IsDefinition: false);
+                break;
+            case ArithCmpPredicate.Slt when bOperand is Immediate { Value: 0 }:
+                branchOp = MOS6502Op.Bmi;
+                cmpRhs = new Immediate(0);
+                break;
+            case ArithCmpPredicate.Slt:
+                cmpAVreg = EorByteWithImmediate(function, builder, aVreg, 0x80);
+                var bFlipped = EorByteWithImmediate(function, builder, ((VirtualReg)bOperand).Id, 0x80);
+                branchOp = MOS6502Op.Bcc;
+                cmpRhs = new VirtualReg(bFlipped, IsDefinition: false);
+                break;
+            default:
+                throw new NotSupportedException(
+                    $"MOS6502InstructionSelector: arith.cmpi predicate '{ArithCmpPredicateNames.ToText(predicate)}' " +
+                    "reached the i8 selector; after legalizer normalization only eq, uge, slt are expected.");
+        }
+
+        // Funnel the (possibly sign-biased) %a through a fresh `Ac` vreg instead
+        // of pinning it in place. cmp's use[0] is *not* tied, so an in-place `Ac`
+        // reclassify would be a direct pin — and if the same value is also used as
+        // a zero-page operand elsewhere, Ac ∩ Imag8 = ∅ in RA (plan §3.2). Routing
+        // the `Ac` requirement through a copy leaves the source broad; the
+        // coalescer collapses the copy whenever $a is free. The b operand stays
+        // broad as use[1]; the `Imag8` operand constraint from CmpInfo applies to
+        // it directly and, with no `Ac` pin reaching it, cannot conflict.
         var aCmpVreg = function.CreateVirtualRegisterInClass(
             MOS6502RegisterClass.Ac,
             MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
         builder.BuildInstruction(
             PseudoDialect.OpRef(PseudoOp.Copy),
             new VirtualReg(aCmpVreg, IsDefinition: true),
-            new VirtualReg(aVreg,    IsDefinition: false));
+            new VirtualReg(cmpAVreg, IsDefinition: false));
 
         // mos6502.cmp %a_cmp, <rhs> implicit-def $n, implicit-def $z, implicit-def $c
         builder.BuildInstruction(
@@ -672,7 +680,6 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     //   <p-specific tail action>
     //
     // For eq:  any BNE → F (early exit). If we reach the end, all equal → T.
-    // For ne:  any BNE → T (early exit). If we reach the end, all equal → F.
     // For ult: BCC → T (a < b); BNE → F (a > b in high byte means a >= b).
     //          On reaching the last byte unequal: BCC → T; else F.
     //          On full equality: F.
@@ -680,8 +687,8 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     //          On reaching the last byte unequal: BCS → T; else F.
     //          On full equality: T.
     //
-    // Only equality / unsigned-ordering predicates are supported. Signed
-    // predicates need SBC + N⊕V and are deferred (plan §6 step 15 / 3b).
+    // After legalizer normalization only the canonical {eq, uge, slt} predicates
+    // reach here; slt runs the ult chain on sign-biased operands (see below).
     private static bool SelectCmpIMultiByte(
         MirInstruction cmpi,
         MirBuilder builder,
@@ -691,28 +698,20 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         int condVreg,
         int byteCount)
     {
-        if (predicate is not (ArithCmpPredicate.Eq or ArithCmpPredicate.Ne
-            or ArithCmpPredicate.Ult or ArithCmpPredicate.Uge
-            or ArithCmpPredicate.Slt or ArithCmpPredicate.Sge))
+        if (predicate is not (ArithCmpPredicate.Eq or ArithCmpPredicate.Uge or ArithCmpPredicate.Slt))
         {
             throw new NotSupportedException(
                 $"MOS6502InstructionSelector: multi-byte arith.cmpi predicate '{ArithCmpPredicateNames.ToText(predicate)}' " +
-                "is not yet supported. Coverage so far: eq, ne, ult, uge, slt, sge.");
+                "reached the selector; after legalizer normalization only eq, uge, slt are expected.");
         }
 
-        // Signed ordering compares reduce to the unsigned chain after flipping
-        // the sign bit (bit 7 of the most-significant byte) of both operands:
-        //   a <_signed b  ==  (a ^ msb_mask) <_unsigned (b ^ msb_mask)
-        // where msb_mask has only the whole-value sign bit set. So `slt` runs
-        // the `ult` chain and `sge` the `uge` chain, both on sign-flipped top
-        // bytes. The flip is emitted below, after the bytes are funneled.
-        var signedFlip = predicate is ArithCmpPredicate.Slt or ArithCmpPredicate.Sge;
-        var chainPredicate = predicate switch
-        {
-            ArithCmpPredicate.Slt => ArithCmpPredicate.Ult,
-            ArithCmpPredicate.Sge => ArithCmpPredicate.Uge,
-            _ => predicate,
-        };
+        // The signed `slt` compare reduces to the unsigned `ult` chain after
+        // flipping the sign bit (bit 7 of the most-significant byte) of both
+        // operands:  a <_signed b  ==  (a ^ msb_mask) <_unsigned (b ^ msb_mask),
+        // where msb_mask has only the whole-value sign bit set. The flip is
+        // emitted below, after the bytes are funneled.
+        var signedFlip = predicate is ArithCmpPredicate.Slt;
+        var chainPredicate = signedFlip ? ArithCmpPredicate.Ult : predicate;
 
         var function = builder.Function;
         var block = cmpi.Parent!;
@@ -918,13 +917,6 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
                 EmitConditionalBranch(builder, MOS6502Op.Bne, MOS6502Registers.Z, fTarget);
                 if (isLast)
                     EmitUnconditional(builder, tTarget);
-                break;
-
-            case ArithCmpPredicate.Ne:
-                // BNE T on every byte; fallthrough at the end → JMP F.
-                EmitConditionalBranch(builder, MOS6502Op.Bne, MOS6502Registers.Z, tTarget);
-                if (isLast)
-                    EmitUnconditional(builder, fTarget);
                 break;
 
             case ArithCmpPredicate.Ult:
