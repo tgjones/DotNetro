@@ -1,7 +1,31 @@
 # Sub-plan: Phase 3 of compare-narrowing (wide non-zero compares + `arith.select`)
 
-Status: **Option A chosen (2026-06-17) — not yet started.** A motivating
-`arith.select` consumer (see Option A, step 1) is a required part of the work, so
+Status: **Option A COMPLETE (2026-06-17).** All seven steps landed and green
+(205/205 tests, Debug + Release; llvm-mos-reference aggregate unchanged at
++9.0%). Wide-compare asm is byte-for-byte identical to the pre-migration ladder;
+`abs` improved (the compare-against-zero now normalizes to a `CMP #$00`/`BMI`
+sign test). Two deviations from the steps as originally written, both
+deliberate:
+
+1. **`MirSelectLoweringPass` runs *before* the legalizer, not after.** The plan
+   (mirroring llvm-mos's `Legalizer → … → LowerSelect` order) put it after, but
+   that leaves a wide cmpi feeding a *materialized* select un-narrowed (its
+   `cf.cond_br` does not exist when the legalizer runs). Running select-lowering
+   first lets the legalizer see every `cf.cond_br` and own *all* compare
+   narrowing uniformly — which is the actual architectural goal — and is why
+   `abs` gets the optimal sign test.
+2. **No `arith.xor`/`and`/`or` were added.** They were only motivated by doing the
+   signed `EOR #$80` bias *in the legalizer*; to reproduce today's exact ladder
+   the bias stays in the selector's re-fusion (`EmitMultiByteCmpLadder`), so the
+   bitwise ops were never needed. Only `arith.select` was added.
+
+The wide compare is lowered in the legalizer to a lexicographic tree of i8
+`arith.cmpi` + i1 `arith.select` (`BuildWideCmpTree`/`BuildLexicographic`); the
+selector's `SelectCondBr` re-fuses `cf.cond_br (select-tree)` back into the
+CMP+branch ladder (`RecoverCmpTree` + `EmitMultiByteCmpLadder`). `SelectCmpIMultiByte`
+and its now-unused helpers were deleted.
+
+A motivating `arith.select` consumer (see Option A, step 1) is a required part of the work, so
 the materialized-select path has a real driver rather than being built
 speculatively for the fused wide-compare case (which re-fuses it away). Options B
 and A′ below are recorded as considered-and-not-taken.

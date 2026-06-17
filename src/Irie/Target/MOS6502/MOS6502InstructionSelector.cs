@@ -69,6 +69,11 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
                 ArithOp.AddICarry  => SelectAddCarry(instruction, builder),
                 ArithOp.SubIBorrow => SelectSubBorrow(instruction, builder),
                 ArithOp.CmpI       => SelectCmpI(instruction, builder),
+                // arith.select reaching isel is always an i1 node of a wide-compare
+                // lexicographic tree (materialized value selects were lowered to
+                // diamonds before the legalizer). It is consumed wholesale by the
+                // cf.cond_br re-fusion below, so skip it here.
+                ArithOp.Select     => true,
                 _ => false,
             };
         }
@@ -78,12 +83,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             return (CfOp)opcode.Code switch
             {
                 CfOp.Br     => SelectBr(instruction, builder),
-                // cf.cond_br is consumed by SelectCmpI; reaching it here means
-                // it was never fused with a preceding cmpi.
-                CfOp.CondBr => throw new NotSupportedException(
-                    "MOS6502InstructionSelector: bare cf.cond_br (without a preceding " +
-                    "arith.cmpi) is not yet supported. The cmpi+cond_br fusion path " +
-                    "handles cond_br only when fused."),
+                CfOp.CondBr => SelectCondBr(instruction, builder),
                 _ => false,
             };
         }
@@ -509,10 +509,14 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     //   - The cmpi's def has exactly one use.
     //   - The use is a cf.cond_br in the same block, *immediately* after the
     //     cmpi (no instructions between).
-    //   - The operand types are i8 (multi-byte cmp deferred — see plan §6 step 15).
-    // For now: signed predicates (slt/sgt/sle/sge) emit SBC + synthetic branches
-    // by deferring through `mos6502.sbc` — out of scope for step 3; throw.
-    // Initial coverage: eq, ne, ult, uge (the straightforward CMP-only predicates).
+    //   - The operands are i8. Wide (i16/i32) compares are lowered in the
+    //     legalizer to a lexicographic tree of i8 cmpi + arith.select whose root
+    //     feeds the cond_br; that whole tree is re-fused into a CMP+branch ladder
+    //     by SelectCondBr, so a wide cmpi never reaches here. The per-byte i8
+    //     cmpi *leaves* of such a tree feed an arith.select rather than a cond_br
+    //     and are skipped here (consumed by the re-fusion instead).
+    // After legalizer normalization only {eq, uge, slt} predicates reach the i8
+    // path; a general signed slt biases both operands with EOR #$80.
     private static bool SelectCmpI(MirInstruction cmpi, MirBuilder builder)
     {
         var function = builder.Function;
@@ -531,32 +535,10 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         // immediate 0 — the high-byte sign test below reads it directly.
         var bOperand = cmpi.Operands[3];
 
-        // The compare width comes from the `a` operand. It is a TypedVReg when the
-        // value is still generic (a local / ABI value), or a ClassedVReg when it
-        // has already been instruction-selected (e.g. a byte produced by the
-        // mem-load lowering, which reclassifies its result to Anyi8 before this
-        // cmpi is reached). Every MOS6502 register class is a single byte, so a
-        // ClassedVReg operand is always an i8 compare.
-        var aByteWidth = function.GetVRegAnnotation(aVreg) switch
-        {
-            TypedVReg aTyped => aTyped.Type.SizeInBits / 8,
-            ClassedVReg => 1,
-            var other => throw new NotSupportedException(
-                $"MOS6502InstructionSelector: arith.cmpi on operand %{aVreg} with annotation " +
-                $"{other?.ToString() ?? "none"} is not supported."),
-        };
-
-        // Multi-byte cmpi (i16, i32) widens to a per-byte chain of CMP +
-        // conditional branches via the target-private path below. Only
-        // unsigned / equality predicates are supported in this first cut;
-        // signed predicates use SBC + N⊕V and are deferred.
-        if (aByteWidth > 1)
-        {
-            // Wide compares reaching the selector always carry a vreg RHS (the
-            // immediate-0 form is only produced for the narrowed i8 sign test).
-            var bVregWide = ((VirtualReg)bOperand).Id;
-            return SelectCmpIMultiByte(cmpi, builder, predicate, aVreg, bVregWide, condVreg, aByteWidth);
-        }
+        // A cmpi feeding an arith.select is a per-byte leaf of a wide-compare tree:
+        // leave it for SelectCondBr's re-fusion, which consumes the whole tree.
+        if (IsUsedBySelect(function, condVreg))
+            return true;
 
         // Find the cond_br that consumes this cmpi.
         var cmpiIndex = block.Instructions.IndexOf(cmpi);
@@ -670,100 +652,132 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         return true;
     }
 
-    // Multi-byte cmpi+cond_br: emit a chain of per-byte CMPs with appropriate
-    // conditional branches. For predicate p on N-byte operands a, b:
-    //
-    //   for each byte i from high to low:
-    //     CMP a[i], b[i]
-    //     <p-specific exit branches that may go to T or F>
-    //   ; (after all bytes, the byte-wise check has fallen through every layer)
-    //   <p-specific tail action>
-    //
-    // For eq:  any BNE → F (early exit). If we reach the end, all equal → T.
-    // For ult: BCC → T (a < b); BNE → F (a > b in high byte means a >= b).
-    //          On reaching the last byte unequal: BCC → T; else F.
-    //          On full equality: F.
-    // For uge: BCC → F (a < b); BNE → T (a > b ⇒ a >= b).
-    //          On reaching the last byte unequal: BCS → T; else F.
-    //          On full equality: T.
-    //
-    // After legalizer normalization only the canonical {eq, uge, slt} predicates
-    // reach here; slt runs the ult chain on sign-biased operands (see below).
-    private static bool SelectCmpIMultiByte(
-        MirInstruction cmpi,
-        MirBuilder builder,
-        ArithCmpPredicate predicate,
-        int aVreg,
-        int bVreg,
-        int condVreg,
-        int byteCount)
+    // A cf.cond_br reaching the selector was not consumed by the i8 cmpi+cond_br
+    // fusion, so its condition must be the root of a wide-compare lexicographic
+    // select tree built by the legalizer (MOS6502LegalizerInfo.BuildWideCmpTree).
+    // Re-fuse that tree back into a CMP+branch ladder (the llvm-mos
+    // selectBrCondImm analogue): the boolean is never materialized.
+    private static bool SelectCondBr(MirInstruction condBr, MirBuilder builder)
     {
-        if (predicate is not (ArithCmpPredicate.Eq or ArithCmpPredicate.Uge or ArithCmpPredicate.Slt))
-        {
-            throw new NotSupportedException(
-                $"MOS6502InstructionSelector: multi-byte arith.cmpi predicate '{ArithCmpPredicateNames.ToText(predicate)}' " +
-                "reached the selector; after legalizer normalization only eq, uge, slt are expected.");
-        }
-
-        // The signed `slt` compare reduces to the unsigned `ult` chain after
-        // flipping the sign bit (bit 7 of the most-significant byte) of both
-        // operands:  a <_signed b  ==  (a ^ msb_mask) <_unsigned (b ^ msb_mask),
-        // where msb_mask has only the whole-value sign bit set. The flip is
-        // emitted below, after the bytes are funneled.
-        var signedFlip = predicate is ArithCmpPredicate.Slt;
-        var chainPredicate = signedFlip ? ArithCmpPredicate.Ult : predicate;
-
         var function = builder.Function;
-        var block = cmpi.Parent!;
 
-        // Locate the following cond_br (same pattern as the i8 path).
-        var cmpiIndex = block.Instructions.IndexOf(cmpi);
-        if (cmpiIndex < 0 || cmpiIndex + 1 >= block.Instructions.Count)
-            throw new NotSupportedException(
-                "MOS6502InstructionSelector: arith.cmpi without a following cf.cond_br is not yet supported.");
-
-        var next = block.Instructions[cmpiIndex + 1];
-        if (next.Opcode.Dialect != CfDialect.Id || (CfOp)next.Opcode.Code != CfOp.CondBr)
-            throw new NotSupportedException(
-                "MOS6502InstructionSelector: arith.cmpi must be immediately followed by cf.cond_br.");
-        if (next.Operands.Length != 3
-            || next.Operands[0] is not VirtualReg condUse || condUse.IsDefinition
-            || condUse.Id != condVreg
-            || next.Operands[1] is not BlockTarget tTarget
-            || next.Operands[2] is not BlockTarget fTarget)
+        if (condBr.Operands.Length != 3
+            || condBr.Operands[0] is not VirtualReg cond || cond.IsDefinition
+            || condBr.Operands[1] is not BlockTarget tTarget
+            || condBr.Operands[2] is not BlockTarget fTarget)
             throw new InvalidOperationException(
                 "MOS6502InstructionSelector: malformed cf.cond_br operand shape.");
-        if (function.GetUseCount(condVreg) != 1)
+
+        var rootDef = function.GetDefinition(cond.Id);
+        if (rootDef is null
+            || rootDef.Opcode.Dialect != ArithDialect.Id
+            || (ArithOp)rootDef.Opcode.Code != ArithOp.Select)
             throw new NotSupportedException(
-                "MOS6502InstructionSelector: arith.cmpi whose result is used outside cf.cond_br is not yet supported.");
+                "MOS6502InstructionSelector: cf.cond_br whose condition is not a wide-compare " +
+                "select tree is not supported (i1 register test + branch is a separate follow-up).");
 
-        // Note: the signed compare-against-zero shape (`x <s 0` / `x >=s 0`) is
-        // narrowed to a single high-byte sign test in the legalizer
-        // (MOS6502LegalizerInfo.LegalizeCmpI), so it never reaches this wide
-        // path — only general unsigned/equality chains and signed non-zero
-        // compares (via the EOR #$80 sign bias below) do.
-        builder.SetInsertionPointBefore(cmpi);
+        var treeInstrs = new List<MirInstruction>();
+        var (predicate, bytes) = RecoverCmpTree(function, cond.Id, treeInstrs);
+        var aBytes = bytes.Select(p => p.a).ToArray();
+        var bBytes = bytes.Select(p => p.b).ToArray();
 
-        // Get the byte vregs that make up each operand. If the operand is
-        // defined by a pseudo.merge of the right arity, reuse its part vregs
-        // directly (sidestepping the wide vreg that has no register class).
-        // Otherwise emit a fresh pseudo.unmerge — but then the wide vreg's
-        // class is the caller's responsibility (unsupported here).
-        var aBytesRaw = GetByteVregsOrUnmerge(function, builder, aVreg, byteCount);
-        var bBytesRaw = GetByteVregsOrUnmerge(function, builder, bVreg, byteCount);
+        builder.SetInsertionPointBefore(condBr);
+        EmitMultiByteCmpLadder(function, builder, predicate, aBytes, bBytes, tTarget, fTarget);
 
-        // Each byte vreg fed in by ABI lowering carries a copy hint to its
-        // arrival physreg (e.g. byte 0 → $a, byte 1 → $x). The CMP chain
-        // needs $a for the funneled comparison value at every step, so
-        // letting one of the source-byte vregs stay in $a starves the chain.
-        // Funnel each byte through a fresh Anyi8 vreg first to break the
-        // copy hint chain — the RA is then free to park the bytes in zero
-        // page across the entire chain.
+        builder.Remove(condBr);
+        foreach (var ti in treeInstrs)
+            if (ti.Parent != null)
+                builder.Remove(ti);
+        return true;
+    }
+
+    // Walk a wide-compare lexicographic tree rooted at `vreg`, returning the
+    // overall canonical predicate and the per-byte operand vregs (index 0 = least
+    // significant). Collects every tree instruction (selects + leaf cmpis) into
+    // `treeInstrs` for the caller to erase. Mirrors the shape built by
+    // MOS6502LegalizerInfo.BuildLexicographic:
+    //   leaf:   %r = arith.cmpi <pred>, %a, %b
+    //   select: %r = arith.select %eqHi, %rest, %cmpHi
+    //           with %eqHi = cmpi eq, %aHi, %bHi  and  %cmpHi = cmpi <pred>, %aHi, %bHi
+    private static (ArithCmpPredicate predicate, List<(int a, int b)> bytes)
+        RecoverCmpTree(MirFunction function, int vreg, List<MirInstruction> treeInstrs)
+    {
+        var def = function.GetDefinition(vreg)
+            ?? throw new InvalidOperationException(
+                $"MOS6502InstructionSelector: wide-compare tree vreg %{vreg} has no definition.");
+        treeInstrs.Add(def);
+
+        if (def.Opcode.Dialect == ArithDialect.Id && (ArithOp)def.Opcode.Code == ArithOp.CmpI)
+        {
+            // Leaf: the least-significant byte's compare.
+            var leafPred = (ArithCmpPredicate)((Immediate)def.Operands[1]).Value;
+            var a = ((VirtualReg)def.Operands[2]).Id;
+            var b = ((VirtualReg)def.Operands[3]).Id;
+            return (leafPred, [(a, b)]);
+        }
+
+        if (def.Opcode.Dialect == ArithDialect.Id && (ArithOp)def.Opcode.Code == ArithOp.Select)
+        {
+            // operands: [0]=def, [1]=cond(eqHi), [2]=true(rest), [3]=false(cmpHi)
+            var restVreg = ((VirtualReg)def.Operands[2]).Id;
+            var cmpHiVreg = ((VirtualReg)def.Operands[3]).Id;
+            var eqHiVreg = ((VirtualReg)def.Operands[1]).Id;
+
+            var cmpHiDef = function.GetDefinition(cmpHiVreg)!;
+            var eqHiDef = function.GetDefinition(eqHiVreg)!;
+            treeInstrs.Add(cmpHiDef);
+            treeInstrs.Add(eqHiDef);
+
+            // The overall predicate is this (outermost) level's high-byte compare;
+            // lower levels use the unsigned "rest" predicate, which the ladder
+            // derives itself, so the recursive predicate is discarded.
+            var predicate = (ArithCmpPredicate)((Immediate)cmpHiDef.Operands[1]).Value;
+            var aHi = ((VirtualReg)cmpHiDef.Operands[2]).Id;
+            var bHi = ((VirtualReg)cmpHiDef.Operands[3]).Id;
+
+            var (_, restBytes) = RecoverCmpTree(function, restVreg, treeInstrs);
+            restBytes.Add((aHi, bHi));   // append the more-significant byte
+            return (predicate, restBytes);
+        }
+
+        throw new NotSupportedException(
+            $"MOS6502InstructionSelector: unexpected opcode in wide-compare tree at %{vreg}.");
+    }
+
+    // Emit the per-byte CMP+branch ladder for an N-byte compare from the byte
+    // operand vregs (index 0 = least significant). For canonical predicate p:
+    //   for each byte i from high to low:
+    //     CMP a[i], b[i]
+    //     <p-specific exit branches to T / F>
+    // For eq:  any BNE → F; full equality → T.
+    // For ult: BCC → T; BNE → F (last byte: BCC → T else fall to F).
+    // For uge: BCC → F; BNE → T (last byte: BCS → T else F).
+    // A signed `slt` runs the ult ladder after flipping bit 7 of the most-
+    // significant byte of both operands (a <s b == (a^msb) <u (b^msb)).
+    private static void EmitMultiByteCmpLadder(
+        MirFunction function,
+        MirBuilder builder,
+        ArithCmpPredicate predicate,
+        int[] aBytesRaw,
+        int[] bBytesRaw,
+        BlockTarget tTarget,
+        BlockTarget fTarget)
+    {
+        if (predicate is not (ArithCmpPredicate.Eq or ArithCmpPredicate.Uge or ArithCmpPredicate.Slt))
+            throw new NotSupportedException(
+                $"MOS6502InstructionSelector: multi-byte compare predicate '{ArithCmpPredicateNames.ToText(predicate)}' " +
+                "reached the ladder; after legalizer normalization only eq, uge, slt are expected.");
+
+        var signedFlip = predicate is ArithCmpPredicate.Slt;
+        var chainPredicate = signedFlip ? ArithCmpPredicate.Ult : predicate;
+        var byteCount = aBytesRaw.Length;
+
+        // Funnel each byte through a fresh Anyi8 vreg to break the ABI copy hints
+        // (byte 0 → $a, etc.) so the RA can park the bytes in zero page across the
+        // whole chain rather than starving the per-byte $a funnel.
         var aBytes = FunnelThroughAnyi8(function, builder, aBytesRaw);
         var bBytes = FunnelThroughAnyi8(function, builder, bBytesRaw);
 
-        // For signed compares, flip bit 7 of the most-significant byte of each
-        // operand so the unsigned chain below computes the signed result.
         if (signedFlip)
         {
             var top = byteCount - 1;
@@ -771,19 +785,11 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             bBytes[top] = EorByteWithImmediate(function, builder, bBytes[top], 0x80);
         }
 
-        // Walk high byte → low byte. For each byte: copy the a-byte into a
-        // fresh Ac vreg (since the architectural CMP requires $a), constrain
-        // the b-byte to Imag8 (zero page), emit CMP, then emit predicate-
-        // specific exit branches. The last byte's branches include the
-        // fallthrough JMP that anchors the chain's terminator.
         for (var pos = byteCount - 1; pos >= 0; pos--)
         {
             var byteA = aBytes[pos];
             var byteB = bBytes[pos];
 
-            // %a_cmp : ac = pseudo.copy %byteA — funnels each byte through $a
-            // in turn so multiple bytes can be in flight without all needing
-            // Ac class (which only has the single $a physreg).
             var aCmpVreg = function.CreateVirtualRegisterInClass(
                 MOS6502RegisterClass.Ac,
                 MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
@@ -798,10 +804,22 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             var isLast = pos == 0;
             EmitMultiByteExits(builder, chainPredicate, isLast, tTarget, fTarget);
         }
+    }
 
-        builder.Remove(next);
-        builder.Remove(cmpi);
-        return true;
+    // True if `vreg` is used (as a non-def operand) by any arith.select — i.e. it
+    // is part of a wide-compare lexicographic tree, consumed by SelectCondBr.
+    private static bool IsUsedBySelect(MirFunction function, int vreg)
+    {
+        foreach (var block in function.Blocks)
+            foreach (var instr in block.Instructions)
+            {
+                if (instr.Opcode.Dialect != ArithDialect.Id || (ArithOp)instr.Opcode.Code != ArithOp.Select)
+                    continue;
+                foreach (var op in instr.Operands)
+                    if (op is VirtualReg v && !v.IsDefinition && v.Id == vreg)
+                        return true;
+            }
+        return false;
     }
 
     // Emit `result = byte EOR #imm`, returning a fresh Anyi8 vreg holding the
@@ -855,41 +873,6 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             result[i] = fresh;
         }
         return result;
-    }
-
-    // Look through a wide vreg to find the i8 byte vregs that compose it.
-    // If the vreg is defined by an arity-matching pseudo.merge, return its
-    // part vregs directly and remove the now-dead merge (if it has only this
-    // consumer). Otherwise emit a pseudo.unmerge and return its def vregs;
-    // the caller is then responsible for the wide vreg's register class.
-    private static int[] GetByteVregsOrUnmerge(MirFunction function, MirBuilder builder, int wideVreg, int byteCount)
-    {
-        var def = function.GetDefinition(wideVreg);
-        if (def is not null
-            && def.Opcode.Dialect == PseudoDialect.Id
-            && (PseudoOp)def.Opcode.Code == PseudoOp.Merge)
-        {
-            var parts = new List<int>();
-            foreach (var op in def.Operands)
-            {
-                if (op is VirtualReg v && !v.IsDefinition) parts.Add(v.Id);
-            }
-            if (parts.Count == byteCount)
-            {
-                // The merge's part vregs are exactly what we want. Once the
-                // wide def loses this consumer (the cmpi we're replacing),
-                // the merge becomes trivially dead — but isel won't sweep it
-                // up automatically. Schedule removal if this was the merge's
-                // only user.
-                if (function.GetUseCount(wideVreg) == 1)
-                {
-                    builder.Remove(def);
-                }
-                return parts.ToArray();
-            }
-        }
-
-        return builder.BuildUnmerge(IRType.I8, wideVreg, byteCount);
     }
 
     private static void EmitCmp(MirBuilder builder, int aVreg, int bVreg)

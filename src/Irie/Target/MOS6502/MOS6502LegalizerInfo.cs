@@ -40,21 +40,12 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
                 ArithOp.Constant   when intType.SizeInBits == 1  => LegalityAction.Legal,
                 ArithOp.Constant   when intType.SizeInBits == 8  => LegalityAction.Legal,
                 ArithOp.Constant   when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
-                // arith.select is left legal at i8; it is expanded into a CFG
-                // diamond by the post-legalizer MirSelectLoweringPass. A wide
-                // select narrows element-wise into per-byte i8 selects (all
-                // sharing the original i1 condition), which the select-lowering
-                // pass then groups into a single diamond per condition.
-                ArithOp.Select     when intType.SizeInBits == 8  => LegalityAction.Legal,
-                ArithOp.Select     when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
-                // arith.xor/and/or are bitwise: i8 legal, wider narrows into a
-                // per-byte chain (no carry — each byte is independent).
-                ArithOp.Xor        when intType.SizeInBits == 8  => LegalityAction.Legal,
-                ArithOp.Xor        when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
-                ArithOp.And        when intType.SizeInBits == 8  => LegalityAction.Legal,
-                ArithOp.And        when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
-                ArithOp.Or         when intType.SizeInBits == 8  => LegalityAction.Legal,
-                ArithOp.Or         when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
+                // Materialized (value) selects are lowered to diamonds by
+                // MirSelectLoweringPass *before* the legalizer, so the only
+                // arith.select the legalizer sees are the i1 lexicographic-tree
+                // selects it creates itself for wide compares — left legal for the
+                // instruction selector to re-fuse into a CMP+branch ladder.
+                ArithOp.Select     when intType.SizeInBits == 1  => LegalityAction.Legal,
                 _ => LegalityAction.Unsupported,
             };
         }
@@ -123,11 +114,7 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
         if (opcode.Dialect == ArithDialect.Id
             && ((ArithOp)opcode.Code == ArithOp.AddI
                 || (ArithOp)opcode.Code == ArithOp.SubI
-                || (ArithOp)opcode.Code == ArithOp.Constant
-                || (ArithOp)opcode.Code == ArithOp.Select
-                || (ArithOp)opcode.Code == ArithOp.Xor
-                || (ArithOp)opcode.Code == ArithOp.And
-                || (ArithOp)opcode.Code == ArithOp.Or))
+                || (ArithOp)opcode.Code == ArithOp.Constant))
             return IRType.I8;
 
         throw new NotSupportedException(
@@ -205,9 +192,13 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
     //      unmerge is folded against its upstream pseudo.merge by the artifact
     //      combiner, and the now-unused wide RHS constant is swept by the
     //      legalizer's trivially-dead check.
+    //   3. Lower any remaining wide (i16/i32) compare to a lexicographic tree of
+    //      per-byte i8 arith.cmpi combined with i1 arith.select (BuildWideCmpTree).
+    //      The tree's i1 root feeds the cond_br; the instruction selector re-fuses
+    //      the whole tree into a CMP+branch ladder (it is never materialized).
     //
-    // After this an i8 compare is legal as-is; every other wide compare is left
-    // wide and lowered by the selector's multi-byte path.
+    // After this an i8 compare is legal as-is for the selector's i8 cmpi+cond_br
+    // fusion; wide compares survive only as the i1 select tree.
     private static void LegalizeCmpI(MirInstruction instr, MirBuilder builder)
     {
         var function = builder.Function;
@@ -247,24 +238,85 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
         instr.Operands[1] = new Immediate((long)predicate);
 
         // Step 2: signed compare against a constant 0 → high-byte sign test.
-        if (predicate != ArithCmpPredicate.Slt
-            || instr.Operands[3] is not VirtualReg bReg
-            || !IsConstantZero(function, bReg.Id))
-            return;
-
-        var aReg = (VirtualReg)instr.Operands[2];
-        var aType = ((TypedVReg)function.GetVRegAnnotation(aReg.Id)).Type;
-        if (aType.SizeInBits > 8)
+        if (predicate == ArithCmpPredicate.Slt
+            && instr.Operands[3] is VirtualReg bReg
+            && IsConstantZero(function, bReg.Id))
         {
-            var byteCount = aType.SizeInBits / 8;
-            var bytes = builder.BuildUnmerge(IRType.I8, aReg.Id, byteCount);
-            instr.Operands[2] = new VirtualReg(bytes[byteCount - 1], IsDefinition: false);
+            var aReg = (VirtualReg)instr.Operands[2];
+            var aType = ((TypedVReg)function.GetVRegAnnotation(aReg.Id)).Type;
+            if (aType.SizeInBits > 8)
+            {
+                var byteCount = aType.SizeInBits / 8;
+                var bytes = builder.BuildUnmerge(IRType.I8, aReg.Id, byteCount);
+                instr.Operands[2] = new VirtualReg(bytes[byteCount - 1], IsDefinition: false);
+            }
+
+            // Re-key onto an immediate 0. Using an Immediate (rather than a fresh
+            // i8 zero constant) keeps the RHS out of the vreg world entirely, so no
+            // dead `arith.constant 0` survives to the selector.
+            instr.Operands[3] = new Immediate(0);
+            return;
         }
 
-        // Re-key onto an immediate 0. Using an Immediate (rather than a fresh i8
-        // zero constant) keeps the RHS out of the vreg world entirely, so no dead
-        // `arith.constant 0` survives to the selector.
-        instr.Operands[3] = new Immediate(0);
+        // Step 3: a general wide (i16/i32) compare → a lexicographic tree of
+        // per-byte i8 arith.cmpi combined with arith.select (mirrors llvm-mos
+        // MOSLegalizerInfo::legalizeICmp's buildSelect recursion). The tree's i1
+        // result feeds the cond_br; the instruction selector re-fuses the whole
+        // tree back into a CMP+branch ladder (it is never materialized as a
+        // boolean). MirSelectLoweringPass leaves these i1 selects alone.
+        var lhs = (VirtualReg)instr.Operands[2];
+        var lhsType = ((TypedVReg)function.GetVRegAnnotation(lhs.Id)).Type;
+        if (lhsType.SizeInBits > 8)
+        {
+            var rhs = (VirtualReg)instr.Operands[3];
+            BuildWideCmpTree(instr, builder, predicate, lhs.Id, rhs.Id, lhsType.SizeInBits / 8);
+        }
+        // An i8 compare is left as-is for the selector's i8 cmpi+cond_br fusion.
+    }
+
+    // Lexicographic per-byte lowering of a wide compare. For canonical predicate
+    // P on N-byte operands (byte index 0 = least significant), the most-
+    // significant byte is compared with P and the lower bytes with the unsigned
+    // "rest" predicate (uge→uge, eq→eq, slt→ult — the signed bias of the top byte
+    // is applied later by the selector, exactly as the old multi-byte ladder did):
+    //
+    //   cmp(P, [0..hi]) = select(cmpi eq, a[hi], b[hi]
+    //                            ? cmp(restP, [0..hi-1])
+    //                            : cmpi P, a[hi], b[hi])
+    //
+    // The selector's re-fusion recovers (predicate, per-byte operands) from this
+    // shape and emits the ladder; the tree instructions are then erased.
+    private static void BuildWideCmpTree(
+        MirInstruction cmpi, MirBuilder builder, ArithCmpPredicate predicate,
+        int aVreg, int bVreg, int byteCount)
+    {
+        var function = builder.Function;
+        builder.SetInsertionPointBefore(cmpi);
+
+        var aBytes = builder.BuildUnmerge(IRType.I8, aVreg, byteCount);
+        var bBytes = builder.BuildUnmerge(IRType.I8, bVreg, byteCount);
+
+        var restPredicate = predicate == ArithCmpPredicate.Slt ? ArithCmpPredicate.Ult : predicate;
+        var root = BuildLexicographic(builder, aBytes, bBytes, byteCount - 1, predicate, restPredicate);
+
+        var defId = ((VirtualReg)cmpi.Operands[0]).Id;
+        function.ReplaceAllUsesOfRegister(defId, root);
+        builder.Remove(cmpi);
+    }
+
+    // Build the i1 comparison vreg for bytes [0..hi]. The byte at `hi` is compared
+    // with `thisPredicate`; the recursion for lower bytes uses `restPredicate`.
+    private static int BuildLexicographic(
+        MirBuilder builder, int[] aBytes, int[] bBytes, int hi,
+        ArithCmpPredicate thisPredicate, ArithCmpPredicate restPredicate)
+    {
+        if (hi == 0)
+            return builder.BuildCmpI(thisPredicate, aBytes[0], bBytes[0]);
+
+        var cmpHi = builder.BuildCmpI(thisPredicate, aBytes[hi], bBytes[hi]);
+        var eqHi  = builder.BuildCmpI(ArithCmpPredicate.Eq, aBytes[hi], bBytes[hi]);
+        var rest  = BuildLexicographic(builder, aBytes, bBytes, hi - 1, restPredicate, restPredicate);
+        return builder.BuildSelect(IRType.I1, eqHi, rest, cmpHi);
     }
 
     // The cf.cond_br in `block` whose condition is `condVreg` (the compare's

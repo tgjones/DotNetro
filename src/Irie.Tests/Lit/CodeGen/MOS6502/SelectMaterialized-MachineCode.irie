@@ -53,9 +53,11 @@ bb0(%0 : i8, %1 : i8):
 ; The `-x` (subi 0, x) is single-use and feeds only the true arm, so arm-sinking
 ; moves it into bb1 (computed only on the negative path) — see the SBC in bb1.
 ; Sinking it out of the entry block also keeps the cmpi adjacent to the cond_br.
+; Because the diamond is formed before the legalizer, the `x <s 0` compare is
+; normalized to the optimal high-byte sign test (CMP #$00 + BMI), not an EOR bias.
 ; CHECK:     select_abs8:
-; CHECK:     CMP
-; CHECK:     BCC \.bb1
+; CHECK:     CMP #\$00
+; CHECK:     BMI \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK:     \.bb1:
 ; CHECK:     SBC
