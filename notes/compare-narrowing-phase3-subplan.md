@@ -110,13 +110,23 @@ the same ladder. **Net codegen is ~neutral; the win is purely architectural
      the Non-goal: no `G_SBC`, no V flag).
    - the artifact combiner folds the `unmerge`/`merge` round-trips, as in Phases
      1–2.
-4. **isel `arith.select i8` (materialized path).** A select that does *not* feed a
-   branch must lower to a real sequence. With no hardware select this is a small
-   branch (`B<cc>` over two assignments into a common vreg) — which means emitting
-   **new basic blocks** during isel, something the current
-   `InstructionSelectorPass` does not do. This is the single largest unknown and
-   the reason the parent plan flagged `arith.select` for its own sub-plan; the
-   step-1 `min`/`max`/`abs` test is its acceptance criterion.
+4. **`arith.select` → diamond, in a dedicated pre-isel pass (not in isel).** This
+   mirrors llvm-mos `MOSLowerSelect` (see "How llvm-mos lowers select" below):
+   a `MirFunctionPass` that runs *after* the legalizer and *before* the
+   instruction selector, expanding each `arith.select %c, %t, %f` into a CFG
+   diamond — split the current block at the select, add a true block and a false
+   block, emit `cf.cond_br %c, trueBB, falseBB`, and merge in the sink block via a
+   **block argument** (Irie's stand-in for `G_PHI`; `PhiEliminationPass` already
+   lowers block args to copies). Merge sibling selects in the same block sharing
+   the same `%c` into one diamond, and sink single-use arm-value computations into
+   their arm — both as llvm-mos does. Crucially this needs **no block creation in
+   isel**: after the pass, the diamond's `cf.cond_br` tests the select's condition,
+   which for `min`/`max`/`abs` is an `arith.cmpi`, so the *existing* cmpi+cond_br
+   fusion lowers it with zero new isel code. The step-1 `min`/`max`/`abs` test is
+   the acceptance criterion. (A select on an *opaque* i1 — e.g. a bool function
+   arg with no feeding compare — would produce a bare `cf.cond_br`, which Irie
+   does not yet support; that "test an i1 register and branch" primitive is a
+   separate follow-up, out of scope here.)
 5. **isel re-fusion (the load-bearing part).** Teach the selector to recognize
    `cf.cond_br (arith.select … of arith.cmpi …)` and emit the existing CMP+branch
    ladder instead of materializing the select — the `selectBrCondImm` analog.
@@ -212,17 +222,52 @@ This also settles the two scoping questions that drove the original lean toward 
   migration, and the wide migration rides the same machinery rather than
   justifying it alone.
 
+## How llvm-mos lowers select (reference for step 4)
+
+Pipeline order
+(`/Users/timjones/Code/llvm-mos/llvm/lib/Target/MOS/MOSTargetMachine.cpp`):
+`Legalizer → MOSCombiner → MOSLowerSelect → RegBankSelect → InstructionSelect`.
+So select lowering is a **dedicated MachineFunctionPass that runs after the
+legalizer and before instruction selection — not inside isel.**
+
+`MOSLowerSelect`
+(`/Users/timjones/Code/llvm-mos/llvm/lib/Target/MOS/MOSLowerSelect.cpp`):
+- `lowerSelect` (cpp:104) inserts a **diamond**: creates `TrueMBB`/`FalseMBB`/
+  `SinkMBB`, splices the post-select remainder into `SinkMBB`, and emits
+  `G_BRCOND_IMM %Tst, TrueMBB, 1` + `G_BR FalseMBB`; the merge is a `G_PHI` in the
+  sink (cpp:144-174).
+- **Merges** all `G_SELECT`s in the block sharing the same test into one diamond
+  (cpp:120-140), and **sinks** single-use arm-value defs into their arm
+  (cpp:176-200) so each value is computed only on its taken path.
+- `sinkSelectsToBranchUses` / `moveAwayFromCalls` are supporting cleanups.
+
+Then `InstructionSelect`'s `selectBrCondImm`
+(`MOSInstructionSelector.cpp:967`) fuses the diamond's `G_BRCOND_IMM` with the
+compare feeding `%Tst` into a single `CmpBr*` via the `m_CmpNZ*` matchers. So
+`min`/`max`/`abs` lower to a compare-and-branch diamond with a coalesced phi and
+**no boolean byte materialized**. The flag→byte fallback (`buildNZSelect`,
+cpp:1210; the `SelectImm` pseudo) is used only when a flag must become a value
+with no branch consumer (`isNZUseLegal == false`).
+
+## Resolved open questions
+
+- **Block creation: in a pre-isel pass, not isel** (answered above). Irie's
+  analog is a `MirFunctionPass` between `LegalizerPass` and
+  `InstructionSelectorPass` that expands `arith.select` into a `cf.cond_br`
+  diamond with a **block-argument** merge (not a PHI). `PhiEliminationPass`
+  already lowers block args to copies, and the diamond's `cond_br`, fed by the
+  select's `arith.cmpi` condition, reuses the existing cmpi+cond_br fusion — so
+  isel needs no block-creation and (for the compare-fed case) no new rule.
+- **`min`/`max` fusion: fused, not materialized** (answered above). Because the
+  select's condition is a compare, the diamond branch absorbs it; the arms set
+  the value and merge via the coalesced block arg. Match llvm-mos's
+  same-test-merge and arm-sinking so a multi-byte `min`/`max` emits one diamond
+  with both bytes set per arm, not one diamond per byte.
+
 ## Remaining open questions for implementation
 
-- **Block creation in isel (step 4).** The `InstructionSelectorPass` currently
-  does not create basic blocks. Decide whether the materialized `arith.select`
-  lowering creates them in isel, or whether a small pre-isel/target pass owns the
-  select→diamond expansion (cf. how `PhiEliminationPass` already splits edges
-  post-isel). This is the biggest design choice and should be settled before
-  step 4.
-- **`min`/`max` fusion vs. materialization.** For `cmpi` feeding a `select` whose
-  result is returned, the ideal 6502 lowering is a compare + conditional load
-  (a small branch), not a full boolean materialization. Decide whether step 4
-  handles `select(cmpi …)` as a fused conditional-move pattern, with the
-  fully-materialized flag→byte sequence as the fallback only for a select whose
-  condition is an opaque `i1` (e.g. a function-argument bool).
+- **Opaque-i1 select** (select condition is *not* a compare, e.g. a bool function
+  argument) produces a bare `cf.cond_br`, which Irie's selector rejects today. It
+  needs a "test an i1 register and branch" primitive (the `buildNZSelect`/`SelectImm`
+  analog). Out of scope for the `min`/`max`/`abs` motivating consumer; flag as a
+  follow-up rather than building it speculatively.
