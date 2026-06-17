@@ -1,6 +1,10 @@
 # Sub-plan: Phase 3 of compare-narrowing (wide non-zero compares + `arith.select`)
 
-Status: **draft for review — not yet approved or started.**
+Status: **Option A chosen (2026-06-17) — not yet started.** A motivating
+`arith.select` consumer (see Option A, step 1) is a required part of the work, so
+the materialized-select path has a real driver rather than being built
+speculatively for the fused wide-compare case (which re-fuses it away). Options B
+and A′ below are recorded as considered-and-not-taken.
 Parent plan: [`compare-narrowing-in-legalizer.md`](compare-narrowing-in-legalizer.md) §"Phase 3".
 Prereqs done: Phase 1 (signed-vs-zero narrowing in the legalizer) and Phase 2
 (predicate normalization to `{eq, uge, slt}`) are landed and green.
@@ -69,41 +73,60 @@ i8 `arith.cmpi` in the legalizer, then pattern-match them away in isel back into
 the same ladder. **Net codegen is ~neutral; the win is purely architectural
 (legalizer owns narrowing), and the risk of regression during re-fusion is real.**
 
-## Option A — full migration (faithful to the parent plan)
+## Option A — full migration (faithful to the parent plan) — **CHOSEN**
 
-1. **Dialect ops.** Add to `arith`: `Select` (i1 cond, two same-width values),
+1. **Motivating consumer first (de-speculates the work).** Before any compare
+   migration, add a real, *non-fused* `arith.select` consumer and its lit test,
+   so the materialized-select path (step 4) is driven by something that actually
+   needs it rather than by the fused wide-compare case (which re-fuses the select
+   away and never materializes it). Good candidates, smallest first:
+   - `min`/`max`: `%c = arith.cmpi slt, %a, %b; %r = arith.select %c, %a, %b;
+     core.return %r` — the `cmpi` feeds a `select` (not a `cf.cond_br`) and the
+     `select` result is returned, so **both** must materialize / fuse into a
+     conditional-move-style sequence, not a branch to distinct blocks.
+   - `abs`: `x <s 0 ? -x : x` (mirrors llvm-mos `legalizeAbs`,
+     MOSLegalizerInfo.cpp:1431) — a `select` over two computed values.
+   These are written directly as hand-authored MIR `.irie` tests (the frontend
+   still lowers source-level `?:` to a CFG diamond, so the only way to exercise a
+   true `arith.select` today is to author it in MIR). This test is the acceptance
+   criterion for the materialized path and must pass before step 5 deletes the
+   old ladder. It also answers the parent plan's "real need, not speculative"
+   gate: the consumer is the need.
+2. **Dialect ops.** Add to `arith`: `Select` (i1 cond, two same-width values),
    `Xor`, `And`, `Or`. Touch `ArithOp`, `ArithDialect` (`GetOpName`,
    `TryParseOp`, `GetInstructionInfo`, `IsSideEffectFree`), `MirBuilder`
    (`BuildSelect`/`BuildXor`/…), and the legalizer legality (`i8 = Legal`,
    `> 8 = NarrowScalar` for xor/and/or; `select` narrows element-wise).
    Writer/parser are generic and should round-trip without changes (add a
    round-trip lit test to confirm).
-2. **Legalizer `LegalizeCmpI` wide path.** Replace "leave wide for the selector"
+3. **Legalizer `LegalizeCmpI` wide path.** Replace "leave wide for the selector"
    with:
    - wide **eq** → OR-reduce the per-byte `xor`/`cmpi eq` to a single
      `i1`, *or* a lexicographic `select` of per-byte `cmpi eq` (match whichever
-     re-fuses cleanly — see step 4).
+     re-fuses cleanly — see step 5).
    - wide **uge/slt** → lexicographic `select(eq(hi), cmp(rest), cmp(hi))`, with
      `slt` first applying `EOR #$80` (a new `arith.xor` with `0x80`) to the top
      bytes of both operands, then running the **uge** lexicographic form (keeps
      the Non-goal: no `G_SBC`, no V flag).
    - the artifact combiner folds the `unmerge`/`merge` round-trips, as in Phases
      1–2.
-3. **isel `arith.select i8` (materialized fallback).** A select that does *not*
-   feed a branch must lower to a real sequence. With no hardware select this is a
-   small branch (`B<cc>` over two assignments into a common vreg) — which means
-   emitting **new basic blocks** during isel, something the current
+4. **isel `arith.select i8` (materialized path).** A select that does *not* feed a
+   branch must lower to a real sequence. With no hardware select this is a small
+   branch (`B<cc>` over two assignments into a common vreg) — which means emitting
+   **new basic blocks** during isel, something the current
    `InstructionSelectorPass` does not do. This is the single largest unknown and
-   the reason the parent plan flagged `arith.select` for its own sub-plan.
-4. **isel re-fusion (the load-bearing part).** Teach the selector to recognize
+   the reason the parent plan flagged `arith.select` for its own sub-plan; the
+   step-1 `min`/`max`/`abs` test is its acceptance criterion.
+5. **isel re-fusion (the load-bearing part).** Teach the selector to recognize
    `cf.cond_br (arith.select … of arith.cmpi …)` and emit the existing CMP+branch
    ladder instead of materializing the select — the `selectBrCondImm` analog.
    Without this, every wide compare regresses to a materialized boolean +
    branch. This is essentially re-implementing `SelectCmpIMultiByte`'s ladder as a
    DAG matcher over `select`/`cmpi`.
-5. **Delete** `SelectCmpIMultiByte` and now-unused helpers
+6. **Delete** `SelectCmpIMultiByte` and now-unused helpers
    (`EorByteWithImmediate`, `FunnelThroughAnyi8`, `GetByteVregsOrUnmerge`).
-6. **Verify** golden goldens unchanged (or improved) and the aggregate ≤ +9.0%.
+7. **Verify** existing goldens unchanged (or improved), the new `arith.select`
+   test passes, and the llvm-mos-reference aggregate is ≤ +9.0%.
 
 **Cost/risk:** large; introduces block-creation in isel (step 3) and a DAG
 re-fusion matcher (step 4) whose only job is to reproduce today's ladder. High
@@ -169,24 +192,37 @@ make Irie simpler or its codegen better** — it adds an IR concept and a re-fus
 pass to reproduce today's ladder. Revisit only if Irie ever needs genuine
 non-fused boolean compares (which would force materialization regardless).
 
-## Recommendation
+## Decision
 
-**Option B.** Phases 1–2 already delivered the parent plan's concrete wins
-(consistent signed-vs-zero narrowing, full predicate coverage, deletion of the
-bespoke isel merge-DCE). Phase 3's remaining delta is architectural-consistency
-only, it is blocked on `arith.select` (whose isel lowering needs block creation),
-and it would replace a working, efficient ladder with machinery that re-derives
-that same ladder — against the parent plan's "not speculatively" guidance and the
-`G_SBC` Non-goal. Take Option B now; revisit a scoped `arith.select` when a real
-consumer lands.
+**Option A**, with the step-1 motivating `arith.select` consumer made a required
+part of the work (decided 2026-06-17). The original scoping leaned toward Option
+B because, for the *fused* wide-compare case alone, Option A builds machinery that
+just re-derives today's ladder. The deciding factor is that we *do* want a true,
+non-fused `arith.select` (a real consumer such as `min`/`max`/`abs`): once that
+exists, the materialized-select path (step 4) is genuinely needed rather than
+speculative, and migrating the wide compare to ride the same generic select
+machinery becomes the consistent design rather than redundant work. Options B and
+A′ remain on record above as the considered alternatives.
 
-## Open questions for the reviewer
+This also settles the two scoping questions that drove the original lean toward B:
+- **A real `arith.select` consumer is in scope by decision** (step 1). It drives
+  the design and de-speculates the materialized path.
+- **Bare (non-branch) `i1` use is now an explicit goal**, via that consumer — so
+  the materialized path (step 4) is necessary regardless of the wide-compare
+  migration, and the wide migration rides the same machinery rather than
+  justifying it alone.
 
-- Is there a near-term front-end need for a true `arith.select` (non-CFG
-  `cond ? a : b`, `abs`, min/max, saturating arithmetic)? If yes, that consumer
-  should drive the `arith.select` design, and the wide-compare migration can ride
-  along; if no, Option B.
-- Do we want the wide unsigned/eq lexicographic-`select` form for any reason
-  other than the signed case (e.g. a future non-fused boolean compare)? If bare
-  (non-branch) `i1` compares ever need to be supported, Option A's materialized
-  path becomes necessary regardless.
+## Remaining open questions for implementation
+
+- **Block creation in isel (step 4).** The `InstructionSelectorPass` currently
+  does not create basic blocks. Decide whether the materialized `arith.select`
+  lowering creates them in isel, or whether a small pre-isel/target pass owns the
+  select→diamond expansion (cf. how `PhiEliminationPass` already splits edges
+  post-isel). This is the biggest design choice and should be settled before
+  step 4.
+- **`min`/`max` fusion vs. materialization.** For `cmpi` feeding a `select` whose
+  result is returned, the ideal 6502 lowering is a compare + conditional load
+  (a small branch), not a full boolean materialization. Decide whether step 4
+  handles `select(cmpi …)` as a fused conditional-move pattern, with the
+  fully-materialized flag→byte sequence as the fallback only for a select whose
+  condition is an opaque `i1` (e.g. a function-argument bool).
