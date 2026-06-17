@@ -1,8 +1,13 @@
 ; RUN: @iriec --target mos6502 --emit=asm @file
 
 ; Corpus: llvm-mos-reference/control-flow/early-return
-; A guard clause: one early exit plus a fall-through that consumes all three
-; args; staggered live-range ends.
+; Guard clauses with multiple early returns: three signed `< 0` tests, each on a
+; separate i16 argument, with staggered live-range ends. Faithful to the C source
+; (ext/llvm-mos-reference/control-flow/early-return.c).
+;
+; Each `x < 0` lowers to a sign-bit test of the high byte only (CMP #$00 + BMI),
+; matching llvm-mos's `cpx #0 ; bmi` — see MOS6502InstructionSelector's
+; SelectCmpIMultiByte zero-RHS signed fast path.
 ;
 ; CHECK pins Irie's current --emit=asm output (characterization / golden).
 ; Compare against ext/llvm-mos-reference/control-flow/early-return.s; close gaps via irie-report.
@@ -10,55 +15,53 @@
 ; CHECK:     early_return:
 ; CHECK:     STA \$07
 ; CHECK:     STX \$06
-; CHECK:     LDA \$02
-; CHECK:     STA \$0B
-; CHECK:     LDA \$03
-; CHECK:     STA \$0A
-; CHECK:     LDA \$04
-; CHECK:     STA \$09
-; CHECK:     LDA \$05
-; CHECK:     STA \$08
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$05
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$04
-; CHECK:     LDA \$07
-; CHECK:     STA \$03
+; CHECK:     LDY \#\$00
+; CHECK:     LDX \#\$00
 ; CHECK:     LDA \$06
-; CHECK:     LDX \$05
-; CHECK:     STX \$0C
-; CHECK:     LDX \$04
-; CHECK:     EOR \#\$80
-; CHECK:     TAY
-; CHECK:     TXA
-; CHECK:     EOR \#\$80
-; CHECK:     STA \$02
-; CHECK:     TYA
-; CHECK:     CMP \$02
-; CHECK:     BCC \.bb1
-; CHECK:     BNE \.bb2
-; CHECK:     LDA \$03
-; CHECK:     CMP \$0C
-; CHECK:     BCC \.bb1
+; CHECK:     CMP \#\$00
+; CHECK:     BMI \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK:     \.bb1:
-; CHECK:     LDA \$05
-; CHECK:     LDX \$04
+; CHECK:     TYA
 ; CHECK:     RTS
 ; CHECK:     \.bb2:
+; CHECK:     LDA \$03
+; CHECK:     CMP \#\$00
+; CHECK:     BMI \.bb3
+; CHECK:     JMP \.bb4
+; CHECK:     \.bb3:
+; CHECK:     LDA \$07
+; CHECK:     LDX \$06
+; CHECK:     RTS
+; CHECK:     \.bb4:
+; CHECK:     LDA \$05
+; CHECK:     CMP \#\$00
+; CHECK:     BMI \.bb5
+; CHECK:     JMP \.bb6
+; CHECK:     \.bb5:
 ; CHECK:     CLC
-; CHECK:     LDA \$0B
-; CHECK:     ADC \$09
+; CHECK:     LDA \$07
+; CHECK:     ADC \$02
 ; CHECK:     TAY
-; CHECK:     LDA \$0A
-; CHECK:     ADC \$08
+; CHECK:     LDA \$06
+; CHECK:     ADC \$03
+; CHECK:     TAX
+; CHECK:     TYA
+; CHECK:     RTS
+; CHECK:     \.bb6:
+; CHECK:     CLC
+; CHECK:     LDA \$07
+; CHECK:     ADC \$02
+; CHECK:     TAY
+; CHECK:     LDA \$06
+; CHECK:     ADC \$03
 ; CHECK:     TAX
 ; CHECK:     CLC
 ; CHECK:     TYA
-; CHECK:     ADC \$07
+; CHECK:     ADC \$04
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     ADC \$06
+; CHECK:     ADC \$05
 ; CHECK:     TAX
 ; CHECK:     TYA
 ; CHECK:     RTS
@@ -71,7 +74,18 @@ bb0(%0 : i16, %1 : i16, %2 : i16):
 bb1():
     core.return %3
 bb2():
-    %5 : i16 = arith.addi %1, %2
-    %6 : i16 = arith.addi %5, %0
-    core.return %6
+    %5 : i1 = arith.cmpi slt, %1, %3
+    cf.cond_br %5, bb3(), bb4()
+bb3():
+    core.return %0
+bb4():
+    %6 : i1 = arith.cmpi slt, %2, %3
+    cf.cond_br %6, bb5(), bb6()
+bb5():
+    %7 : i16 = arith.addi %0, %1
+    core.return %7
+bb6():
+    %8 : i16 = arith.addi %0, %1
+    %9 : i16 = arith.addi %8, %2
+    core.return %9
 }

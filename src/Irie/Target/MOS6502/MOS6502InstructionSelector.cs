@@ -715,6 +715,69 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             throw new NotSupportedException(
                 "MOS6502InstructionSelector: arith.cmpi whose result is used outside cf.cond_br is not yet supported.");
 
+        // `x < 0` / `x >= 0` only depend on the sign bit of the most-significant
+        // byte (mirrors llvm-mos `MOSLegalizerInfo::legalizeICmp`: "Determining
+        // whether the LHS is negative only requires looking at the highest byte
+        // (bit, really)."). When the RHS is the constant 0, skip the whole
+        // sign-bias + per-byte CMP chain and just test the high byte's sign with
+        // a single CMP #0 + BMI/BPL — the low bytes and the wide constant drop
+        // out entirely (cf. llvm-mos `cpx #0 ; bmi`).
+        if ((predicate is ArithCmpPredicate.Slt or ArithCmpPredicate.Sge)
+            && IsWideConstantZero(function, bVreg, byteCount))
+        {
+            builder.SetInsertionPointBefore(cmpi);
+
+            // The high byte alone carries the sign. GetByteVregsOrUnmerge returns
+            // the existing merge parts (a is live elsewhere, so the merge stays),
+            // leaving the low byte untouched for its other uses.
+            var aBytesHi = GetByteVregsOrUnmerge(function, builder, aVreg, byteCount);
+            var aHi = aBytesHi[byteCount - 1];
+
+            var aSignVreg = function.CreateVirtualRegisterInClass(
+                MOS6502RegisterClass.Ac,
+                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+            builder.BuildInstruction(
+                PseudoDialect.OpRef(PseudoOp.Copy),
+                new VirtualReg(aSignVreg, IsDefinition: true),
+                new VirtualReg(aHi,       IsDefinition: false));
+
+            // mos6502.cmp %a_sign, #0 (AMS refines to cmp.imm; sets $n from bit 7).
+            builder.BuildInstruction(
+                MOS6502Dialect.OpRef(MOS6502Op.Cmp),
+                new VirtualReg(aSignVreg, IsDefinition: false),
+                new Immediate(0),
+                new PhysicalReg(MOS6502Registers.N, IsDefinition: true, IsImplicit: true),
+                new PhysicalReg(MOS6502Registers.Z, IsDefinition: true, IsImplicit: true),
+                new PhysicalReg(MOS6502Registers.C, IsDefinition: true, IsImplicit: true));
+
+            // slt 0 → negative → BMI to T; sge 0 → non-negative → BPL to T.
+            var signBranch = predicate is ArithCmpPredicate.Slt
+                ? MOS6502Op.Bmi
+                : MOS6502Op.Bpl;
+            builder.BuildInstruction(
+                MOS6502Dialect.OpRef(signBranch),
+                tTarget,
+                new PhysicalReg(MOS6502Registers.N, IsDefinition: false, IsImplicit: true));
+            builder.BuildInstruction(MOS6502Dialect.OpRef(MOS6502Op.JmpAbs), fTarget);
+
+            builder.Remove(next);
+            builder.Remove(cmpi);
+
+            // The cmpi was the wide RHS's only consumer (the per-byte zero
+            // constants it merges stay live for their other uses, e.g. a sibling
+            // `return 0`). With the compare gone the merge is dead, but isel does
+            // not DCE — drop it so the unclassable wide vreg never reaches RA.
+            var bDef = function.GetDefinition(bVreg);
+            if (bDef is not null
+                && bDef.Opcode.Dialect == PseudoDialect.Id
+                && (PseudoOp)bDef.Opcode.Code == PseudoOp.Merge
+                && function.GetUseCount(bVreg) == 0)
+            {
+                builder.Remove(bDef);
+            }
+            return true;
+        }
+
         builder.SetInsertionPointBefore(cmpi);
 
         // Get the byte vregs that make up each operand. If the operand is
@@ -828,6 +891,45 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             result[i] = fresh;
         }
         return result;
+    }
+
+    // True when `wideVreg` is statically the constant 0 across all `byteCount`
+    // bytes — i.e. either a single `arith.constant 0` or a `pseudo.merge` whose
+    // every part is an `arith.constant 0`. Pure inspection: never mutates the IR
+    // (unlike GetByteVregsOrUnmerge), so it is safe to call before committing to
+    // a lowering.
+    private static bool IsWideConstantZero(MirFunction function, int wideVreg, int byteCount)
+    {
+        var def = function.GetDefinition(wideVreg);
+        if (def is null)
+            return false;
+
+        // A byte reads as constant 0 whether or not its defining
+        // arith.constant has already been selected: the i8 constant rule
+        // rewrites `arith.constant 0` into `pseudo.copy #0` (an immediate copy),
+        // and isel may visit it before the cmpi. Accept both shapes.
+        static bool IsConstantZero(MirInstruction? d) =>
+            d is not null
+            && d.Operands is [_, Immediate { Value: 0 }]
+            && ((d.Opcode.Dialect == ArithDialect.Id && (ArithOp)d.Opcode.Code == ArithOp.Constant)
+                || (d.Opcode.Dialect == PseudoDialect.Id && (PseudoOp)d.Opcode.Code == PseudoOp.Copy));
+
+        if (byteCount == 1)
+            return IsConstantZero(def);
+
+        if (def.Opcode.Dialect != PseudoDialect.Id || (PseudoOp)def.Opcode.Code != PseudoOp.Merge)
+            return false;
+
+        var parts = 0;
+        foreach (var op in def.Operands)
+        {
+            if (op is not VirtualReg v || v.IsDefinition)
+                continue;
+            if (!IsConstantZero(function.GetDefinition(v.Id)))
+                return false;
+            parts++;
+        }
+        return parts == byteCount;
     }
 
     // Look through a wide vreg to find the i8 byte vregs that compose it.
