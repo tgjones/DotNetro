@@ -27,10 +27,15 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
                 ArithOp.SubI       when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
                 ArithOp.AddICarry  => LegalityAction.Legal,
                 ArithOp.SubIBorrow => LegalityAction.Legal,
-                // arith.cmpi's first def is i1 (the boolean result), so the
-                // type query here is always i1. The narrowing decision is
-                // driven by the operand types — see GetCmpINarrowType.
-                ArithOp.CmpI       => LegalityAction.Legal,
+                // arith.cmpi's legality is keyed off operand[2] (the `a` value),
+                // not the i1 def — see ArithDialect.GetInstructionInfo's
+                // TypeOperandIndex: 2. An i8 compare is legal as-is; a wide
+                // compare is Custom-legalized: the signed-against-zero shape is
+                // narrowed to a single high-byte sign test (LegalizeCmpI), and
+                // every other wide compare is left wide for the selector's
+                // multi-byte path.
+                ArithOp.CmpI       when intType.SizeInBits == 8 => LegalityAction.Legal,
+                ArithOp.CmpI       when intType.SizeInBits > 8  => LegalityAction.Custom,
                 ArithOp.Constant   when intType.SizeInBits == 1  => LegalityAction.Legal,
                 ArithOp.Constant   when intType.SizeInBits == 8  => LegalityAction.Legal,
                 ArithOp.Constant   when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
@@ -152,8 +157,74 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
                 $"MOS6502LegalizerInfo: no Custom legalization for cast opcode {(CastOp)instr.Opcode.Code}");
         }
 
+        if (instr.Opcode.Dialect == ArithDialect.Id)
+        {
+            switch ((ArithOp)instr.Opcode.Code)
+            {
+                case ArithOp.CmpI:
+                    LegalizeCmpI(instr, builder);
+                    return;
+            }
+            throw new NotSupportedException(
+                $"MOS6502LegalizerInfo: no Custom legalization for arith opcode {(ArithOp)instr.Opcode.Code}");
+        }
+
         throw new NotSupportedException(
             $"MOS6502LegalizerInfo: no Custom legalization for {instr.Opcode}");
+    }
+
+    // Wide arith.cmpi narrowing. Only the signed compare against a statically-zero
+    // RHS is handled here: `x <s 0` / `x >=s 0` depend solely on the sign bit of
+    // the most-significant byte, so the compare is re-keyed onto that byte versus
+    // an immediate 0 — `arith.cmpi slt/sge, lhsHigh : i8, 0`. Mirrors llvm-mos
+    // MOSLegalizerInfo::legalizeICmp ("the highest byte (bit, really)").
+    //
+    // The unmerge of the LHS is folded against its upstream pseudo.merge by the
+    // artifact combiner, and the now-unused wide RHS constant is swept by the
+    // legalizer's trivially-dead check. Every other wide compare (unsigned /
+    // equality, and signed against a non-zero RHS) is left wide and lowered by
+    // the selector's multi-byte path, so this returns without changing it.
+    private static void LegalizeCmpI(MirInstruction instr, MirBuilder builder)
+    {
+        var function = builder.Function;
+        if (instr.Operands.Length != 4
+            || instr.Operands[0] is not VirtualReg defReg || !defReg.IsDefinition
+            || instr.Operands[1] is not Immediate predImm
+            || instr.Operands[2] is not VirtualReg aReg || aReg.IsDefinition
+            || instr.Operands[3] is not VirtualReg bReg || bReg.IsDefinition)
+            throw new InvalidOperationException(
+                "MOS6502LegalizerInfo: arith.cmpi must have shape `%def : i1 = arith.cmpi <pred>, %a, %b`.");
+
+        var predicate = (ArithCmpPredicate)predImm.Value;
+        if (predicate is not (ArithCmpPredicate.Slt or ArithCmpPredicate.Sge)
+            || !IsConstantZero(function, bReg.Id))
+        {
+            // Not the signed-against-zero shape: leave wide for the selector.
+            return;
+        }
+
+        var aType = ((TypedVReg)function.GetVRegAnnotation(aReg.Id)).Type;
+        var byteCount = aType.SizeInBits / 8;
+
+        var bytes = builder.BuildUnmerge(IRType.I8, aReg.Id, byteCount);
+        var highByte = bytes[byteCount - 1];
+
+        // Re-key onto the high byte versus an immediate 0. Using an Immediate
+        // (rather than a fresh i8 zero constant) keeps the RHS out of the vreg
+        // world entirely, so no dead `arith.constant 0` survives to the selector.
+        instr.Operands[2] = new VirtualReg(highByte, IsDefinition: false);
+        instr.Operands[3] = new Immediate(0);
+    }
+
+    // True when `vreg` is defined by `arith.constant 0` of any width. Pure
+    // inspection — never mutates the IR.
+    private static bool IsConstantZero(MirFunction function, int vreg)
+    {
+        var def = function.GetDefinition(vreg);
+        return def is not null
+            && def.Opcode.Dialect == ArithDialect.Id
+            && (ArithOp)def.Opcode.Code == ArithOp.Constant
+            && def.Operands is [_, Immediate { Value: 0 }];
     }
 
     // %v : iN = mem.load.iN %p  →  per-byte mem.load.byte_at chain + pseudo.merge.
