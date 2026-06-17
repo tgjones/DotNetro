@@ -1,6 +1,5 @@
 using Irie.Dialects.Arith;
 using Irie.Dialects.Cast;
-using Irie.Dialects.Cf;
 using Irie.Dialects.Mem;
 using Irie.Dialects.Pseudo;
 using Irie.Mir;
@@ -31,21 +30,27 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
                 // arith.cmpi's legality is keyed off operand[2] (the `a` value),
                 // not the i1 def — see ArithDialect.GetInstructionInfo's
                 // TypeOperandIndex: 2. Every integer compare is Custom-legalized
-                // (LegalizeCmpI): the predicate is first normalized to the
-                // canonical {eq, uge, slt} set, then the signed-against-zero
-                // shape is narrowed to a single high-byte sign test. An i8
-                // compare is left legal after normalization; a wide compare is
-                // left wide for the selector's multi-byte path.
+                // (LegalizeCmpI): the predicate is normalized consumer-
+                // independently to the canonical {eq, uge, slt} set (inverting via
+                // an arith.not), the signed-against-zero shape is narrowed to a
+                // single high-byte sign test, and a wide compare is lowered to a
+                // lexicographic i8 cmpi + i1 select tree. An i8 compare is left
+                // legal for the selector's i8 cmpi+cond_br fusion.
                 ArithOp.CmpI       => LegalityAction.Custom,
                 ArithOp.Constant   when intType.SizeInBits == 1  => LegalityAction.Legal,
                 ArithOp.Constant   when intType.SizeInBits == 8  => LegalityAction.Legal,
                 ArithOp.Constant   when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
-                // Materialized (value) selects are lowered to diamonds by
-                // MirSelectLoweringPass *before* the legalizer, so the only
-                // arith.select the legalizer sees are the i1 lexicographic-tree
-                // selects it creates itself for wide compares — left legal for the
-                // instruction selector to re-fuse into a CMP+branch ladder.
+                // Materialized (value) selects: i8 left legal for the target's
+                // select-lowering pass (which runs after the legalizer); wider
+                // narrows element-wise into per-byte i8 selects sharing the i1
+                // condition. The i1 selects of a wide-compare lexicographic tree
+                // are left legal for the instruction selector to re-fuse.
                 ArithOp.Select     when intType.SizeInBits == 1  => LegalityAction.Legal,
+                ArithOp.Select     when intType.SizeInBits == 8  => LegalityAction.Legal,
+                ArithOp.Select     when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
+                // arith.not (i1) marks a normalized-away inverse predicate; left
+                // legal for the selector to strip at the consuming cf.cond_br.
+                ArithOp.Not        when intType.SizeInBits == 1  => LegalityAction.Legal,
                 _ => LegalityAction.Unsupported,
             };
         }
@@ -114,7 +119,8 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
         if (opcode.Dialect == ArithDialect.Id
             && ((ArithOp)opcode.Code == ArithOp.AddI
                 || (ArithOp)opcode.Code == ArithOp.SubI
-                || (ArithOp)opcode.Code == ArithOp.Constant))
+                || (ArithOp)opcode.Code == ArithOp.Constant
+                || (ArithOp)opcode.Code == ArithOp.Select))
             return IRType.I8;
 
         throw new NotSupportedException(
@@ -183,22 +189,23 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
     // arith.cmpi legalization (mirrors llvm-mos MOSLegalizerInfo::legalizeICmp):
     //
     //   1. Normalize the predicate to the canonical {eq, uge, slt} set the 6502
-    //      flags express directly. Negation (ne/ult/sge → eq/uge/slt) inverts the
-    //      predicate and swaps the consuming branch's true/false edges; operand
+    //      flags express directly — *consumer-independently*, exactly as llvm-mos
+    //      does. Negation (ne/ult/sge → eq/uge/slt) inverts the predicate and
+    //      wraps the i1 result in an `arith.not` (the buildNot analogue); operand
     //      swap (ule/ugt/sle/sgt) reverses the predicate and the a/b operands.
+    //      The selector strips the `arith.not` at the consuming cf.cond_br by
+    //      swapping its true/false targets, so no boolean is ever materialized.
     //   2. Narrow the signed compare against a statically-zero RHS (`x <s 0`) to
     //      a single high-byte sign test — `arith.cmpi slt, lhsHigh : i8, 0` —
-    //      since only the most-significant byte's sign bit matters. The LHS
-    //      unmerge is folded against its upstream pseudo.merge by the artifact
-    //      combiner, and the now-unused wide RHS constant is swept by the
-    //      legalizer's trivially-dead check.
+    //      since only the most-significant byte's sign bit matters.
     //   3. Lower any remaining wide (i16/i32) compare to a lexicographic tree of
     //      per-byte i8 arith.cmpi combined with i1 arith.select (BuildWideCmpTree).
     //      The tree's i1 root feeds the cond_br; the instruction selector re-fuses
     //      the whole tree into a CMP+branch ladder (it is never materialized).
     //
-    // After this an i8 compare is legal as-is for the selector's i8 cmpi+cond_br
-    // fusion; wide compares survive only as the i1 select tree.
+    // Because normalization no longer depends on the consumer, a compare feeding a
+    // materialized arith.select (lowered to a cond_br only later, by the target's
+    // select-lowering pass) is narrowed here just the same.
     private static void LegalizeCmpI(MirInstruction instr, MirBuilder builder)
     {
         var function = builder.Function;
@@ -209,25 +216,17 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
             throw new InvalidOperationException(
                 "MOS6502LegalizerInfo: arith.cmpi must have shape `%def : i1 = arith.cmpi <pred>, %a, %b`.");
 
-        // Normalization is coupled to the fused branch it enables: predicate
-        // negation flips the branch sense, so it needs the consuming cf.cond_br.
-        // A compare whose result is *not* the condition of a cond_br in this block
-        // is left untouched (i1 materialization is rejected downstream just as
-        // before — moving narrowing into the legalizer must not start accepting
-        // it here).
-        var condBr = FindConsumingCondBr(defReg.Id, instr.Parent!);
-        if (condBr is null)
-            return;
-
-        // Step 1: normalize the predicate to {eq, uge, slt}, the set the 6502
-        // flags express directly.
+        // Step 1: normalize the predicate to {eq, uge, slt}. Negation is recorded
+        // and applied once, as an arith.not on the result (consumer-independent);
+        // operand swap mutates the cmpi in place.
         var predicate = (ArithCmpPredicate)predImm.Value;
+        var negate = false;
         while (predicate is not (ArithCmpPredicate.Eq or ArithCmpPredicate.Uge or ArithCmpPredicate.Slt))
         {
             if (predicate is ArithCmpPredicate.Ne or ArithCmpPredicate.Ult or ArithCmpPredicate.Sge)
             {
                 predicate = ArithCmpPredicateOps.Inverse(predicate);
-                (condBr.Operands[1], condBr.Operands[2]) = (condBr.Operands[2], condBr.Operands[1]);
+                negate = !negate;
             }
             else // ule, ugt, sle, sgt
             {
@@ -236,6 +235,21 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
             }
         }
         instr.Operands[1] = new Immediate((long)predicate);
+
+        // Apply the negation by routing the cmpi's def through a fresh vreg and
+        // emitting `%origDef = arith.not %inner` right after the cmpi. Steps 2/3
+        // (which may RAUW the cmpi's def or rebuild it into a tree) then flow
+        // through the not automatically, so consumers see not(canonicalResult).
+        if (negate)
+        {
+            var inner = function.CreateVirtualRegister(IRType.I1);
+            builder.SetInsertionPointAfter(instr);
+            builder.BuildInstruction(
+                ArithDialect.OpRef(ArithOp.Not),
+                new VirtualReg(defReg.Id, IsDefinition: true),
+                new VirtualReg(inner,     IsDefinition: false));
+            instr.Operands[0] = new VirtualReg(inner, IsDefinition: true);
+        }
 
         // Step 2: signed compare against a constant 0 → high-byte sign test.
         if (predicate == ArithCmpPredicate.Slt
@@ -317,23 +331,6 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
         var eqHi  = builder.BuildCmpI(ArithCmpPredicate.Eq, aBytes[hi], bBytes[hi]);
         var rest  = BuildLexicographic(builder, aBytes, bBytes, hi - 1, restPredicate, restPredicate);
         return builder.BuildSelect(IRType.I1, eqHi, rest, cmpHi);
-    }
-
-    // The cf.cond_br in `block` whose condition is `condVreg` (the compare's
-    // result), or null if none — i.e. the compare's result is materialized as an
-    // i1 value rather than fused into a branch.
-    private static MirInstruction? FindConsumingCondBr(int condVreg, MirBlock block)
-    {
-        foreach (var instr in block.Instructions)
-        {
-            if (instr.Opcode.Dialect == CfDialect.Id
-                && (CfOp)instr.Opcode.Code == CfOp.CondBr
-                && instr.Operands.Length == 3
-                && instr.Operands[0] is VirtualReg cond && !cond.IsDefinition && cond.Id == condVreg
-                && instr.Operands[1] is BlockTarget && instr.Operands[2] is BlockTarget)
-                return instr;
-        }
-        return null;
     }
 
     // True when `vreg` is defined by `arith.constant 0` of any width. Pure

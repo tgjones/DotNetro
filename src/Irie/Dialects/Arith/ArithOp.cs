@@ -33,8 +33,15 @@ public enum ArithOp : ushort
     // %r = arith.select %cond, %a, %b
     // SSA conditional value: %r is %a when %cond (i1) is true, else %b. Both value
     // operands share %r's type. A materialized (value) select is lowered to a CFG
-    // diamond by the pre-isel MirSelectLoweringPass (mirrors llvm-mos
+    // diamond by the target's pre-isel select-lowering pass (mirrors llvm-mos
     // MOSLowerSelect); the i1 selects of a wide-compare lexicographic tree are
     // re-fused into a CMP+branch ladder by the instruction selector.
     Select,
+
+    // %r = arith.not %x   — logical negation of an i1 (mirrors llvm-mos buildNot).
+    // Emitted by the legalizer's consumer-independent predicate normalization
+    // (ne/ult/sge/… → eq/uge/slt + NOT). It is never materialized: the instruction
+    // selector strips it at the consuming cf.cond_br by swapping the branch's
+    // true/false targets.
+    Not,
 }

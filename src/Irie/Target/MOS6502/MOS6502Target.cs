@@ -24,6 +24,13 @@ public class MOS6502Target : Irie.Target.Target
 
     public override string GetRegisterName(int physReg) => MOS6502Registers.NameOf(physReg);
 
+    public override void AddPreInstructionSelectionPasses(Irie.Passes.PassManager pm)
+    {
+        // Expand materialized arith.select into cf.cond_br diamonds (the llvm-mos
+        // MOSLowerSelect analogue) on legalized, still-SSA MIR.
+        pm.AddPass(new MOS6502SelectLoweringPass());
+    }
+
     public override void AddPostRegisterAllocationPasses(Irie.Passes.PassManager pm)
     {
         pm.AddPass(new MOS6502AddressingModeSelectorPass());

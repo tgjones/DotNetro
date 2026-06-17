@@ -1,9 +1,9 @@
-; RUN: @iriec --target mos6502 --stop-after Legalizer @file
+; RUN: @iriec --target mos6502 --run-pass none @file
 
-; Verifies all 10 predicate kinds round-trip symbolically through the parser
-; and writer. Each cmpi feeds an unused i1 vreg; the legalizer's trivially-
-; dead pass DCEs none of them because they all flow into the unconditional
-; branch arg list, keeping the predicates visible in the output.
+; Verifies all 10 predicate kinds round-trip symbolically through the parser and
+; writer. This parses and reprints with no passes run — the legalizer would
+; otherwise normalize every predicate to the canonical {eq, uge, slt} set
+; (consumer-independently), so it cannot be used to keep all ten visible.
 
 ; CHECK: func @TestCmpAll : \(i8, i8\) -> void \{
 ; CHECK:     %2 : i1 = arith.cmpi eq, %0, %1

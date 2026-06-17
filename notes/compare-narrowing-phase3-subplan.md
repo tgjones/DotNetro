@@ -1,29 +1,41 @@
 # Sub-plan: Phase 3 of compare-narrowing (wide non-zero compares + `arith.select`)
 
-Status: **Option A COMPLETE (2026-06-17).** All seven steps landed and green
-(205/205 tests, Debug + Release; llvm-mos-reference aggregate unchanged at
-+9.0%). Wide-compare asm is byte-for-byte identical to the pre-migration ladder;
-`abs` improved (the compare-against-zero now normalizes to a `CMP #$00`/`BMI`
-sign test). Two deviations from the steps as originally written, both
-deliberate:
+Status: **Option A COMPLETE (2026-06-17), llvm-mos-faithful.** All seven steps
+landed and green (205/205 tests, Debug + Release; llvm-mos-reference aggregate
+unchanged at +9.0%). Wide-compare asm is byte-for-byte identical to the
+pre-migration ladder; `abs` improved (the compare-against-zero normalizes to a
+`CMP #$00`/`BMI` sign test). The pipeline mirrors llvm-mos:
 
-1. **`MirSelectLoweringPass` runs *before* the legalizer, not after.** The plan
-   (mirroring llvm-mos's `Legalizer → … → LowerSelect` order) put it after, but
-   that leaves a wide cmpi feeding a *materialized* select un-narrowed (its
-   `cf.cond_br` does not exist when the legalizer runs). Running select-lowering
-   first lets the legalizer see every `cf.cond_br` and own *all* compare
-   narrowing uniformly — which is the actual architectural goal — and is why
-   `abs` gets the optimal sign test.
-2. **No `arith.xor`/`and`/`or` were added.** They were only motivated by doing the
-   signed `EOR #$80` bias *in the legalizer*; to reproduce today's exact ladder
-   the bias stays in the selector's re-fusion (`EmitMultiByteCmpLadder`), so the
-   bitwise ops were never needed. Only `arith.select` was added.
+- **Predicate normalization is consumer-independent (NOT-based).** `LegalizeCmpI`
+  reduces ne/ult/sge/… to the canonical {eq, uge, slt} set by inverting the
+  predicate and wrapping the i1 result in an `arith.not` (the `buildNot` /
+  `negateInverseComparison` analogue), exactly like llvm-mos — *not* by swapping
+  the consumer's branch edges. So the legalizer narrows every compare regardless
+  of what consumes it (branch, select, …).
+- **Select-lowering runs after the legalizer**, as `MOS6502SelectLoweringPass`, a
+  target pass added via the new `Target.AddPreInstructionSelectionPasses` hook —
+  the llvm-mos `MOSLowerSelect` slot. (It is a target pass, not a generic one,
+  because the "leave i1 selects for the selector's re-fusion" policy is specific
+  to this target's wide-compare strategy.) It expands materialized value selects
+  into `cf.cond_br` diamonds (same-test merge + arm sinking); a wide value select
+  is narrowed to per-byte i8 selects by the legalizer first.
+- **The wide compare** is lowered in the legalizer to a lexicographic tree of i8
+  `arith.cmpi` + i1 `arith.select` (`BuildWideCmpTree`/`BuildLexicographic`). The
+  selector's `SelectCondBr` re-fuses `cf.cond_br (compare | not | select-tree)`
+  back into a CMP/branch sequence: it strips `arith.not` wrappers (swapping the
+  branch targets), then emits the i8 compare (`EmitI8CmpBranch`) or the multi-byte
+  ladder (`RecoverCmpTree` + `EmitMultiByteCmpLadder`). `SelectCmpIMultiByte` and
+  its now-unused helpers were deleted.
 
-The wide compare is lowered in the legalizer to a lexicographic tree of i8
-`arith.cmpi` + i1 `arith.select` (`BuildWideCmpTree`/`BuildLexicographic`); the
-selector's `SelectCondBr` re-fuses `cf.cond_br (select-tree)` back into the
-CMP+branch ladder (`RecoverCmpTree` + `EmitMultiByteCmpLadder`). `SelectCmpIMultiByte`
-and its now-unused helpers were deleted.
+**The one deliberate deviation from llvm-mos:** the wide compare re-fuses
+*monolithically* into Irie's existing CMP+branch ladder, rather than llvm-mos's
+per-branch fusion of a lowered select diamond. This keeps the existing (good)
+ladder output byte-identical; the lexicographic tree's `ult` rest-leaves, which
+the consumer-independent normalization rewrites to `uge + arith.not` (just as in
+llvm-mos), are simply looked through by `RecoverCmpTree`/`StripNots` since the
+ladder is driven by the overall predicate alone. No `arith.xor`/`and`/`or` were
+needed (the signed `EOR #$80` bias lives in the ladder, not the legalizer); only
+`arith.select` and `arith.not` were added.
 
 A motivating `arith.select` consumer (see Option A, step 1) is a required part of the work, so
 the materialized-select path has a real driver rather than being built

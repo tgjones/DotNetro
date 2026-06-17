@@ -35,6 +35,12 @@ public sealed class MirBuilder(MirFunction function)
         _insertionIndex = _block.Instructions.IndexOf(instruction);
     }
 
+    public void SetInsertionPointAfter(MirInstruction instruction)
+    {
+        _block = instruction.Parent!;
+        _insertionIndex = _block.Instructions.IndexOf(instruction) + 1;
+    }
+
     // Mark a physical register as live-in on the current block.
     public void AddLiveIn(int physReg) => _block!.LiveIns.Add(physReg);
 

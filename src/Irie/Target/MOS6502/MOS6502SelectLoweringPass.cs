@@ -1,12 +1,16 @@
 using Irie.Dialects.Arith;
 using Irie.Dialects.Cf;
 using Irie.Mir;
+using Irie.Passes;
 
-namespace Irie.Passes;
+namespace Irie.Target.MOS6502;
 
-// Lowers materialized `arith.select` (a value select, i.e. result width > 1)
-// into a CFG diamond, mirroring llvm-mos MOSLowerSelect. Runs after the
-// legalizer and before instruction selection.
+// Lowers a materialized `arith.select` (a value select, i.e. result width > 1)
+// into a CFG diamond — the llvm-mos MOSLowerSelect analogue, and like it this
+// runs after the legalizer and before instruction selection (added via
+// Target.AddPreInstructionSelectionPasses). It is a target pass rather than a
+// generic one because the "leave i1 selects alone" policy below is specific to
+// this target's wide-compare re-fusion strategy.
 //
 // For `%r = arith.select %c, %a, %b` this produces:
 //
@@ -27,16 +31,15 @@ namespace Irie.Passes;
 //     single diamond with all bytes set per arm.
 //   * arm sinking — a single-use value computation that feeds exactly one arm is
 //     moved out of `block` into that arm's block, so it runs only on the taken
-//     path. This also keeps the condition's `arith.cmpi` adjacent to the
-//     `cf.cond_br`, which the instruction selector's cmpi+cond_br fusion requires.
+//     path.
 //
 // An i1 (width-1) select is NOT lowered here: it only ever arises from the
 // legalizer's wide-compare lexicographic lowering and feeds a `cf.cond_br`, where
 // the instruction selector re-fuses it into a CMP+branch ladder. Lowering it to a
 // diamond would needlessly materialize a boolean byte.
-public sealed class MirSelectLoweringPass : MirFunctionPass
+public sealed class MOS6502SelectLoweringPass : MirFunctionPass
 {
-    public override string Name => "MirSelectLowering";
+    public override string Name => "MOS6502SelectLowering";
 
     public override void Run(MirFunction function)
     {
@@ -140,9 +143,8 @@ public sealed class MirSelectLoweringPass : MirFunctionPass
 
         // Arm sinking: now that the arm branches carry the arm args as real uses,
         // move single-use arm-value computations out of `block` into the arm that
-        // uses them (before that arm's terminator). This runs the computation only
-        // on the taken path and, crucially, removes it from between the condition's
-        // cmpi and the cond_br so the selector's cmpi+cond_br fusion still fires.
+        // uses them (before that arm's terminator), so they run only on the taken
+        // path (mirrors llvm-mos sinkSelectsToBranchUses).
         SinkArmValues(function, block, trueBB, trueBr, trueArgs);
         SinkArmValues(function, block, falseBB, falseBr, falseArgs);
 
@@ -168,7 +170,7 @@ public sealed class MirSelectLoweringPass : MirFunctionPass
             if (!dialect.IsSideEffectFree(def.Opcode.Code)) continue;
             if (function.GetUseCount(v.Id) != 1) continue;
             // A def reading a physical register (e.g. an ABI copy from $a) cannot
-            // be sunk past the cmpi, whose funnel may clobber that register.
+            // be sunk past intervening code that may clobber that register.
             if (ReadsPhysicalRegister(def)) continue;
 
             block.Instructions.Remove(def);

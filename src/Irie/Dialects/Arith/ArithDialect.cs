@@ -19,6 +19,7 @@ public sealed class ArithDialect : Dialect
         ArithOp.SubIBorrow => "subi_with_borrow",
         ArithOp.Constant   => "constant",
         ArithOp.Select     => "select",
+        ArithOp.Not        => "not",
         _ => throw new ArgumentOutOfRangeException(nameof(code), code, $"Unknown arith opcode {code}."),
     };
 
@@ -33,6 +34,7 @@ public sealed class ArithDialect : Dialect
             case "subi_with_borrow":  code = (ushort)ArithOp.SubIBorrow; return true;
             case "constant":          code = (ushort)ArithOp.Constant;   return true;
             case "select":            code = (ushort)ArithOp.Select;     return true;
+            case "not":               code = (ushort)ArithOp.Not;        return true;
         }
         code = 0;
         return false;

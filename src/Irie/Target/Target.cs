@@ -29,6 +29,13 @@ public abstract class Target
     // `$A` instead of `$0`, etc.
     public abstract string GetRegisterName(int physReg);
 
+    // Called by the driver between LegalizerPass and InstructionSelectorPass.
+    // Targets append passes that run on legalized, still-SSA MIR before isel —
+    // e.g. MOS6502's select-lowering, which expands materialized arith.select into
+    // a cf.cond_br diamond (the llvm-mos MOSLowerSelect analogue, which likewise
+    // runs after the legalizer and before instruction selection).
+    public virtual void AddPreInstructionSelectionPasses(Irie.Passes.PassManager pm) { }
+
     // Called by iriec between CopyEliminationPass and PseudoExpansionPass.
     // Targets append their own post-RA passes (e.g. addressing-mode selection
     // for MOS6502) — there is no generic stage at this point in the pipeline.

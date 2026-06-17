@@ -70,12 +70,10 @@ rootCommand.SetAction(parseResult =>
     var passMgr = new PassManager(stopAfterPass, startAtPass);
     passMgr.AddPass(new FrameLoweringPass());
     passMgr.AddPass(new AbiLoweringPass(target.CallLowering));
-    // Lower materialized arith.select into diamonds BEFORE the legalizer, so the
-    // legalizer sees the resulting cf.cond_br and owns all compare narrowing
-    // uniformly (a wide cmpi feeding a select would otherwise escape narrowing,
-    // since its cond_br does not exist yet).
-    passMgr.AddPass(new MirSelectLoweringPass());
     passMgr.AddPass(new LegalizerPass(target.LegalizerInfo));
+    // Target pre-isel passes (e.g. MOS6502 select-lowering) run on legalized,
+    // still-SSA MIR — the llvm-mos slot for MOSLowerSelect.
+    target.AddPreInstructionSelectionPasses(passMgr);
     passMgr.AddPass(new InstructionSelectorPass(target.InstructionSelector));
     passMgr.AddPass(new PhiEliminationPass(target.BranchLowering));
     passMgr.AddPass(new TwoAddressInstructionPass());
