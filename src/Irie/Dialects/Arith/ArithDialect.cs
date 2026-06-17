@@ -18,6 +18,10 @@ public sealed class ArithDialect : Dialect
         ArithOp.AddICarry  => "addi_with_carry",
         ArithOp.SubIBorrow => "subi_with_borrow",
         ArithOp.Constant   => "constant",
+        ArithOp.Select     => "select",
+        ArithOp.Xor        => "xor",
+        ArithOp.And        => "and",
+        ArithOp.Or         => "or",
         _ => throw new ArgumentOutOfRangeException(nameof(code), code, $"Unknown arith opcode {code}."),
     };
 
@@ -31,6 +35,10 @@ public sealed class ArithDialect : Dialect
             case "addi_with_carry":   code = (ushort)ArithOp.AddICarry;  return true;
             case "subi_with_borrow":  code = (ushort)ArithOp.SubIBorrow; return true;
             case "constant":          code = (ushort)ArithOp.Constant;   return true;
+            case "select":            code = (ushort)ArithOp.Select;     return true;
+            case "xor":               code = (ushort)ArithOp.Xor;        return true;
+            case "and":               code = (ushort)ArithOp.And;        return true;
+            case "or":                code = (ushort)ArithOp.Or;         return true;
         }
         code = 0;
         return false;

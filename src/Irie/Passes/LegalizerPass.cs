@@ -329,6 +329,20 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
             return;
         }
 
+        if (instr.Opcode.Dialect == ArithDialect.Id
+            && (ArithOp)instr.Opcode.Code is ArithOp.Xor or ArithOp.And or ArithOp.Or)
+        {
+            LegalizeNarrowBitwise(instr, function, builder, wideType, narrowType);
+            return;
+        }
+
+        if (instr.Opcode.Dialect == ArithDialect.Id
+            && (ArithOp)instr.Opcode.Code == ArithOp.Select)
+        {
+            LegalizeNarrowSelect(instr, function, builder, wideType, narrowType);
+            return;
+        }
+
         if (instr.Opcode.Dialect != ArithDialect.Id
             || ((ArithOp)instr.Opcode.Code != ArithOp.AddI
                 && (ArithOp)instr.Opcode.Code != ArithOp.SubI))
@@ -422,6 +436,86 @@ public sealed class LegalizerPass(Irie.Target.LegalizerInfo legalizerInfo) : Mir
         }
 
         builder.BuildMergeInto(defReg.Id, parts);
+        builder.Remove(instr);
+    }
+
+    // %r : iN = arith.{xor,and,or} %a, %b  →  per-byte bitwise op + merge.
+    // Bitwise ops carry no inter-byte dependency, so each byte is independent
+    // (no carry/borrow chain). The unmerge/merge artifacts fold as usual.
+    private static void LegalizeNarrowBitwise(
+        MirInstruction instr,
+        MirFunction function,
+        MirBuilder builder,
+        IRType wideType,
+        IRType narrowType)
+    {
+        var op = (ArithOp)instr.Opcode.Code;
+
+        VirtualReg? def = null;
+        var uses = new List<VirtualReg>(2);
+        foreach (var operand in instr.Operands)
+        {
+            if (operand is VirtualReg v)
+            {
+                if (v.IsDefinition && def == null) def = v;
+                else if (!v.IsDefinition) uses.Add(v);
+            }
+        }
+        if (def == null || uses.Count != 2)
+            throw new InvalidOperationException(
+                $"Legalizer: arith.{(op == ArithOp.Xor ? "xor" : op == ArithOp.And ? "and" : "or")} has unexpected operand shape.");
+
+        var count = wideType.SizeInBits / narrowType.SizeInBits;
+        builder.SetInsertionPointBefore(instr);
+
+        var lhsParts = builder.BuildUnmerge(narrowType, uses[0].Id, count);
+        var rhsParts = builder.BuildUnmerge(narrowType, uses[1].Id, count);
+
+        var resultParts = new int[count];
+        for (var i = 0; i < count; i++)
+        {
+            resultParts[i] = op switch
+            {
+                ArithOp.Xor => builder.BuildXor(narrowType, lhsParts[i], rhsParts[i]),
+                ArithOp.And => builder.BuildAnd(narrowType, lhsParts[i], rhsParts[i]),
+                _           => builder.BuildOr(narrowType, lhsParts[i], rhsParts[i]),
+            };
+        }
+
+        builder.BuildMergeInto(def.Id, resultParts);
+        builder.Remove(instr);
+    }
+
+    // %r : iN = arith.select %cond, %a, %b  →  per-byte arith.select sharing the
+    // i1 %cond + merge. The condition is not narrowed (it stays a single i1);
+    // each byte-select picks the matching byte of %a / %b. The post-legalizer
+    // MirSelectLoweringPass groups all selects sharing %cond into one diamond.
+    private static void LegalizeNarrowSelect(
+        MirInstruction instr,
+        MirFunction function,
+        MirBuilder builder,
+        IRType wideType,
+        IRType narrowType)
+    {
+        if (instr.Operands.Length != 4
+            || instr.Operands[0] is not VirtualReg def || !def.IsDefinition
+            || instr.Operands[1] is not VirtualReg cond || cond.IsDefinition
+            || instr.Operands[2] is not VirtualReg a || a.IsDefinition
+            || instr.Operands[3] is not VirtualReg b || b.IsDefinition)
+            throw new InvalidOperationException(
+                "Legalizer: arith.select must have shape `%def = arith.select %cond, %a, %b`.");
+
+        var count = wideType.SizeInBits / narrowType.SizeInBits;
+        builder.SetInsertionPointBefore(instr);
+
+        var aParts = builder.BuildUnmerge(narrowType, a.Id, count);
+        var bParts = builder.BuildUnmerge(narrowType, b.Id, count);
+
+        var resultParts = new int[count];
+        for (var i = 0; i < count; i++)
+            resultParts[i] = builder.BuildSelect(narrowType, cond.Id, aParts[i], bParts[i]);
+
+        builder.BuildMergeInto(def.Id, resultParts);
         builder.Remove(instr);
     }
 

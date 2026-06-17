@@ -40,6 +40,21 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
                 ArithOp.Constant   when intType.SizeInBits == 1  => LegalityAction.Legal,
                 ArithOp.Constant   when intType.SizeInBits == 8  => LegalityAction.Legal,
                 ArithOp.Constant   when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
+                // arith.select is left legal at i8; it is expanded into a CFG
+                // diamond by the post-legalizer MirSelectLoweringPass. A wide
+                // select narrows element-wise into per-byte i8 selects (all
+                // sharing the original i1 condition), which the select-lowering
+                // pass then groups into a single diamond per condition.
+                ArithOp.Select     when intType.SizeInBits == 8  => LegalityAction.Legal,
+                ArithOp.Select     when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
+                // arith.xor/and/or are bitwise: i8 legal, wider narrows into a
+                // per-byte chain (no carry — each byte is independent).
+                ArithOp.Xor        when intType.SizeInBits == 8  => LegalityAction.Legal,
+                ArithOp.Xor        when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
+                ArithOp.And        when intType.SizeInBits == 8  => LegalityAction.Legal,
+                ArithOp.And        when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
+                ArithOp.Or         when intType.SizeInBits == 8  => LegalityAction.Legal,
+                ArithOp.Or         when intType.SizeInBits > 8   => LegalityAction.NarrowScalar,
                 _ => LegalityAction.Unsupported,
             };
         }
@@ -108,7 +123,11 @@ public sealed class MOS6502LegalizerInfo : Irie.Target.LegalizerInfo
         if (opcode.Dialect == ArithDialect.Id
             && ((ArithOp)opcode.Code == ArithOp.AddI
                 || (ArithOp)opcode.Code == ArithOp.SubI
-                || (ArithOp)opcode.Code == ArithOp.Constant))
+                || (ArithOp)opcode.Code == ArithOp.Constant
+                || (ArithOp)opcode.Code == ArithOp.Select
+                || (ArithOp)opcode.Code == ArithOp.Xor
+                || (ArithOp)opcode.Code == ArithOp.And
+                || (ArithOp)opcode.Code == ArithOp.Or))
             return IRType.I8;
 
         throw new NotSupportedException(

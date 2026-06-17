@@ -143,6 +143,37 @@ public sealed class MirBuilder(MirFunction function)
         return result;
     }
 
+    // arith.select %cond, %a, %b: 1 def (result, type `valueType`), 3 uses
+    // (cond i1, a, b). %r is %a when %cond is true, else %b.
+    public int BuildSelect(IRType valueType, int condVreg, int aVreg, int bVreg)
+    {
+        var result = function.CreateVirtualRegister(valueType);
+        Insert(ArithDialect.OpRef(ArithOp.Select), [
+            new VirtualReg(result,  IsDefinition: true),
+            new VirtualReg(condVreg, IsDefinition: false),
+            new VirtualReg(aVreg,    IsDefinition: false),
+            new VirtualReg(bVreg,    IsDefinition: false),
+        ]);
+        return result;
+    }
+
+    // arith.xor / arith.and / arith.or: 1 def, 2 uses. Bitwise, per-byte
+    // independent under narrowing.
+    public int BuildXor(IRType type, int aVreg, int bVreg) => BuildBitwise(ArithOp.Xor, type, aVreg, bVreg);
+    public int BuildAnd(IRType type, int aVreg, int bVreg) => BuildBitwise(ArithOp.And, type, aVreg, bVreg);
+    public int BuildOr(IRType type, int aVreg, int bVreg)  => BuildBitwise(ArithOp.Or,  type, aVreg, bVreg);
+
+    private int BuildBitwise(ArithOp op, IRType type, int aVreg, int bVreg)
+    {
+        var result = function.CreateVirtualRegister(type);
+        Insert(ArithDialect.OpRef(op), [
+            new VirtualReg(result, IsDefinition: true),
+            new VirtualReg(aVreg,  IsDefinition: false),
+            new VirtualReg(bVreg,  IsDefinition: false),
+        ]);
+        return result;
+    }
+
     // call.func @callee, %arg0, %arg1, ... → %r0, %r1, ...
     // Allocates fresh def vregs of the given returnTypes. Caller passes
     // existing arg vregs.

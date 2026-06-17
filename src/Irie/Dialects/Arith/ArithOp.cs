@@ -29,4 +29,19 @@ public enum ArithOp : ushort
     // chain-head carry-in `arith.constant 0 : i1` so every addi_with_carry
     // has a uniform 3-use shape.
     Constant,
+
+    // %r = arith.select %cond, %a, %b
+    // SSA conditional value: %r is %a when %cond (i1) is true, else %b. Both
+    // value operands share %r's type. Lowered to a CFG diamond by the dedicated
+    // pre-isel MirSelectLoweringPass (mirrors llvm-mos MOSLowerSelect).
+    Select,
+
+    // %r = arith.xor %a, %b   — bitwise XOR. Per-byte independent under narrowing.
+    Xor,
+
+    // %r = arith.and %a, %b   — bitwise AND. Per-byte independent under narrowing.
+    And,
+
+    // %r = arith.or %a, %b    — bitwise OR. Per-byte independent under narrowing.
+    Or,
 }

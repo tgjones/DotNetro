@@ -1,0 +1,21 @@
+; RUN: @irie-as @file | @irie-dis
+
+; Round-trip (text -> binary -> text) for the arith ops added for compare-
+; narrowing phase 3: select, xor, and, or. The writer/parser are generic, so
+; this confirms the new opcodes register and encode without bespoke handling.
+
+; CHECK: func @TestSelectBitwise : \(i8, i8, i1\) -> i8 \{
+func @TestSelectBitwise : (i8, i8, i1) -> i8 {
+; CHECK: bb0\(%0 : i8, %1 : i8, %2 : i1\):
+bb0(%0 : i8, %1 : i8, %2 : i1):
+  ; CHECK: %3 : i8 = arith.xor %0, %1
+  %3 : i8 = arith.xor %0, %1
+  ; CHECK: %4 : i8 = arith.and %0, %1
+  %4 : i8 = arith.and %0, %1
+  ; CHECK: %5 : i8 = arith.or %3, %4
+  %5 : i8 = arith.or %3, %4
+  ; CHECK: %6 : i8 = arith.select %2, %5, %0
+  %6 : i8 = arith.select %2, %5, %0
+  ; CHECK: core.return %6
+  core.return %6
+}
