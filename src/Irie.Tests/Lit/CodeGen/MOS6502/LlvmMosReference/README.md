@@ -30,12 +30,13 @@ Each test:
 Filenames match the corpus basename (`add-i16.irie` ↔
 `ext/llvm-mos-reference/basics/add-i16.{c,s,txt}`) so `irie-report` can pair them.
 
-## Converted (14 tests)
+## Converted (15 tests)
 
 | Corpus case | Test |
 |-------------|------|
 | basics/ret-const | `ret-const` |
 | basics/identity-i8 | `identity-i8` |
+| basics/add-i8 | `add-i8` |
 | basics/add-i16 | `add-i16` |
 | basics/add-i32 | `add-i32` |
 | basics/sub-i16 | `sub-i16` |
@@ -68,22 +69,24 @@ doubles as a punch-list (and `irie-report` flags each as uncovered):
 | **No shift op** | constraints/shift-const, constraints/shift-var |
 | **No bitwise and/or/xor** | constraints/bitops, constraints/compare-flags, pressure/pressure-i16, realistic/crc8 |
 | **i64 not supported** | pressure/pressure-i64 |
-| **i8 arithmetic not selectable** (only i16/i32 legalize to byte carry chains) | basics/add-i8, constraints/inc-dec |
 | **`cast.zext`/`cast.sext` to i32 not legalized** | widths/zero-extend, widths/sign-extend, widths/mixed-widths |
 | **`mem.load`/`mem.store` only accept `mem.symbol` addresses** (no arbitrary i16 pointers / frame slots) | memory/ptr-deref, memory/array-index, control-flow/loop-sum-array, realistic/strlen, memory/two-pointer-copy |
 | **multi-way control flow (switch)** — only a single two-way cmp+branch fusion exists | control-flow/switch |
 | **aggregate / sret ABI not modelled** | basics/stack-args, memory/struct-return, memory/struct-return-sret |
 
+**Now expressible, not yet written:** `constraints/inc-dec` — pure i8
+arithmetic (`a++; b--; return a+b`), which the byte ALU now selects directly
+(see `add-i8`). It is no longer blocked; it simply has no `.irie` pair yet.
+
 ### Pairing caveat
 
-`irie-report` pairs by basename. All tests are now faithful translations of the
-corpus C, but two have caveats:
+`irie-report` pairs by basename. All tests are faithful translations of the
+corpus C; one has an *output*-comparison caveat (not a fidelity issue):
 
 - **`loop-counter`** is faithful (`s += i`), but llvm-mos strength-reduces the
   whole loop to a closed-form multiply (`__mulsi3`) — an optimisation Irie's
-  pipeline does not perform — so the comparison is apples-to-oranges.
-- **`if-else`** is an *equivalent* rephrasing (`a>b` → `a<b` with operands
-  swapped), since `arith.cmpi` lacks `sgt`/`ugt`. Same computation.
+  pipeline does not perform — so the instruction-count comparison is
+  apples-to-oranges.
 
 The straight-line `basics/*` cases are the cleanest apples-to-apples comparisons.
 
