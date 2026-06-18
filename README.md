@@ -28,6 +28,10 @@ unsupported construct will (hopefully) fail the compile rather than silently mis
 Treat the working samples and tests as the current source of truth for what
 actually compiles.
 
+See [doc/dotnetro/il-support.md](doc/dotnetro/il-support.md) for a per-opcode
+breakdown of which IL opcodes are implemented and which are covered by a lit
+test.
+
 ## Getting started
 
 Eventually DotNetro will be distributed as a convenient set of NuGet packages, but for now, it's necessary to build from this repo.

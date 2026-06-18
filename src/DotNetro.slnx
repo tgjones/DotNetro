@@ -13,6 +13,7 @@
   <Project Path="DotNetro.Compiler.Tests/DotNetro.Compiler.Tests.csproj" />
   <Project Path="DotNetro.Compiler/DotNetro.Compiler.csproj" />
   <Project Path="DotNetro.Samples.HelloWorld/DotNetro.Samples.HelloWorld.csproj" />
+  <Project Path="DotNetro.Tools.ILSupport/DotNetro.Tools.ILSupport.csproj" />
   <Project Path="DotNetro/DotNetro.csproj" />
   <Project Path="Irie.Tests/Irie.Tests.csproj" Id="ac6701c7-b5f6-4024-911f-921547398161" />
   <Project Path="Irie.Tools.Assembler/Irie.Tools.Assembler.csproj" />
