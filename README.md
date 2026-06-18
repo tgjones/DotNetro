@@ -1,6 +1,8 @@
-# DotNetro
+# DotNetro [![ci](https://github.com/tgjones/DotNetro/actions/workflows/ci.yml/badge.svg)](https://github.com/tgjones/DotNetro/actions/workflows/ci.yml)
 
-A C# compiler for 8-bit computers.
+<img align="right" width="160px" height="160px" src="img/dotnetro-logo.png">
+
+DotNetro is a C# compiler for 8-bit computers.
 
 DotNetro is an ahead-of-time compiler that turns a .NET assembly (IL bytecode)
 into native machine code for vintage 8-bit machines. It reads ECMA-335
