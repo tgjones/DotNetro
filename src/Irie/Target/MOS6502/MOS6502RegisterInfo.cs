@@ -36,6 +36,14 @@ public sealed class MOS6502RegisterInfo : TargetRegisterInfo
     private static readonly int[] Anyi8Regs =
         [..Imag8Regs, MOS6502Registers.A, MOS6502Registers.X, MOS6502Registers.Y];
 
+    // Axy: the three real architectural registers, no zero-page pool. The
+    // absolute-store source class (see MOS6502RegisterClass.Axy). Order is only a
+    // tie-break — coalescing with the stored byte's producer is what actually
+    // decides which register it lands in (and hence whether the store refines to
+    // STA / STX / STY); $a first so an already-in-$a value needs no AMS rewrite.
+    private static readonly int[] AxyRegs =
+        [MOS6502Registers.A, MOS6502Registers.X, MOS6502Registers.Y];
+
     public override ReadOnlySpan<int> GetAllocatableRegisters(int classId)
         => classId switch
         {
@@ -45,6 +53,7 @@ public sealed class MOS6502RegisterInfo : TargetRegisterInfo
             MOS6502RegisterClass.Cc    => CcRegs,
             MOS6502RegisterClass.Imag8 => Imag8Regs,
             MOS6502RegisterClass.Anyi8 => Anyi8Regs,
+            MOS6502RegisterClass.Axy   => AxyRegs,
             _ => throw new ArgumentException($"Unknown register class {classId}", nameof(classId)),
         };
 

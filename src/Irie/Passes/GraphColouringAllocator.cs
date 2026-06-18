@@ -1140,6 +1140,23 @@ internal sealed class GraphColouringAllocator
         {
             // Copy to an array: a ReadOnlySpan cannot survive a yield boundary.
             var gprPreference = _registerInfo.GetShortRangeGprPreference().ToArray();
+
+            // Greedy colouring has no lookahead, so before grabbing a GPR we
+            // deprioritize any that an UNCOLOURED interfering neighbour is hinted
+            // toward (its own copy to a fixed physreg). Without this, two values
+            // each destined for a different fixed register via a copy — but whose
+            // own hint is momentarily unavailable — can both grab the same GPR
+            // here, evicting the neighbour from the register it actually needs and
+            // forcing a shuffle (global-rw: result_low wants $a, can't have it
+            // across the 2nd ADC, and would steal $x from result_high which is
+            // returned in $x). Trying the un-contended GPRs first lets the
+            // neighbour keep its hinted register. The contended ones are still
+            // emitted (just later), so this only reorders — it never removes a
+            // legal colour.
+            var neighbourHints = NeighbourHintColours(node);
+            foreach (var gpr in gprPreference)
+                if (Contains(allowed, gpr) && !neighbourHints.Contains(gpr) && emitted.Add(gpr))
+                    yield return gpr;
             foreach (var gpr in gprPreference)
                 if (Contains(allowed, gpr) && emitted.Add(gpr))
                     yield return gpr;
@@ -1149,6 +1166,35 @@ internal sealed class GraphColouringAllocator
         foreach (var c in allowed)
             if (emitted.Add(c))
                 yield return c;
+    }
+
+    // The physregs that UNCOLOURED interfering neighbours of `node` are hinted
+    // toward through a copy (a move whose other end is a physreg, or an
+    // already-coloured node). Coloured neighbours are excluded — their colour is
+    // already in AssignColours' `unavailable` set, so they need no avoidance here;
+    // this only protects neighbours not yet coloured, which greedy colouring would
+    // otherwise trample. Used by ColourPreferenceOrder Tier 2 to defer contended
+    // GPRs.
+    private HashSet<int> NeighbourHintColours(int node)
+    {
+        var hints = new HashSet<int>();
+        foreach (var w in _adjList[node])
+        {
+            var rep = GetAlias(w);
+            if (rep == node || IsPhysNode(rep) || _colour.ContainsKey(rep)) continue;
+            if (!_moveList.TryGetValue(rep, out var moves)) continue;
+            foreach (var m in moves)
+            {
+                var move = _moves[m];
+                var other = GetAlias(GetAlias(move.A) == rep ? move.B : move.A);
+                if (other == rep) continue;
+                if (IsPhysNode(other))
+                    hints.Add(PhysRegOfNode(other));
+                else if (_colour.TryGetValue(other, out var c))
+                    hints.Add(c);
+            }
+        }
+        return hints;
     }
 
     // The maximum number of GPR-pressuring (see IsArithmeticOp) instructions a

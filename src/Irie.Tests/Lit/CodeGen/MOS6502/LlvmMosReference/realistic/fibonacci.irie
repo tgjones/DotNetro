@@ -50,10 +50,10 @@
 ; CHECK:     CLC
 ; CHECK:     LDA \$07
 ; CHECK:     ADC \$09
-; CHECK:     TAY
+; CHECK:     TAX
 ; CHECK:     LDA \$06
 ; CHECK:     ADC \$08
-; CHECK:     TAX
+; CHECK:     TAY
 ; CHECK:     LDA \#\$01
 ; CHECK:     STA \$03
 ; CHECK:     LDA \#\$00
@@ -69,8 +69,8 @@
 ; CHECK:     STA \$07
 ; CHECK:     LDA \$08
 ; CHECK:     STA \$06
-; CHECK:     STY \$09
-; CHECK:     STX \$08
+; CHECK:     STX \$09
+; CHECK:     STY \$08
 ; CHECK:     JMP \.bb1
 
 func @fibonacci : (i16) -> i16 {

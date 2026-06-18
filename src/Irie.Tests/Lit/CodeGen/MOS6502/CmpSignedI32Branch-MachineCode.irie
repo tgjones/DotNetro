@@ -11,18 +11,18 @@
 ; CHECK: TestSlt32:
 ; CHECK:     STA \$09
 ; CHECK:     STX \$08
-; CHECK:     LDY \$02
+; CHECK:     LDX \$02
 ; CHECK:     LDA \$03
 ; CHECK:     EOR \#\$80
-; CHECK:     TAX
+; CHECK:     TAY
 ; CHECK:     LDA \$07
 ; CHECK:     EOR \#\$80
 ; CHECK:     STA \$02
-; CHECK:     TXA
+; CHECK:     TYA
 ; CHECK:     CMP \$02
 ; CHECK:     BCC \.bb3
 ; CHECK:     BNE \.bb1
-; CHECK:     TYA
+; CHECK:     TXA
 ; CHECK:     CMP \$06
 ; CHECK:     BCC \.bb3
 ; CHECK:     BNE \.bb1

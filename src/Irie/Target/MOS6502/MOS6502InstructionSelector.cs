@@ -1195,18 +1195,6 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
 
         builder.SetInsertionPointBefore(instr);
 
-        // Park the value in an Anyi8 vreg *before* pointer setup so its live
-        // range doesn't trap $a across the pointer-byte LDAs. Without this,
-        // a parameter-in-$a value would stay in $a from function entry until
-        // the sta.indy, and the lda.imm.symlo / .symhi clobbers $a mid-flight.
-        var parkedVreg = function.CreateVirtualRegisterInClass(
-            MOS6502RegisterClass.Anyi8,
-            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
-        builder.BuildInstruction(
-            PseudoDialect.OpRef(PseudoOp.Copy),
-            new VirtualReg(parkedVreg, IsDefinition: true),
-            new VirtualReg(valReg.Id,  IsDefinition: false));
-
         // A byte access whose address resolves to a FrameSlot lowers to the
         // addressing-mode-agnostic mos6502.frame.store.byte. FrameAccessLoweringPass
         // expands it post-RA per the slot's placement; non-frame globals fall
@@ -1225,7 +1213,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             builder.BuildInstruction(
                 PseudoDialect.OpRef(PseudoOp.Copy),
                 new VirtualReg(valueVreg,  IsDefinition: true),
-                new VirtualReg(parkedVreg, IsDefinition: false));
+                new VirtualReg(valReg.Id,  IsDefinition: false));
 
             // frame.store.byte @sym, #off, $a,
             //   implicit-def $x, implicit-def $y, implicit-def $rc0, implicit-def $rc1
@@ -1246,23 +1234,26 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         }
 
         // A (non-frame) static symbol store uses absolute addressing: the value
-        // byte flows through $a and `sta.abs @sym+off` writes it directly, with
-        // no zero-page pointer pair and no Y register. Mirrors llvm-mos
-        // `G_STORE_ABS`. Runtime i16 pointers fall through to the indy path.
+        // byte is written directly by `sta.abs @sym+off`, with no zero-page
+        // pointer pair and no Y register. Mirrors llvm-mos `G_STORE_ABS`. Runtime
+        // i16 pointers fall through to the indy path.
         if (TryResolveSymbolAddress(function, addrReg.Id) is string absStoreSym)
         {
-            // sta.abs needs its source in $a (Ac); copy the parked value there.
-            var absSrcVreg = function.CreateVirtualRegisterInClass(
-                MOS6502RegisterClass.Ac,
-                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
-            builder.BuildInstruction(
-                PseudoDialect.OpRef(PseudoOp.Copy),
-                new VirtualReg(absSrcVreg,  IsDefinition: true),
-                new VirtualReg(parkedVreg,  IsDefinition: false));
-
+            // sta.abs reads the value operand DIRECTLY (no copy to a pinned $a):
+            // its declared Axy operand class lets the byte stay in whichever of
+            // $a/$x/$y its producer left it, and MOS6502AddressingModeSelectorPass
+            // refines `sta.abs` → `stx.abs` / `sty.abs` to match. Referencing the
+            // value in place — rather than copying it into a fresh store-only vreg
+            // — is what makes this pay off: a store-only copy would interfere with
+            // the value's other live uses (e.g. global-rw stores AND returns the
+            // sum), forcing the store onto a different register and back through
+            // $a. Reading the shared value directly stores from $y/$x with no
+            // transfer, turning global-rw's `TYA;STA;TXA;STA` into `STY;STX`. No
+            // parking is needed: the absolute store has no pointer-byte LDAs to
+            // clobber $a (unlike the indirect-Y path below).
             builder.BuildInstruction(
                 MOS6502Dialect.OpRef(MOS6502Op.StaAbs),
-                new VirtualReg(absSrcVreg, IsDefinition: false),
+                new VirtualReg(valReg.Id, IsDefinition: false),
                 new Symbol(absStoreSym, (int)offset.Value));
 
             builder.Remove(instr);
@@ -1270,6 +1261,20 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             TryRemoveDeadMemSymbol(function, addrReg.Id, builder);
             return true;
         }
+
+        // Park the value in an Anyi8 vreg *before* pointer setup so its live
+        // range doesn't trap $a across the pointer-byte LDAs. Without this,
+        // a parameter-in-$a value would stay in $a from function entry until
+        // the sta.indy, and the lda.imm.symlo / .symhi clobbers $a mid-flight.
+        // (The frame and absolute paths above need no parking — they have no
+        // pointer-byte LDAs — so they read the value vreg directly.)
+        var parkedVreg = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Anyi8,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(parkedVreg, IsDefinition: true),
+            new VirtualReg(valReg.Id,  IsDefinition: false));
 
         EmitPointerSetup(builder, addrReg, offset.Value);
 

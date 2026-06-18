@@ -9,19 +9,19 @@
 ; Because the address resolves to a static symbol, isel selects absolute
 ; addressing:
 ;   - mos6502.lda.abs @hello loads the byte directly into $a;
-;   - the loaded byte is routed through Anyi8 vregs so RA can park it;
-;   - mos6502.sta.abs %v, @hello stores it back, with the value funnelled
-;     through $a (Ac).
+;   - the loaded byte is parked in an Anyi8 vreg so RA can place it freely;
+;   - mos6502.sta.abs %v, @hello stores it back, reading the parked value
+;     DIRECTLY — sta.abs's Axy operand class (any of $a/$x/$y) means no copy
+;     into a pinned $a is needed, and MOS6502AddressingModeSelector refines the
+;     opcode to stx.abs / sty.abs if RA placed the byte in $x / $y.
 ; No zero-page pointer pair and no Y register are materialised.
 
 ; CHECK: func @TestMemByte : \(\) -> void \{
-; CHECK:   bb0\(\):
-; CHECK:     %3 : ac = mos6502.lda.abs @hello
-; CHECK:     %4 : any8 = pseudo.copy %3
-; CHECK:     %5 : any8 = pseudo.copy %4
-; CHECK:     %6 : ac = pseudo.copy %5
-; CHECK:     mos6502.sta.abs %6, @hello
-; CHECK:     mos6502.rts
+; CHECK: bb0\(\):
+; CHECK:     %3 : ac = mos6502\.lda\.abs @hello
+; CHECK:     %4 : any8 = pseudo\.copy %3
+; CHECK:     mos6502\.sta\.abs %4, @hello
+; CHECK:     mos6502\.rts
 ; CHECK: \}
 
 global @hello : i32 = bytes "Hi!"

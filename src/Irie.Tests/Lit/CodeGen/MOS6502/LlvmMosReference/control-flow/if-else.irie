@@ -20,17 +20,15 @@
 ; CHECK:     STY \$04
 ; CHECK:     LDY \$02
 ; CHECK:     STY \$08
-; CHECK:     STA \$09
+; CHECK:     LDY \$03
+; CHECK:     STA \$03
 ; CHECK:     TXA
-; CHECK:     LDX \$03
-; CHECK:     LDY \$09
-; CHECK:     STY \$03
 ; CHECK:     EOR \#\$80
-; CHECK:     TAY
-; CHECK:     TXA
+; CHECK:     TAX
+; CHECK:     TYA
 ; CHECK:     EOR \#\$80
 ; CHECK:     STA \$02
-; CHECK:     TYA
+; CHECK:     TXA
 ; CHECK:     CMP \$02
 ; CHECK:     BCC \.bb3
 ; CHECK:     BNE \.bb1

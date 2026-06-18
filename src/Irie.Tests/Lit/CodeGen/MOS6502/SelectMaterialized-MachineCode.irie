@@ -15,20 +15,19 @@
 
 ; --- min(a, b) = a <s b ? a : b -----------------------------------------------
 ; CHECK: select_min8:
-; CHECK:     TAY
-; CHECK:     STX \$03
+; CHECK:     STA \$03
 ; CHECK:     EOR \#\$80
-; CHECK:     TAX
-; CHECK:     LDA \$03
+; CHECK:     TAY
+; CHECK:     TXA
 ; CHECK:     EOR \#\$80
 ; CHECK:     STA \$02
-; CHECK:     TXA
+; CHECK:     TYA
 ; CHECK:     CMP \$02
 ; CHECK:     BCC \.bb2
 ; CHECK: \.bb1:
-; CHECK:     LDY \$03
+; CHECK:     STX \$03
 ; CHECK: \.bb2:
-; CHECK:     TYA
+; CHECK:     LDA \$03
 ; CHECK:     RTS
 func @select_min8 : (i8, i8) -> i8 {
 bb0(%0 : i8, %1 : i8):
@@ -40,20 +39,18 @@ bb0(%0 : i8, %1 : i8):
 ; --- max(a, b) = a <s b ? b : a (arms swapped) --------------------------------
 ; CHECK: select_max8:
 ; CHECK:     STA \$03
-; CHECK:     STX \$02
-; CHECK:     LDY \$02
 ; CHECK:     EOR \#\$80
-; CHECK:     TAX
-; CHECK:     TYA
+; CHECK:     TAY
+; CHECK:     TXA
 ; CHECK:     EOR \#\$80
 ; CHECK:     STA \$02
-; CHECK:     TXA
+; CHECK:     TYA
 ; CHECK:     CMP \$02
 ; CHECK:     BCC \.bb2
 ; CHECK: \.bb1:
-; CHECK:     LDY \$03
+; CHECK:     LDX \$03
 ; CHECK: \.bb2:
-; CHECK:     TYA
+; CHECK:     TXA
 ; CHECK:     RTS
 func @select_max8 : (i8, i8) -> i8 {
 bb0(%0 : i8, %1 : i8):
@@ -104,17 +101,15 @@ bb0(%0 : i8):
 ; CHECK:     STY \$06
 ; CHECK:     LDY \$02
 ; CHECK:     STY \$08
-; CHECK:     STA \$09
+; CHECK:     LDY \$03
+; CHECK:     STA \$03
 ; CHECK:     TXA
-; CHECK:     LDX \$03
-; CHECK:     LDY \$09
-; CHECK:     STY \$03
 ; CHECK:     EOR \#\$80
-; CHECK:     TAY
-; CHECK:     TXA
+; CHECK:     TAX
+; CHECK:     TYA
 ; CHECK:     EOR \#\$80
 ; CHECK:     STA \$02
-; CHECK:     TYA
+; CHECK:     TXA
 ; CHECK:     CMP \$02
 ; CHECK:     BCC \.bb2
 ; CHECK:     BNE \.bb1

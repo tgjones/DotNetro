@@ -8,12 +8,9 @@
 
 ; CHECK: TestMemI16:
 ; CHECK:     LDA ptr
-; CHECK:     TAY
-; CHECK:     LDA ptr\+1
 ; CHECK:     TAX
-; CHECK:     TYA
-; CHECK:     STA ptr
-; CHECK:     TXA
+; CHECK:     LDA ptr\+1
+; CHECK:     STX ptr
 ; CHECK:     STA ptr\+1
 ; CHECK:     RTS
 

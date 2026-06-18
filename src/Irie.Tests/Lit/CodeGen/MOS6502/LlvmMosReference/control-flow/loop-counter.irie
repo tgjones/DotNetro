@@ -28,13 +28,13 @@
 ; CHECK:     LDA \$06
 ; CHECK:     LDX \$09
 ; CHECK:     STX \$0A
-; CHECK:     LDX \$08
+; CHECK:     LDY \$08
 ; CHECK:     EOR \#\$80
-; CHECK:     TAY
-; CHECK:     TXA
+; CHECK:     TAX
+; CHECK:     TYA
 ; CHECK:     EOR \#\$80
 ; CHECK:     STA \$02
-; CHECK:     TYA
+; CHECK:     TXA
 ; CHECK:     CMP \$02
 ; CHECK:     BCC \.bb3
 ; CHECK:     BNE \.bb2
