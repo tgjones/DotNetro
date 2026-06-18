@@ -11,6 +11,12 @@
 ; flag-setting `LDA`, so MOS6502LateOptimization drops the redundant `CMP #$00`:
 ; the BMI reads the N that LDA already set (llvm-mos folds the same way).
 ;
+; The four `core.return` blocks are merged into one common return block by
+; ReturnMergePass (the SimplifyCFG `tailMergeBlocksWithSimilarFunctionTerminators`
+; analogue), so the i16 return epilogue is emitted once: all paths funnel into the
+; shared `.bb4: TYA ; RTS` tail (low in Y/A, high in X), reached by fall-through
+; (.bb3) and `JMP .bb4` (.bb5/.bb6). This matches llvm-mos's shared `bb.5` tail.
+;
 ; CHECK pins Irie's current --emit=asm output (characterization / golden).
 ; Compare against ext/llvm-mos-reference/control-flow/early-return.s; close gaps via irie-report.
 
@@ -42,15 +48,13 @@
 ; CHECK:     TXA
 ; CHECK:     ADC \$05
 ; CHECK:     TAX
-; CHECK:     TYA
-; CHECK:     RTS
 ; CHECK: \.bb4:
 ; CHECK:     TYA
 ; CHECK:     RTS
 ; CHECK: \.bb5:
-; CHECK:     LDA \$07
+; CHECK:     LDY \$07
 ; CHECK:     LDX \$06
-; CHECK:     RTS
+; CHECK:     JMP \.bb4
 ; CHECK: \.bb6:
 ; CHECK:     CLC
 ; CHECK:     LDA \$07
@@ -59,8 +63,7 @@
 ; CHECK:     LDA \$06
 ; CHECK:     ADC \$03
 ; CHECK:     TAX
-; CHECK:     TYA
-; CHECK:     RTS
+; CHECK:     JMP \.bb4
 
 func @early_return : (i16, i16, i16) -> i16 {
 bb0(%0 : i16, %1 : i16, %2 : i16):

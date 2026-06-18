@@ -68,6 +68,7 @@ rootCommand.SetAction(parseResult =>
     var context = new CompilationContext(module);
 
     var passMgr = new PassManager(stopAfterPass, startAtPass);
+    passMgr.AddPass(new ReturnMergePass());
     passMgr.AddPass(new FrameLoweringPass());
     passMgr.AddPass(new AbiLoweringPass(target.CallLowering));
     passMgr.AddPass(new LegalizerPass(target.LegalizerInfo));
