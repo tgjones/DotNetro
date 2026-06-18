@@ -8,7 +8,7 @@
 ; CHECK pins Irie's current --emit=asm output (characterization / golden).
 ; Compare against ext/llvm-mos-reference/memory/global-rw.s; close gaps via irie-report.
 
-; CHECK:     global_rw:
+; CHECK: global_rw:
 ; CHECK:     CLC
 ; CHECK:     ADC counter
 ; CHECK:     TAY

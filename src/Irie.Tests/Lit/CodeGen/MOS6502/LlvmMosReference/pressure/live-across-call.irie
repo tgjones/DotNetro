@@ -7,9 +7,9 @@
 ; CHECK pins Irie's current --emit=asm output (characterization / golden).
 ; Compare against ext/llvm-mos-reference/pressure/live-across-call.s; close gaps via irie-report.
 
-; CHECK:     g:
+; CHECK: g:
 ; CHECK:     RTS
-; CHECK:     live_across_call:
+; CHECK: live_across_call:
 ; CHECK:     TAY
 ; CHECK:     LDA \$14
 ; CHECK:     PHA

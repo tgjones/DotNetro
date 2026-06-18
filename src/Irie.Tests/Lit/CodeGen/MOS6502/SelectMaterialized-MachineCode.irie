@@ -14,12 +14,20 @@
 ; with no new isel code, and the arms merge the chosen value via a block-arg phi.
 
 ; --- min(a, b) = a <s b ? a : b -----------------------------------------------
-; CHECK:     select_min8:
-; CHECK:     CMP
+; CHECK: select_min8:
+; CHECK:     TAY
+; CHECK:     STX \$03
+; CHECK:     EOR \#\$80
+; CHECK:     TAX
+; CHECK:     LDA \$03
+; CHECK:     EOR \#\$80
+; CHECK:     STA \$02
+; CHECK:     TXA
+; CHECK:     CMP \$02
 ; CHECK:     BCC \.bb2
-; CHECK:     \.bb1:
+; CHECK: \.bb1:
 ; CHECK:     LDY \$03
-; CHECK:     \.bb2:
+; CHECK: \.bb2:
 ; CHECK:     TYA
 ; CHECK:     RTS
 func @select_min8 : (i8, i8) -> i8 {
@@ -30,12 +38,21 @@ bb0(%0 : i8, %1 : i8):
 }
 
 ; --- max(a, b) = a <s b ? b : a (arms swapped) --------------------------------
-; CHECK:     select_max8:
-; CHECK:     CMP
+; CHECK: select_max8:
+; CHECK:     STA \$03
+; CHECK:     STX \$02
+; CHECK:     LDY \$02
+; CHECK:     EOR \#\$80
+; CHECK:     TAX
+; CHECK:     TYA
+; CHECK:     EOR \#\$80
+; CHECK:     STA \$02
+; CHECK:     TXA
+; CHECK:     CMP \$02
 ; CHECK:     BCC \.bb2
-; CHECK:     \.bb1:
+; CHECK: \.bb1:
 ; CHECK:     LDY \$03
-; CHECK:     \.bb2:
+; CHECK: \.bb2:
 ; CHECK:     TYA
 ; CHECK:     RTS
 func @select_max8 : (i8, i8) -> i8 {
@@ -53,15 +70,18 @@ bb0(%0 : i8, %1 : i8):
 ; normalized to the optimal high-byte sign test (CMP #$00 + BMI), not an EOR bias.
 ; The CMP #$00 is then dropped by MOS6502LateOptimization (the preceding LDA $02
 ; already set N), leaving just LDA + BMI.
-; CHECK:     select_abs8:
+; CHECK: select_abs8:
+; CHECK:     STA \$02
+; CHECK:     LDX \#\$00
 ; CHECK:     LDA \$02
 ; CHECK:     BMI \.bb2
-; CHECK:     \.bb1:
+; CHECK: \.bb1:
 ; CHECK:     LDA \$02
 ; CHECK:     RTS
-; CHECK:     \.bb2:
+; CHECK: \.bb2:
 ; CHECK:     SEC
-; CHECK:     SBC
+; CHECK:     TXA
+; CHECK:     SBC \$02
 ; CHECK:     STA \$02
 ; CHECK:     JMP \.bb1
 func @select_abs8 : (i8) -> i8 {
@@ -75,18 +95,38 @@ bb0(%0 : i8):
 
 ; --- 16-bit min: exercises same-test merge (narrowed to 2 i8 selects sharing
 ; the condition → ONE diamond, both bytes set per arm) + wide cmpi. ------------
-; CHECK:     select_min16:
-; CHECK:     CMP
+; CHECK: select_min16:
+; CHECK:     STA \$05
+; CHECK:     STX \$04
+; CHECK:     LDY \$02
+; CHECK:     STY \$07
+; CHECK:     LDY \$03
+; CHECK:     STY \$06
+; CHECK:     LDY \$02
+; CHECK:     STY \$08
+; CHECK:     STA \$09
+; CHECK:     TXA
+; CHECK:     LDX \$03
+; CHECK:     LDY \$09
+; CHECK:     STY \$03
+; CHECK:     EOR \#\$80
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     EOR \#\$80
+; CHECK:     STA \$02
+; CHECK:     TYA
+; CHECK:     CMP \$02
 ; CHECK:     BCC \.bb2
 ; CHECK:     BNE \.bb1
-; CHECK:     CMP
+; CHECK:     LDA \$03
+; CHECK:     CMP \$08
 ; CHECK:     BCC \.bb2
-; CHECK:     \.bb1:
+; CHECK: \.bb1:
 ; CHECK:     LDA \$07
 ; CHECK:     STA \$05
 ; CHECK:     LDA \$06
 ; CHECK:     STA \$04
-; CHECK:     \.bb2:
+; CHECK: \.bb2:
 ; CHECK:     LDA \$05
 ; CHECK:     LDX \$04
 ; CHECK:     RTS

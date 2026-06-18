@@ -7,7 +7,7 @@
 ; CHECK pins Irie's current --emit=asm output (characterization / golden).
 ; Compare against ext/llvm-mos-reference/basics/sub-i16.s; close gaps via irie-report.
 
-; CHECK:     sub_i16:
+; CHECK: sub_i16:
 ; CHECK:     SEC
 ; CHECK:     SBC \$02
 ; CHECK:     TAY

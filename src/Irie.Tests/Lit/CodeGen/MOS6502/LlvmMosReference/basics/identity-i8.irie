@@ -7,7 +7,7 @@
 ; CHECK pins Irie's current --emit=asm output (characterization / golden).
 ; Compare against ext/llvm-mos-reference/basics/identity-i8.s; close gaps via irie-report.
 
-; CHECK:     identity_i8:
+; CHECK: identity_i8:
 ; CHECK:     RTS
 
 func @identity_i8 : (i8) -> i8 {

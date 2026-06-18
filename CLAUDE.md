@@ -145,6 +145,29 @@ Two layers (unified IR landed; see [`notes/unified-ir-plan.md`](notes/unified-ir
 
 `DotNetCompilerTests` uses a custom `[CompilerTest]` attribute. Each test method is compiled with DotNetro, then the resulting 6502 binary is executed in the Aemula 6502 CPU emulator with BBC Micro OS stubs. Output is compared against the reference .NET execution.
 
+#### Lit `CHECK` blocks: keep them strict (complete listings)
+
+For any `.irie`/`.s`/`.cs` lit test that pins emitted output (e.g. `--emit=asm`),
+write the `CHECK` block as the **complete listing** — one `CHECK` line per output
+line, in order — not a handful of landmark instructions. DotLit matches each
+`CHECK` as an ordered regex substring search (`LitTestExecutor`), and the parser
+**trims** the pattern (`LitTestParser` `.Trim()`), so leading indentation is
+cosmetic. House style: `; CHECK: ` followed by the verbatim asm line (label at
+column 0, instructions indented 4), with regex metacharacters escaped
+(`. $ ( ) # +` → `\.` `\$` `\(` `\)` `\#` `\+`; spaces/commas/colons left
+literal). A loose block (a few landmarks) silently tolerates regressions — extra
+or changed instructions between landmarks go uncaught.
+
+When (re)generating a golden, **produce it the same way the harness runs the
+test, or verify it under `dotnet test` afterwards** — do not trust a one-off
+standalone `iriec` run. A few static-stack / address-taken frame-slot cases
+(`AddressTakenFrameSlot`, `StaticFrameAllocChain`, `FrameSlotStructRoundtrip`)
+emit a *different but valid* allocation form standalone vs. under the test
+harness (zero-page-direct `STA $70` vs. an indirect `#<sym`/`#>sym` pointer);
+their goldens are pinned to the harness form. This is a known latent
+nondeterminism in frame-slot placement — pin the harness output, don't "fix" the
+golden to the standalone form.
+
 ### External Libraries (in `/lib/`)
 
 - **Aemula** — 6502 CPU emulator used during test execution

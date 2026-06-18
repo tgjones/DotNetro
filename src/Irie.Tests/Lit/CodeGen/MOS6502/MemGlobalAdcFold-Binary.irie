@@ -8,7 +8,7 @@
 ; this exercises the direct (non-commuted) fold path; global-rw exercises the
 ; commuted path where the load is operand `a`.
 
-; CHECK:     add_global:
+; CHECK: add_global:
 ; CHECK:     CLC
 ; CHECK:     ADC g
 ; CHECK:     TAY

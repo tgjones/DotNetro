@@ -12,9 +12,21 @@
 ; linked separately.
 
 ; CHECK: TestCallIndirect:
+; CHECK:     TAY
+; CHECK:     LDA \$1E
+; CHECK:     PHA
+; CHECK:     LDA \$1F
+; CHECK:     PHA
+; CHECK:     TYA
 ; CHECK:     STA \$1E
 ; CHECK:     STX \$1F
 ; CHECK:     JSR __call_indirect_trampoline
+; CHECK:     TAY
+; CHECK:     PLA
+; CHECK:     STA \$1F
+; CHECK:     PLA
+; CHECK:     STA \$1E
+; CHECK:     TYA
 ; CHECK:     RTS
 
 func @TestCallIndirect : (i16) -> i8 {

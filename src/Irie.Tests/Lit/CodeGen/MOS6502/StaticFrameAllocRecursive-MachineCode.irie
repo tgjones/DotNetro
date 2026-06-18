@@ -14,12 +14,12 @@
 ; (LDX/STX, no TXA).
 
 ; CHECK: recur:
-; CHECK:     LDA #\$05
-; CHECK:     LDX #<recur_local0
+; CHECK:     LDA \#\$05
+; CHECK:     LDX \#<recur_local0
 ; CHECK:     STX \$00
-; CHECK:     LDX #>recur_local0
+; CHECK:     LDX \#>recur_local0
 ; CHECK:     STX \$01
-; CHECK:     LDY #\$00
+; CHECK:     LDY \#\$00
 ; CHECK:     STA \(\$00\),Y
 ; CHECK:     JSR recur
 ; CHECK:     RTS

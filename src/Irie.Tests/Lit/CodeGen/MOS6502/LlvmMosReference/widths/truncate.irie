@@ -10,10 +10,10 @@
 ;
 ; At parity with ext/llvm-mos-reference/widths/truncate.s (`clc; adc __rc2; rts`).
 
-; CHECK:     truncate:
-; CHECK:         CLC
-; CHECK:         ADC \$02
-; CHECK:         RTS
+; CHECK: truncate:
+; CHECK:     CLC
+; CHECK:     ADC \$02
+; CHECK:     RTS
 
 func @truncate : (i16, i16) -> i8 {
 bb0(%0 : i16, %1 : i16):

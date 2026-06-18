@@ -6,11 +6,16 @@
 ; a symbol with a +1 offset (g+1), which must round-trip through asm text AND the
 ; binary encoder. (Stage A of notes/mos6502-absolute-addressing-plan.md.)
 
-; CHECK:     load_store_global:
+; CHECK: load_store_global:
 ; CHECK:     LDA g
+; CHECK:     TAY
 ; CHECK:     LDA g\+1
+; CHECK:     TAX
+; CHECK:     TYA
 ; CHECK:     STA g
+; CHECK:     TXA
 ; CHECK:     STA g\+1
+; CHECK:     TYA
 ; CHECK:     RTS
 
 ; Layout at $1000: the 18-byte function, then g (2 bytes) at $1012/$1013.
