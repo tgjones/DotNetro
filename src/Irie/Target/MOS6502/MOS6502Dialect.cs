@@ -88,6 +88,9 @@ public sealed class MOS6502Dialect : Dialect
         [MOS6502Op.StyZpX]  = "sty.zpx",
         [MOS6502Op.StyAbs]  = "sty.abs",
 
+        // Generic absolute store (pre-AMS, register-agnostic value).
+        [MOS6502Op.StAbs]   = "st.abs",
+
         // ADC
         [MOS6502Op.AdcImm]  = "adc.imm",
         [MOS6502Op.AdcZp]   = "adc.zp",
@@ -297,7 +300,7 @@ public sealed class MOS6502Dialect : Dialect
             MOS6502Op.Cmp    => CmpInfo,
             MOS6502Op.CmpZp  => CmpInfo,
             MOS6502Op.CmpImm => CmpInfo,
-            MOS6502Op.StaAbs => StAbsInfo,
+            MOS6502Op.StAbs  => StAbsInfo,
             MOS6502Op.EorImm => EorImmInfo,
             MOS6502Op.FrameLoadByte  => FrameLoadByteInfo,
             MOS6502Op.FrameStoreByte => FrameStoreByteInfo,
@@ -410,13 +413,14 @@ public sealed class MOS6502Dialect : Dialect
         ],
         TiedOperands: [-1, 0]);
 
-    // Pre-AMS `mos6502.sta.abs` absolute store. use[0]=value (Axy — any of
+    // Pre-AMS `mos6502.st.abs` generic absolute store. use[0]=value (Axy — any of
     // $a/$x/$y, since STA/STX/STY all have absolute forms), use[1]=Symbol (no
     // class). Declaring Axy lets the value stay wherever its producer left it
     // (coalesced, not copied); MOS6502AddressingModeSelectorPass then refines the
-    // opcode to stx.abs / sty.abs to match. Mirrors llvm-mos's GPR-classed store
-    // value on `STAbs`. The refined StxAbs/StyAbs are only seen post-RA, where
-    // operand classes no longer matter, so they keep the empty default.
+    // opcode to the concrete sta.abs / stx.abs / sty.abs to match. Mirrors
+    // llvm-mos's GPR-classed `STAbs` pseudo. The concrete StaAbs/StxAbs/StyAbs are
+    // only seen post-RA, where operand classes no longer matter, so they keep the
+    // empty default.
     private static readonly DialectInstructionInfo StAbsInfo = new(
         OperandClasses: [
             MOS6502RegisterClass.Axy,   // use[0]: value

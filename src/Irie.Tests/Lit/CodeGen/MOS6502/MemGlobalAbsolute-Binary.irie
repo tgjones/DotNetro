@@ -18,7 +18,7 @@
 
 ; The low byte stays in $y and the high byte in $x, so the stores are STY/STX
 ; absolute directly (no transfer back through $a) — the value is read in place
-; via sta.abs's Axy operand class, refined to sty.abs/stx.abs post-RA.
+; via the generic st.abs's Axy operand class, refined to sty.abs/stx.abs post-RA.
 ; Layout at $1000: the 16-byte function, then g (2 bytes) at $1010/$1011.
 ;   AD 10 10  LDA $1010 (g)        A8  TAY
 ;   AD 11 10  LDA $1011 (g+1)      AA  TAX     <- +1 offset applied

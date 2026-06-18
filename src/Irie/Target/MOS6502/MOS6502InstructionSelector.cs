@@ -448,6 +448,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             or MOS6502Op.StaAbsY or MOS6502Op.StaIndX or MOS6502Op.StaIndY
             or MOS6502Op.StxZp or MOS6502Op.StxZpY or MOS6502Op.StxAbs
             or MOS6502Op.StyZp or MOS6502Op.StyZpX or MOS6502Op.StyAbs
+            or MOS6502Op.StAbs
             or MOS6502Op.Inc or MOS6502Op.Dec
             or MOS6502Op.IncZp or MOS6502Op.IncZpX or MOS6502Op.IncAbs or MOS6502Op.IncAbsX
             or MOS6502Op.DecZp or MOS6502Op.DecZpX or MOS6502Op.DecAbs or MOS6502Op.DecAbsX
@@ -1239,10 +1240,11 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         // i16 pointers fall through to the indy path.
         if (TryResolveSymbolAddress(function, addrReg.Id) is string absStoreSym)
         {
-            // sta.abs reads the value operand DIRECTLY (no copy to a pinned $a):
-            // its declared Axy operand class lets the byte stay in whichever of
-            // $a/$x/$y its producer left it, and MOS6502AddressingModeSelectorPass
-            // refines `sta.abs` → `stx.abs` / `sty.abs` to match. Referencing the
+            // st.abs is the generic (register-agnostic) absolute store: it reads
+            // the value operand DIRECTLY (no copy to a pinned $a), its Axy operand
+            // class letting the byte stay in whichever of $a/$x/$y its producer
+            // left it, and MOS6502AddressingModeSelectorPass refines it to the
+            // concrete `sta.abs` / `stx.abs` / `sty.abs` to match. Referencing the
             // value in place — rather than copying it into a fresh store-only vreg
             // — is what makes this pay off: a store-only copy would interfere with
             // the value's other live uses (e.g. global-rw stores AND returns the
@@ -1252,7 +1254,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             // parking is needed: the absolute store has no pointer-byte LDAs to
             // clobber $a (unlike the indirect-Y path below).
             builder.BuildInstruction(
-                MOS6502Dialect.OpRef(MOS6502Op.StaAbs),
+                MOS6502Dialect.OpRef(MOS6502Op.StAbs),
                 new VirtualReg(valReg.Id, IsDefinition: false),
                 new Symbol(absStoreSym, (int)offset.Value));
 

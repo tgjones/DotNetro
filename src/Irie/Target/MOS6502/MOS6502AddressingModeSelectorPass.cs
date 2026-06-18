@@ -53,23 +53,25 @@ public sealed class MOS6502AddressingModeSelectorPass : MirFunctionPass
         // explicit operands are use[0]=a (operands[0]) and use[1]=b (operands[1]).
         // RHS is operands[1].
         MOS6502Op.Cmp => RefineByOperand(operands, 1, MOS6502Op.CmpZp, MOS6502Op.CmpImm),
-        // sta.abs: the store source is operands[0]. If RA placed the byte in $x or
-        // $y, store directly with STX/STY rather than transferring it through $a.
-        // $a (and anything else) keeps the STA form. STX/STY share sta.abs's exact
-        // operand layout (value in slot 0, Symbol in slot 1), so only the tag changes.
-        MOS6502Op.StaAbs => RefineStoreBySource(operands),
+        // st.abs: the generic absolute store. Its value is operands[0]; select the
+        // concrete sta.abs / stx.abs / sty.abs for whichever of $a/$x/$y RA placed
+        // it in. All three share st.abs's exact operand layout (value in slot 0,
+        // Symbol in slot 1), so only the opcode tag changes.
+        MOS6502Op.StAbs => RefineStoreBySource(operands),
         _ => null,
     };
 
-    // Refine an absolute store to STX/STY when its source register is $x/$y.
+    // Select the concrete absolute store (STA/STX/STY) for a generic st.abs from
+    // its source register.
     private static MOS6502Op? RefineStoreBySource(MirOperand[] operands)
     {
         if (operands.Length == 0 || operands[0] is not PhysicalReg src) return null;
         return src.Id switch
         {
+            MOS6502Registers.A => MOS6502Op.StaAbs,
             MOS6502Registers.X => MOS6502Op.StxAbs,
             MOS6502Registers.Y => MOS6502Op.StyAbs,
-            _                  => null, // $a: keep sta.abs
+            _                  => null,
         };
     }
 

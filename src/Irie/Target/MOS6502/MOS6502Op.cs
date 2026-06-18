@@ -95,6 +95,15 @@ public enum MOS6502Op : ushort
     StyZpX,
     StyAbs,
 
+    // Generic absolute store (pre-AMS). Register-agnostic "store to absolute":
+    // its value operand is the Axy class (any of $a/$x/$y), and
+    // MOS6502AddressingModeSelector refines it to the concrete StaAbs / StxAbs /
+    // StyAbs once RA has fixed the value's register. Mirrors llvm-mos's `STAbs`
+    // pseudo (a GPR-classed store, "STA abs, STX abs"), as opposed to the
+    // accumulator-specific StaAbs. Never reaches machine-code emission — AMS
+    // always rewrites it to one of the three concrete stores first.
+    StAbs,
+
     // ADC
     AdcImm,
     AdcZp,

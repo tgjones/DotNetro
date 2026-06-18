@@ -6,8 +6,8 @@
 ; via mem.symbol / mem.load.i16 / mem.store.i16 with absolute addressing.
 ;
 ; The result bytes are stored with STY/STX absolute directly from the registers
-; they already occupy ($y low, $x high) — sta.abs reads its value in place via
-; its Axy operand class, refined to sty.abs/stx.abs post-RA — rather than
+; they already occupy ($y low, $x high) — the generic st.abs reads its value in
+; place via its Axy operand class, refined to sty.abs/stx.abs post-RA — rather than
 ; funnelling each byte back through $a. This is a 10-instruction match for
 ; llvm-mos (ext/llvm-mos-reference/memory/global-rw.s).
 ;
