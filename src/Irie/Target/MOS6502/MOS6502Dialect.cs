@@ -415,6 +415,10 @@ public sealed class MOS6502Dialect : Dialect
 
     public override bool IsTerminator(ushort code) => _terminators.Contains((MOS6502Op)code);
 
+    // RTS / RTI return from the (sub)routine — the function-exit terminators.
+    public override bool IsReturn(ushort code)
+        => (MOS6502Op)code is MOS6502Op.Rts or MOS6502Op.Rti;
+
     public override bool IsArtifact(ushort code) => false;
 
     internal override void OnRegistered(DialectId id) => Id = id;

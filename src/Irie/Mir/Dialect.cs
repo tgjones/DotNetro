@@ -28,6 +28,12 @@ public abstract class Dialect
     // True when this opcode terminates a basic block.
     public abstract bool IsTerminator(ushort code);
 
+    // True when this opcode returns from the function (e.g. `mos6502.rts`).
+    // Mirrors LLVM's MCInstrDesc::isReturn — a generic, target-agnostic query
+    // used by passes such as TailDuplicationPass. Scaffolding/non-target
+    // dialects have no return op, so the default is false.
+    public virtual bool IsReturn(ushort code) => false;
+
     // True when this opcode is a type-shape artifact (e.g. pseudo.merge /
     // pseudo.unmerge) that the legalization artifact combiner can fold.
     public abstract bool IsArtifact(ushort code);

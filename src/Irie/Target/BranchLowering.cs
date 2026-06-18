@@ -21,4 +21,12 @@ public abstract class BranchLowering
     // Emit an unconditional branch to `target` at the builder's current
     // insertion point (the end of a freshly-created split block).
     public abstract void InsertUnconditionalBranch(MirBuilder builder, BlockTarget target);
+
+    // Recognize the target's unconditional branch. Returns true (and the
+    // destination block) when `instr` is the post-isel unconditional jump this
+    // lowering would emit (e.g. `mos6502.jmp.abs`). The inverse of
+    // InsertUnconditionalBranch; the analogue of the unconditional-branch arm of
+    // LLVM's TargetInstrInfo::analyzeBranch, used by TailDuplicationPass to find
+    // the redirectable edges into a tail.
+    public abstract bool TryGetUnconditionalBranchTarget(MirInstruction instr, out MirBlock target);
 }

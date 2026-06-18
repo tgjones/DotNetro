@@ -106,6 +106,13 @@ rootCommand.SetAction(parseResult =>
     // so it must run after scavenging, which still needs the explicit-jmp CFG to
     // compute physreg liveness.
     target.AddFinalPasses(passMgr);
+    // Tail-duplication runs last — after the target's block-placement — to
+    // rebalance trivial shared return tails left by ReturnMergePass. It is the
+    // llvm-mos `tailduplication` analogue; it follows block-placement (rather than
+    // preceding it as in llvm-mos) because our block-placement has no integrated
+    // tail-dup, so only the jumps placement couldn't fold to fall-throughs remain
+    // by now. See TailDuplicationPass.
+    passMgr.AddPass(new TailDuplicationPass(target.BranchLowering));
 
     if (printAll || printDiff)
     {

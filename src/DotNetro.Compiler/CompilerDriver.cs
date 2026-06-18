@@ -62,6 +62,10 @@ public static class CompilerDriver
         // implicit), so it must run after scavenging, which still needs the
         // explicit-jmp CFG to compute physreg liveness.
         target.AddFinalPasses(passMgr);
+        // Tail-duplication runs last — after the target's block-placement — to
+        // rebalance trivial shared return tails left by ReturnMergePass (the
+        // llvm-mos `tailduplication` analogue). See TailDuplicationPass.
+        passMgr.AddPass(new TailDuplicationPass(target.BranchLowering));
         passMgr.Run(context);
 
         var origin = target.DefaultOrigin!.Value;
