@@ -36,6 +36,12 @@ public abstract class Target
     // runs after the legalizer and before instruction selection).
     public virtual void AddPreInstructionSelectionPasses(Irie.Passes.PassManager pm) { }
 
+    // Called by the driver between RegisterAllocatorPass and CopyEliminationPass.
+    // Targets append their branch-folder passes here — the llvm-mos Control Flow
+    // Optimizer slot, which runs after the VReg rewriter and before copy-opt
+    // (Irie's CopyElimination). MOS6502 uses this for empty-block elimination.
+    public virtual void AddBranchFoldingPasses(Irie.Passes.PassManager pm) { }
+
     // Called by iriec between CopyEliminationPass and PseudoExpansionPass.
     // Targets append their own post-RA passes (e.g. addressing-mode selection
     // for MOS6502) — there is no generic stage at this point in the pipeline.
@@ -47,6 +53,15 @@ public abstract class Target
     // `mos-late-opt` analogue, which likewise runs after post-RA pseudo
     // expansion.
     public virtual void AddPostPseudoExpansionPasses(Irie.Passes.PassManager pm) { }
+
+    // Called by the driver as the very last stage, AFTER RegisterScavenging.
+    // Targets append final block-layout passes here — the llvm-mos
+    // block-placement slot (the last codegen pass before emission). It must run
+    // after scavenging because block-placement drops the explicit unconditional
+    // jmp on a fall-through edge, turning that edge implicit; RegisterScavenging
+    // (which derives physreg liveness from the explicit-terminator CFG via
+    // MirBlock.LiveIns / Successors) must therefore have already run.
+    public virtual void AddFinalPasses(Irie.Passes.PassManager pm) { }
 
     // Default origin (load address) when --origin is not supplied; null = no opinion.
     public virtual int? DefaultOrigin => null;

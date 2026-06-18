@@ -9,20 +9,36 @@
 ; higher bytes, with only the last-byte branch sense flipped.
 
 ; CHECK: TestSge32:
-; CHECK:     EOR #\$80
-; CHECK:     EOR #\$80
-; CHECK:     CMP
+; CHECK:     STA \$09
+; CHECK:     STX \$08
+; CHECK:     LDY \$02
+; CHECK:     LDA \$03
+; CHECK:     EOR \#\$80
+; CHECK:     TAX
+; CHECK:     LDA \$07
+; CHECK:     EOR \#\$80
+; CHECK:     STA \$02
+; CHECK:     TXA
+; CHECK:     CMP \$02
 ; CHECK:     BCC \.bb2
 ; CHECK:     BNE \.bb1
-; CHECK:     CMP
+; CHECK:     TYA
+; CHECK:     CMP \$06
 ; CHECK:     BCC \.bb2
 ; CHECK:     BNE \.bb1
-; CHECK:     CMP
+; CHECK:     LDA \$08
+; CHECK:     CMP \$05
 ; CHECK:     BCC \.bb2
 ; CHECK:     BNE \.bb1
-; CHECK:     CMP
+; CHECK:     LDA \$09
+; CHECK:     CMP \$04
 ; CHECK:     BCC \.bb2
-; CHECK:     JMP \.bb1
+; CHECK: \.bb1:
+; CHECK:     LDA \#\$01
+; CHECK:     RTS
+; CHECK: \.bb2:
+; CHECK:     LDA \#\$00
+; CHECK:     RTS
 
 func @TestSge32 : (i32, i32) -> i8 {
 bb0(%0 : i32, %1 : i32):

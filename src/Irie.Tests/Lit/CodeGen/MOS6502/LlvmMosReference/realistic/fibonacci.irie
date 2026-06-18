@@ -8,7 +8,7 @@
 ; CHECK pins Irie's current --emit=asm output (characterization / golden).
 ; Compare against ext/llvm-mos-reference/realistic/fibonacci.s; close gaps via irie-report.
 
-; CHECK:     fibonacci:
+; CHECK: fibonacci:
 ; CHECK:     STA \$0B
 ; CHECK:     STX \$0A
 ; CHECK:     LDA \#\$00
@@ -23,8 +23,7 @@
 ; CHECK:     STA \$05
 ; CHECK:     LDA \#\$00
 ; CHECK:     STA \$04
-; CHECK:     JMP \.bb1
-; CHECK:     \.bb1:
+; CHECK: \.bb1:
 ; CHECK:     LDA \$05
 ; CHECK:     STA \$03
 ; CHECK:     LDA \$04
@@ -38,13 +37,16 @@
 ; CHECK:     STA \$02
 ; CHECK:     TYA
 ; CHECK:     CMP \$02
-; CHECK:     BCC \.bb2
-; CHECK:     BNE \.bb3
+; CHECK:     BCC \.bb3
+; CHECK:     BNE \.bb2
 ; CHECK:     LDA \$03
 ; CHECK:     CMP \$0C
-; CHECK:     BCC \.bb2
-; CHECK:     JMP \.bb3
-; CHECK:     \.bb2:
+; CHECK:     BCC \.bb3
+; CHECK: \.bb2:
+; CHECK:     LDA \$07
+; CHECK:     LDX \$06
+; CHECK:     RTS
+; CHECK: \.bb3:
 ; CHECK:     CLC
 ; CHECK:     LDA \$07
 ; CHECK:     ADC \$09
@@ -70,10 +72,6 @@
 ; CHECK:     STY \$09
 ; CHECK:     STX \$08
 ; CHECK:     JMP \.bb1
-; CHECK:     \.bb3:
-; CHECK:     LDA \$07
-; CHECK:     LDX \$06
-; CHECK:     RTS
 
 func @fibonacci : (i16) -> i16 {
 bb0(%0 : i16):

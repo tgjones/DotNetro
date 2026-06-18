@@ -18,13 +18,19 @@
 ; output: the increment must not fall back to the generic adc path.
 
 ; CHECK: Inc:
+; CHECK:     STX \$02
 ; CHECK:     TAX
-; CHECK:     JMP .bb1
-; CHECK: .bb1:
+; CHECK: \.bb1:
 ; CHECK:     INX
 ; CHECK:     TXA
 ; CHECK:     CMP \$02
-; CHECK:     BCS .bb3
+; CHECK:     BCS \.bb3
+; CHECK:     JMP \.bb1
+; CHECK: \.bb2:
+; CHECK:     RTS
+; CHECK: \.bb3:
+; CHECK:     TXA
+; CHECK:     JMP \.bb2
 
 func @Inc : (i8, i8) -> i8 {
 bb0(%0 : i8, %1 : i8):

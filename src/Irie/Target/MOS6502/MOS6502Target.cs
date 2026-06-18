@@ -31,6 +31,16 @@ public class MOS6502Target : Irie.Target.Target
         pm.AddPass(new MOS6502SelectLoweringPass());
     }
 
+    public override void AddBranchFoldingPasses(Irie.Passes.PassManager pm)
+    {
+        // The llvm-mos branch-folder analogue: fold away a block whose only
+        // instruction is an unconditional jmp, redirecting its predecessors to
+        // the successor (e.g. the empty bb1 that only does `JMP .bb3`). Runs
+        // after RA and before CopyElimination, matching llvm-mos's Control Flow
+        // Optimizer position (after the VReg rewriter, before copy-opt).
+        pm.AddPass(new MOS6502BranchFolderPass());
+    }
+
     public override void AddPostRegisterAllocationPasses(Irie.Passes.PassManager pm)
     {
         pm.AddPass(new MOS6502AddressingModeSelectorPass());
@@ -51,6 +61,23 @@ public class MOS6502Target : Irie.Target.Target
         // (matches llvm-mos, which runs mos-late-opt after post-RA pseudo
         // expansion).
         pm.AddPass(new MOS6502LateOptimizationPass());
+    }
+
+    public override void AddFinalPasses(Irie.Passes.PassManager pm)
+    {
+        // The llvm-mos block-placement analogue (minimal fall-through form):
+        // order blocks so a block's unconditional jmp target follows it, then
+        // drop the redundant jmp and fall through. Mirrors llvm-mos, which runs
+        // block-placement as the last codegen pass.
+        //
+        // It runs AFTER RegisterScavenging (not immediately after the late-opt
+        // pass) because dropping a fall-through jmp turns an explicit CFG edge
+        // implicit: RegisterScavenging derives physreg liveness from the
+        // explicit-terminator CFG (MirBlock.Successors / LiveIns), so it must
+        // observe the jmp before block-placement removes it. With block layout as
+        // the final step, the MachineCodeEmitter (which knows fall-through) is the
+        // only consumer of the post-placement CFG.
+        pm.AddPass(new MOS6502BlockPlacementPass());
     }
 
     // Hand-written MIR runtime (currently just the indirect-call trampoline;

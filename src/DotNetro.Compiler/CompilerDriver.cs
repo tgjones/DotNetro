@@ -34,6 +34,11 @@ public static class CompilerDriver
         passMgr.AddPass(new PhiEliminationPass(target.BranchLowering));
         passMgr.AddPass(new TwoAddressInstructionPass());
         passMgr.AddPass(new RegisterAllocatorPass(target.RegisterInfo));
+        // Target branch-folding passes run on physreg-only MIR after RA and
+        // before CopyElimination — the llvm-mos Control Flow Optimizer slot
+        // (after the VReg rewriter, before copy-opt). MOS6502 uses this for
+        // empty-block elimination.
+        target.AddBranchFoldingPasses(passMgr);
         passMgr.AddPass(new CopyEliminationPass());
         target.AddPostRegisterAllocationPasses(passMgr);
         // Expand abstract frame accesses (mos6502.frame.*.byte) into concrete
@@ -51,6 +56,11 @@ public static class CompilerDriver
         // immediate→zp moves) with GPRs dead at each point, then lower them. Must
         // run last so no vregs survive into machine-code emission (plan §3.6).
         passMgr.AddPass(new RegisterScavengingPass(target.RegisterInfo, target.PseudoExpander));
+        // Target final passes run after scavenging — the llvm-mos block-placement
+        // slot. Block-placement drops fall-through jmps (making CFG edges
+        // implicit), so it must run after scavenging, which still needs the
+        // explicit-jmp CFG to compute physreg liveness.
+        target.AddFinalPasses(passMgr);
         passMgr.Run(context);
 
         var origin = target.DefaultOrigin!.Value;

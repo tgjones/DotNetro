@@ -5,14 +5,28 @@
 ; high byte of each operand, then a two-step high-to-low unsigned CMP ladder.
 
 ; CHECK: TestSlt16:
-; CHECK:     EOR #\$80
-; CHECK:     EOR #\$80
-; CHECK:     CMP
-; CHECK:     BCC \.bb1
-; CHECK:     BNE \.bb2
-; CHECK:     CMP
-; CHECK:     BCC \.bb1
-; CHECK:     JMP \.bb2
+; CHECK:     TAY
+; CHECK:     LDA \$02
+; CHECK:     STA \$04
+; CHECK:     TXA
+; CHECK:     EOR \#\$80
+; CHECK:     TAX
+; CHECK:     LDA \$03
+; CHECK:     EOR \#\$80
+; CHECK:     STA \$02
+; CHECK:     TXA
+; CHECK:     CMP \$02
+; CHECK:     BCC \.bb2
+; CHECK:     BNE \.bb1
+; CHECK:     TYA
+; CHECK:     CMP \$04
+; CHECK:     BCC \.bb2
+; CHECK: \.bb1:
+; CHECK:     LDA \#\$00
+; CHECK:     RTS
+; CHECK: \.bb2:
+; CHECK:     LDA \#\$01
+; CHECK:     RTS
 
 func @TestSlt16 : (i16, i16) -> i8 {
 bb0(%0 : i16, %1 : i16):

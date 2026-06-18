@@ -7,11 +7,13 @@
 ; the instruction selector only lowers a generic mem.load.i8 through a
 ; `mem.symbol @name` address, not a runtime pointer. Plan §6 step 6.
 
+; CHECK: osasci:
+; CHECK:     JSR \$FFE3
+; CHECK:     RTS
 ; CHECK: WriteLineString:
 ; CHECK:     STA \$00
 ; CHECK:     STX \$01
-; CHECK:     LDY #\$00
-; CHECK:     JMP \.bb1
+; CHECK:     LDY \#\$00
 ; CHECK: \.bb1:
 ; CHECK:     LDA \(\$00\),Y
 ; CHECK:     BEQ \.bb2

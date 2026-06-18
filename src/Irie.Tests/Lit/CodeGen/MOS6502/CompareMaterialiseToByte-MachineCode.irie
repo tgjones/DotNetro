@@ -13,19 +13,37 @@
 ; drives the BCC/BNE exits into the true / false legs.
 
 ; CHECK: CompareToByte:
-; The signed-less-than chain flips bit 7 of each operand's top byte first.
-; CHECK:     EOR #\$80
-; CHECK:     EOR #\$80
-; CHECK:     CMP
-; CHECK:     BCC \.bb1
+; CHECK:     STA \$09
+; CHECK:     STX \$08
+; CHECK:     LDY \$02
+; CHECK:     LDA \$03
+; CHECK:     EOR \#\$80
+; CHECK:     TAX
+; CHECK:     LDA \$07
+; CHECK:     EOR \#\$80
+; CHECK:     STA \$02
+; CHECK:     TXA
+; CHECK:     CMP \$02
+; CHECK:     BCC \.bb3
+; CHECK:     BNE \.bb1
+; CHECK:     TYA
+; CHECK:     CMP \$06
+; CHECK:     BCC \.bb3
+; CHECK:     BNE \.bb1
+; CHECK:     LDA \$08
+; CHECK:     CMP \$05
+; CHECK:     BCC \.bb3
+; CHECK:     BNE \.bb1
+; CHECK:     LDA \$09
+; CHECK:     CMP \$04
+; CHECK:     BCC \.bb3
 ; CHECK: \.bb1:
-; CHECK:     LDA #\$01
-; CHECK:     JMP \.bb3
+; CHECK:     LDA \#\$00
 ; CHECK: \.bb2:
-; CHECK:     LDA #\$00
-; CHECK:     JMP \.bb3
-; CHECK: \.bb3:
 ; CHECK:     RTS
+; CHECK: \.bb3:
+; CHECK:     LDA \#\$01
+; CHECK:     JMP \.bb2
 
 func @CompareToByte : (i32, i32) -> i8 {
 bb0(%0 : i32, %1 : i32):

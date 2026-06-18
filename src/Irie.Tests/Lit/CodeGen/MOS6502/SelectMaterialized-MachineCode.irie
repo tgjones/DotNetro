@@ -16,13 +16,11 @@
 ; --- min(a, b) = a <s b ? a : b -----------------------------------------------
 ; CHECK:     select_min8:
 ; CHECK:     CMP
-; CHECK:     BCC \.bb1
-; CHECK:     JMP \.bb2
+; CHECK:     BCC \.bb2
 ; CHECK:     \.bb1:
-; CHECK:     JMP \.bb3
+; CHECK:     LDY \$03
 ; CHECK:     \.bb2:
-; CHECK:     JMP \.bb3
-; CHECK:     \.bb3:
+; CHECK:     TYA
 ; CHECK:     RTS
 func @select_min8 : (i8, i8) -> i8 {
 bb0(%0 : i8, %1 : i8):
@@ -34,13 +32,11 @@ bb0(%0 : i8, %1 : i8):
 ; --- max(a, b) = a <s b ? b : a (arms swapped) --------------------------------
 ; CHECK:     select_max8:
 ; CHECK:     CMP
-; CHECK:     BCC \.bb1
-; CHECK:     JMP \.bb2
+; CHECK:     BCC \.bb2
 ; CHECK:     \.bb1:
-; CHECK:     JMP \.bb3
+; CHECK:     LDY \$03
 ; CHECK:     \.bb2:
-; CHECK:     JMP \.bb3
-; CHECK:     \.bb3:
+; CHECK:     TYA
 ; CHECK:     RTS
 func @select_max8 : (i8, i8) -> i8 {
 bb0(%0 : i8, %1 : i8):
@@ -59,15 +55,15 @@ bb0(%0 : i8, %1 : i8):
 ; already set N), leaving just LDA + BMI.
 ; CHECK:     select_abs8:
 ; CHECK:     LDA \$02
-; CHECK:     BMI \.bb1
-; CHECK:     JMP \.bb2
+; CHECK:     BMI \.bb2
 ; CHECK:     \.bb1:
-; CHECK:     SBC
-; CHECK:     JMP \.bb3
-; CHECK:     \.bb2:
-; CHECK:     JMP \.bb3
-; CHECK:     \.bb3:
+; CHECK:     LDA \$02
 ; CHECK:     RTS
+; CHECK:     \.bb2:
+; CHECK:     SEC
+; CHECK:     SBC
+; CHECK:     STA \$02
+; CHECK:     JMP \.bb1
 func @select_abs8 : (i8) -> i8 {
 bb0(%0 : i8):
     %1 : i8 = arith.constant 0
@@ -81,12 +77,18 @@ bb0(%0 : i8):
 ; the condition → ONE diamond, both bytes set per arm) + wide cmpi. ------------
 ; CHECK:     select_min16:
 ; CHECK:     CMP
-; CHECK:     BCC \.bb1
+; CHECK:     BCC \.bb2
+; CHECK:     BNE \.bb1
+; CHECK:     CMP
+; CHECK:     BCC \.bb2
 ; CHECK:     \.bb1:
-; CHECK:     JMP \.bb3
+; CHECK:     LDA \$07
+; CHECK:     STA \$05
+; CHECK:     LDA \$06
+; CHECK:     STA \$04
 ; CHECK:     \.bb2:
-; CHECK:     JMP \.bb3
-; CHECK:     \.bb3:
+; CHECK:     LDA \$05
+; CHECK:     LDX \$04
 ; CHECK:     RTS
 func @select_min16 : (i16, i16) -> i16 {
 bb0(%0 : i16, %1 : i16):

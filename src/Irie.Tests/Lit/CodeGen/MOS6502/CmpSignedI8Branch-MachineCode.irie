@@ -10,16 +10,19 @@
 ; against it. BCC takes the true edge (a < b); otherwise JMP to the false edge.
 
 ; CHECK: TestSltI8:
-; CHECK:     EOR #\$80
-; CHECK:     EOR #\$80
+; CHECK:     EOR \#\$80
+; CHECK:     TAY
+; CHECK:     TXA
+; CHECK:     EOR \#\$80
+; CHECK:     STA \$02
+; CHECK:     TYA
 ; CHECK:     CMP \$02
-; CHECK:     BCC \.bb1
-; CHECK:     JMP \.bb2
+; CHECK:     BCC \.bb2
 ; CHECK: \.bb1:
-; CHECK:     LDA #\$01
+; CHECK:     LDA \#\$00
 ; CHECK:     RTS
 ; CHECK: \.bb2:
-; CHECK:     LDA #\$00
+; CHECK:     LDA \#\$01
 ; CHECK:     RTS
 
 func @TestSltI8 : (i8, i8) -> i8 {
