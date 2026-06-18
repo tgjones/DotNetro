@@ -43,6 +43,16 @@ public class MOS6502Target : Irie.Target.Target
         // post-RA placement pass here that promotes eligible slots to zero page.
     }
 
+    public override void AddPostPseudoExpansionPasses(Irie.Passes.PassManager pm)
+    {
+        // The mos-late-opt analogue: drop a `cmp $r, #0` that is redundant
+        // because $r was just produced by a flag-setting load/transfer. Runs
+        // after PseudoExpansion so it sees the final expanded loads/transfers
+        // (matches llvm-mos, which runs mos-late-opt after post-RA pseudo
+        // expansion).
+        pm.AddPass(new MOS6502LateOptimizationPass());
+    }
+
     // Hand-written MIR runtime (currently just the indirect-call trampoline;
     // OS-call wrappers, `start`, ManagedHeap_Alloc, etc. will be added in later
     // plan steps). Loaded as an embedded resource; the IL→MIR translator will

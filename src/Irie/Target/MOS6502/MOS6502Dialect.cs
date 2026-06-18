@@ -300,8 +300,37 @@ public sealed class MOS6502Dialect : Dialect
             MOS6502Op.EorImm => EorImmInfo,
             MOS6502Op.FrameLoadByte  => FrameLoadByteInfo,
             MOS6502Op.FrameStoreByte => FrameStoreByteInfo,
+
+            // Loads and register transfers update N/Z from the byte they move
+            // (the 6502 LDA/LDX/LDY/TAX/TAY/TXA/TYA/TSX all set N and Z; TXS
+            // does NOT touch the flags, so it is deliberately absent). The
+            // late-optimization pass (MOS6502LateOptimizationPass) relies on
+            // this to drop a redundant `cmp $r, #0` whose operand was just
+            // produced by one of these — the N/Z it would set are already live.
+            MOS6502Op.LdaImm or MOS6502Op.LdaZp or MOS6502Op.LdaZpX
+                or MOS6502Op.LdaAbs or MOS6502Op.LdaAbsX or MOS6502Op.LdaAbsY
+                or MOS6502Op.LdaIndX or MOS6502Op.LdaIndY
+                or MOS6502Op.LdxImm or MOS6502Op.LdxZp or MOS6502Op.LdxZpY
+                or MOS6502Op.LdxAbs or MOS6502Op.LdxAbsY
+                or MOS6502Op.LdyImm or MOS6502Op.LdyZp or MOS6502Op.LdyZpX
+                or MOS6502Op.LdyAbs or MOS6502Op.LdyAbsX
+                or MOS6502Op.Tax or MOS6502Op.Tay
+                or MOS6502Op.Txa or MOS6502Op.Tya
+                or MOS6502Op.Tsx => NZFlagSettingInfo,
+
             _ => DialectInstructionInfo.Empty,
         };
+
+    // Loads and transfers that set N/Z as a side effect of moving a byte.
+    // Modelled as implicit defs so the late-optimization pass and RA know the
+    // N/Z flags are written. No operand classes / tied operands are declared
+    // here: these ops are only seen post-RA (their explicit operands are
+    // already physical / immediate by the time this matters).
+    private static readonly DialectInstructionInfo NZFlagSettingInfo = new(
+        ImplicitDefs: [
+            MOS6502Registers.N,
+            MOS6502Registers.Z,
+        ]);
 
     // Abstract frame byte accesses. The scratch each expansion uses is declared
     // here as implicit defs to document the clobber contract; the instruction

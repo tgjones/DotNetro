@@ -5,8 +5,11 @@
 ; constant 0 operand is folded directly into an immediate compare
 ; (`CMP #$00`) — one per operand byte — by MOS6502InstructionSelector, so no
 ; zero is ever materialized into zero page. The cmpi+cond_br fusion then emits
-; the per-byte CMP / BEQ / BNE chain. This is the regression guard for the
-; frontend's `brfalse`.
+; the per-byte CMP / BEQ / BNE chain. Where a byte is produced by a flag-setting
+; load/transfer (TXA / TYA / LDA from a parameter byte), MOS6502LateOptimization
+; drops the redundant `CMP #$00` — the load/transfer already set N/Z — so only
+; the i8 case (value arriving in $a as a bare live-in, no producer) keeps an
+; explicit compare. This is the regression guard for the frontend's `brfalse`.
 ;
 ; The compared value arrives in $a/$x (call-convention live-ins) and is compared
 ; against the immediate directly, so the live parameter byte stays in $a and the
@@ -25,10 +28,8 @@
 ; CHECK: CmpEqZeroI16:
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb2
 ; CHECK:     TYA
-; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb2
 ; CHECK:     JMP \.bb1
 ; CHECK: \.bb1:
@@ -38,16 +39,12 @@
 ; CHECK: CmpEqZeroI32:
 ; CHECK:     TAY
 ; CHECK:     LDA \$03
-; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb2
 ; CHECK:     LDA \$02
-; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb2
 ; CHECK:     TXA
-; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb2
 ; CHECK:     TYA
-; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb2
 ; CHECK:     JMP \.bb1
 ; CHECK: \.bb1:

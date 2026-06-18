@@ -12,8 +12,9 @@
 ;
 ; As in CmpEqZero, the const-0 operand is folded into an immediate `CMP #$00` by
 ; MOS6502InstructionSelector, so no zero is materialized into zero page and no
-; scratch GPR is needed. The live-in byte stays in $a and the CMP reads it
-; directly.
+; scratch GPR is needed. Where a byte is produced by a flag-setting load/transfer
+; (TXA / TYA / LDA), MOS6502LateOptimization drops the now-redundant `CMP #$00`,
+; so only the i8 case (value arriving in $a as a bare live-in) keeps a compare.
 
 ; --- i8: single immediate CMP of $a vs 0, BEQ false / JMP true. ---
 
@@ -28,10 +29,8 @@
 ; CHECK: CmpNeZeroI16:
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     TYA
-; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK: \.bb1:
@@ -41,16 +40,12 @@
 ; CHECK: CmpNeZeroI32:
 ; CHECK:     TAY
 ; CHECK:     LDA \$03
-; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     LDA \$02
-; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     TXA
-; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     TYA
-; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK: \.bb1:

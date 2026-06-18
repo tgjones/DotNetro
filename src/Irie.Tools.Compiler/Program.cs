@@ -87,6 +87,10 @@ rootCommand.SetAction(parseResult =>
     passMgr.AddPass(new FrameAccessLoweringPass(target.FrameLowering));
     passMgr.AddPass(new PrologueEpilogueInsertionPass(target.RegisterInfo, target.FrameLowering));
     passMgr.AddPass(new PseudoExpansionPass(target.PseudoExpander));
+    // Target late-optimization passes run on the final expanded physreg-only
+    // stream — the llvm-mos `mos-late-opt` slot (after post-RA pseudo
+    // expansion). MOS6502 uses this for the flag-from-load fold.
+    target.AddPostPseudoExpansionPasses(passMgr);
     // Register scavenging runs LAST: PseudoExpansion mints copy-scratch vregs
     // (e.g. for immediate→zp moves), and this pass assigns each the cheapest GPR
     // dead at that point and drives the final lowering, leaving no vregs behind

@@ -11,10 +11,8 @@
 ; CHECK:     select_val:
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     CMP \#\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     TYA
-; CHECK:     CMP \#\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK:     \.bb1:

@@ -43,6 +43,10 @@ public static class CompilerDriver
         passMgr.AddPass(new FrameAccessLoweringPass(target.FrameLowering));
         passMgr.AddPass(new PrologueEpilogueInsertionPass(target.RegisterInfo, target.FrameLowering));
         passMgr.AddPass(new PseudoExpansionPass(target.PseudoExpander));
+        // Target late-optimization passes run on the final expanded physreg-only
+        // stream — the llvm-mos `mos-late-opt` slot (after post-RA pseudo
+        // expansion). MOS6502 uses this for the flag-from-load fold.
+        target.AddPostPseudoExpansionPasses(passMgr);
         // Final pass: fill the copy-scratch vregs PseudoExpansion mints (e.g. for
         // immediate→zp moves) with GPRs dead at each point, then lower them. Must
         // run last so no vregs survive into machine-code emission (plan §3.6).

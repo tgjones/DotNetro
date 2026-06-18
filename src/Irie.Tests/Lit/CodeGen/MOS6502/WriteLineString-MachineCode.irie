@@ -14,7 +14,6 @@
 ; CHECK:     JMP \.bb1
 ; CHECK: \.bb1:
 ; CHECK:     LDA \(\$00\),Y
-; CHECK:     CMP #\$00
 ; CHECK:     BEQ \.bb2
 ; CHECK:     JSR osasci
 ; CHECK:     INY

@@ -55,8 +55,10 @@ bb0(%0 : i8, %1 : i8):
 ; Sinking it out of the entry block also keeps the cmpi adjacent to the cond_br.
 ; Because the diamond is formed before the legalizer, the `x <s 0` compare is
 ; normalized to the optimal high-byte sign test (CMP #$00 + BMI), not an EOR bias.
+; The CMP #$00 is then dropped by MOS6502LateOptimization (the preceding LDA $02
+; already set N), leaving just LDA + BMI.
 ; CHECK:     select_abs8:
-; CHECK:     CMP #\$00
+; CHECK:     LDA \$02
 ; CHECK:     BMI \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK:     \.bb1:

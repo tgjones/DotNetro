@@ -7,14 +7,15 @@
 ; arrives LSB-first in $a, $x, $zp2, $zp3 per CC_MOS. Plan §6 step 6.
 ;
 ; We spot-check the structural landmarks: the value bytes copied into working
-; zero-page, the sign test, the '-' + two's-complement negate path, and the
-; CR (#$0D) / osasci tail that terminates the line.
+; zero-page, the sign test (the redundant `CMP #$00` after `LDA $07` is dropped
+; by MOS6502LateOptimization — the LDA already set N for the BPL), the '-' +
+; two's-complement negate path, and the CR (#$0D) / osasci tail that terminates
+; the line.
 
 ; CHECK: WriteLineInt32:
 ; CHECK:     STA \$04
 ; CHECK:     STX \$05
 ; CHECK:     LDA \$07
-; CHECK:     CMP #\$00
 ; CHECK:     BPL \.bb2
 ; CHECK:     LDA #\$2D
 ; CHECK:     JSR osasci

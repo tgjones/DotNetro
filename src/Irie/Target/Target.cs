@@ -41,6 +41,13 @@ public abstract class Target
     // for MOS6502) — there is no generic stage at this point in the pipeline.
     public virtual void AddPostRegisterAllocationPasses(Irie.Passes.PassManager pm) { }
 
+    // Called by iriec after PseudoExpansionPass (and before RegisterScavenging).
+    // Targets append late-optimization passes that need the final expanded
+    // physreg-only stream — e.g. MOS6502's flag-from-load fold, the llvm-mos
+    // `mos-late-opt` analogue, which likewise runs after post-RA pseudo
+    // expansion.
+    public virtual void AddPostPseudoExpansionPasses(Irie.Passes.PassManager pm) { }
+
     // Default origin (load address) when --origin is not supplied; null = no opinion.
     public virtual int? DefaultOrigin => null;
 

@@ -7,7 +7,9 @@
 ;
 ; Each `x < 0` lowers to a sign-bit test of the high byte only (CMP #$00 + BMI),
 ; matching llvm-mos's `cpx #0 ; bmi` — see MOS6502InstructionSelector's
-; SelectCmpIMultiByte zero-RHS signed fast path.
+; SelectCmpIMultiByte zero-RHS signed fast path. The high byte is brought in by a
+; flag-setting `LDA`, so MOS6502LateOptimization drops the redundant `CMP #$00`:
+; the BMI reads the N that LDA already set (llvm-mos folds the same way).
 ;
 ; CHECK pins Irie's current --emit=asm output (characterization / golden).
 ; Compare against ext/llvm-mos-reference/control-flow/early-return.s; close gaps via irie-report.
@@ -18,7 +20,6 @@
 ; CHECK:     LDY \#\$00
 ; CHECK:     LDX \#\$00
 ; CHECK:     LDA \$06
-; CHECK:     CMP \#\$00
 ; CHECK:     BMI \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK:     \.bb1:
@@ -26,7 +27,6 @@
 ; CHECK:     RTS
 ; CHECK:     \.bb2:
 ; CHECK:     LDA \$03
-; CHECK:     CMP \#\$00
 ; CHECK:     BMI \.bb3
 ; CHECK:     JMP \.bb4
 ; CHECK:     \.bb3:
@@ -35,7 +35,6 @@
 ; CHECK:     RTS
 ; CHECK:     \.bb4:
 ; CHECK:     LDA \$05
-; CHECK:     CMP \#\$00
 ; CHECK:     BMI \.bb5
 ; CHECK:     JMP \.bb6
 ; CHECK:     \.bb5:
