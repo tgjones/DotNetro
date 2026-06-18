@@ -7,8 +7,9 @@
 ; The legalizer normalizes `ne` to `eq` with the branch's true/false edges
 ; swapped. For the multi-byte cases that reproduces the original BNE-to-true
 ; ladder exactly (the eq ladder's BNE-to-false becomes BNE-to-true once the
-; edges are swapped); for the single-byte i8 case it emits BEQ-to-false +
-; JMP-to-true.
+; edges are swapped). For the single-byte i8 case both branch targets return
+; void, so ReturnMergePass + MOS6502TailDuplication collapse them to one shared
+; RTS that the BEQ reaches on either edge (no separate true/false return tail).
 ;
 ; As in CmpEqZero, the const-0 operand is folded into an immediate `CMP #$00` by
 ; MOS6502InstructionSelector, so no zero is materialized into zero page and no
@@ -16,38 +17,32 @@
 ; (TXA / TYA / LDA), MOS6502LateOptimization drops the now-redundant `CMP #$00`,
 ; so only the i8 case (value arriving in $a as a bare live-in) keeps a compare.
 
-; --- i8: single immediate CMP of $a vs 0, BEQ false / JMP true. ---
+; --- i8: single immediate CMP of $a vs 0; both (void) exits reach the merged RTS. ---
 
 ; CHECK: CmpNeZeroI8:
 ; CHECK:     CMP \#\$00
-; CHECK:     BEQ \.bb2
+; CHECK:     BEQ \.bb1
 ; CHECK: \.bb1:
-; CHECK:     RTS
-; CHECK: \.bb2:
 ; CHECK:     RTS
 ; CHECK: CmpNeZeroI16:
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     BNE \.bb2
+; CHECK:     BNE \.bb1
 ; CHECK:     TYA
-; CHECK:     BNE \.bb2
+; CHECK:     BNE \.bb1
 ; CHECK: \.bb1:
-; CHECK:     RTS
-; CHECK: \.bb2:
 ; CHECK:     RTS
 ; CHECK: CmpNeZeroI32:
 ; CHECK:     TAY
 ; CHECK:     LDA \$03
-; CHECK:     BNE \.bb2
+; CHECK:     BNE \.bb1
 ; CHECK:     LDA \$02
-; CHECK:     BNE \.bb2
+; CHECK:     BNE \.bb1
 ; CHECK:     TXA
-; CHECK:     BNE \.bb2
+; CHECK:     BNE \.bb1
 ; CHECK:     TYA
-; CHECK:     BNE \.bb2
+; CHECK:     BNE \.bb1
 ; CHECK: \.bb1:
-; CHECK:     RTS
-; CHECK: \.bb2:
 ; CHECK:     RTS
 
 func @CmpNeZeroI8 : (i8) -> void {

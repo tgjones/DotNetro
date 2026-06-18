@@ -18,18 +18,18 @@ namespace Irie.Passes;
 // them, and the existing branch-folder / block-placement passes recover the
 // fall-through. The net effect matches llvm-mos's shared `bb.N: ...; rts` tail.
 //
-// Unlike the LLVM analogue — which merges every function-terminating block of a
-// kind with no cost model — we add one minimal profitability gate: merge only
-// when the return value is wider than one byte. LLVM can merge unconditionally
-// because its backend tail-duplication / branch-folding rebalances afterwards;
-// Irie has no such pass, so an unconditional merge pessimizes the trivial-tail
-// cases. The epilogue length is proportional to the return-value byte count:
-// merging N returns saves (N-1) epilogues but adds (N-1) branches plus per-edge
-// copies (which mostly coalesce away). For a void or single-byte return the
-// epilogue is just `rts` (or one copy), so the added branch never pays for
-// itself; from i16 up the saved copies dominate. Hence the `> 8 bits` gate.
+// Like the LLVM analogue this carries **no cost model** — the only gate is "at
+// least two return blocks" ("We don't want to change IR just because we can.").
+// LLVM merges unconditionally here and relies on a downstream tail-duplicator to
+// rebalance: where merging didn't pay (a trivial `rts`-only tail), the post-RA
+// TailDuplication pass clones the tail back into its jmp-predecessors, undoing
+// the merge. We follow the same division of labour — merge eagerly here, rebalance
+// later (see MOS6502TailDuplicationPass) — rather than guessing profitability
+// up-front with a target-specific size heuristic.
 //
-// Runs first, before AbiLowering lowers `core.return`, on generic SSA MIR.
+// Runs first, before AbiLowering lowers `core.return`, on generic SSA MIR. Void
+// and value returns never mix within one function (the return arity is fixed by
+// the signature), so a single uniform merge handles either case.
 public sealed class ReturnMergePass : MirFunctionPass
 {
     public override string Name => "ReturnMerge";
@@ -48,35 +48,39 @@ public sealed class ReturnMergePass : MirFunctionPass
         // "Only do that if there are at least two blocks we'll tail-merge."
         if (returnBlocks.Count < 2) return;
 
-        // Profitability gate: only multi-byte returns have an epilogue worth
-        // sharing (see the header comment).
-        if (function.ReturnType.SizeInBits <= 8) return;
-
         var builder = new MirBuilder(function);
+        var isVoid = function.ReturnType is VoidType;
 
-        // Create the common return block: `retblock(%p): core.return %p`.
+        // Create the common return block: `retblock(%p): core.return %p` for a
+        // value return, or `retblock(): core.return` for void.
         var commonBlock = function.CreateBlock();
-        var param = function.CreateVirtualRegister(function.ReturnType);
-        commonBlock.Parameters.Add(param);
         builder.SetInsertionPointAtEnd(commonBlock);
-        builder.BuildInstruction(
-            CoreDialect.OpRef(CoreOp.Return),
-            new VirtualReg(param, IsDefinition: false));
+        if (isVoid)
+        {
+            builder.BuildInstruction(CoreDialect.OpRef(CoreOp.Return));
+        }
+        else
+        {
+            var param = function.CreateVirtualRegister(function.ReturnType);
+            commonBlock.Parameters.Add(param);
+            builder.BuildInstruction(
+                CoreDialect.OpRef(CoreOp.Return),
+                new VirtualReg(param, IsDefinition: false));
+        }
 
         // Rewrite each original `core.return %v` into `cf.br retblock(%v)`,
         // carrying the returned value as the edge's block argument.
         foreach (var block in returnBlocks)
         {
             var terminator = block.Instructions[^1];
-            if (terminator.Operands.Length == 0)
-                throw new InvalidOperationException(
-                    $"ReturnMergePass: core.return in '{function.Name}' has no operand " +
-                    $"but the function returns {function.ReturnType.DisplayName}.");
+            var args = isVoid || terminator.Operands.Length == 0
+                ? []
+                : new[] { terminator.Operands[0] };
 
             builder.SetInsertionPointBefore(terminator);
             builder.BuildInstruction(
                 CfDialect.OpRef(CfOp.Br),
-                new BlockTarget(commonBlock, [terminator.Operands[0]]));
+                new BlockTarget(commonBlock, args));
             builder.Remove(terminator);
         }
 

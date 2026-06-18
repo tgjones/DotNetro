@@ -12,26 +12,33 @@
 ; `mos6502.jmp.abs` after the conditional branch (control falls through to
 ; the JMP if the branch isn't taken).
 ;
+; The two `core.return` blocks were merged up-front by ReturnMergePass into a
+; single return block (bb3); that is why bb1/bb2 each `jmp.abs bb3` here rather
+; than returning directly. Post-RA, block-placement + MOS6502TailDuplication
+; collapse that funnel back into shared / inlined RTS (see CmpI8Branch-MachineCode).
+;
 ; Note the A operand is funnelled through a fresh `ac` vreg
 ; (`%3 : ac = pseudo.copy %0`) rather than pinning %0 to `ac` in place: %0/%1
 ; stay broad (`i8`) so a value used both here and as a zero-page operand
 ; elsewhere can't hit an empty Ac ∩ Imag8 class intersection in RA. The
 ; coalescer collapses the funnel copy whenever $a is free.
 
-; CHECK: func @CmpEq : \(i8, i8\) -> void \{
+; CHECK: func @CmpEq : \(i8, i8\) -> void {
 ; CHECK: bb0\(\):
-; CHECK:     \[liveins: \$a, \$x\]
-; CHECK:     %0 : i8 = pseudo.copy \$a
-; CHECK:     %1 : i8 = pseudo.copy \$x
-; CHECK:     %3 : ac = pseudo.copy %0
-; CHECK:     mos6502.cmp %3, %1, implicit-def \$n, implicit-def \$z, implicit-def \$c
-; CHECK:     mos6502.beq bb1, implicit \$z
-; CHECK:     mos6502.jmp.abs bb2
+; CHECK:     [liveins: \$a, \$x]
+; CHECK:     %0 : i8 = pseudo\.copy \$a
+; CHECK:     %1 : i8 = pseudo\.copy \$x
+; CHECK:     %3 : ac = pseudo\.copy %0
+; CHECK:     mos6502\.cmp %3, %1, implicit-def \$n, implicit-def \$z, implicit-def \$c
+; CHECK:     mos6502\.beq bb1, implicit \$z
+; CHECK:     mos6502\.jmp\.abs bb2
 ; CHECK: bb1\(\):
-; CHECK:     mos6502.rts
+; CHECK:     mos6502\.jmp\.abs bb3
 ; CHECK: bb2\(\):
-; CHECK:     mos6502.rts
-; CHECK: \}
+; CHECK:     mos6502\.jmp\.abs bb3
+; CHECK: bb3\(\):
+; CHECK:     mos6502\.rts
+; CHECK: }
 
 func @CmpEq : (i8, i8) -> void {
 bb0(%0 : i8, %1 : i8):

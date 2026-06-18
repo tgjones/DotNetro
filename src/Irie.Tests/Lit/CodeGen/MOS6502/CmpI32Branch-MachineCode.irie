@@ -9,29 +9,33 @@
 ;
 ; `ult` is normalized to the canonical `uge` with the branch edges swapped, so
 ; the higher bytes emit the identical BCC/BNE ladder and the low byte ends with
-; BCS to the (swapped) true target, then a JMP anchors the chain's terminator.
+; BCS to the (swapped) false target. The two i8 results (0 / 1) are merged into
+; one return block by ReturnMergePass; post-RA, block-placement + tail-duplication
+; leave the true tail falling through to the shared RTS and the false tail with an
+; inlined RTS — so the chain needs no trailing JMP.
 
 ; CHECK: TestCmpI32:
 ; CHECK:     TAY
 ; CHECK:     LDA \$03
 ; CHECK:     CMP \$07
 ; CHECK:     BCC \.bb1
-; CHECK:     BNE \.bb2
+; CHECK:     BNE \.bb3
 ; CHECK:     LDA \$02
 ; CHECK:     CMP \$06
 ; CHECK:     BCC \.bb1
-; CHECK:     BNE \.bb2
+; CHECK:     BNE \.bb3
 ; CHECK:     TXA
 ; CHECK:     CMP \$05
 ; CHECK:     BCC \.bb1
-; CHECK:     BNE \.bb2
+; CHECK:     BNE \.bb3
 ; CHECK:     TYA
 ; CHECK:     CMP \$04
-; CHECK:     BCS \.bb2
+; CHECK:     BCS \.bb3
 ; CHECK: \.bb1:
 ; CHECK:     LDA \#\$01
-; CHECK:     RTS
 ; CHECK: \.bb2:
+; CHECK:     RTS
+; CHECK: \.bb3:
 ; CHECK:     LDA \#\$00
 ; CHECK:     RTS
 

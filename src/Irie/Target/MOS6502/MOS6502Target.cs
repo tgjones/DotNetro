@@ -78,6 +78,22 @@ public class MOS6502Target : Irie.Target.Target
         // the final step, the MachineCodeEmitter (which knows fall-through) is the
         // only consumer of the post-placement CFG.
         pm.AddPass(new MOS6502BlockPlacementPass());
+
+        // Tail-duplication (llvm-mos `tailduplication`): rebalance trivial shared
+        // return tails that the eager ReturnMergePass / branch-folder over-merged,
+        // cloning a lone `rts` back into the predecessors that still jump to it.
+        //
+        // It runs AFTER block-placement, not before as llvm-mos's standalone
+        // tailduplication does. llvm-mos's block-placement *integrates* tail
+        // duplication (layout-aware TailDupPlacement); ours is the minimal
+        // fall-through form with no integrated tail-dup, so a separate post-
+        // placement pass is the faithful analogue. Crucially, by this point
+        // block-placement has already dropped every jmp it could turn into a free
+        // fall-through, so the only `jmp.abs <tail>` edges left are the ones that
+        // genuinely cost a jump — exactly the ones worth replacing with the inlined
+        // tail. Running before placement would instead clone over jmps that
+        // placement was about to eliminate for nothing, growing code.
+        pm.AddPass(new MOS6502TailDuplicationPass());
     }
 
     // Hand-written MIR runtime (currently just the indirect-call trampoline;

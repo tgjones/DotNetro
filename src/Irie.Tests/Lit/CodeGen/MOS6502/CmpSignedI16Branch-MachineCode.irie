@@ -16,15 +16,16 @@
 ; CHECK:     STA \$02
 ; CHECK:     TXA
 ; CHECK:     CMP \$02
-; CHECK:     BCC \.bb2
+; CHECK:     BCC \.bb3
 ; CHECK:     BNE \.bb1
 ; CHECK:     TYA
 ; CHECK:     CMP \$04
-; CHECK:     BCC \.bb2
+; CHECK:     BCC \.bb3
 ; CHECK: \.bb1:
 ; CHECK:     LDA \#\$00
-; CHECK:     RTS
 ; CHECK: \.bb2:
+; CHECK:     RTS
+; CHECK: \.bb3:
 ; CHECK:     LDA \#\$01
 ; CHECK:     RTS
 

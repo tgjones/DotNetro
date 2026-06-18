@@ -7,23 +7,27 @@
 ; non-zero operand passes through unchanged.
 ;
 ; The function uses cf.cond_br to consume the i1 result (instead of returning
-; it) to keep this test focused on the cmpi predicate encoding. Multi-byte
+; it) to keep this test focused on the cmpi predicate encoding. (The two void
+; returns are merged by ReturnMergePass into the shared bb3, which is why bb1/bb2
+; `cf.br bb3` here.) Multi-byte
 ; (i32) cmpi narrowing is deferred to step 3, where it is handled jointly
 ; with cmp+cond_br fusion: branches consume 6502 N/Z/C/V flags directly,
 ; avoiding the need for i1 combiner ops at the MIR level.
 
-; CHECK: func @TestCmpI8 : \(i8, i8\) -> void \{
-; CHECK:   bb0\(\):
-; CHECK:     \[liveins: \$a, \$x\]
-; CHECK:     %0 : i8 = pseudo.copy \$a
-; CHECK:     %1 : i8 = pseudo.copy \$x
-; CHECK:     %2 : i1 = arith.cmpi slt, %0, %1
-; CHECK:     cf.cond_br %2, bb1, bb2
-; CHECK:   bb1\(\):
-; CHECK:     pseudo.return
-; CHECK:   bb2\(\):
-; CHECK:     pseudo.return
-; CHECK: \}
+; CHECK: func @TestCmpI8 : \(i8, i8\) -> void {
+; CHECK: bb0\(\):
+; CHECK:     [liveins: \$a, \$x]
+; CHECK:     %0 : i8 = pseudo\.copy \$a
+; CHECK:     %1 : i8 = pseudo\.copy \$x
+; CHECK:     %2 : i1 = arith\.cmpi slt, %0, %1
+; CHECK:     cf\.cond_br %2, bb1, bb2
+; CHECK: bb1\(\):
+; CHECK:     cf\.br bb3
+; CHECK: bb2\(\):
+; CHECK:     cf\.br bb3
+; CHECK: bb3\(\):
+; CHECK:     pseudo\.return
+; CHECK: }
 
 func @TestCmpI8 : (i8, i8) -> void {
 bb0(%0 : i8, %1 : i8):

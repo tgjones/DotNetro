@@ -7,7 +7,10 @@
 ;
 ; The two bytes arrive in $a (%0) and $x (%1); each is funneled through $a to be
 ; EOR'd, the biased %1 is parked in zero page, and the biased %0 is compared
-; against it. BCC takes the true edge (a < b); otherwise JMP to the false edge.
+; against it. BCC takes the true edge (a < b, returns 1); the false edge (returns
+; 0) falls through. The two i8 returns are funnelled into one block by
+; ReturnMergePass, so the shared RTS is reached by fall-through from the false
+; tail and inlined into the true tail by MOS6502TailDuplication.
 
 ; CHECK: TestSltI8:
 ; CHECK:     EOR \#\$80
@@ -17,11 +20,12 @@
 ; CHECK:     STA \$02
 ; CHECK:     TYA
 ; CHECK:     CMP \$02
-; CHECK:     BCC \.bb2
+; CHECK:     BCC \.bb3
 ; CHECK: \.bb1:
 ; CHECK:     LDA \#\$00
-; CHECK:     RTS
 ; CHECK: \.bb2:
+; CHECK:     RTS
+; CHECK: \.bb3:
 ; CHECK:     LDA \#\$01
 ; CHECK:     RTS
 

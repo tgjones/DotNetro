@@ -14,7 +14,7 @@
 ; CHECK:     RTS
 ; CHECK: WriteLineBoolean:
 ; CHECK:     CMP \#\$00
-; CHECK:     BEQ \.bb2
+; CHECK:     BEQ \.bb3
 ; CHECK: \.bb1:
 ; CHECK:     LDA \#<True_String
 ; CHECK:     TAY
@@ -22,8 +22,9 @@
 ; CHECK:     TAX
 ; CHECK:     TYA
 ; CHECK:     JSR WriteLineString
-; CHECK:     RTS
 ; CHECK: \.bb2:
+; CHECK:     RTS
+; CHECK: \.bb3:
 ; CHECK:     LDA \#<False_String
 ; CHECK:     TAY
 ; CHECK:     LDA \#>False_String

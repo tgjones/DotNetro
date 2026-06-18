@@ -1,15 +1,15 @@
 ; RUN: @iriec --target mos6502 --emit=asm @file
 
 ; End-to-end check for cmp+cond_br fusion: an i8 cmpi.eq + cf.cond_br lowers
-; through the full pipeline to CMP + BEQ + JMP.
+; through the full pipeline to CMP + BEQ. Both branch targets return void, so
+; ReturnMergePass + MOS6502TailDuplication leave a single shared RTS that the BEQ
+; reaches on either edge (no JMP to a separate return tail).
 
 ; CHECK: CmpEq:
 ; CHECK:     STX \$02
 ; CHECK:     CMP \$02
-; CHECK:     BEQ \.bb2
+; CHECK:     BEQ \.bb1
 ; CHECK: \.bb1:
-; CHECK:     RTS
-; CHECK: \.bb2:
 ; CHECK:     RTS
 
 func @CmpEq : (i8, i8) -> void {
