@@ -10,17 +10,15 @@
 ; edges are swapped); for the single-byte i8 case it emits BEQ-to-false +
 ; JMP-to-true.
 ;
-; As in CmpEqZero, the const-0 materialization's scratch GPR is chosen post-RA
-; by RegisterScavengingPass (plan §3.6): the dead $x for i8, the dead $y for
-; i16/i32. The live-in byte stays in $a (no eviction) and the CMP reads it
-; directly. (The old RA $a-scratch reservation, now deleted, used to evict it.)
+; As in CmpEqZero, the const-0 operand is folded into an immediate `CMP #$00` by
+; MOS6502InstructionSelector, so no zero is materialized into zero page and no
+; scratch GPR is needed. The live-in byte stays in $a and the CMP reads it
+; directly.
 
-; --- i8: materialise 0 via dead $x, single CMP of $a vs 0, BEQ false / JMP true. ---
+; --- i8: single immediate CMP of $a vs 0, BEQ false / JMP true. ---
 
 ; CHECK: CmpNeZeroI8:
-; CHECK:     LDX #\$00
-; CHECK:     STX \$02
-; CHECK:     CMP \$02
+; CHECK:     CMP #\$00
 ; CHECK:     BEQ \.bb2
 ; CHECK:     JMP \.bb1
 ; CHECK: \.bb1:
@@ -28,16 +26,12 @@
 ; CHECK: \.bb2:
 ; CHECK:     RTS
 ; CHECK: CmpNeZeroI16:
-; CHECK:     LDY #\$00
-; CHECK:     STY \$03
-; CHECK:     LDY #\$00
-; CHECK:     STY \$02
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     CMP \$02
+; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     TYA
-; CHECK:     CMP \$03
+; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK: \.bb1:
@@ -45,26 +39,18 @@
 ; CHECK: \.bb2:
 ; CHECK:     RTS
 ; CHECK: CmpNeZeroI32:
-; CHECK:     LDY #\$00
-; CHECK:     STY \$07
-; CHECK:     LDY #\$00
-; CHECK:     STY \$06
-; CHECK:     LDY #\$00
-; CHECK:     STY \$05
-; CHECK:     LDY #\$00
-; CHECK:     STY \$04
 ; CHECK:     TAY
 ; CHECK:     LDA \$03
-; CHECK:     CMP \$04
+; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     LDA \$02
-; CHECK:     CMP \$05
+; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     TXA
-; CHECK:     CMP \$06
+; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     TYA
-; CHECK:     CMP \$07
+; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK: \.bb1:

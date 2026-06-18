@@ -9,16 +9,12 @@
 ; Compare against ext/llvm-mos-reference/control-flow/select.s; close gaps via irie-report.
 
 ; CHECK:     select_val:
-; CHECK:     LDY \#\$00
-; CHECK:     STY \$07
-; CHECK:     LDY \#\$00
-; CHECK:     STY \$06
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     CMP \$06
+; CHECK:     CMP \#\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     TYA
-; CHECK:     CMP \$07
+; CHECK:     CMP \#\$00
 ; CHECK:     BNE \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK:     \.bb1:

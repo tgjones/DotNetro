@@ -548,16 +548,28 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
 
         builder.SetInsertionPointBefore(condBr);
 
+        // Vregs whose def is a folded constant operand: after the compare folds
+        // them into immediate CMPs, their materialization (`pseudo.copy <imm>`,
+        // already selected from the original arith.constant) becomes dead. They
+        // are erased below once their last cmpi use is gone — but only if the use
+        // count actually drops to zero, since one constant can feed several
+        // compares and the slt path does not fold.
+        var foldedConstantVregs = new List<int>();
+
         if (rootDef.Opcode.Dialect == ArithDialect.Id && (ArithOp)rootDef.Opcode.Code == ArithOp.Select)
         {
             var (predicate, bytes) = RecoverCmpTree(function, condId, toRemove);
             var aBytes = bytes.Select(p => p.a).ToArray();
             var bBytes = bytes.Select(p => p.b).ToArray();
             EmitMultiByteCmpLadder(function, builder, predicate, aBytes, bBytes, tTarget, fTarget);
+            if (predicate is not ArithCmpPredicate.Slt)
+                foldedConstantVregs.AddRange(bBytes);
         }
         else if (rootDef.Opcode.Dialect == ArithDialect.Id && (ArithOp)rootDef.Opcode.Code == ArithOp.CmpI)
         {
             EmitI8CmpBranch(function, builder, rootDef, tTarget, fTarget);
+            if (rootDef.Operands[3] is VirtualReg bReg)
+                foldedConstantVregs.Add(bReg.Id);
             toRemove.Add(rootDef);
         }
         else
@@ -572,6 +584,17 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         foreach (var ti in toRemove)
             if (ti.Parent != null)
                 builder.Remove(ti);
+
+        // Erase the now-dead constant materializations (only those with no
+        // remaining uses; a constant shared by an unfolded compare survives).
+        foreach (var v in foldedConstantVregs.Distinct())
+        {
+            if (function.GetUseCount(v) != 0) continue;
+            if (TryGetConstant(function, v) is null) continue;
+            var def = function.GetDefinition(v);
+            if (def is not null && def.Parent is not null)
+                builder.Remove(def);
+        }
         return true;
     }
 
@@ -602,11 +625,11 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         {
             case ArithCmpPredicate.Eq:
                 branchOp = MOS6502Op.Beq;
-                cmpRhs = new VirtualReg(((VirtualReg)bOperand).Id, IsDefinition: false);
+                cmpRhs = ResolveI8CmpRhs(function, bOperand);
                 break;
             case ArithCmpPredicate.Uge:
                 branchOp = MOS6502Op.Bcs;
-                cmpRhs = new VirtualReg(((VirtualReg)bOperand).Id, IsDefinition: false);
+                cmpRhs = ResolveI8CmpRhs(function, bOperand);
                 break;
             case ArithCmpPredicate.Slt when bOperand is Immediate { Value: 0 }:
                 branchOp = MOS6502Op.Bmi;
@@ -665,6 +688,21 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
 
         // mos6502.jmp.abs F
         builder.BuildInstruction(MOS6502Dialect.OpRef(MOS6502Op.JmpAbs), fTarget);
+    }
+
+    // The compare rhs for an eq / uge i8 compare. A constant b-operand is folded
+    // into an Immediate (the AddressingModeSelector refines cmp → cmp.imm) so the
+    // value is never materialized into a register; otherwise the register byte is
+    // passed through as use[1], where the Imag8 operand constraint from CmpInfo
+    // applies directly (it is left broad, like the rest of the cmp lowering).
+    private static MirOperand ResolveI8CmpRhs(MirFunction function, MirOperand bOperand)
+    {
+        if (bOperand is Immediate imm)
+            return new Immediate(imm.Value);
+        var bVreg = ((VirtualReg)bOperand).Id;
+        if (TryGetConstant(function, bVreg) is { } constByte)
+            return new Immediate(constByte);
+        return new VirtualReg(bVreg, IsDefinition: false);
     }
 
     // Walk a wide-compare lexicographic tree rooted at `vreg`, returning the
@@ -773,23 +811,59 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         var chainPredicate = signedFlip ? ArithCmpPredicate.Ult : predicate;
         var byteCount = aBytesRaw.Length;
 
-        // Funnel each byte through a fresh Anyi8 vreg to break the ABI copy hints
-        // (byte 0 → $a, etc.) so the RA can park the bytes in zero page across the
-        // whole chain rather than starving the per-byte $a funnel.
+        // Funnel each `a` byte through a fresh Anyi8 vreg to break the ABI copy
+        // hints (byte 0 → $a, etc.) so the RA can park the bytes in zero page
+        // across the whole chain rather than starving the per-byte $a funnel.
         var aBytes = FunnelThroughAnyi8(function, builder, aBytesRaw);
-        var bBytes = FunnelThroughAnyi8(function, builder, bBytesRaw);
+
+        // Resolve each `b` byte to a compare rhs. A constant byte (the zero of a
+        // narrowed compare-against-zero) is folded into an Immediate so no zero
+        // gets materialized into zero page; a non-constant byte is funnelled like
+        // the `a` bytes and compared as a register. The signed-flip (slt) path is
+        // left out of the fold: it EORs both operands by #$80, which requires a
+        // real register, so it funnels every byte unconditionally (scope creep
+        // avoided per the plan — only the eq / uge zero-compare chains fold).
+        var bRhs = new MirOperand[byteCount];
+        if (signedFlip)
+        {
+            var bBytes = FunnelThroughAnyi8(function, builder, bBytesRaw);
+            for (var i = 0; i < byteCount; i++)
+                bRhs[i] = new VirtualReg(bBytes[i], IsDefinition: false);
+        }
+        else
+        {
+            for (var i = 0; i < byteCount; i++)
+            {
+                if (TryGetConstant(function, bBytesRaw[i]) is { } constByte)
+                {
+                    bRhs[i] = new Immediate(constByte);
+                }
+                else
+                {
+                    var fresh = FunnelThroughAnyi8(function, builder, new[] { bBytesRaw[i] })[0];
+                    ReclassifyTo(function, fresh, MOS6502RegisterClass.Imag8);
+                    bRhs[i] = new VirtualReg(fresh, IsDefinition: false);
+                }
+            }
+        }
 
         if (signedFlip)
         {
             var top = byteCount - 1;
             aBytes[top] = EorByteWithImmediate(function, builder, aBytes[top], 0x80);
-            bBytes[top] = EorByteWithImmediate(function, builder, bBytes[top], 0x80);
+            var bTopVreg = ((VirtualReg)bRhs[top]).Id;
+            bRhs[top] = new VirtualReg(
+                EorByteWithImmediate(function, builder, bTopVreg, 0x80), IsDefinition: false);
+
+            // The slt path compares register operands throughout; pin each `b`
+            // byte to the zero-page Imag8 class as the original ladder did.
+            for (var i = 0; i < byteCount; i++)
+                ReclassifyTo(function, ((VirtualReg)bRhs[i]).Id, MOS6502RegisterClass.Imag8);
         }
 
         for (var pos = byteCount - 1; pos >= 0; pos--)
         {
             var byteA = aBytes[pos];
-            var byteB = bBytes[pos];
 
             var aCmpVreg = function.CreateVirtualRegisterInClass(
                 MOS6502RegisterClass.Ac,
@@ -798,9 +872,8 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
                 PseudoDialect.OpRef(PseudoOp.Copy),
                 new VirtualReg(aCmpVreg, IsDefinition: true),
                 new VirtualReg(byteA,    IsDefinition: false));
-            ReclassifyTo(function, byteB, MOS6502RegisterClass.Imag8);
 
-            EmitCmp(builder, aCmpVreg, byteB);
+            EmitCmp(builder, aCmpVreg, bRhs[pos]);
 
             var isLast = pos == 0;
             EmitMultiByteExits(builder, chainPredicate, isLast, tTarget, fTarget);
@@ -860,12 +933,16 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         return result;
     }
 
-    private static void EmitCmp(MirBuilder builder, int aVreg, int bVreg)
+    // mos6502.cmp %a, <rhs> implicit-def $n, $z, $c. The rhs is a register
+    // operand (zero-page byte) or an Immediate (constant operand folded directly
+    // — the AddressingModeSelector refines the opcode to cmp.imm). Mirrors
+    // llvm-mos's CmpImm fold against a constant operand.
+    private static void EmitCmp(MirBuilder builder, int aVreg, MirOperand rhs)
     {
         builder.BuildInstruction(
             MOS6502Dialect.OpRef(MOS6502Op.Cmp),
             new VirtualReg(aVreg, IsDefinition: false),
-            new VirtualReg(bVreg, IsDefinition: false),
+            rhs,
             new PhysicalReg(MOS6502Registers.N, IsDefinition: true, IsImplicit: true),
             new PhysicalReg(MOS6502Registers.Z, IsDefinition: true, IsImplicit: true),
             new PhysicalReg(MOS6502Registers.C, IsDefinition: true, IsImplicit: true));
@@ -925,6 +1002,33 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     private static void EmitUnconditional(MirBuilder builder, BlockTarget target)
     {
         builder.BuildInstruction(MOS6502Dialect.OpRef(MOS6502Op.JmpAbs), target);
+    }
+
+    // If `vreg` is defined by a compile-time constant, return its value.
+    // After legalization a `0` operand of a narrowed compare is an
+    // `arith.constant`; by the time SelectCondBr runs, isel has already visited
+    // it (it precedes the cond_br in program order) and rewritten it to the i8
+    // constant form `%v : any8 = pseudo.copy <imm>`. Match both so the compare
+    // selector can fold the value into an immediate CMP and drop the constant
+    // materialization (the now-dead def is erased by the caller's toRemove list).
+    private static long? TryGetConstant(MirFunction function, int vreg)
+    {
+        var def = function.GetDefinition(vreg);
+        if (def is null) return null;
+
+        if (def.Opcode.Dialect == ArithDialect.Id
+            && (ArithOp)def.Opcode.Code == ArithOp.Constant
+            && def.Operands.Length == 2
+            && def.Operands[1] is Immediate arithImm)
+            return arithImm.Value;
+
+        if (def.Opcode.Dialect == PseudoDialect.Id
+            && (PseudoOp)def.Opcode.Code == PseudoOp.Copy
+            && def.Operands.Length == 2
+            && def.Operands[1] is Immediate copyImm)
+            return copyImm.Value;
+
+        return null;
     }
 
     private static void ReclassifyTo(MirFunction function, int vreg, int classId)

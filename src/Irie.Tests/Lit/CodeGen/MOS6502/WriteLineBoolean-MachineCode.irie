@@ -13,9 +13,7 @@
 ; CHECK: WriteLineString:
 ; CHECK:     RTS
 ; CHECK: WriteLineBoolean:
-; CHECK:     LDX #\$00
-; CHECK:     STX \$02
-; CHECK:     CMP \$02
+; CHECK:     CMP #\$00
 ; CHECK:     BEQ \.bb2
 ; CHECK:     JMP \.bb1
 ; CHECK: \.bb1:

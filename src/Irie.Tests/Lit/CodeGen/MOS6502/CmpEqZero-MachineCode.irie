@@ -2,24 +2,20 @@
 
 ; Step 16 (plan §6 G5): brfalse lowers to `arith.cmpi <eq>, %x, <0>` + cf.cond_br.
 ; Verify the eq-against-constant-0 path end-to-end at i8, i16, and i32. The
-; constant 0 operand materializes as LDA #$00 + STA into a zero-page byte (one
-; per operand byte); the cmpi+cond_br fusion then emits the per-byte CMP / BEQ /
-; BNE chain. This is the regression guard for the frontend's `brfalse`.
+; constant 0 operand is folded directly into an immediate compare
+; (`CMP #$00`) — one per operand byte — by MOS6502InstructionSelector, so no
+; zero is ever materialized into zero page. The cmpi+cond_br fusion then emits
+; the per-byte CMP / BEQ / BNE chain. This is the regression guard for the
+; frontend's `brfalse`.
 ;
-; The compared value arrives in $a/$x (call-convention live-ins). The const-0
-; materialization (`LD? #$00 ; ST? $zp`) needs a scratch GPR, picked post-RA by
-; RegisterScavengingPass with exact liveness (plan §3.6): for i8 only $a is a
-; live-in, so the scavenger uses the dead $x (`LDX #$00 ; STX $02`); for i16/i32
-; $a and $x both hold live bytes, so it uses $y (`LDY #$00 ; STY $zp`). The live
-; parameter byte therefore stays in $a — no eviction before the const setup, as
-; the old RA $a-scratch reservation forced — and the CMP reads it directly.
+; The compared value arrives in $a/$x (call-convention live-ins) and is compared
+; against the immediate directly, so the live parameter byte stays in $a and the
+; CMP reads it without any scratch GPR or eviction.
 
-; --- i8: materialise 0 via dead $x, single CMP of $a vs 0, BEQ true / JMP false. ---
+; --- i8: single immediate CMP of $a vs 0, BEQ true / JMP false. ---
 
 ; CHECK: CmpEqZeroI8:
-; CHECK:     LDX #\$00
-; CHECK:     STX \$02
-; CHECK:     CMP \$02
+; CHECK:     CMP #\$00
 ; CHECK:     BEQ \.bb1
 ; CHECK:     JMP \.bb2
 ; CHECK: \.bb1:
@@ -27,16 +23,12 @@
 ; CHECK: \.bb2:
 ; CHECK:     RTS
 ; CHECK: CmpEqZeroI16:
-; CHECK:     LDY #\$00
-; CHECK:     STY \$03
-; CHECK:     LDY #\$00
-; CHECK:     STY \$02
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     CMP \$02
+; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb2
 ; CHECK:     TYA
-; CHECK:     CMP \$03
+; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb2
 ; CHECK:     JMP \.bb1
 ; CHECK: \.bb1:
@@ -44,26 +36,18 @@
 ; CHECK: \.bb2:
 ; CHECK:     RTS
 ; CHECK: CmpEqZeroI32:
-; CHECK:     LDY #\$00
-; CHECK:     STY \$07
-; CHECK:     LDY #\$00
-; CHECK:     STY \$06
-; CHECK:     LDY #\$00
-; CHECK:     STY \$05
-; CHECK:     LDY #\$00
-; CHECK:     STY \$04
 ; CHECK:     TAY
 ; CHECK:     LDA \$03
-; CHECK:     CMP \$04
+; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb2
 ; CHECK:     LDA \$02
-; CHECK:     CMP \$05
+; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb2
 ; CHECK:     TXA
-; CHECK:     CMP \$06
+; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb2
 ; CHECK:     TYA
-; CHECK:     CMP \$07
+; CHECK:     CMP #\$00
 ; CHECK:     BNE \.bb2
 ; CHECK:     JMP \.bb1
 ; CHECK: \.bb1:
