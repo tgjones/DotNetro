@@ -1,12 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(DotNetVersion)</TargetFramework>
-
-    <RunCommand>C:\Code\Emulators\BBC Micro\b-em-a790022-w64\b-em.exe</RunCommand>
-    <RunArguments>DotNetro.Samples.HelloWorld.ssd</RunArguments>
-    <RunWorkingDirectory>$(OutputPath)</RunWorkingDirectory>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,10 +19,24 @@
           Inputs="$(TargetPath)" Outputs="$(DiskImageTargetPath)">
     <Message Importance="high" Text="Transpiling $(TargetPath) to $(DiskImageTargetPath)" />
     <Exec Command="dotnet run --project &quot;$(MSBuildThisFileDirectory)..\DotNetro.Compiler.Driver\DotNetro.Compiler.Driver.csproj&quot; -- --assembly $(TargetPath) --output $(TargetName).ssd" WorkingDirectory="$(OutputPath)" />
-    
+
     <ItemGroup>
       <FileWrites Include="$(DiskImageTargetPath)" />
     </ItemGroup>
+  </Target>
+
+  <Target Name="SetRunArguments" BeforeTargets="ComputeRunArguments">
+    <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+      <RunCommand>C:\Code\Emulators\BBC Micro\b-em-a790022-w64\b-em.exe</RunCommand>
+      <RunArguments>$(TargetName).ssd</RunArguments>
+      <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+      <RunCommand>open</RunCommand>
+      <OutDirNormalized>$([System.String]::Copy('$(OutDir)').Replace('\','/'))</OutDirNormalized>
+      <RunArguments>-a /Applications/b2.app --args "$(MSBuildProjectDirectory)/$(OutDirNormalized)$(TargetName).ssd"</RunArguments>
+    </PropertyGroup>
   </Target>
 
 </Project>

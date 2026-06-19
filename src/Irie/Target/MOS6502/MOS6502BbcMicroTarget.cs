@@ -20,5 +20,5 @@ public sealed class MOS6502BbcMicroTarget : MOS6502Target
     }
 
     public override byte[] PackageImage(byte[] code, int origin)
-        => BbcMicroDfsImage.Build(code, loadAddress: origin, execAddress: origin, fileName: "MAIN");
+        => BbcMicroDfsImage.Build(code, loadAddress: origin, execAddress: origin, fileName: "!BOOT");
 }

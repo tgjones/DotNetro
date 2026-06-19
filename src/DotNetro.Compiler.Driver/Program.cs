@@ -34,7 +34,7 @@ rootCommand.SetAction(parseResult =>
 
     var outputStream = (output == null || output.FullName == "-")
         ? Console.OpenStandardOutput()
-        : output.OpenWrite();
+        : File.Create(output.FullName);
 
     switch (parseResult.GetValue(emitOption))
     {

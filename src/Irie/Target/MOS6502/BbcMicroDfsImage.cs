@@ -10,7 +10,7 @@ internal static class BbcMicroDfsImage
 {
     private const int SectorSize = 256;
     private const string DiskTitle = "DotNetro"; // exactly 8 chars; bytes 8-11 stay zero
-    private static readonly Regex FileNameRegex = new("^[A-Z0-9_]+$", RegexOptions.Compiled);
+    private static readonly Regex FileNameRegex = new("^[A-Z0-9_!]+$", RegexOptions.Compiled);
 
     public static byte[] Build(byte[] code, int loadAddress, int execAddress, string fileName)
     {
@@ -35,7 +35,7 @@ internal static class BbcMicroDfsImage
         // 0x100-0x103: title chars 8-11 (left as zero — title is only 8 chars).
         image[0x104] = 0x00; // cycle number (BCD)
         image[0x105] = 1 * 8; // number of file entries * 8
-        image[0x106] = (byte)((totalSectors >> 8) & 0x03); // boot=0 (top 4 bits 0); low 2 bits = total-sectors high bits
+        image[0x106] = (byte)(0x20 | ((totalSectors >> 8) & 0x03)); // boot option 2 (*RUN !BOOT); low 2 bits = total-sectors high bits
         image[0x107] = (byte)(totalSectors & 0xFF); // total-sectors low
 
         // 0x108-0x10F: file entry — load(2), exec(2), len(2), packed-high(1), start-sector(1).

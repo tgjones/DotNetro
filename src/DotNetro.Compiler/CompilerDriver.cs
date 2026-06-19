@@ -73,11 +73,19 @@ public static class CompilerDriver
         var program = new MOS6502BinaryEncoder().Encode(machineCode, origin);
         var image = target.PackageImage(program, origin);
 
+        var machineCodeText = "";
+        if (machineCode != null)
+        {
+            var machineCodeWriter = new StringWriter();
+            MOS6502AssemblyWriter.Write(machineCode, machineCodeWriter);
+            machineCodeText = machineCodeWriter.ToString();
+        }
+
         // The MIR pipeline does not produce an assembly-text listing; the
         // AssemblyCode / Listing fields stay empty (the --emit assembly path
         // produces no output).
         return new CompilationResult(
-            string.Empty,
+            machineCodeText,
             string.Empty,
             new ReadOnlyCollection<byte>(program),
             new ReadOnlyCollection<byte>(image));
