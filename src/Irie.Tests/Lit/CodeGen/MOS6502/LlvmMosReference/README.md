@@ -30,7 +30,7 @@ Each test:
 Filenames match the corpus basename (`add-i16.irie` ↔
 `ext/llvm-mos-reference/basics/add-i16.{c,s,txt}`) so `irie-report` can pair them.
 
-## Converted (15 tests)
+## Converted (16 tests)
 
 | Corpus case | Test |
 |-------------|------|
@@ -49,6 +49,7 @@ Filenames match the corpus basename (`add-i16.irie` ↔
 | realistic/fibonacci | `fibonacci` |
 | memory/global-rw (constant delta) | `global-rw` |
 | widths/truncate | `truncate` |
+| constraints/inc-dec | `inc-dec` |
 
 ### Equivalent / duplicate (collapse to a converted test)
 - coalescing/copy-passthrough ≈ `identity-i8` (collapses to a passthrough in SSA)
@@ -74,10 +75,6 @@ doubles as a punch-list (and `irie-report` flags each as uncovered):
 | **multi-way control flow (switch)** — only a single two-way cmp+branch fusion exists | control-flow/switch |
 | **aggregate / sret ABI not modelled** | basics/stack-args, memory/struct-return, memory/struct-return-sret |
 
-**Now expressible, not yet written:** `constraints/inc-dec` — pure i8
-arithmetic (`a++; b--; return a+b`), which the byte ALU now selects directly
-(see `add-i8`). It is no longer blocked; it simply has no `.irie` pair yet.
-
 ### Pairing caveat
 
 `irie-report` pairs by basename. All tests are faithful translations of the
@@ -86,6 +83,10 @@ corpus C; one has an *output*-comparison caveat (not a fidelity issue):
 - **`loop-counter`** is faithful (`s += i`), but llvm-mos strength-reduces the
   whole loop to a closed-form multiply (`__mulsi3`) — an optimisation Irie's
   pipeline does not perform — so the instruction-count comparison is
+  apples-to-oranges.
+- **`inc-dec`** is faithful (`a++; b--; return a+b`), but llvm-mos
+  constant-folds the body to `a + b` (4 instructions, identical to `add-i8`);
+  Irie folds nothing, so the `+1`/`-1` survive as real byte ops and the count is
   apples-to-oranges.
 
 The straight-line `basics/*` cases are the cleanest apples-to-apples comparisons.

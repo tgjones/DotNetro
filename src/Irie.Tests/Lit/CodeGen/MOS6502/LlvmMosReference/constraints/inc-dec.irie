@@ -1,0 +1,43 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/constraints/inc-dec
+;   char inc_dec(char a, char b) { a++; b--; return a + b; }
+; Named for INC/DEC vs INX/INY register pinning, but llvm-mos constant-folds the
+; whole body to `a + b` and emits the same 4 instructions as add-i8 (stx; clc;
+; adc; rts). Irie performs no such folding: the `+1` and `-1` survive as real
+; byte adds/subs threaded through the byte ALU, so this case is a faithful
+; translation that is *longer* than the corpus .s — it documents the missing
+; constant-fold, not a lowering bug.
+;
+; The shared constant 1 is materialised explicitly (`arith.constant 1 : i8` →
+; LDY #$01), the generic-MIR idiom for a literal: Irie does not fold an inline
+; immediate into an ALU operand (`arith.addi %x, 1` is not selectable), so a
+; constant is always a real def. a++ is `arith.addi %a, 1`; b-- is
+; `arith.subi %b, 1`; the result is their sum.
+;
+; CHECK pins Irie's current --emit=asm output (characterization / golden),
+; generated mechanically from iriec and verified under `dotnet test`.
+
+; CHECK: inc_dec:
+; CHECK:     LDY \#\$01
+; CHECK:     STY \$02
+; CHECK:     CLC
+; CHECK:     ADC \$02
+; CHECK:     TAY
+; CHECK:     SEC
+; CHECK:     TXA
+; CHECK:     SBC \$02
+; CHECK:     STA \$02
+; CHECK:     CLC
+; CHECK:     TYA
+; CHECK:     ADC \$02
+; CHECK:     RTS
+
+func @inc_dec : (i8, i8) -> i8 {
+bb0(%0 : i8, %1 : i8):
+    %2 : i8 = arith.constant 1
+    %3 : i8 = arith.addi %0, %2
+    %4 : i8 = arith.subi %1, %2
+    %5 : i8 = arith.addi %3, %4
+    core.return %5
+}
