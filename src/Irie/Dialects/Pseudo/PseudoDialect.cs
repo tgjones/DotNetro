@@ -70,5 +70,19 @@ public sealed class PseudoDialect : Dialect
         _ => false,
     };
 
+    // Legal inline immediates: structural attributes (bit offsets, slot indices),
+    // not value literals. pseudo.extract's bit offset (use 1), pseudo.insert's bit
+    // offset (use 2), pseudo.spill's slot index (use 0, no def), pseudo.reload's
+    // slot index (use 0, after the def).
+    public override bool IsLegalImmediateOperand(ushort code, int useIndex) =>
+        (PseudoOp)code switch
+        {
+            PseudoOp.Extract => useIndex == 1,
+            PseudoOp.Insert  => useIndex == 2,
+            PseudoOp.Spill   => useIndex == 0,
+            PseudoOp.Reload  => useIndex == 0,
+            _ => false,
+        };
+
     internal override void OnRegistered(DialectId id) => Id = id;
 }

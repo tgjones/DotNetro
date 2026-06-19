@@ -71,6 +71,17 @@ public sealed class ArithDialect : Dialect
         return false;
     }
 
+    // Legal inline immediates: arith.constant's own value (use 0) and arith.cmpi's
+    // predicate (use 0). Every other arith immediate is an illegal inline value
+    // literal that must be materialised as an arith.constant def.
+    public override bool IsLegalImmediateOperand(ushort code, int useIndex) =>
+        (ArithOp)code switch
+        {
+            ArithOp.Constant => useIndex == 0,
+            ArithOp.CmpI     => useIndex == 0,
+            _ => false,
+        };
+
     public override bool TryParseImmediateUse(ushort code, int useIndex, string text, out long value)
     {
         if ((ArithOp)code == ArithOp.CmpI && useIndex == 0

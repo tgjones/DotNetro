@@ -81,5 +81,19 @@ public sealed class MemDialect : Dialect
 
     public override bool IsArtifact(ushort code) => false;
 
+    // Legal inline immediates: structural attributes (offsets / counts), not
+    // value literals. mem.fill's count (use 2), mem.load.byte_at's offset (use 1),
+    // mem.store.byte_at's offset (use 1). mem.frame_addr's slot index (use 0) is
+    // also a structural attribute, not a value literal.
+    public override bool IsLegalImmediateOperand(ushort code, int useIndex) =>
+        (MemOp)code switch
+        {
+            MemOp.Fill        => useIndex == 2,
+            MemOp.LoadByteAt  => useIndex == 1,
+            MemOp.StoreByteAt => useIndex == 1,
+            MemOp.FrameAddr   => useIndex == 0,
+            _ => false,
+        };
+
     internal override void OnRegistered(DialectId id) => Id = id;
 }

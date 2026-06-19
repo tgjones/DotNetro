@@ -50,6 +50,13 @@ public abstract class Dialect
         return false;
     }
 
+    // True if an Immediate at this use-operand index is a legal structural
+    // attribute (cmpi predicate, mem offset/count, …) or arith.constant's value —
+    // as opposed to an illegal inline value literal that must be an arith.constant
+    // def. `useIndex` is 0-based among USE operands (defs excluded), matching the
+    // TryFormatImmediateUse convention. Default: no legal immediate operands.
+    public virtual bool IsLegalImmediateOperand(ushort code, int useIndex) => false;
+
     // Inverse of TryFormatImmediateUse. Returns true and sets `value` when the
     // dialect can interpret `text` as a symbolic immediate at the given use
     // position; returns false to let the parser try other interpretations.
