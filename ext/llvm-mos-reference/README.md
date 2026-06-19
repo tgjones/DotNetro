@@ -148,10 +148,15 @@ scoreboard. To close a gap:
 
    (Use `--print-after-all` instead to dump the MIR in full after every pass,
    including the ones that made no change.)
-4. Improve the corresponding Irie pass; re-run that case's lit test under
-   `src/Irie.Tests/.../LlvmMosReference/`, regenerate its golden `CHECK` block,
-   re-run the report, and watch the headline ratio move.
-5. The full lit suite + golden `CHECK` blocks catch regressions across all cases.
+4. **Stop and present a plan — do not start editing.** Steps 1–3 are pure
+   investigation. Once you understand the gap and the technique that closes it,
+   write up what you found (which case, which pass diverges, what llvm-mos does
+   differently) and the concrete fix(es) you propose, then **stop and wait for
+   explicit confirmation**. Do not proceed to step 5 until the plan is approved.
+5. Once the plan is confirmed: improve the corresponding Irie pass; re-run that
+   case's lit test under `src/Irie.Tests/.../LlvmMosReference/`, regenerate its
+   golden `CHECK` block, re-run the report, and watch the headline ratio move.
+6. The full lit suite + golden `CHECK` blocks catch regressions across all cases.
 
 ## Case index
 
