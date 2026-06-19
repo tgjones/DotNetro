@@ -25,6 +25,7 @@ public static class CompilerDriver
 
         var passMgr = new PassManager(null, null);
         passMgr.AddPass(new GenericMirVerifierPass());
+        passMgr.AddPass(new ArithSimplifyPass());
         passMgr.AddPass(new ReturnMergePass());
         passMgr.AddPass(new FrameLoweringPass());
         passMgr.AddPass(new AbiLoweringPass(target.CallLowering));

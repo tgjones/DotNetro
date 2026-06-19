@@ -2,13 +2,12 @@
 
 # Irie vs llvm-mos — MOS6502 codegen
 
-Irie emits **+2.6%** instructions vs llvm-mos (**313** vs **305**, ratio **1.03**) across **16/46** corpus cases.
+Irie emits **+0.3%** instructions vs llvm-mos (**306** vs **305**, ratio **1.00**) across **16/46** corpus cases.
 
 Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 worse. Sorted worst-first. Blocked cases have no Irie test yet (see the [suite README](../../src/Irie.Tests/Lit/CodeGen/MOS6502/LlvmMosReference/README.md)).
 
 | Category | Case | Status | llvm-mos | Irie | Δ | Ratio | |
 | --- | --- | --- | --: | --: | --: | --: | :-: |
-| constraints | inc-dec | converted | 4 | 11 | +7 | 2.75 | 🔴 |
 | control-flow | early-return | converted | 28 | 37 | +9 | 1.32 | 🔴 |
 | realistic | fibonacci | converted | 50 | 56 | +6 | 1.12 | 🔴 |
 | control-flow | if-else | converted | 36 | 40 | +4 | 1.11 | 🔴 |
@@ -20,6 +19,7 @@ Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 wors
 | basics | many-args | converted | 36 | 36 | 0 | 1.00 | ⚪ |
 | basics | ret-const | converted | 3 | 3 | 0 | 1.00 | ⚪ |
 | basics | sub-i16 | converted | 8 | 8 | 0 | 1.00 | ⚪ |
+| constraints | inc-dec | converted | 4 | 4 | 0 | 1.00 | ⚪ |
 | control-flow | select | converted | 12 | 12 | 0 | 1.00 | ⚪ |
 | memory | global-rw | converted | 10 | 10 | 0 | 1.00 | ⚪ |
 | widths | truncate | converted | 3 | 3 | 0 | 1.00 | ⚪ |
@@ -56,83 +56,6 @@ Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 wors
 | widths | zero-extend | blocked | 6 | — | — | — |  |
 
 ## Per-case assembly
-
-<details>
-<summary>constraints/inc-dec — llvm-mos 4, Irie 11, ratio 2.75</summary>
-
-llvm-mos (4):
-
-```asm
-    .zeropage    __rc0
-    .zeropage    __rc1
-    .zeropage    __rc2
-    .zeropage    __rc3
-    .zeropage    __rc4
-    .zeropage    __rc5
-    .zeropage    __rc6
-    .zeropage    __rc7
-    .zeropage    __rc8
-    .zeropage    __rc9
-    .zeropage    __rc10
-    .zeropage    __rc11
-    .zeropage    __rc12
-    .zeropage    __rc13
-    .zeropage    __rc14
-    .zeropage    __rc15
-    .zeropage    __rc16
-    .zeropage    __rc17
-    .zeropage    __rc18
-    .zeropage    __rc19
-    .zeropage    __rc20
-    .zeropage    __rc21
-    .zeropage    __rc22
-    .zeropage    __rc23
-    .zeropage    __rc24
-    .zeropage    __rc25
-    .zeropage    __rc26
-    .zeropage    __rc27
-    .zeropage    __rc28
-    .zeropage    __rc29
-    .zeropage    __rc30
-    .zeropage    __rc31
-    .file    "inc-dec.c"
-    .section    .text.inc_dec,"ax",@progbits
-    .globl    inc_dec                         ; -- Begin function inc_dec
-    .type    inc_dec,@function
-inc_dec:                                ; @inc_dec
-; %bb.0:
-    stx    __rc2
-    clc
-    adc    __rc2
-    rts
-.Lfunc_end0:
-    .size    inc_dec, .Lfunc_end0-inc_dec
-                                        ; -- End function
-    .ident    "clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"
-    .section    ".note.GNU-stack","",@progbits
-    .addrsig
-    ;Declaring this symbol tells the CRT that the stack pointer needs to be initialized.
-    .globl    __do_init_stack
-```
-
-Irie (11):
-
-```asm
-inc_dec:
-    CLC
-    ADC #$01
-    TAY
-    SEC
-    TXA
-    SBC #$01
-    STA $02
-    CLC
-    TYA
-    ADC $02
-    RTS
-```
-
-</details>
 
 <details>
 <summary>control-flow/early-return — llvm-mos 28, Irie 37, ratio 1.32</summary>
@@ -1286,6 +1209,76 @@ sub_i16:
     SBC $03
     TAX
     TYA
+    RTS
+```
+
+</details>
+
+<details>
+<summary>constraints/inc-dec — llvm-mos 4, Irie 4, ratio 1.00</summary>
+
+llvm-mos (4):
+
+```asm
+    .zeropage    __rc0
+    .zeropage    __rc1
+    .zeropage    __rc2
+    .zeropage    __rc3
+    .zeropage    __rc4
+    .zeropage    __rc5
+    .zeropage    __rc6
+    .zeropage    __rc7
+    .zeropage    __rc8
+    .zeropage    __rc9
+    .zeropage    __rc10
+    .zeropage    __rc11
+    .zeropage    __rc12
+    .zeropage    __rc13
+    .zeropage    __rc14
+    .zeropage    __rc15
+    .zeropage    __rc16
+    .zeropage    __rc17
+    .zeropage    __rc18
+    .zeropage    __rc19
+    .zeropage    __rc20
+    .zeropage    __rc21
+    .zeropage    __rc22
+    .zeropage    __rc23
+    .zeropage    __rc24
+    .zeropage    __rc25
+    .zeropage    __rc26
+    .zeropage    __rc27
+    .zeropage    __rc28
+    .zeropage    __rc29
+    .zeropage    __rc30
+    .zeropage    __rc31
+    .file    "inc-dec.c"
+    .section    .text.inc_dec,"ax",@progbits
+    .globl    inc_dec                         ; -- Begin function inc_dec
+    .type    inc_dec,@function
+inc_dec:                                ; @inc_dec
+; %bb.0:
+    stx    __rc2
+    clc
+    adc    __rc2
+    rts
+.Lfunc_end0:
+    .size    inc_dec, .Lfunc_end0-inc_dec
+                                        ; -- End function
+    .ident    "clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"
+    .section    ".note.GNU-stack","",@progbits
+    .addrsig
+    ;Declaring this symbol tells the CRT that the stack pointer needs to be initialized.
+    .globl    __do_init_stack
+```
+
+Irie (4):
+
+```asm
+inc_dec:
+    STX $02
+    CLC
+    ADC $02
     RTS
 ```
 

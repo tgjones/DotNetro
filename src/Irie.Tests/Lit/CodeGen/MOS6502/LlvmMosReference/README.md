@@ -84,11 +84,10 @@ corpus C; one has an *output*-comparison caveat (not a fidelity issue):
   whole loop to a closed-form multiply (`__mulsi3`) — an optimisation Irie's
   pipeline does not perform — so the instruction-count comparison is
   apples-to-oranges.
-- **`inc-dec`** is faithful (`a++; b--; return a+b`), but llvm-mos
-  constant-folds the body to `a + b` (4 instructions, identical to `add-i8`);
-  Irie folds each `+1`/`-1` into a single immediate ALU op (`ADC #$01` / `SBC
-  #$01`) but still lacks the closed-form `a+1-1 → a+b` fold, so the two ops
-  survive and the count is apples-to-oranges.
+
+(`inc-dec` was previously caveated here too — llvm-mos constant-folds `a++; b--;
+return a+b` to `a + b` — but Irie's `ArithSimplifyPass` now performs the same
+add/sub reassociation, so it is a clean apples-to-apples parity case.)
 
 The straight-line `basics/*` cases are the cleanest apples-to-apples comparisons.
 

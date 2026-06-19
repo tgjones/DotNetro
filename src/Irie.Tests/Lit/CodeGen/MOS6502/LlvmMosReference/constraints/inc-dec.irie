@@ -3,32 +3,24 @@
 ; Corpus: llvm-mos-reference/constraints/inc-dec
 ;   char inc_dec(char a, char b) { a++; b--; return a + b; }
 ; Named for INC/DEC vs INX/INY register pinning, but llvm-mos constant-folds the
-; whole body to `a + b` and emits the same 4 instructions as add-i8 (stx; clc;
-; adc; rts). Irie performs no such arithmetic folding (`a+1-1 → a+b`): the `+1`
-; and `-1` survive as real ALU ops, so this case is a faithful translation that
-; is *longer* than the corpus .s — it documents the missing closed-form
-; constant-fold, not a lowering bug.
+; whole body to `a + b` in its target-independent InstCombine pass and emits 4
+; instructions identical to add-i8 (stx; clc; adc; rts). `ArithSimplifyPass` —
+; Irie's scoped InstCombine/Reassociate analogue — performs the same fold:
+; `(a+1) + (b-1)` linearizes to terms {a, b} with net constant 0, so the `+1`/`-1`
+; cancel and the body becomes a single `arith.addi %a, %b`. This is now a clean
+; apples-to-apples parity case with the corpus .s.
 ;
 ; The shared constant 1 is spelled as an `arith.constant 1 : i8` def, the
 ; generic-MIR idiom for a literal (an inline immediate in a generic value slot is
-; a verifier error, not "not selectable"). Instruction selection *folds* that
-; constant into the ALU's immediate addressing mode, so a++ (`arith.addi %a, 1`)
-; becomes a single `ADC #$01` and b-- (`arith.subi %b, 1`) a single `SBC #$01`,
-; and the shared constant def is cleaned up.
+; a verifier error, not "not selectable"). After ArithSimplify folds the body, the
+; constant def is dead-code-eliminated.
 ;
 ; CHECK pins Irie's current --emit=asm output (characterization / golden),
 ; generated mechanically from iriec and verified under `dotnet test`.
 
 ; CHECK: inc_dec:
+; CHECK:     STX \$02
 ; CHECK:     CLC
-; CHECK:     ADC \#\$01
-; CHECK:     TAY
-; CHECK:     SEC
-; CHECK:     TXA
-; CHECK:     SBC \#\$01
-; CHECK:     STA \$02
-; CHECK:     CLC
-; CHECK:     TYA
 ; CHECK:     ADC \$02
 ; CHECK:     RTS
 
