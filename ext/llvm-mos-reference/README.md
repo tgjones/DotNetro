@@ -121,10 +121,12 @@ chains and more simultaneous live byte-values — i.e. more register pressure.
 
 ## Improvement workflow
 
-The [`irie-report`](../../src/Irie.Tools.Reference) `report.html` is the
+The [`irie-report`](../../src/Irie.Tools.Reference) markdown scoreboard at
+[`doc/irie/llvm-mos-comparison.md`](../../doc/irie/llvm-mos-comparison.md) is the
 scoreboard. To close a gap:
 
-1. Build `iriec`, run `irie-report`, open `report.html`; sort by worst ratio.
+1. Build `iriec`, run `irie-report`, open `doc/irie/llvm-mos-comparison.md`; the
+   table is sorted worst-first.
 2. For the worst case, read its `.s` (what llvm-mos emitted) and `.txt` (the
    `-print-changed` dump pinpoints which pass produced the better sequence).
    Per CLAUDE.md, also read the responsible llvm-mos source pass under
