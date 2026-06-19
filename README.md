@@ -164,8 +164,8 @@ Add:
     RTS
 ```
 
-To keep the codegen honest, Irie's output is benchmarked against llvm-mos on a
-shared corpus — see the
+Irie's output is benchmarked against llvm-mos on a
+shared test suite - see the
 [llvm-mos comparison scoreboard](doc/irie/llvm-mos-comparison.md) for per-case
 instruction-count deltas.
 
