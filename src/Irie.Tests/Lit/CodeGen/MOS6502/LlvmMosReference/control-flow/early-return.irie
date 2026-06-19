@@ -11,11 +11,20 @@
 ; flag-setting `LDA`, so MOS6502LateOptimization drops the redundant `CMP #$00`:
 ; the BMI reads the N that LDA already set (llvm-mos folds the same way).
 ;
-; The four `core.return` blocks are merged into one common return block by
+; The `a + b` sub-expression is computed in BOTH the `c < 0` exit (`return a + b`)
+; and the fall-through (`return a + b + c`). HoistCommonCodePass — the local
+; SimplifyCFG `hoistCommonCodeFromSuccessors` analogue — hoists that shared add
+; into the `c < 0` test block (the sole predecessor of both arms), so it is
+; emitted once: the `c < 0` arm branches to the return tail with `a + b` already
+; in Y/X, and the fall-through only adds `c`. This matches llvm-mos, which
+; likewise computes `a + b` once in the `c`-test block and reuses it.
+;
+; The `core.return` blocks are then merged into one common return block by
 ; ReturnMergePass (the SimplifyCFG `tailMergeBlocksWithSimilarFunctionTerminators`
-; analogue), so the i16 return epilogue is emitted once: all paths funnel into the
+; analogue), so the i16 return epilogue is emitted once: paths funnel into the
 ; shared `.bb4: TYA ; RTS` tail (low in Y/A, high in X), reached by fall-through
-; (.bb3) and `JMP .bb4` (.bb5/.bb6). This matches llvm-mos's shared `bb.5` tail.
+; (.bb3), `BMI .bb4` (the `c < 0` arm), and `JMP .bb4` (.bb5, the `return a` arm).
+; This matches llvm-mos's shared `bb.5` tail.
 ;
 ; CHECK pins Irie's current --emit=asm output (characterization / golden).
 ; Compare against ext/llvm-mos-reference/control-flow/early-return.s; close gaps via irie-report.
@@ -31,9 +40,6 @@
 ; CHECK:     LDA \$03
 ; CHECK:     BMI \.bb5
 ; CHECK: \.bb2:
-; CHECK:     LDA \$05
-; CHECK:     BMI \.bb6
-; CHECK: \.bb3:
 ; CHECK:     CLC
 ; CHECK:     LDA \$07
 ; CHECK:     ADC \$02
@@ -41,6 +47,9 @@
 ; CHECK:     LDA \$06
 ; CHECK:     ADC \$03
 ; CHECK:     TAX
+; CHECK:     LDA \$05
+; CHECK:     BMI \.bb4
+; CHECK: \.bb3:
 ; CHECK:     CLC
 ; CHECK:     TYA
 ; CHECK:     ADC \$04
@@ -54,15 +63,6 @@
 ; CHECK: \.bb5:
 ; CHECK:     LDY \$07
 ; CHECK:     LDX \$06
-; CHECK:     JMP \.bb4
-; CHECK: \.bb6:
-; CHECK:     CLC
-; CHECK:     LDA \$07
-; CHECK:     ADC \$02
-; CHECK:     TAY
-; CHECK:     LDA \$06
-; CHECK:     ADC \$03
-; CHECK:     TAX
 ; CHECK:     JMP \.bb4
 
 func @early_return : (i16, i16, i16) -> i16 {
