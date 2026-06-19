@@ -54,16 +54,12 @@
 ; CHECK:     LDA \$06
 ; CHECK:     ADC \$08
 ; CHECK:     TAY
-; CHECK:     LDA \#\$01
-; CHECK:     STA \$03
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$02
 ; CHECK:     CLC
 ; CHECK:     LDA \$05
-; CHECK:     ADC \$03
+; CHECK:     ADC \#\$01
 ; CHECK:     STA \$05
 ; CHECK:     LDA \$04
-; CHECK:     ADC \$02
+; CHECK:     ADC \#\$00
 ; CHECK:     STA \$04
 ; CHECK:     LDA \$09
 ; CHECK:     STA \$07

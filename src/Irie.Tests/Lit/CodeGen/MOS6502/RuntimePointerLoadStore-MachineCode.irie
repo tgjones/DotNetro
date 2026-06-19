@@ -22,23 +22,19 @@
 ; CHECK:     LDY \#\$00
 ; CHECK:     LDA \(\$00\),Y
 ; CHECK:     RTS
-
 ; CHECK: StoreFieldAtOffset:
-; CHECK:     LDY \#\$04
-; CHECK:     STY \$04
-; CHECK:     LDY \#\$00
-; CHECK:     STY \$03
 ; CHECK:     CLC
-; CHECK:     ADC \$04
+; CHECK:     ADC \#\$04
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     ADC \$03
+; CHECK:     ADC \#\$00
 ; CHECK:     STY \$00
 ; CHECK:     STA \$01
 ; CHECK:     LDY \#\$00
 ; CHECK:     LDA \$02
 ; CHECK:     STA \(\$00\),Y
 ; CHECK:     RTS
+
 
 func @LoadThroughPtr : (i16) -> i8 {
 bb0(%0 : i16):

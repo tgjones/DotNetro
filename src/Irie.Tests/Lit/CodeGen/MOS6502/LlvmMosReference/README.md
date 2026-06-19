@@ -86,8 +86,9 @@ corpus C; one has an *output*-comparison caveat (not a fidelity issue):
   apples-to-oranges.
 - **`inc-dec`** is faithful (`a++; b--; return a+b`), but llvm-mos
   constant-folds the body to `a + b` (4 instructions, identical to `add-i8`);
-  Irie folds nothing, so the `+1`/`-1` survive as real byte ops and the count is
-  apples-to-oranges.
+  Irie folds each `+1`/`-1` into a single immediate ALU op (`ADC #$01` / `SBC
+  #$01`) but still lacks the closed-form `a+1-1 → a+b` fold, so the two ops
+  survive and the count is apples-to-oranges.
 
 The straight-line `basics/*` cases are the cleanest apples-to-apples comparisons.
 

@@ -9,13 +9,14 @@ namespace Irie.Target.MOS6502;
 //
 // Runs after MOS6502AddressingModeSelectorPass and before PseudoExpansionPass,
 // so the surrounding loads / stores are still `pseudo.copy` and the add itself
-// is the AMS-refined `mos6502.adc.zp` (inc) / `mos6502.sbc.zp` (dec).
+// is the AMS-refined `mos6502.adc.imm` / `.adc.zp` (inc) / `mos6502.sbc.imm` /
+// `.sbc.zp` (dec).
 //
 // The matched window (all in one block, in program order) is:
 //
 //     $c = mos6502.clc               ; carry-in = 0  (for inc)
 //     $a = pseudo.copy <loc>         ; load the value into A
-//     $a, $c = mos6502.adc.zp $a, <const1>, $c
+//     $a, $c = mos6502.adc.imm $a, #$01, $c
 //     <loc> = pseudo.copy $a         ; store A back to the *same* location
 //
 // where:
@@ -23,8 +24,9 @@ namespace Irie.Target.MOS6502;
 //   - the load source and the store destination are the same physreg (so the
 //     add is genuinely in place — RA already tied the adc's A def/use, the
 //     surrounding copies just move it to/from <loc>);
-//   - <const1> is a zero-page slot defined earlier in the block by a
-//     `pseudo.copy 1` (the materialised increment unit);
+//   - the increment unit is the constant 1, either as the inline `#$01`
+//     immediate (post-fold adc.imm/sbc.imm) or, in hand-written MIR, as a
+//     zero-page slot defined earlier in the block by a `pseudo.copy 1`;
 //   - the carry-out of the adc/sbc is dead (not read before being redefined),
 //     i.e. the add is not a link in a wider multi-byte carry chain. A 16-bit
 //     `inc lo / bne / inc hi` would need both bytes co-resident in zero page,
@@ -58,8 +60,8 @@ public sealed class MOS6502IncrementStrengthReductionPass : Irie.Passes.MirFunct
             if (add.Opcode.Dialect != MOS6502Dialect.Id) continue;
 
             var op = (MOS6502Op)add.Opcode.Code;
-            var isInc = op == MOS6502Op.AdcZp;
-            var isDec = op == MOS6502Op.SbcZp;
+            var isInc = op is MOS6502Op.AdcZp or MOS6502Op.AdcImm;
+            var isDec = op is MOS6502Op.SbcZp or MOS6502Op.SbcImm;
             if (!isInc && !isDec) continue;
 
             if (TryFold(block, i, isInc))
@@ -90,8 +92,27 @@ public sealed class MOS6502IncrementStrengthReductionPass : Irie.Passes.MirFunct
         if (add.Operands[AUse] is not PhysicalReg { Id: MOS6502Registers.A, IsDefinition: false }) return false;
         if (add.Operands[CarryDef] is not PhysicalReg { Id: MOS6502Registers.C, IsDefinition: true }) return false;
         if (add.Operands[CarryInUse] is not PhysicalReg { Id: MOS6502Registers.C, IsDefinition: false }) return false;
-        if (add.Operands[AddendUse] is not PhysicalReg { IsDefinition: false } addend) return false;
-        if (!IsZeroPage(addend.Id)) return false;
+
+        // The addend (the increment unit) is the constant 1, in one of two forms:
+        //   - an inline immediate (post-fold adc.imm / sbc.imm #$01), or
+        //   - a zero-page slot fed by an earlier `<zp> = pseudo.copy 1`.
+        // Track which so the cleanup below removes the constant copy only in the
+        // zero-page form (the immediate form carries no separate def).
+        int addendZp = -1;
+        if (add.Operands[AddendUse] is Immediate { Value: 1 })
+        {
+            // Immediate form: the unit is in the instruction itself.
+        }
+        else if (add.Operands[AddendUse] is PhysicalReg { IsDefinition: false } addend
+                 && IsZeroPage(addend.Id)
+                 && IsConstantOne(block, addIndex, addend.Id))
+        {
+            addendZp = addend.Id;
+        }
+        else
+        {
+            return false;
+        }
 
         // The load: the instruction immediately before the add must be
         // `$a = pseudo.copy <loc>` with <loc> an inc/dec-able location.
@@ -112,9 +133,6 @@ public sealed class MOS6502IncrementStrengthReductionPass : Irie.Passes.MirFunct
         if (storeSrc is not PhysicalReg { Id: MOS6502Registers.A }) return false;
         if (storeDst is not PhysicalReg storeLoc || storeLoc.Id != loc.Id) return false;
 
-        // The addend must be a constant `1` materialised earlier in the block.
-        if (!IsConstantOne(block, addIndex, addend.Id)) return false;
-
         // The carry-in must come from a fresh clc (inc) / sec (dec) — i.e. this
         // add is not a link in a multi-byte carry chain — and the carry-out
         // must be dead after the store. Both guard against folding one byte of
@@ -132,7 +150,8 @@ public sealed class MOS6502IncrementStrengthReductionPass : Irie.Passes.MirFunct
         // Clean up the now-dead carry-in flag op and the constant-1 copy if
         // nothing else in the block uses them.
         RemoveDeadCarrySources(block);
-        RemoveDeadConstantSource(block, addend.Id);
+        if (addendZp >= 0)
+            RemoveDeadConstantSource(block, addendZp);
 
         return true;
     }

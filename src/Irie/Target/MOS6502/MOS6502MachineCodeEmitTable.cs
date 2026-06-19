@@ -81,6 +81,10 @@ public static class MOS6502MachineCodeEmitTable
         // (e.g. WriteLineInt32's two's-complement negate).
         [MOS6502Op.AdcImm] = new EmitRule(MOS6502Opcode.ADC_Immediate, EmitOperandKind.Immediate, 3),
 
+        // $a, $c = mos6502.sbc.imm $a, #N, $c — same operand block as SbcZp.
+        // Index 3 = use[1], the immediate.
+        [MOS6502Op.SbcImm] = new EmitRule(MOS6502Opcode.SBC_Immediate, EmitOperandKind.Immediate, 3),
+
         // $a = mos6502.ora.imm $a, #N — def[0]=$a, use[0]=$a, use[1]=imm.
         // Index 2 = use[1], the immediate. Used to OR a digit value with '0'.
         [MOS6502Op.OraImm] = new EmitRule(MOS6502Opcode.ORA_Immediate, EmitOperandKind.Immediate, 2),

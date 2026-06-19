@@ -3,49 +3,52 @@
 ; Register-pressure regression: an i32 add whose addends are *constants*
 ; (not entry-block live-ins) and whose result is returned.
 ;
-; ISel reclassifies each addend byte to the scarce `ac` class (it becomes the
-; source of an `arith.addi_with_carry` → `mos6502.adc` tied use). Those byte
-; values are only ever read through a `pseudo.copy` into the real per-link ADC
-; accumulator, so they carry no hard `$a` requirement of their own. Without
-; widening, four such bytes pile onto the single `$a` and the allocator throws
-; "no free physical register in class ac".
+; ISel folds the per-byte *subtrahend* (the `b` addend) of each `mos6502.adc`
+; into an inline immediate, so those four bytes no longer materialize as values.
+; The four `a`-side bytes remain: isel reclassifies each to the scarce `ac`
+; class (it becomes the source of an `arith.addi_with_carry` → `mos6502.adc`
+; tied use). Those byte values are only ever read through a `pseudo.copy` into
+; the real per-link ADC accumulator, so they carry no hard `$a` requirement of
+; their own. Without widening, those four bytes still pile onto the single `$a`
+; and the allocator throws "no free physical register in class ac".
 ;
 ; RegisterAllocatorPass.WidenUnconstrainedToFlexibleClass widens every vreg
 ; that is touched only by `pseudo.copy` from its single-physreg class to the
-; flexible `any8` class, parking the constant addend bytes in the abundant RC*
-; (zero-page) pool — mirroring what entry-block live-in addend bytes already
-; get. After this pass every operand is a physreg and the four constant bytes
-; live in $zp2..$zp9 with $a reused per chained ADC.
+; flexible `any8` class, parking the constant addend bytes across the abundant
+; RC* (zero-page) pool and the spare registers — mirroring what entry-block
+; live-in addend bytes already get. After this pass every operand is a physreg
+; and the four `a`-side bytes live in $a/$x/$zp2/$zp3 with $a reused per chained
+; ADC.
 
-; CHECK: func @F : \(\) -> i32 \{
+; CHECK: func @F : \(\) -> i32 {
 ; CHECK: bb0\(\):
 ; CHECK:     \$a = pseudo\.copy 1
 ; CHECK:     \$x = pseudo\.copy 0
 ; CHECK:     \$zp2 = pseudo\.copy 0
 ; CHECK:     \$zp3 = pseudo\.copy 0
-; CHECK:     \$zp7 = pseudo\.copy 1
-; CHECK:     \$zp6 = pseudo\.copy 0
-; CHECK:     \$zp5 = pseudo\.copy 0
-; CHECK:     \$zp4 = pseudo\.copy 0
 ; CHECK:     \$c = mos6502\.clc
 ; CHECK:     \$a = pseudo\.copy \$a
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp7, \$c
+; CHECK:     \$a, \$c = mos6502\.adc \$a, 1, \$c
 ; CHECK:     \$y = pseudo\.copy \$a
+; CHECK:     \$y = pseudo\.copy \$y
 ; CHECK:     \$a = pseudo\.copy \$x
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp6, \$c
+; CHECK:     \$a, \$c = mos6502\.adc \$a, 0, \$c
 ; CHECK:     \$x = pseudo\.copy \$a
+; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     \$a = pseudo\.copy \$zp2
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp5, \$c
+; CHECK:     \$a, \$c = mos6502\.adc \$a, 0, \$c
 ; CHECK:     \$zp2 = pseudo\.copy \$a
+; CHECK:     \$zp2 = pseudo\.copy \$zp2
 ; CHECK:     \$a = pseudo\.copy \$zp3
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp4, \$c
+; CHECK:     \$a, \$c = mos6502\.adc \$a, 0, \$c
 ; CHECK:     \$zp3 = pseudo\.copy \$a
+; CHECK:     \$zp3 = pseudo\.copy \$zp3
 ; CHECK:     \$a = pseudo\.copy \$y
 ; CHECK:     \$x = pseudo\.copy \$x
 ; CHECK:     \$zp2 = pseudo\.copy \$zp2
 ; CHECK:     \$zp3 = pseudo\.copy \$zp3
 ; CHECK:     mos6502\.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
-; CHECK: \}
+; CHECK: }
 
 func @F : () -> i32 {
 bb0():

@@ -22,25 +22,17 @@
 ; reading the parameter byte still resident in $a.
 
 ; CHECK: M:
-; CHECK:     LDY \#\$01
-; CHECK:     STY \$07
-; CHECK:     LDY \#\$00
-; CHECK:     STY \$06
-; CHECK:     LDY \#\$00
-; CHECK:     STY \$05
-; CHECK:     LDY \#\$00
-; CHECK:     STY \$04
 ; CHECK:     CLC
-; CHECK:     ADC \$07
+; CHECK:     ADC \#\$01
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     ADC \$06
+; CHECK:     ADC \#\$00
 ; CHECK:     TAX
 ; CHECK:     LDA \$02
-; CHECK:     ADC \$05
+; CHECK:     ADC \#\$00
 ; CHECK:     STA \$02
 ; CHECK:     LDA \$03
-; CHECK:     ADC \$04
+; CHECK:     ADC \#\$00
 ; CHECK:     STA \$03
 ; CHECK:     TYA
 ; CHECK:     RTS

@@ -284,6 +284,19 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             return EmitFoldedAbsCarryBorrow(
                 builder, instr, absOp, resultVreg, flagOutVreg, accVreg: bVreg, flagInVreg, foldA);
 
+        // Stage B': fold a constant operand into the ALU's immediate addressing
+        // mode, mirroring the cmp fold (ResolveI8CmpRhs) and llvm-mos's imm-operand
+        // patterns. adc is commutative so either input may become the immediate;
+        // sbc is not, so only the subtrahend (b) may fold.
+        if (TryGetConstant(function, bVreg) is { } bConst)
+            return EmitFoldedImmCarryBorrow(
+                builder, instr, targetOp, resultVreg, flagOutVreg,
+                accVreg: aVreg, flagInVreg, immValue: bConst, foldedConstVreg: bVreg);
+        if (targetOp == MOS6502Op.Adc && TryGetConstant(function, aVreg) is { } aConst)
+            return EmitFoldedImmCarryBorrow(
+                builder, instr, targetOp, resultVreg, flagOutVreg,
+                accVreg: bVreg, flagInVreg, immValue: aConst, foldedConstVreg: aVreg);
+
         // Do NOT pin aVreg/bVreg to a *single-physreg* class. The class-
         // intersection gap (plan §3.1) arises when a single value is pinned `Ac`
         // here and used as a zero-page (`Imag8`) operand elsewhere: Ac ∩ Imag8 =
@@ -426,6 +439,59 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         // The load now has no remaining uses (both single-use checks passed).
         builder.Remove(fold.Copy);
         builder.Remove(fold.Lda);
+        return true;
+    }
+
+    // Emit `%r, %c = mos6502.{adc,sbc} %acc, #imm, %carryIn`, funnel the result
+    // out of $a into a flexible Anyi8 vreg (the same out-funnel the plain/abs
+    // paths use), and erase the original op plus the now-dead constant def. AMS
+    // refines the bare adc/sbc to .imm once operand[3] is an Immediate.
+    private static bool EmitFoldedImmCarryBorrow(
+        MirBuilder builder, MirInstruction instr, MOS6502Op aluOp,
+        int resultVreg, int flagOutVreg, int accVreg, int flagInVreg,
+        long immValue, int foldedConstVreg)
+    {
+        var function = builder.Function;
+
+        // Accumulator stays broad (tied to def, like the plain path); carry-in
+        // lives in the carry register.
+        ReclassifyTo(function, accVreg,    MOS6502RegisterClass.Anyi8);
+        ReclassifyTo(function, flagInVreg, MOS6502RegisterClass.Cc);
+
+        var newResult = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Ac,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
+        var newFlag   = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Cc,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Cc)!);
+
+        builder.SetInsertionPointBefore(instr);
+        builder.BuildInstruction(
+            MOS6502Dialect.OpRef(aluOp),                 // stays pre-AMS adc/sbc; AMS → .imm
+            new VirtualReg(newResult,  IsDefinition: true),
+            new VirtualReg(newFlag,    IsDefinition: true),
+            new VirtualReg(accVreg,    IsDefinition: false),
+            new Immediate(immValue),                     // operand[3] → AMS picks AdcImm/SbcImm
+            new VirtualReg(flagInVreg, IsDefinition: false));
+
+        var resOut = function.CreateVirtualRegisterInClass(
+            MOS6502RegisterClass.Anyi8,
+            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
+        builder.BuildInstruction(
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(resOut,    IsDefinition: true),
+            new VirtualReg(newResult, IsDefinition: false));
+
+        function.ReplaceAllUsesOfRegister(resultVreg,  resOut);
+        function.ReplaceAllUsesOfRegister(flagOutVreg, newFlag);
+        builder.Remove(instr);
+
+        // Dead-constant cleanup — mirror the cmp path. The constant may feed
+        // several ops; only erase when its last use is gone.
+        if (function.GetUseCount(foldedConstVreg) == 0
+            && function.GetDefinition(foldedConstVreg) is { Parent: not null } def)
+            builder.Remove(def);
+
         return true;
     }
 

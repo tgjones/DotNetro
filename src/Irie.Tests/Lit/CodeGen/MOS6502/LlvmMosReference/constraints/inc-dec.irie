@@ -4,29 +4,28 @@
 ;   char inc_dec(char a, char b) { a++; b--; return a + b; }
 ; Named for INC/DEC vs INX/INY register pinning, but llvm-mos constant-folds the
 ; whole body to `a + b` and emits the same 4 instructions as add-i8 (stx; clc;
-; adc; rts). Irie performs no such folding: the `+1` and `-1` survive as real
-; byte adds/subs threaded through the byte ALU, so this case is a faithful
-; translation that is *longer* than the corpus .s — it documents the missing
+; adc; rts). Irie performs no such arithmetic folding (`a+1-1 → a+b`): the `+1`
+; and `-1` survive as real ALU ops, so this case is a faithful translation that
+; is *longer* than the corpus .s — it documents the missing closed-form
 ; constant-fold, not a lowering bug.
 ;
-; The shared constant 1 is materialised explicitly (`arith.constant 1 : i8` →
-; LDY #$01), the generic-MIR idiom for a literal: Irie does not fold an inline
-; immediate into an ALU operand (`arith.addi %x, 1` is not selectable), so a
-; constant is always a real def. a++ is `arith.addi %a, 1`; b-- is
-; `arith.subi %b, 1`; the result is their sum.
+; The shared constant 1 is spelled as an `arith.constant 1 : i8` def, the
+; generic-MIR idiom for a literal (an inline immediate in a generic value slot is
+; a verifier error, not "not selectable"). Instruction selection *folds* that
+; constant into the ALU's immediate addressing mode, so a++ (`arith.addi %a, 1`)
+; becomes a single `ADC #$01` and b-- (`arith.subi %b, 1`) a single `SBC #$01`,
+; and the shared constant def is cleaned up.
 ;
 ; CHECK pins Irie's current --emit=asm output (characterization / golden),
 ; generated mechanically from iriec and verified under `dotnet test`.
 
 ; CHECK: inc_dec:
-; CHECK:     LDY \#\$01
-; CHECK:     STY \$02
 ; CHECK:     CLC
-; CHECK:     ADC \$02
+; CHECK:     ADC \#\$01
 ; CHECK:     TAY
 ; CHECK:     SEC
 ; CHECK:     TXA
-; CHECK:     SBC \$02
+; CHECK:     SBC \#\$01
 ; CHECK:     STA \$02
 ; CHECK:     CLC
 ; CHECK:     TYA

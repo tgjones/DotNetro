@@ -2,15 +2,15 @@
 
 # Irie vs llvm-mos — MOS6502 codegen
 
-Irie emits **+5.9%** instructions vs llvm-mos (**323** vs **305**, ratio **1.06**) across **16/46** corpus cases.
+Irie emits **+2.6%** instructions vs llvm-mos (**313** vs **305**, ratio **1.03**) across **16/46** corpus cases.
 
 Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 worse. Sorted worst-first. Blocked cases have no Irie test yet (see the [suite README](../../src/Irie.Tests/Lit/CodeGen/MOS6502/LlvmMosReference/README.md)).
 
 | Category | Case | Status | llvm-mos | Irie | Δ | Ratio | |
 | --- | --- | --- | --: | --: | --: | --: | :-: |
-| constraints | inc-dec | converted | 4 | 13 | +9 | 3.25 | 🔴 |
+| constraints | inc-dec | converted | 4 | 11 | +7 | 2.75 | 🔴 |
 | control-flow | early-return | converted | 28 | 37 | +9 | 1.32 | 🔴 |
-| realistic | fibonacci | converted | 50 | 60 | +10 | 1.20 | 🔴 |
+| realistic | fibonacci | converted | 50 | 56 | +6 | 1.12 | 🔴 |
 | control-flow | if-else | converted | 36 | 40 | +4 | 1.11 | 🔴 |
 | pressure | live-across-call | converted | 23 | 24 | +1 | 1.04 | 🔴 |
 | basics | add-i16 | converted | 8 | 8 | 0 | 1.00 | ⚪ |
@@ -23,7 +23,7 @@ Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 wors
 | control-flow | select | converted | 12 | 12 | 0 | 1.00 | ⚪ |
 | memory | global-rw | converted | 10 | 10 | 0 | 1.00 | ⚪ |
 | widths | truncate | converted | 3 | 3 | 0 | 1.00 | ⚪ |
-| control-flow | loop-counter | converted | 65 | 50 | -15 | 0.77 | 🟢 |
+| control-flow | loop-counter | converted | 65 | 46 | -19 | 0.71 | 🟢 |
 | basics | chain-arith | blocked | 51 | — | — | — |  |
 | basics | stack-args | blocked | 122 | — | — | — |  |
 | coalescing | commutative | blocked | 8 | — | — | — |  |
@@ -58,7 +58,7 @@ Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 wors
 ## Per-case assembly
 
 <details>
-<summary>constraints/inc-dec — llvm-mos 4, Irie 13, ratio 3.25</summary>
+<summary>constraints/inc-dec — llvm-mos 4, Irie 11, ratio 2.75</summary>
 
 llvm-mos (4):
 
@@ -115,18 +115,16 @@ inc_dec:                                ; @inc_dec
     .globl    __do_init_stack
 ```
 
-Irie (13):
+Irie (11):
 
 ```asm
 inc_dec:
-    LDY #$01
-    STY $02
     CLC
-    ADC $02
+    ADC #$01
     TAY
     SEC
     TXA
-    SBC $02
+    SBC #$01
     STA $02
     CLC
     TYA
@@ -275,7 +273,7 @@ early_return:
 </details>
 
 <details>
-<summary>realistic/fibonacci — llvm-mos 50, Irie 60, ratio 1.20</summary>
+<summary>realistic/fibonacci — llvm-mos 50, Irie 56, ratio 1.12</summary>
 
 llvm-mos (50):
 
@@ -387,7 +385,7 @@ fibonacci:                              ; @fibonacci
     .globl    __do_init_stack
 ```
 
-Irie (60):
+Irie (56):
 
 ```asm
 fibonacci:
@@ -436,16 +434,12 @@ fibonacci:
     LDA $06
     ADC $08
     TAY
-    LDA #$01
-    STA $03
-    LDA #$00
-    STA $02
     CLC
     LDA $05
-    ADC $03
+    ADC #$01
     STA $05
     LDA $04
-    ADC $02
+    ADC #$00
     STA $04
     LDA $09
     STA $07
@@ -1548,7 +1542,7 @@ truncate:
 </details>
 
 <details>
-<summary>control-flow/loop-counter — llvm-mos 65, Irie 50, ratio 0.77</summary>
+<summary>control-flow/loop-counter — llvm-mos 65, Irie 46, ratio 0.71</summary>
 
 llvm-mos (65):
 
@@ -1683,7 +1677,7 @@ loop_counter:                           ; @loop_counter
     .globl    __do_init_stack
 ```
 
-Irie (50):
+Irie (46):
 
 ```asm
 loop_counter:
@@ -1728,16 +1722,12 @@ loop_counter:
     LDA $04
     ADC $06
     STA $04
-    LDA #$01
-    STA $03
-    LDA #$00
-    STA $02
     CLC
     LDA $07
-    ADC $03
+    ADC #$01
     STA $07
     LDA $06
-    ADC $02
+    ADC #$00
     STA $06
     JMP .bb1
 ```
