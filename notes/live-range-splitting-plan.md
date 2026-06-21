@@ -123,6 +123,48 @@ data:
    regions), bite the bullet on Option B. Do **not** commit to B speculatively —
    the funnel sweep may reveal the residual is small enough that A suffices.
 
+## Outcome (2026-06-21)
+
+Steps 1–3 executed.
+
+**Step 1 — sweep already complete.** The removable funnels were the *input*
+funnels to the non-destructive `cmp` ladder; commit b976486 already deleted
+them (headline → -6.7%). Every remaining funnel in `MOS6502InstructionSelector.cs`
+is the *same structural idiom*: a value **forced into `$a`** by the op (def tied
+to `$a`, or load result lands in `$a`) then copied out to a broad `Anyi8` vreg —
+a **manual live-range split**, not defensive over-funneling. Verified
+empirically: removing the adc/sbc out-funnel made `common-subexpr` and
+`early-return` **spill** (`pseudo.spill` survived to `PseudoExpansionPass` and
+crashed — graph-colouring spills whole ranges, memory-spill lowering isn't on the
+asm path). The Release `irie-report` showed no change (stale-build trap, per the
+CLAUDE.md golden warning); the Debug lit suite told the truth. No free wins left
+in isel.
+
+**Step 2 — residual is narrow.** Converted cases where Irie loses:
+
+| Case | Δ | Nature | Splitting? |
+|------|---|--------|-----------|
+| control-flow/common-subexpr | +3 | `HoistCommonCodePass` too narrow; emits `a+b` twice | ❌ hoist/GVN gap |
+| pressure/live-across-call | +1 | `a` live across call; llvm-mos relocates to callee-saved `__rc16` + stack save/restore | ✅ split-around-call |
+| control-flow/early-return | +1 | guard-clause short paths; prompt register freeing | ✅ split granularity |
+| realistic/fibonacci | +1 | rotate-in-loop copy cycle, back-edge liveness | ⚠️ mostly coalescing |
+
+Genuine RA-splitting residual = `live-across-call` + `early-return`. The one
+genuine-spill blocked stressor `pressure/many-calls` is blocked on
+**memory-spill lowering not wired to `--emit=asm`**, not on missing splitting;
+`pressure-high`/`factorial-recursive` are blocked on **missing multiply**. No
+broad cross-region contention is measurable. Irie already has an instruction-split
+primitive (`RegisterAllocatorPass.TrySplitToRegister`, the llvm-mos greedy
+`tryInstructionSplit` analogue); it lacks **region splitting** (around-call /
+at-boundary).
+
+**Step 3 — decision: Option B** (greedy allocator + SplitKit analogue). The data
+favoured A (narrow residual, instruction-split primitive already present), but the
+maintainer chose B: the design proven on this exact target, making the manual
+funnels disappear by construction and matching the llvm-mos reference the corpus
+validates against. Implementation plan follows in
+[`notes/greedy-ra-splitkit-plan.md`](greedy-ra-splitkit-plan.md).
+
 ## Concrete first steps (when this is picked up)
 
 - Grep `MOS6502InstructionSelector.cs` for fresh-vreg-then-copy idioms that exist

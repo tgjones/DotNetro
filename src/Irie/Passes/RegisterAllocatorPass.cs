@@ -59,7 +59,7 @@ namespace Irie.Passes;
 // candidate") in the hope a colour is free when we pop it. A genuine select
 // failure — a popped node with no free colour — becomes an actual spill, which
 // SpillVregs (below) rewrites to memory traffic before the colouring is re-run.
-public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : MirFunctionPass
+public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo, bool useGreedy = false) : MirFunctionPass
 {
     public override string Name => "RegisterAllocator";
 
@@ -103,8 +103,12 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
         // a temp's only use is the constraining one, so splitting it again would
         // just mint another copy in front of the same use, forever.
         var reconciliationTemps = new HashSet<int>();
+        // Greedy-engine per-vreg stages, persisted across rounds (a deferred or
+        // split range keeps its stage). Unused by the colouring engine.
+        var greedyStages = new Dictionary<int, LiveRangeStage>();
         LiveIntervals intervals;
         Dictionary<int, int>? assignment;
+        IReadOnlyList<int> spilledVregs;
 
         // Safety bound: the number of spill rounds is bounded by the number of
         // distinct vregs (each round removes at least one from the spillable
@@ -124,16 +128,32 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
             // mutates the IR.
             intervals = new LiveIntervalsAnalysis().Compute(function);
 
-            var allocator = new GraphColouringAllocator(function, registerInfo, intervals, unspillable);
-            assignment = allocator.Run();
-            if (assignment != null)
-                break; // coloured successfully — no actual spills this round.
+            if (useGreedy)
+            {
+                var greedy = new GreedyRegisterAllocator(
+                    function, registerInfo, intervals, greedyStages, unspillable);
+                assignment = greedy.Run();
+                spilledVregs = greedy.SpilledVregs;
+            }
+            else
+            {
+                var allocator = new GraphColouringAllocator(
+                    function, registerInfo, intervals, unspillable);
+                assignment = allocator.Run();
+                spilledVregs = allocator.SpilledVregs;
+            }
 
-            // Colouring failed: relieve each actual spill. Preferred order
+            if (assignment != null)
+                break; // allocated successfully — no actual spills this round.
+
+            // Allocation edited the IR (a spill — or, under greedy, a split that
+            // left SpilledVregs empty). Relieve each actual spill. Preferred order
             // (mirrors llvm-mos greedy: split-to-register before spill-to-memory):
             // rematerialize cheap defs, else split the live range into the zp
-            // register file (TrySplitToRegister), else fall back to memory.
-            SpillVregs(function, allocator.SpilledVregs, unspillable, reconciliationTemps);
+            // register file (TrySplitToRegister), else fall back to memory. An
+            // empty spill list (a pure split edit) makes this a no-op and we just
+            // reanalyse.
+            SpillVregs(function, spilledVregs, unspillable, reconciliationTemps);
         }
 
         // assignment is non-null here: the loop only `break`s when colouring
