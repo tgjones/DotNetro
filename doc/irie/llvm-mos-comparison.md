@@ -2,17 +2,16 @@
 
 # Irie vs llvm-mos — MOS6502 codegen
 
-Irie emits **-1.2%** instructions vs llvm-mos (**340** vs **344**, ratio **0.99**) across **17/47** corpus cases.
+Irie emits **-6.7%** instructions vs llvm-mos (**321** vs **344**, ratio **0.93**) across **17/47** corpus cases.
 
 Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 worse. Sorted worst-first. Blocked cases have no Irie test yet (see the [suite README](../../src/Irie.Tests/Lit/CodeGen/MOS6502/LlvmMosReference/README.md)).
 
 | Category | Case | Status | llvm-mos | Irie | Δ | Ratio | |
 | --- | --- | --- | --: | --: | --: | --: | :-: |
-| realistic | fibonacci | converted | 50 | 56 | +6 | 1.12 | 🔴 |
-| control-flow | if-else | converted | 36 | 40 | +4 | 1.11 | 🔴 |
 | control-flow | common-subexpr | converted | 39 | 42 | +3 | 1.08 | 🔴 |
 | pressure | live-across-call | converted | 23 | 24 | +1 | 1.04 | 🔴 |
 | control-flow | early-return | converted | 28 | 29 | +1 | 1.04 | 🔴 |
+| realistic | fibonacci | converted | 50 | 51 | +1 | 1.02 | 🔴 |
 | basics | add-i16 | converted | 8 | 8 | 0 | 1.00 | ⚪ |
 | basics | add-i32 | converted | 14 | 14 | 0 | 1.00 | ⚪ |
 | basics | add-i8 | converted | 4 | 4 | 0 | 1.00 | ⚪ |
@@ -24,7 +23,8 @@ Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 wors
 | control-flow | select | converted | 12 | 12 | 0 | 1.00 | ⚪ |
 | memory | global-rw | converted | 10 | 10 | 0 | 1.00 | ⚪ |
 | widths | truncate | converted | 3 | 3 | 0 | 1.00 | ⚪ |
-| control-flow | loop-counter | converted | 65 | 46 | -19 | 0.71 | 🟢 |
+| control-flow | if-else | converted | 36 | 34 | -2 | 0.94 | 🟢 |
+| control-flow | loop-counter | converted | 65 | 38 | -27 | 0.58 | 🟢 |
 | basics | chain-arith | blocked | 51 | — | — | — |  |
 | basics | stack-args | blocked | 122 | — | — | — |  |
 | coalescing | commutative | blocked | 8 | — | — | — |  |
@@ -57,332 +57,6 @@ Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 wors
 | widths | zero-extend | blocked | 6 | — | — | — |  |
 
 ## Per-case assembly
-
-<details>
-<summary>realistic/fibonacci — llvm-mos 50, Irie 56, ratio 1.12</summary>
-
-llvm-mos (50):
-
-```asm
-    .zeropage    __rc0
-    .zeropage    __rc1
-    .zeropage    __rc2
-    .zeropage    __rc3
-    .zeropage    __rc4
-    .zeropage    __rc5
-    .zeropage    __rc6
-    .zeropage    __rc7
-    .zeropage    __rc8
-    .zeropage    __rc9
-    .zeropage    __rc10
-    .zeropage    __rc11
-    .zeropage    __rc12
-    .zeropage    __rc13
-    .zeropage    __rc14
-    .zeropage    __rc15
-    .zeropage    __rc16
-    .zeropage    __rc17
-    .zeropage    __rc18
-    .zeropage    __rc19
-    .zeropage    __rc20
-    .zeropage    __rc21
-    .zeropage    __rc22
-    .zeropage    __rc23
-    .zeropage    __rc24
-    .zeropage    __rc25
-    .zeropage    __rc26
-    .zeropage    __rc27
-    .zeropage    __rc28
-    .zeropage    __rc29
-    .zeropage    __rc30
-    .zeropage    __rc31
-    .file    "fibonacci.c"
-    .section    .text.fibonacci,"ax",@progbits
-    .globl    fibonacci                       ; -- Begin function fibonacci
-    .type    fibonacci,@function
-fibonacci:                              ; @fibonacci
-; %bb.0:
-    tay
-    cmp    #1
-    txa
-    sbc    #0
-    bvc    .LBB0_2
-; %bb.1:
-    eor    #128
-.LBB0_2:
-    cmp    #0
-    bmi    .LBB0_8
-; %bb.3:
-    sty    __rc2
-    ldy    #0
-    lda    #1
-    sta    __rc3
-    tya
-    sta    __rc5
-    sta    __rc4
-.LBB0_4:                                ; =>This Inner Loop Header: Depth=1
-    lda    __rc5
-    clc
-    adc    __rc3
-    sta    __rc7
-    tya
-    adc    __rc4
-    sta    __rc8
-    ldy    #255
-    dec    __rc2
-    cpy    __rc2
-    bne    .LBB0_6
-; %bb.5:                                ;   in Loop: Header=BB0_4 Depth=1
-    dex
-.LBB0_6:                                ;   in Loop: Header=BB0_4 Depth=1
-    ldy    __rc3
-    sty    __rc6
-    lda    __rc4
-    pha
-    ldy    __rc3
-    sty    __rc5
-    ldy    __rc7
-    sty    __rc3
-    ldy    __rc4
-    lda    __rc8
-    sta    __rc4
-    pla
-    cpx    #0
-    bne    .LBB0_4
-; %bb.7:                                ;   in Loop: Header=BB0_4 Depth=1
-    inc    __rc2
-    dec    __rc2
-    bne    .LBB0_4
-    jmp    .LBB0_9
-.LBB0_8:
-    lda    #0
-    sta    __rc6
-.LBB0_9:
-    tax
-    lda    __rc6
-    rts
-.Lfunc_end0:
-    .size    fibonacci, .Lfunc_end0-fibonacci
-                                        ; -- End function
-    .ident    "clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"
-    .section    ".note.GNU-stack","",@progbits
-    .addrsig
-    ;Declaring this symbol tells the CRT that the stack pointer needs to be initialized.
-    .globl    __do_init_stack
-```
-
-Irie (56):
-
-```asm
-fibonacci:
-    STA $0B
-    STX $0A
-    LDA #$00
-    STA $07
-    LDA #$00
-    STA $06
-    LDA #$01
-    STA $09
-    LDA #$00
-    STA $08
-    LDA #$00
-    STA $05
-    LDA #$00
-    STA $04
-.bb1:
-    LDA $05
-    STA $03
-    LDA $04
-    LDX $0B
-    STX $0C
-    LDX $0A
-    EOR #$80
-    TAY
-    TXA
-    EOR #$80
-    STA $02
-    TYA
-    CMP $02
-    BCC .bb3
-    BNE .bb2
-    LDA $03
-    CMP $0C
-    BCC .bb3
-.bb2:
-    LDA $07
-    LDX $06
-    RTS
-.bb3:
-    CLC
-    LDA $07
-    ADC $09
-    TAX
-    LDA $06
-    ADC $08
-    TAY
-    CLC
-    LDA $05
-    ADC #$01
-    STA $05
-    LDA $04
-    ADC #$00
-    STA $04
-    LDA $09
-    STA $07
-    LDA $08
-    STA $06
-    STX $09
-    STY $08
-    JMP .bb1
-```
-
-</details>
-
-<details>
-<summary>control-flow/if-else — llvm-mos 36, Irie 40, ratio 1.11</summary>
-
-llvm-mos (36):
-
-```asm
-    .zeropage    __rc0
-    .zeropage    __rc1
-    .zeropage    __rc2
-    .zeropage    __rc3
-    .zeropage    __rc4
-    .zeropage    __rc5
-    .zeropage    __rc6
-    .zeropage    __rc7
-    .zeropage    __rc8
-    .zeropage    __rc9
-    .zeropage    __rc10
-    .zeropage    __rc11
-    .zeropage    __rc12
-    .zeropage    __rc13
-    .zeropage    __rc14
-    .zeropage    __rc15
-    .zeropage    __rc16
-    .zeropage    __rc17
-    .zeropage    __rc18
-    .zeropage    __rc19
-    .zeropage    __rc20
-    .zeropage    __rc21
-    .zeropage    __rc22
-    .zeropage    __rc23
-    .zeropage    __rc24
-    .zeropage    __rc25
-    .zeropage    __rc26
-    .zeropage    __rc27
-    .zeropage    __rc28
-    .zeropage    __rc29
-    .zeropage    __rc30
-    .zeropage    __rc31
-    .file    "if-else.c"
-    .section    .text.if_else,"ax",@progbits
-    .globl    if_else                         ; -- Begin function if_else
-    .type    if_else,@function
-if_else:                                ; @if_else
-; %bb.0:
-    sta    __rc4
-    pha
-    txa
-    tay
-    pla
-    ldx    __rc2
-    sta    __rc5
-    cpx    __rc4
-    lda    __rc3
-    pha
-    tya
-    tax
-    pla
-    sty    __rc4
-    sbc    __rc4
-    bvc    .LBB0_2
-; %bb.1:
-    eor    #128
-.LBB0_2:
-    tay
-    bpl    .LBB0_4
-; %bb.3:
-    sec
-    lda    __rc5
-    sbc    __rc2
-    tay
-    txa
-    sbc    __rc3
-    jmp    .LBB0_5
-.LBB0_4:
-    sec
-    lda    __rc2
-    sbc    __rc5
-    tay
-    lda    __rc3
-    stx    __rc2
-    sbc    __rc2
-.LBB0_5:
-    tax
-    tya
-    rts
-.Lfunc_end0:
-    .size    if_else, .Lfunc_end0-if_else
-                                        ; -- End function
-    .ident    "clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"
-    .section    ".note.GNU-stack","",@progbits
-    .addrsig
-    ;Declaring this symbol tells the CRT that the stack pointer needs to be initialized.
-    .globl    __do_init_stack
-```
-
-Irie (40):
-
-```asm
-abs_diff:
-    STA $07
-    STX $06
-    LDY $02
-    STY $05
-    LDY $03
-    STY $04
-    LDY $02
-    STY $08
-    LDY $03
-    STA $03
-    TXA
-    EOR #$80
-    TAX
-    TYA
-    EOR #$80
-    STA $02
-    TXA
-    CMP $02
-    BCC .bb3
-    BNE .bb1
-    LDA $03
-    CMP $08
-    BCC .bb3
-.bb1:
-    SEC
-    LDA $07
-    SBC $05
-    TAY
-    LDA $06
-    SBC $04
-    TAX
-.bb2:
-    TYA
-    RTS
-.bb3:
-    SEC
-    LDA $05
-    SBC $07
-    TAY
-    LDA $04
-    SBC $06
-    TAX
-    JMP .bb2
-```
-
-</details>
 
 <details>
 <summary>control-flow/common-subexpr — llvm-mos 39, Irie 42, ratio 1.08</summary>
@@ -803,6 +477,181 @@ early_return:
     LDY $07
     LDX $06
     JMP .bb4
+```
+
+</details>
+
+<details>
+<summary>realistic/fibonacci — llvm-mos 50, Irie 51, ratio 1.02</summary>
+
+llvm-mos (50):
+
+```asm
+    .zeropage    __rc0
+    .zeropage    __rc1
+    .zeropage    __rc2
+    .zeropage    __rc3
+    .zeropage    __rc4
+    .zeropage    __rc5
+    .zeropage    __rc6
+    .zeropage    __rc7
+    .zeropage    __rc8
+    .zeropage    __rc9
+    .zeropage    __rc10
+    .zeropage    __rc11
+    .zeropage    __rc12
+    .zeropage    __rc13
+    .zeropage    __rc14
+    .zeropage    __rc15
+    .zeropage    __rc16
+    .zeropage    __rc17
+    .zeropage    __rc18
+    .zeropage    __rc19
+    .zeropage    __rc20
+    .zeropage    __rc21
+    .zeropage    __rc22
+    .zeropage    __rc23
+    .zeropage    __rc24
+    .zeropage    __rc25
+    .zeropage    __rc26
+    .zeropage    __rc27
+    .zeropage    __rc28
+    .zeropage    __rc29
+    .zeropage    __rc30
+    .zeropage    __rc31
+    .file    "fibonacci.c"
+    .section    .text.fibonacci,"ax",@progbits
+    .globl    fibonacci                       ; -- Begin function fibonacci
+    .type    fibonacci,@function
+fibonacci:                              ; @fibonacci
+; %bb.0:
+    tay
+    cmp    #1
+    txa
+    sbc    #0
+    bvc    .LBB0_2
+; %bb.1:
+    eor    #128
+.LBB0_2:
+    cmp    #0
+    bmi    .LBB0_8
+; %bb.3:
+    sty    __rc2
+    ldy    #0
+    lda    #1
+    sta    __rc3
+    tya
+    sta    __rc5
+    sta    __rc4
+.LBB0_4:                                ; =>This Inner Loop Header: Depth=1
+    lda    __rc5
+    clc
+    adc    __rc3
+    sta    __rc7
+    tya
+    adc    __rc4
+    sta    __rc8
+    ldy    #255
+    dec    __rc2
+    cpy    __rc2
+    bne    .LBB0_6
+; %bb.5:                                ;   in Loop: Header=BB0_4 Depth=1
+    dex
+.LBB0_6:                                ;   in Loop: Header=BB0_4 Depth=1
+    ldy    __rc3
+    sty    __rc6
+    lda    __rc4
+    pha
+    ldy    __rc3
+    sty    __rc5
+    ldy    __rc7
+    sty    __rc3
+    ldy    __rc4
+    lda    __rc8
+    sta    __rc4
+    pla
+    cpx    #0
+    bne    .LBB0_4
+; %bb.7:                                ;   in Loop: Header=BB0_4 Depth=1
+    inc    __rc2
+    dec    __rc2
+    bne    .LBB0_4
+    jmp    .LBB0_9
+.LBB0_8:
+    lda    #0
+    sta    __rc6
+.LBB0_9:
+    tax
+    lda    __rc6
+    rts
+.Lfunc_end0:
+    .size    fibonacci, .Lfunc_end0-fibonacci
+                                        ; -- End function
+    .ident    "clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"
+    .section    ".note.GNU-stack","",@progbits
+    .addrsig
+    ;Declaring this symbol tells the CRT that the stack pointer needs to be initialized.
+    .globl    __do_init_stack
+```
+
+Irie (51):
+
+```asm
+fibonacci:
+    STA $07
+    STX $0A
+    LDA #$00
+    STA $06
+    LDA #$00
+    STA $05
+    LDA #$01
+    STA $09
+    LDA #$00
+    STA $08
+    LDA #$00
+    STA $04
+    LDA #$00
+    STA $03
+.bb1:
+    LDA $03
+    EOR #$80
+    TAX
+    LDA $0A
+    EOR #$80
+    STA $02
+    TXA
+    CMP $02
+    BCC .bb3
+    BNE .bb2
+    LDA $04
+    CMP $07
+    BCC .bb3
+.bb2:
+    LDA $06
+    LDX $05
+    RTS
+.bb3:
+    CLC
+    LDA $06
+    ADC $09
+    TAX
+    LDA $05
+    ADC $08
+    TAY
+    CLC
+    LDA $04
+    ADC #$01
+    STA $04
+    LDA $03
+    ADC #$00
+    STA $03
+    LDA $09
+    STA $06
+    LDA $08
+    STA $05
+    STX $09
+    STY $08
+    JMP .bb1
 ```
 
 </details>
@@ -1710,7 +1559,147 @@ truncate:
 </details>
 
 <details>
-<summary>control-flow/loop-counter — llvm-mos 65, Irie 46, ratio 0.71</summary>
+<summary>control-flow/if-else — llvm-mos 36, Irie 34, ratio 0.94</summary>
+
+llvm-mos (36):
+
+```asm
+    .zeropage    __rc0
+    .zeropage    __rc1
+    .zeropage    __rc2
+    .zeropage    __rc3
+    .zeropage    __rc4
+    .zeropage    __rc5
+    .zeropage    __rc6
+    .zeropage    __rc7
+    .zeropage    __rc8
+    .zeropage    __rc9
+    .zeropage    __rc10
+    .zeropage    __rc11
+    .zeropage    __rc12
+    .zeropage    __rc13
+    .zeropage    __rc14
+    .zeropage    __rc15
+    .zeropage    __rc16
+    .zeropage    __rc17
+    .zeropage    __rc18
+    .zeropage    __rc19
+    .zeropage    __rc20
+    .zeropage    __rc21
+    .zeropage    __rc22
+    .zeropage    __rc23
+    .zeropage    __rc24
+    .zeropage    __rc25
+    .zeropage    __rc26
+    .zeropage    __rc27
+    .zeropage    __rc28
+    .zeropage    __rc29
+    .zeropage    __rc30
+    .zeropage    __rc31
+    .file    "if-else.c"
+    .section    .text.if_else,"ax",@progbits
+    .globl    if_else                         ; -- Begin function if_else
+    .type    if_else,@function
+if_else:                                ; @if_else
+; %bb.0:
+    sta    __rc4
+    pha
+    txa
+    tay
+    pla
+    ldx    __rc2
+    sta    __rc5
+    cpx    __rc4
+    lda    __rc3
+    pha
+    tya
+    tax
+    pla
+    sty    __rc4
+    sbc    __rc4
+    bvc    .LBB0_2
+; %bb.1:
+    eor    #128
+.LBB0_2:
+    tay
+    bpl    .LBB0_4
+; %bb.3:
+    sec
+    lda    __rc5
+    sbc    __rc2
+    tay
+    txa
+    sbc    __rc3
+    jmp    .LBB0_5
+.LBB0_4:
+    sec
+    lda    __rc2
+    sbc    __rc5
+    tay
+    lda    __rc3
+    stx    __rc2
+    sbc    __rc2
+.LBB0_5:
+    tax
+    tya
+    rts
+.Lfunc_end0:
+    .size    if_else, .Lfunc_end0-if_else
+                                        ; -- End function
+    .ident    "clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"
+    .section    ".note.GNU-stack","",@progbits
+    .addrsig
+    ;Declaring this symbol tells the CRT that the stack pointer needs to be initialized.
+    .globl    __do_init_stack
+```
+
+Irie (34):
+
+```asm
+abs_diff:
+    STA $06
+    STX $05
+    LDA $02
+    STA $04
+    TXA
+    EOR #$80
+    TAY
+    LDA $03
+    EOR #$80
+    STA $02
+    TYA
+    CMP $02
+    BCC .bb3
+    BNE .bb1
+    LDA $06
+    CMP $04
+    BCC .bb3
+.bb1:
+    SEC
+    LDA $06
+    SBC $04
+    TAY
+    LDA $05
+    SBC $03
+    TAX
+.bb2:
+    TYA
+    RTS
+.bb3:
+    SEC
+    LDA $04
+    SBC $06
+    TAY
+    LDA $03
+    SBC $05
+    TAX
+    JMP .bb2
+```
+
+</details>
+
+<details>
+<summary>control-flow/loop-counter — llvm-mos 65, Irie 38, ratio 0.58</summary>
 
 llvm-mos (65):
 
@@ -1845,58 +1834,50 @@ loop_counter:                           ; @loop_counter
     .globl    __do_init_stack
 ```
 
-Irie (46):
+Irie (38):
 
 ```asm
 loop_counter:
-    STA $09
-    STX $08
-    LDA #$00
-    STA $05
-    LDA #$00
-    STA $04
-    LDA $05
     STA $07
-    LDA $04
-    STA $06
-.bb1:
-    LDA $07
+    STX $06
+    LDA #$00
     STA $03
-    LDA $06
-    LDX $09
-    STX $0A
-    LDY $08
+    LDX #$00
+    LDA $03
+    STA $05
+    STX $04
+.bb1:
+    LDA $04
     EOR #$80
-    TAX
-    TYA
+    TAY
+    LDA $06
     EOR #$80
     STA $02
-    TXA
+    TYA
     CMP $02
     BCC .bb3
     BNE .bb2
-    LDA $03
-    CMP $0A
+    LDA $05
+    CMP $07
     BCC .bb3
 .bb2:
-    LDA $05
-    LDX $04
+    LDA $03
     RTS
 .bb3:
     CLC
+    LDA $03
+    ADC $05
+    STA $03
+    TXA
+    ADC $04
+    TAX
+    CLC
     LDA $05
-    ADC $07
+    ADC #$01
     STA $05
     LDA $04
-    ADC $06
-    STA $04
-    CLC
-    LDA $07
-    ADC #$01
-    STA $07
-    LDA $06
     ADC #$00
-    STA $06
+    STA $04
     JMP .bb1
 ```
 

@@ -878,54 +878,43 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         var chainPredicate = signedFlip ? ArithCmpPredicate.Ult : predicate;
         var byteCount = aBytesRaw.Length;
 
-        // Funnel each `a` byte through a fresh Anyi8 vreg to break the ABI copy
-        // hints (byte 0 → $a, etc.) so the RA can park the bytes in zero page
-        // across the whole chain rather than starving the per-byte $a funnel.
-        var aBytes = FunnelThroughAnyi8(function, builder, aBytesRaw);
+        // Operands are used *broadly*, not funnelled. `mos6502.cmp` is
+        // non-destructive, so a byte that is only compared needs no preserving
+        // copy — and a defensive funnel would actively hurt: when the same value
+        // is also live past the compare (e.g. an operand the arms later subtract),
+        // the funnel vreg and the original interfere, forcing two zero-page slots
+        // plus the copy. This mirrors the single-byte path (EmitI8CmpAndBranch):
+        // emit only the one `Ac` class-constraint copy the loop already makes and
+        // trust the coalescer to fold it; leave `b` broad so CmpInfo's `Imag8`
+        // use[1] constraint parks it in zero page without an explicit reclassify.
+        // Only the signed-flip top byte takes a copy, and that is the *necessary*
+        // preserving copy emitted by EorByteWithImmediate (#$80 EOR is destructive).
+        var aBytes = (int[])aBytesRaw.Clone();
 
         // Resolve each `b` byte to a compare rhs. A constant byte (the zero of a
         // narrowed compare-against-zero) is folded into an Immediate so no zero
-        // gets materialized into zero page; a non-constant byte is funnelled like
-        // the `a` bytes and compared as a register. The signed-flip (slt) path is
-        // left out of the fold: it EORs both operands by #$80, which requires a
-        // real register, so it funnels every byte unconditionally (scope creep
-        // avoided per the plan — only the eq / uge zero-compare chains fold).
+        // gets materialized into zero page; any other byte is passed through as a
+        // register operand. The signed-flip (slt) path has no constants — the
+        // legalizer's #$80 EOR requires real registers — so every byte is a vreg.
         var bRhs = new MirOperand[byteCount];
-        if (signedFlip)
+        for (var i = 0; i < byteCount; i++)
         {
-            var bBytes = FunnelThroughAnyi8(function, builder, bBytesRaw);
-            for (var i = 0; i < byteCount; i++)
-                bRhs[i] = new VirtualReg(bBytes[i], IsDefinition: false);
-        }
-        else
-        {
-            for (var i = 0; i < byteCount; i++)
-            {
-                if (TryGetConstant(function, bBytesRaw[i]) is { } constByte)
-                {
-                    bRhs[i] = new Immediate(constByte);
-                }
-                else
-                {
-                    var fresh = FunnelThroughAnyi8(function, builder, new[] { bBytesRaw[i] })[0];
-                    ReclassifyTo(function, fresh, MOS6502RegisterClass.Imag8);
-                    bRhs[i] = new VirtualReg(fresh, IsDefinition: false);
-                }
-            }
+            if (!signedFlip && TryGetConstant(function, bBytesRaw[i]) is { } constByte)
+                bRhs[i] = new Immediate(constByte);
+            else
+                bRhs[i] = new VirtualReg(bBytesRaw[i], IsDefinition: false);
         }
 
         if (signedFlip)
         {
+            // a <s b  ==  (a ^ msb) <u (b ^ msb): flip bit 7 of the most-
+            // significant byte of both operands, then run the unsigned ladder.
+            // EorByteWithImmediate copies its input into $a before EOR'ing, so the
+            // raw top byte survives for any later use in the arms.
             var top = byteCount - 1;
-            aBytes[top] = EorByteWithImmediate(function, builder, aBytes[top], 0x80);
-            var bTopVreg = ((VirtualReg)bRhs[top]).Id;
+            aBytes[top] = EorByteWithImmediate(function, builder, aBytesRaw[top], 0x80);
             bRhs[top] = new VirtualReg(
-                EorByteWithImmediate(function, builder, bTopVreg, 0x80), IsDefinition: false);
-
-            // The slt path compares register operands throughout; pin each `b`
-            // byte to the zero-page Imag8 class as the original ladder did.
-            for (var i = 0; i < byteCount; i++)
-                ReclassifyTo(function, ((VirtualReg)bRhs[i]).Id, MOS6502RegisterClass.Imag8);
+                EorByteWithImmediate(function, builder, bBytesRaw[top], 0x80), IsDefinition: false);
         }
 
         for (var pos = byteCount - 1; pos >= 0; pos--)
@@ -980,23 +969,6 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             PseudoDialect.OpRef(PseudoOp.Copy),
             new VirtualReg(result, IsDefinition: true),
             new VirtualReg(aOut,   IsDefinition: false));
-        return result;
-    }
-
-    private static int[] FunnelThroughAnyi8(MirFunction function, MirBuilder builder, int[] bytes)
-    {
-        var result = new int[bytes.Length];
-        for (var i = 0; i < bytes.Length; i++)
-        {
-            var fresh = function.CreateVirtualRegisterInClass(
-                MOS6502RegisterClass.Anyi8,
-                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
-            builder.BuildInstruction(
-                PseudoDialect.OpRef(PseudoOp.Copy),
-                new VirtualReg(fresh,    IsDefinition: true),
-                new VirtualReg(bytes[i], IsDefinition: false));
-            result[i] = fresh;
-        }
         return result;
     }
 
