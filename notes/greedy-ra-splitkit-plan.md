@@ -237,20 +237,56 @@ in the test `TwoValuesNeedingSameSingleRegSimultaneously_ReachesSpillAndFails`
 the default — any function that actually needs spilling may fail to converge under
 greedy.
 
+### Stage 1 — DONE (2026-06-21)
+
+`GreedyRegisterAllocator.TryEvict` fleshed out: weight-based eviction with cascade
+loop-prevention. Still flag-gated (`useGreedy`); default path untouched. All green:
+Irie 189/189 (188 + 1 new eviction test), `irie-report` unchanged at **-6.7%**
+(greedy not on any default path).
+
+**Edits (all in `src/Irie/Passes/GreedyRegisterAllocator.cs`)**
+- `TryEvict(vreg, queue)` — for each candidate physreg in preference order (so the
+  copy-hint reg wins ties), gather the interfering committed occupants; the
+  candidate is usable iff EVERY interferer is evictable: spillable (not in
+  `_unspillable`), strictly lighter `SpillWeight`, and an older/absent cascade.
+  Pick the min-summed-weight candidate, stamp the evictor's cascade on each
+  evictee, `Uncommit` them, and re-enqueue (stage preserved). Mirrors
+  RegAllocGreedy.cpp `tryEvict`/`evictInterference` + the advisor's
+  `canEvictInterferenceBasedOnCost`.
+- Cascade state (`_cascade` + `_nextCascade`, Run-local): `AssignCascade` (lazy,
+  on first evict) / `CascadeOf` / `CascadeOrNext`. A value a vreg evicts inherits
+  the evictor's cascade, so it can only be evicted back by a STRICTLY newer cascade
+  — breaks A↔B cycles (RegAllocGreedy.h `Cascade`, getOrAssignNewCascade).
+- `SpillWeight(vreg)` (memoized): Σ block-frequency over each def/use reference ÷
+  interval size; unspillable → +∞. LLVM VirtRegAuxInfo shape.
+- `ComputeBlockFrequencies` = 10^loopDepth; `ComputeLoopDepths` via natural loops
+  (iterative DFS finds back-edges to grey nodes, `NaturalLoopBody` marks each loop
+  body). Flagged in-code as a COARSE proxy for BlockFrequencyInfo (no profile data).
+
+**New test** `GreedyRegisterAllocatorTests.ConstrainedValueEvictsLighterFlexibleValue_BothPlaced`
+— a long flexible value grabs $a via hint, a short `ac`-pinned value evicts it, the
+evictee relocates to zp. The converging forced-conflict the Stage-0 stub couldn't
+resolve.
+
+**Not done (deliberately deferred):** real-function/`irie-report` quality
+measurement of greedy needs a temporary default-flip, which Stage 4 owns (and the
+golden trap warns against standalone `iriec` measurement). Splitting is still a
+stub, so branchy functions that need a split spill rather than converge — that is
+Stage 2's job, not a Stage-1 regression.
+
 ### Resume checklist for the next session
 
 1. Read this file + `[[project_greedy_ra_plan]]` memory.
-2. Start **Stage 1 — flesh out `GreedyRegisterAllocator.TryEvict`**: spill weights
-   (loop-depth approximation from CFG back-edges; flag as a known proxy) + cascade
-   loop-prevention (`RegAllocGreedy.cpp` `tryEvict` @718, `canEvictInterference`).
-   Evict the lighter-weight committed interferers of a candidate physreg, return
-   that physreg, and re-enqueue the evicted vregs (their stage stays so they don't
-   loop). This is what makes the converging-spill test above pass.
-3. After Stage 1, the converging forced-spill test can be added/strengthened, and
-   greedy should reach `basics/*` + branchy-case parity (compare via a temporary
-   `useGreedy:true` lit run or a one-off pipeline toggle — but measure under
-   `dotnet test`, never a standalone `iriec`/`irie-report` run, per the golden trap).
-4. Determinism: keep every queue/tie break on ascending vreg id.
+2. Start **Stage 2 — SplitEditor analogue + `tryLocalSplit`**: build out the
+   split machinery behind `GreedyRegisterAllocator.TrySplit` (currently `=> false`).
+   Open a new interval, insert boundary `pseudo.copy`s, rewrite in-region uses,
+   then return true so the pass reanalyses (lean on next-round reanalysis — no
+   incremental `transferValues`). Move the pass's `TrySplitToRegister`
+   instruction-split logic into the editor as the first split kind, then add
+   `tryLocalSplit` (gap-weight split within one block). Lever for `early-return`.
+   Refs: `SplitKit.{h,cpp}` `SplitEditor` (462–521), `RegAllocGreedy.cpp`
+   `tryLocalSplit`/`calcGapWeights` (1663/1741), `tryInstructionSplit` (1587).
+3. Determinism: keep every queue/tie break on ascending vreg id.
 
 ## Risks & mitigations
 

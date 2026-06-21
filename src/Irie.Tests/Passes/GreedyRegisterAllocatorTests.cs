@@ -118,6 +118,49 @@ public sealed class GreedyRegisterAllocatorTests
         await Assert.That(DefPhysReg(i0)).IsNotEqualTo(DefPhysReg(i1));
     }
 
+    // Converging eviction (Stage 1): a long-lived flexible value grabs $a via a
+    // copy hint, then a short-lived value HARD-pinned to $a (class `ac`) cannot
+    // assign. Eviction kicks in — the pinned value is heavier (denser, shorter),
+    // so it evicts the flexible value off $a; the evicted value is re-enqueued and
+    // relocates to the abundant zero-page file. Both end up placed: this is the
+    // converging forced-conflict the Stage-0 stub could not resolve.
+    [Test]
+    public async Task ConstrainedValueEvictsLighterFlexibleValue_BothPlaced()
+    {
+        var fn = NewFunction("greedy_evict");
+        var bb0 = fn.CreateBlock();
+        var v0 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var vx = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var v1 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Ac, "ac");
+        var v2 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+
+        // v0 grabs $a via the copy hint and stays live to the final add.
+        var i0 = bb0.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(v0, IsDefinition: true),
+            new PhysicalReg(MOS6502Registers.A, IsDefinition: false));
+        // Filler that lengthens v0's interval (so it is dequeued first, taking $a).
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(vx, IsDefinition: true), new Immediate(1));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(vx, IsDefinition: true),
+            new VirtualReg(vx, IsDefinition: false),
+            new VirtualReg(vx, IsDefinition: false));
+        // v1 is pinned to $a (ac) and short-lived.
+        var i3 = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(v1, IsDefinition: true), new Immediate(5));
+        // Both v0 and v1 are read here → they interfere, and only $a fits v1.
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v2, IsDefinition: true),
+            new VirtualReg(v0, IsDefinition: false),
+            new VirtualReg(v1, IsDefinition: false));
+
+        Pass.Run(fn);
+
+        // v1 (the pinned, heavier value) wins $a; v0 was evicted to zero page.
+        await Assert.That(DefPhysReg(i3)).IsEqualTo(MOS6502Registers.A);
+        await Assert.That(DefPhysReg(i0)).IsNotEqualTo(MOS6502Registers.A);
+    }
+
     // Spill rung reachable: two DISTINCT values that must both occupy the single
     // $y register at the SAME instruction is genuinely infeasible. The greedy
     // ladder exhausts assign (no free $y), evict (Stage-0 stub), split (Stage-0

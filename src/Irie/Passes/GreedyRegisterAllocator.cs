@@ -24,8 +24,10 @@ namespace Irie.Passes;
 //   tryAssign  — REAL. Find a free physreg from the value's class-intersection
 //                allowed set (RegisterAllocationSupport.ComputeAllowedColours),
 //                preferring a copy-hint colour so copies collapse.
-//   tryEvict   — STUB (returns none). Stage 1 implements weight-based eviction
-//                with cascade loop-prevention.
+//   tryEvict   — REAL (Stage 1). Evict lighter-spill-weight committed
+//                interferences to free a register, with cascade loop-prevention
+//                so an A-evicts-B-evicts-A cycle cannot form. Evicted values are
+//                re-enqueued and re-processed in the same Run.
 //   trySplit   — STUB (returns false). Stage 2 builds the SplitEditor analogue
 //                + tryLocalSplit; Stage 3 adds split-around-call. For now an
 //                unassignable value falls straight through to spill, which the
@@ -76,6 +78,21 @@ internal sealed class GreedyRegisterAllocator
     // Class-intersection allowed registers per vreg (preference-ordered).
     private Dictionary<int, int[]> _allowed = [];
 
+    // Approximate per-block execution frequency (10^loopDepth), driving spill
+    // weights. Computed once per Run from natural loops (CFG back-edges).
+    private Dictionary<MirBlock, double> _blockFrequency = [];
+
+    // Memoized spill weights (use/def density × block frequency ÷ interval size).
+    private readonly Dictionary<int, double> _spillWeights = [];
+
+    // Eviction loop-prevention (RegAllocGreedy.h `Cascade`). A vreg's cascade is
+    // assigned the first time it evicts; each value it evicts inherits that
+    // cascade, so it can only ever be evicted back by a STRICTLY newer cascade.
+    // This breaks A-evicts-B-evicts-A cycles. Cascades are Run-local: every Run
+    // is a fresh allocation over freshly-analysed intervals.
+    private readonly Dictionary<int, int> _cascade = [];
+    private int _nextCascade = 1;
+
     // Actual spills this round (a value that reached the spill rung). Read by the
     // pass, which rewrites them to memory traffic before re-running.
     private readonly List<int> _actualSpills = [];
@@ -99,6 +116,7 @@ internal sealed class GreedyRegisterAllocator
     {
         var vregs = RegisterAllocationSupport.CollectReferencedVregs(_function);
         _allowed = RegisterAllocationSupport.ComputeAllowedColours(_function, _registerInfo, vregs);
+        _blockFrequency = ComputeBlockFrequencies();
 
         // Priority queue: largest interval first, ties by ascending vreg id.
         var queue = new PriorityQueue<int, (long, int)>();
@@ -120,7 +138,7 @@ internal sealed class GreedyRegisterAllocator
 
             // 2. Try to evict lighter interferences — but RS_Split ranges already
             //    failed and don't get a second chance until they have split.
-            if (stage != LiveRangeStage.Split && TryEvict(vreg) is int evicted)
+            if (stage != LiveRangeStage.Split && TryEvict(vreg, queue) is int evicted)
             {
                 Commit(vreg, evicted);
                 continue;
@@ -231,11 +249,106 @@ internal sealed class GreedyRegisterAllocator
         list.Add(vreg);
     }
 
+    // Undo a commit (used when a vreg is evicted): drop it from the colouring and
+    // the reverse index so its register reads as free for the evictor.
+    private void Uncommit(int vreg)
+    {
+        if (!_assignment.TryGetValue(vreg, out var phys)) return;
+        _assignment.Remove(vreg);
+        _assignedTo[phys].Remove(vreg);
+    }
+
     // -------------------------------------------------------------------------
-    // tryEvict — STUB (Stage 1). Evicting a lighter-weight interference to free
-    // a register, with cascade loop-prevention, lands here.
+    // tryEvict — free a physreg for `vreg` by evicting the committed values
+    // occupying it, provided every one of them is (a) lighter spill-weight than
+    // `vreg`, (b) evictable (spillable + an older/no cascade — loop-prevention),
+    // and (c) not a fixed precoloured interference. Among the candidate physregs
+    // that satisfy this, pick the one whose evicted set is cheapest (ties broken
+    // by preference order, so the copy-hint reg wins). The evicted values are
+    // re-enqueued for re-allocation in the same Run.
+    //
+    // Reference: RegAllocGreedy.cpp tryEvict / evictInterference and
+    // RegAllocEvictionAdvisor.cpp canEvictInterferenceBasedOnCost.
     // -------------------------------------------------------------------------
-    private int? TryEvict(int vreg) => null;
+    private int? TryEvict(int vreg, PriorityQueue<int, (long, int)> queue)
+    {
+        var myWeight = SpillWeight(vreg);
+        // The cascade `vreg` WOULD evict under: its own if it has one, else the
+        // next-to-be-assigned (so a value that never evicted can evict anything).
+        var myCascade = CascadeOrNext(vreg);
+
+        int? best = null;
+        var bestCost = double.PositiveInfinity;
+        List<int>? bestVictims = null;
+
+        foreach (var candidate in PreferenceOrder(vreg))
+        {
+            // A precoloured interference (call clobber, flag def, livein) is
+            // fixed — it cannot be evicted, so this physreg is unusable.
+            if (_intervals.Overlaps(vreg, candidate)) continue;
+            if (!_assignedTo.TryGetValue(candidate, out var occupants)) continue;
+
+            if (!TryGatherEvictees(vreg, myWeight, myCascade, occupants,
+                    out var victims, out var cost))
+                continue;
+
+            if (cost < bestCost)
+            {
+                (best, bestCost, bestVictims) = (candidate, cost, victims);
+            }
+        }
+
+        if (best is null) return null;
+
+        // Commit the eviction: `vreg` claims (or keeps) a cascade and stamps it on
+        // every evictee, then each evictee is uncommitted and re-enqueued.
+        var cascade = AssignCascade(vreg);
+        foreach (var victim in bestVictims!)
+        {
+            Uncommit(victim);
+            _cascade[victim] = cascade;
+            queue.Enqueue(victim, Priority(victim));
+        }
+        return best;
+    }
+
+    // Can `vreg` evict every interfering occupant of one physreg? Gathers the
+    // evictees (only the occupants that actually interfere) and their summed
+    // spill weight, or returns false the moment one occupant is un-evictable.
+    private bool TryGatherEvictees(
+        int vreg, double myWeight, int myCascade, List<int> occupants,
+        out List<int> victims, out double cost)
+    {
+        victims = [];
+        cost = 0;
+        foreach (var other in occupants)
+        {
+            if (!_intervals.Interfere(vreg, other)) continue; // doesn't block us.
+
+            // Unspillable values (spill/remat/reconciliation temps) cannot be
+            // moved; only strictly-lighter values are worth evicting; and a value
+            // with an equal-or-newer cascade must not be evicted (loop-prevention).
+            if (_unspillable.Contains(other)) { victims = []; return false; }
+            if (SpillWeight(other) >= myWeight) { victims = []; return false; }
+            if (CascadeOf(other) >= myCascade) { victims = []; return false; }
+
+            victims.Add(other);
+            cost += SpillWeight(other);
+        }
+        return victims.Count > 0;
+    }
+
+    private int CascadeOf(int vreg) => _cascade.GetValueOrDefault(vreg, 0);
+
+    private int CascadeOrNext(int vreg) =>
+        _cascade.TryGetValue(vreg, out var c) ? c : _nextCascade;
+
+    private int AssignCascade(int vreg)
+    {
+        if (!_cascade.TryGetValue(vreg, out var c))
+            _cascade[vreg] = c = _nextCascade++;
+        return c;
+    }
 
     // -------------------------------------------------------------------------
     // trySplit — STUB (Stage 2/3). The SplitEditor analogue + tryLocalSplit /
@@ -264,6 +377,117 @@ internal sealed class GreedyRegisterAllocator
         foreach (var seg in _intervals.IntervalOf(vreg).Segments)
             size += seg.End - seg.Start;
         return size;
+    }
+
+    // -------------------------------------------------------------------------
+    // Spill weight — how costly it is to evict/spill a value, so eviction picks
+    // the lighter victim. Mirrors LLVM's VirtRegAuxInfo: sum the block frequency
+    // at each reference (def/use) and divide by the interval size, so a value
+    // that is used often / in hot (looping) blocks resists eviction, while a long
+    // lightly-used range is cheap to evict and reallocate. Unspillable values
+    // (spill/remat/reconciliation temps) are infinitely heavy — never evicted.
+    // Memoized: weights don't change within a Run.
+    // -------------------------------------------------------------------------
+    private double SpillWeight(int vreg)
+    {
+        if (_unspillable.Contains(vreg)) return double.PositiveInfinity;
+        if (_spillWeights.TryGetValue(vreg, out var cached)) return cached;
+
+        double total = 0;
+        foreach (var block in _function.Blocks)
+        {
+            var freq = _blockFrequency.GetValueOrDefault(block, 1.0);
+            foreach (var instr in block.Instructions)
+                foreach (var op in instr.Operands)
+                    if (op is VirtualReg v && v.Id == vreg)
+                        total += freq;
+        }
+
+        var weight = total / Math.Max(1, IntervalSize(vreg));
+        _spillWeights[vreg] = weight;
+        return weight;
+    }
+
+    // -------------------------------------------------------------------------
+    // Approximate block frequencies as 10^loopDepth, where loop depth comes from
+    // the natural loops of the CFG (a block's depth = how many natural-loop
+    // bodies contain it). This is a deliberately COARSE proxy for LLVM's
+    // BlockFrequencyInfo — Irie has no profile/branch-probability data — but it
+    // captures the property that matters for eviction ordering: values in loops
+    // are hotter and should resist eviction. Refine if a corpus case demands it.
+    // -------------------------------------------------------------------------
+    private Dictionary<MirBlock, double> ComputeBlockFrequencies()
+    {
+        var depth = ComputeLoopDepths();
+        var freq = new Dictionary<MirBlock, double>(depth.Count);
+        foreach (var (block, d) in depth)
+            freq[block] = Math.Pow(10, d);
+        return freq;
+    }
+
+    // Loop depth per block via natural loops: find CFG back-edges (an edge to a
+    // block still on the DFS recursion stack), then for each back-edge tail→head
+    // mark every block in the loop body — head plus all blocks that can reach the
+    // tail without passing through the head — incrementing their depth.
+    private Dictionary<MirBlock, int> ComputeLoopDepths()
+    {
+        _function.RebuildCfg();
+        var depth = new Dictionary<MirBlock, int>(_function.Blocks.Count);
+        foreach (var block in _function.Blocks)
+            depth[block] = 0;
+        if (_function.Blocks.Count == 0) return depth;
+
+        // DFS from the entry block, colouring nodes white(0)/grey(1)/black(2).
+        // A grey successor is a back-edge target (an ancestor on the stack).
+        var colour = new Dictionary<MirBlock, int>();
+        var backEdges = new List<(MirBlock Tail, MirBlock Head)>();
+        var stack = new Stack<(MirBlock Node, int Child)>();
+        stack.Push((_function.Blocks[0], 0));
+        colour[_function.Blocks[0]] = 1;
+        while (stack.Count > 0)
+        {
+            var (node, child) = stack.Pop();
+            if (child < node.Successors.Count)
+            {
+                stack.Push((node, child + 1));
+                var succ = node.Successors[child];
+                var c = colour.GetValueOrDefault(succ, 0);
+                if (c == 0)
+                {
+                    colour[succ] = 1;
+                    stack.Push((succ, 0));
+                }
+                else if (c == 1)
+                {
+                    backEdges.Add((node, succ)); // grey → back-edge.
+                }
+            }
+            else
+            {
+                colour[node] = 2;
+            }
+        }
+
+        // Each back-edge defines a natural loop; bump every body block's depth.
+        foreach (var (tail, head) in backEdges)
+            foreach (var body in NaturalLoopBody(tail, head))
+                depth[body]++;
+
+        return depth;
+    }
+
+    // The natural loop of back-edge tail→head: {head} plus every block that can
+    // reach `tail` walking predecessors backwards without passing through `head`.
+    private static HashSet<MirBlock> NaturalLoopBody(MirBlock tail, MirBlock head)
+    {
+        var body = new HashSet<MirBlock> { head };
+        var work = new Stack<MirBlock>();
+        if (body.Add(tail)) work.Push(tail);
+        while (work.Count > 0)
+            foreach (var pred in work.Pop().Predecessors)
+                if (body.Add(pred))
+                    work.Push(pred);
+        return body;
     }
 }
 
