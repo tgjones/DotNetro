@@ -11,74 +11,71 @@
 ; leading computation of either arm: each arm first computes a different value
 ; (d + 1 vs d - 1, stored to g0) and only then the shared a + b.
 ;
-; Motivation: this exercises a gap in HoistCommonCodePass — the local SimplifyCFG
-; `hoistCommonCodeFromSuccessors` analogue, which only matches when the *first*
-; instruction of every successor is identical. Here each arm leads with a
-; different op (`arith.addi %3, 1` vs `arith.subi %3, 1`), so the match fails and
-; the shared `a + b` below it is never hoisted: the two-byte add is emitted twice
-; (the `ADC $02 / ADC $03` pair appears in both .bb1 and .bb3 below). llvm-mos's
-; real `hoistCommonCodeFromSuccessors` skips the non-matching leading ops and
-; hoists a + b once, above the surviving branch (see the corpus .s/.txt; GVNHoist
-; is the further generalization to any common dominator). That remaining
-; duplicate is the divergence this case exists to motivate.
+; Motivation: this exercised a gap in HoistCommonCodePass — the local SimplifyCFG
+; `hoistCommonCodeFromSuccessors` analogue. It originally only matched when the
+; *first* instruction of every successor was identical; here each arm leads with a
+; different op (`arith.addi %3, 1` vs `arith.subi %3, 1`), so the match failed and
+; the shared `a + b` below it was never hoisted — the two-byte add was emitted
+; twice. HoistCommonCodePass now skips the non-matching leading ops and hoists the
+; shared `a + b` once, above the surviving branch (mirroring llvm-mos's real
+; `hoistCommonCodeFromSuccessors`; GVNHoist is the further generalization to any
+; common dominator). In the CHECK below the carry-chain add (`CLC / ADC $04 ...
+; ADC $02`) now appears once in the entry block before `BMI .bb3`, and each arm
+; just stores the precomputed value to its own global.
 ;
-; This case also drove the RA split-to-register spill strategy: the fourth live
-; i16 arg (`d`, held across the duplicated `a + b` for the `g3 = d` store) makes
-; four absolute-store sources (a+b.lo/.hi, d.lo/.hi) simultaneously live, each
-; constrained to {$a,$x,$y} by `mos6502.st.abs`. That oversubscribes the three
-; real registers, so the colourer spills — but instead of a memory round-trip,
-; RegisterAllocatorPass.TrySplitToRegister keeps the value in the abundant
-; zero-page register file and copies it into a real register only at each store
-; (`LDX $07 / STX g3+1`), mirroring llvm-mos greedy `tryInstructionSplit`
-; ("effectively spilling to a register"). Hence: no `pseudo.spill`, `d` lives in
-; zp/$x, GPRs materialized just-in-time at the stores.
+; The residual gap vs the corpus .s (39 instrs) is register pressure, not the
+; hoist: holding `a + b` live across the branch alongside the fourth i16 arg
+; (`d`, kept for the `g3 = d` store) oversubscribes the three real registers, so
+; RA keeps values in the zero-page register file and copies them into {$a,$x,$y}
+; just-in-time at each absolute store (`LDX $03 / STX g2`, `LDX $07 / STX g3+1`),
+; mirroring llvm-mos greedy `tryInstructionSplit` ("effectively spilling to a
+; register") — no `pseudo.spill`, GPRs materialized at the stores.
 
 ; CHECK: common_subexpr:
-; CHECK: STA \$08
-; CHECK: STX \$04
-; CHECK: LDX \$06
+; CHECK: LDY \$02
+; CHECK: STY \$04
+; CHECK: LDY \$03
+; CHECK: STY \$02
+; CHECK: LDY \$06
+; CHECK: CLC
+; CHECK: ADC \$04
+; CHECK: STA \$03
+; CHECK: TXA
+; CHECK: ADC \$02
+; CHECK: STA \$02
 ; CHECK: LDA \$05
 ; CHECK: BMI \.bb3
 ; CHECK: \.bb1:
 ; CHECK: SEC
-; CHECK: TXA
+; CHECK: TYA
 ; CHECK: SBC \#\$01
-; CHECK: TAY
+; CHECK: TAX
 ; CHECK: LDA \$07
 ; CHECK: SBC \#\$00
-; CHECK: STY g0
+; CHECK: STX g0
 ; CHECK: STA g0\+1
-; CHECK: CLC
-; CHECK: LDA \$08
-; CHECK: ADC \$02
-; CHECK: TAY
-; CHECK: LDA \$04
-; CHECK: ADC \$03
-; CHECK: STY g2
-; CHECK: STA g2\+1
-; CHECK: STX g3
+; CHECK: LDX \$03
+; CHECK: STX g2
+; CHECK: LDX \$02
+; CHECK: STX g2\+1
+; CHECK: STY g3
 ; CHECK: LDX \$07
 ; CHECK: STX g3\+1
 ; CHECK: \.bb2:
 ; CHECK: RTS
 ; CHECK: \.bb3:
 ; CHECK: CLC
-; CHECK: TXA
+; CHECK: TYA
 ; CHECK: ADC \#\$01
-; CHECK: TAY
+; CHECK: TAX
 ; CHECK: LDA \$07
 ; CHECK: ADC \#\$00
-; CHECK: TAX
-; CHECK: STY g0
-; CHECK: STX g0\+1
-; CHECK: CLC
-; CHECK: LDA \$08
-; CHECK: ADC \$02
-; CHECK: TAY
-; CHECK: LDA \$04
-; CHECK: ADC \$03
-; CHECK: STY g1
-; CHECK: STA g1\+1
+; CHECK: STX g0
+; CHECK: STA g0\+1
+; CHECK: LDX \$03
+; CHECK: STX g1
+; CHECK: LDX \$02
+; CHECK: STX g1\+1
 ; CHECK: RTS
 
 global @g0 : i16 = bytes "\x00\x00"

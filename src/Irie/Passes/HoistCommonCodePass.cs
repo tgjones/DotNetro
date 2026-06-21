@@ -10,9 +10,10 @@ namespace Irie.Passes;
 //
 //   * SimplifyCFG's `hoistCommonCodeFromSuccessors`
 //     (llvm/lib/Transforms/Utils/SimplifyCFG.cpp) — the *local* version: when a
-//     branch's successor arms begin with identical instructions, hoist one copy
-//     into the predecessor. It only ever looks one edge up, at successors whose
-//     sole predecessor is the branch block.
+//     branch's successor arms share an identical instruction, hoist one copy into
+//     the predecessor. It skips over non-matching leading code on each arm to
+//     find the shared op below it, but only ever looks one edge up, at successors
+//     whose sole predecessor is the branch block.
 //   * `GVNHoist` (llvm/lib/Transforms/Scalar/GVNHoist.cpp) — the *global*
 //     version: a dedicated pass that hoists fully-anticipated expressions to
 //     their nearest common dominator, across merges and blocks with more than
@@ -32,11 +33,17 @@ namespace Irie.Passes;
 // if `block` is the only predecessor of `succ`, then every value visible at
 // `succ`'s entry is either defined in `block` or dominates `block`, so it is
 // necessarily available at the end of `block` (our insertion point, just before
-// the terminator). A leading instruction's operands are visible at `succ`'s
-// entry by SSA, hence available where we hoist to — for free. And because we
-// only hoist an instruction present in *every* successor, hoisting it to run
-// once in `block` never speculates work onto a path that didn't already do it,
-// so it is value-preserving and strictly reduces the static instruction count.
+// the terminator). A *leading* instruction's operands are visible at `succ`'s
+// entry by SSA, hence available where we hoist to — for free. A deeper
+// instruction (below differing leading code) may instead use a value defined by
+// that leading code, which is *not* available at `block`'s end; `OperandsAvailable`
+// rules those out by rejecting any use defined inside a successor. Everything
+// else is available for free as above. And because we only hoist an instruction
+// present in *every* successor, hoisting it to run once in `block` never
+// speculates work onto a path that didn't already do it, so it is
+// value-preserving and strictly reduces the static instruction count. Hoistable
+// ops are side-effect-free and (since memory ops are not side-effect-free) never
+// touch memory, so lifting one past the stores between it and the branch is safe.
 //
 // EXPANSION TO FULL GVN-HOIST (future): the only piece tied to the local
 // restriction is `TryGetHoistTargets` — it answers "given a block, which
@@ -77,25 +84,80 @@ public sealed class HoistCommonCodePass : MirFunctionPass
         } while (changedAny);
     }
 
-    // Attempt to hoist a single common leading instruction out of `block`'s
-    // successors into `block`. Returns true if it hoisted (so the caller retries
-    // to peel the next common instruction).
+    // Attempt to hoist a single common instruction out of `block`'s successors
+    // into `block`. Returns true if it hoisted (so the caller retries to peel the
+    // next common instruction).
+    //
+    // We scan the *whole* first target for a hoistable candidate — not just its
+    // leading instruction — so a shared computation sitting *below* differing
+    // leading code is still found. This is the generalization of SimplifyCFG's
+    // `hoistCommonCodeFromSuccessors` that skips over non-matching leading ops and
+    // hoists the matching one below them (see header). A candidate is hoistable
+    // only if its use operands are available at the hoist point (the terminator),
+    // which the `definedInTargets` guard enforces.
     private static bool TryHoistOnce(MirFunction function, MirBuilder builder, MirBlock block)
     {
         if (!TryGetHoistTargets(block, out var targets, out var terminator))
             return false;
 
-        // The leading hoistable instruction of the first target is the template;
-        // every other target must begin with an identical computation.
-        if (LeadingHoistable(function, targets[0]) is not { } template)
-            return false;
-        for (var i = 1; i < targets.Count; i++)
-            if (LeadingHoistable(function, targets[i]) is not { } candidate ||
-                !SameComputation(template, candidate))
-                return false;
+        // Values defined inside a successor are not available at `block`'s
+        // terminator (our insertion point); a candidate using one cannot be
+        // hoisted yet. Everything else visible at a successor's entry is available
+        // by the sole-predecessor invariant (see header).
+        var definedInTargets = CollectDefinitions(targets);
 
-        HoistInto(function, builder, block, terminator, template, targets);
+        foreach (var template in targets[0].Instructions)
+        {
+            if (!IsHoistable(function, template) || !OperandsAvailable(template, definedInTargets))
+                continue;
+
+            // Every other target must contain an identical computation we can hoist.
+            var matches = new List<MirInstruction>(targets.Count) { template };
+            for (var i = 1; i < targets.Count; i++)
+                if (FindMatch(function, targets[i], template) is { } match)
+                    matches.Add(match);
+            if (matches.Count != targets.Count)
+                continue;
+
+            HoistInto(function, builder, block, terminator, matches);
+            return true;
+        }
+
+        return false;
+    }
+
+    // The set of vregs defined inside any target successor — the values *not*
+    // available at the hoist point.
+    private static HashSet<int> CollectDefinitions(List<MirBlock> targets)
+    {
+        var defined = new HashSet<int>();
+        foreach (var target in targets)
+            foreach (var instr in target.Instructions)
+                foreach (var operand in instr.Operands)
+                    if (operand is VirtualReg { IsDefinition: true } def)
+                        defined.Add(def.Id);
+        return defined;
+    }
+
+    // True iff every *use* operand of `instr` is available at the hoist point,
+    // i.e. not defined inside a successor block.
+    private static bool OperandsAvailable(MirInstruction instr, HashSet<int> definedInTargets)
+    {
+        foreach (var operand in instr.Operands)
+            if (operand is VirtualReg { IsDefinition: false } use && definedInTargets.Contains(use.Id))
+                return false;
         return true;
+    }
+
+    // The first hoistable instruction in `target` computing the same value as
+    // `template`. Its use operands match `template`'s by construction
+    // (`SameComputation` compares them), so they share `template`'s availability.
+    private static MirInstruction? FindMatch(MirFunction function, MirBlock target, MirInstruction template)
+    {
+        foreach (var instr in target.Instructions)
+            if (IsHoistable(function, instr) && SameComputation(template, instr))
+                return instr;
+        return null;
     }
 
     // The local sole-predecessor policy (the GVN-hoist expansion seam — see the
@@ -127,38 +189,36 @@ public sealed class HoistCommonCodePass : MirFunctionPass
         return true;
     }
 
-    // The first instruction of `block`, if it is a pure, hoistable computation:
-    // side-effect-free, not a terminator, not an artifact, with every definition
-    // still a pre-isel TypedVReg (so we can clone its type) and no operand that
-    // resists relocation (physregs / block targets).
-    private static MirInstruction? LeadingHoistable(MirFunction function, MirBlock block)
+    // True iff `instr` is a pure, hoistable computation: side-effect-free, not a
+    // terminator, not an artifact, with every definition still a pre-isel
+    // TypedVReg (so we can clone its type) and no operand that resists relocation
+    // (physregs / block targets). Memory ops are not side-effect-free, so a
+    // hoistable instruction never touches memory — making it safe to lift past the
+    // stores skipped between the differing leading code and the shared op.
+    private static bool IsHoistable(MirFunction function, MirInstruction instr)
     {
-        if (block.Instructions.Count == 0)
-            return null;
-
-        var instr = block.Instructions[0];
         var dialect = DialectRegistry.ById(instr.Opcode.Dialect);
         if (dialect.IsTerminator(instr.Opcode.Code) ||
             dialect.IsArtifact(instr.Opcode.Code) ||
             !dialect.IsSideEffectFree(instr.Opcode.Code))
-            return null;
+            return false;
 
         foreach (var operand in instr.Operands)
             switch (operand)
             {
                 case VirtualReg { IsDefinition: true } def
                     when function.GetVRegAnnotation(def.Id) is not TypedVReg:
-                    return null;
+                    return false;
                 case VirtualReg:
                 case Immediate:
                 case Symbol:
                     break;
                 default:
                     // PhysicalReg, BlockTarget, etc. — not a pre-isel pure value op.
-                    return null;
+                    return false;
             }
 
-        return instr;
+        return true;
     }
 
     // Two instructions compute the same value iff they share an opcode and have
@@ -182,14 +242,18 @@ public sealed class HoistCommonCodePass : MirFunctionPass
         return true;
     }
 
-    // Hoist a copy of `template` into `block` before `terminator`, then redirect
-    // every target's matching result vreg to the hoisted result and delete the
-    // now-redundant per-target copies. Operand availability is guaranteed by the
-    // sole-predecessor invariant (see header), so the clone reuses the template's
-    // use-operands verbatim and only its definitions get fresh vregs.
+    // Hoist a copy of the template (`matches[0]`) into `block` before
+    // `terminator`, then redirect every target's matching result vreg to the
+    // hoisted result and delete the now-redundant per-target instructions.
+    // Operand availability is guaranteed by the caller's `OperandsAvailable`
+    // check, so the clone reuses the template's use-operands verbatim and only its
+    // definitions get fresh vregs. Each entry in `matches` is the instruction in a
+    // distinct target computing the same value; they share the template's operand
+    // layout (`SameComputation`), so def positions are common to all.
     private static void HoistInto(MirFunction function, MirBuilder builder,
-        MirBlock block, MirInstruction terminator, MirInstruction template, List<MirBlock> targets)
+        MirBlock block, MirInstruction terminator, List<MirInstruction> matches)
     {
+        var template = matches[0];
         var defPositions = new List<int>();
         var hoistedOperands = new MirOperand[template.Operands.Length];
         for (var i = 0; i < template.Operands.Length; i++)
@@ -209,11 +273,10 @@ public sealed class HoistCommonCodePass : MirFunctionPass
         builder.SetInsertionPointBefore(terminator);
         builder.BuildInstruction(template.Opcode, hoistedOperands);
 
-        // For each target, map its leading instruction's result vreg(s) to the
-        // hoisted result(s), then remove that instruction.
-        foreach (var target in targets)
+        // For each matched instruction, map its result vreg(s) to the hoisted
+        // result(s), then remove it.
+        foreach (var original in matches)
         {
-            var original = target.Instructions[0];
             foreach (var position in defPositions)
             {
                 var oldDef = ((VirtualReg)original.Operands[position]).Id;

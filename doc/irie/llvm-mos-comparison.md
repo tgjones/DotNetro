@@ -2,7 +2,7 @@
 
 # Irie vs llvm-mos — MOS6502 codegen
 
-Irie emits **-0.9%** instructions vs llvm-mos (**341** vs **344**, ratio **0.99**) across **17/47** corpus cases.
+Irie emits **-1.2%** instructions vs llvm-mos (**340** vs **344**, ratio **0.99**) across **17/47** corpus cases.
 
 Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 worse. Sorted worst-first. Blocked cases have no Irie test yet (see the [suite README](../../src/Irie.Tests/Lit/CodeGen/MOS6502/LlvmMosReference/README.md)).
 
@@ -10,7 +10,7 @@ Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 wors
 | --- | --- | --- | --: | --: | --: | --: | :-: |
 | realistic | fibonacci | converted | 50 | 56 | +6 | 1.12 | 🔴 |
 | control-flow | if-else | converted | 36 | 40 | +4 | 1.11 | 🔴 |
-| control-flow | common-subexpr | converted | 39 | 43 | +4 | 1.10 | 🔴 |
+| control-flow | common-subexpr | converted | 39 | 42 | +3 | 1.08 | 🔴 |
 | pressure | live-across-call | converted | 23 | 24 | +1 | 1.04 | 🔴 |
 | control-flow | early-return | converted | 28 | 29 | +1 | 1.04 | 🔴 |
 | basics | add-i16 | converted | 8 | 8 | 0 | 1.00 | ⚪ |
@@ -385,7 +385,7 @@ abs_diff:
 </details>
 
 <details>
-<summary>control-flow/common-subexpr — llvm-mos 39, Irie 43, ratio 1.10</summary>
+<summary>control-flow/common-subexpr — llvm-mos 39, Irie 42, ratio 1.08</summary>
 
 llvm-mos (39):
 
@@ -514,55 +514,54 @@ g3:
     .globl    __do_init_stack
 ```
 
-Irie (43):
+Irie (42):
 
 ```asm
 common_subexpr:
-    STA $08
-    STX $04
-    LDX $06
+    LDY $02
+    STY $04
+    LDY $03
+    STY $02
+    LDY $06
+    CLC
+    ADC $04
+    STA $03
+    TXA
+    ADC $02
+    STA $02
     LDA $05
     BMI .bb3
 .bb1:
     SEC
-    TXA
+    TYA
     SBC #$01
-    TAY
+    TAX
     LDA $07
     SBC #$00
-    STY g0
+    STX g0
     STA g0+1
-    CLC
-    LDA $08
-    ADC $02
-    TAY
-    LDA $04
-    ADC $03
-    STY g2
-    STA g2+1
-    STX g3
+    LDX $03
+    STX g2
+    LDX $02
+    STX g2+1
+    STY g3
     LDX $07
     STX g3+1
 .bb2:
     RTS
 .bb3:
     CLC
-    TXA
+    TYA
     ADC #$01
-    TAY
+    TAX
     LDA $07
     ADC #$00
-    TAX
-    STY g0
-    STX g0+1
-    CLC
-    LDA $08
-    ADC $02
-    TAY
-    LDA $04
-    ADC $03
-    STY g1
-    STA g1+1
+    STX g0
+    STA g0+1
+    LDX $03
+    STX g1
+    LDX $02
+    STX g1+1
     RTS
 ```
 
