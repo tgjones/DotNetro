@@ -98,6 +98,11 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
         // spillable long ranges strictly shrinks each round.
         // ---------------------------------------------------------------------
         var unspillable = new HashSet<int>();
+        // Reconciliation temps minted by the split-to-register spill strategy
+        // (TrySplitToRegister). Tracked so they are never themselves re-split —
+        // a temp's only use is the constraining one, so splitting it again would
+        // just mint another copy in front of the same use, forever.
+        var reconciliationTemps = new HashSet<int>();
         LiveIntervals intervals;
         Dictionary<int, int>? assignment;
 
@@ -124,9 +129,11 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
             if (assignment != null)
                 break; // coloured successfully — no actual spills this round.
 
-            // Colouring failed: rewrite every actual spill to memory traffic.
-            // The fresh reload/spill temps are unspillable next round.
-            SpillVregs(function, allocator.SpilledVregs, unspillable);
+            // Colouring failed: relieve each actual spill. Preferred order
+            // (mirrors llvm-mos greedy: split-to-register before spill-to-memory):
+            // rematerialize cheap defs, else split the live range into the zp
+            // register file (TrySplitToRegister), else fall back to memory.
+            SpillVregs(function, allocator.SpilledVregs, unspillable, reconciliationTemps);
         }
 
         // assignment is non-null here: the loop only `break`s when colouring
@@ -152,7 +159,9 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
     // tiny ones (one per use), dropping register pressure so the next colouring
     // round succeeds. The fresh per-use vregs are recorded as UNSPILLABLE so a
     // pathological program cannot spill them again forever (Appel §11.4).
-    private static void SpillVregs(MirFunction function, IReadOnlyList<int> spills, HashSet<int> unspillable)
+    private void SpillVregs(
+        MirFunction function, IReadOnlyList<int> spills,
+        HashSet<int> unspillable, HashSet<int> reconciliationTemps)
     {
         foreach (var spilled in spills)
         {
@@ -160,9 +169,114 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo) : Mir
 
             if (def != null && IsRematerializable(def))
                 Rematerialize(function, spilled, def, unspillable);
+            else if (TrySplitToRegister(function, spilled, reconciliationTemps))
+                continue;
             else
                 StoreReloadSpill(function, spilled, def, unspillable);
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Split-to-register spill (the llvm-mos greedy `tryInstructionSplit`
+    // analogue — "effectively spilling to a register"). When a value whose
+    // register class is a strict subset of the flexible class (e.g. an absolute
+    // store's Axy = {$a,$x,$y}) cannot be coloured, the cause is usually that
+    // several such values are simultaneously live and the narrow class has too
+    // few registers — even though the abundant zero-page register file is free.
+    // Rather than round-trip the value through memory, KEEP it in the flexible
+    // class (so RA can park it in zero page) and copy it into the narrow class
+    // only at each constraining use. The value's def must be a copy so that, once
+    // its narrowing uses are reconciled away, it is touched only by copies and
+    // the colourer widens it to the flexible class (GraphColouringAllocator
+    // ComputeAllowedColours). This mirrors greedy inflating the class via
+    // getLargestLegalSuperClass and splitting around each constraint-narrowing
+    // use; it skips copies and only acts where the split actually relaxes a
+    // constraint (greedy's two guards).
+    //
+    // Returns true if it split (the caller then re-colours); false to fall back
+    // to memory (genuine pressure: even the flexible class is exhausted, or the
+    // value is not eligible — a constraining def, or already a reconciliation
+    // temp whose sole use is the constraint).
+    private bool TrySplitToRegister(
+        MirFunction function, int spilled, HashSet<int> reconciliationTemps)
+    {
+        var flexibleI8 = registerInfo.FlexibleI8ClassId;
+        if (flexibleI8 == 0) return false;
+
+        // A temp we already minted: its only use is the constraining one, so
+        // re-splitting would loop. Send it to memory instead.
+        if (reconciliationTemps.Contains(spilled)) return false;
+
+        // The def must be non-constraining (a copy). A value defined by a
+        // constraining op stays pinned to that op's class no matter how its uses
+        // are rewritten, so splitting the uses cannot free it.
+        var def = function.GetDefinition(spilled);
+        if (def == null || !IsCopyInstr(def)) return false;
+
+        var flexRegs = registerInfo.GetAllocatableRegisters(flexibleI8).ToArray();
+
+        // Narrowing non-copy uses: an operand whose class is a strict subset of
+        // the flexible class. (Copies impose no class and are skipped.)
+        var narrowingUses = new List<(MirInstruction Instr, int Index)>();
+        foreach (var block in function.Blocks)
+            foreach (var instr in block.Instructions)
+            {
+                if (IsCopyInstr(instr)) continue;
+                var classes = DialectRegistry.ById(instr.Opcode.Dialect)
+                    .GetInstructionInfo(instr.Opcode.Code).OperandClasses;
+                if (classes == null) continue;
+
+                var operands = instr.Operands;
+                for (var k = 0; k < operands.Length && k < classes.Length; k++)
+                {
+                    if (operands[k] is not VirtualReg u || u.IsDefinition || u.Id != spilled)
+                        continue;
+                    var opClass = classes[k];
+                    if (opClass == 0 || opClass == flexibleI8) continue;
+                    var opRegs = registerInfo.GetAllocatableRegisters(opClass);
+                    if (IsStrictSubset(opRegs, flexRegs))
+                        narrowingUses.Add((instr, k));
+                }
+            }
+
+        if (narrowingUses.Count == 0) return false; // nothing to relax.
+
+        var flexName = registerInfo.GetRegisterClassName(flexibleI8) ?? $"class{flexibleI8}";
+        var builder = new MirBuilder(function);
+        foreach (var (instr, index) in narrowingUses)
+        {
+            var temp = function.CreateVirtualRegisterInClass(flexibleI8, flexName);
+            reconciliationTemps.Add(temp);
+            builder.SetInsertionPointBefore(instr);
+            builder.BuildInstruction(
+                PseudoDialect.OpRef(PseudoOp.Copy),
+                new VirtualReg(temp, IsDefinition: true),
+                new VirtualReg(spilled, IsDefinition: false));
+            instr.Operands[index] = new VirtualReg(temp, IsDefinition: false);
+        }
+        return true;
+    }
+
+    private static bool IsCopyInstr(MirInstruction instr) =>
+        instr.Opcode.Dialect == PseudoDialect.Id
+        && (PseudoOp)instr.Opcode.Code == PseudoOp.Copy;
+
+    // True iff every register in `sub` is in `super` and `super` has more — i.e.
+    // `sub` ⊊ `super`, so constraining a flexible value to `sub` genuinely loses
+    // registers (and splitting around the use buys the value the wider class).
+    private static bool IsStrictSubset(ReadOnlySpan<int> sub, int[] super)
+    {
+        if (sub.Length >= super.Length) return false;
+        foreach (var r in sub)
+            if (!Contains(super, r)) return false;
+        return true;
+    }
+
+    private static bool Contains(int[] set, int value)
+    {
+        foreach (var s in set)
+            if (s == value) return true;
+        return false;
     }
 
     // -------------------------------------------------------------------------

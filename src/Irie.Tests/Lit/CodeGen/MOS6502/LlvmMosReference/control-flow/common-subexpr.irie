@@ -1,0 +1,112 @@
+; RUN: @iriec --target mos6502 --emit=asm @file
+
+; Corpus: llvm-mos-reference/control-flow/common-subexpr
+; A faithful mirror of ext/llvm-mos-reference/control-flow/common-subexpr.c:
+;   int g0,g1,g2,g3;
+;   void common_subexpr(int a,int b,int c,int d) {
+;       if (c < 0) { g0 = d + 1; g1 = a + b; }
+;       else       { g0 = d - 1; g2 = a + b; g3 = d; }
+;   }
+; A diamond whose two arms share a common sub-expression (a + b) that is NOT the
+; leading computation of either arm: each arm first computes a different value
+; (d + 1 vs d - 1, stored to g0) and only then the shared a + b.
+;
+; Motivation: this exercises a gap in HoistCommonCodePass — the local SimplifyCFG
+; `hoistCommonCodeFromSuccessors` analogue, which only matches when the *first*
+; instruction of every successor is identical. Here each arm leads with a
+; different op (`arith.addi %3, 1` vs `arith.subi %3, 1`), so the match fails and
+; the shared `a + b` below it is never hoisted: the two-byte add is emitted twice
+; (the `ADC $02 / ADC $03` pair appears in both .bb1 and .bb3 below). llvm-mos's
+; real `hoistCommonCodeFromSuccessors` skips the non-matching leading ops and
+; hoists a + b once, above the surviving branch (see the corpus .s/.txt; GVNHoist
+; is the further generalization to any common dominator). That remaining
+; duplicate is the divergence this case exists to motivate.
+;
+; This case also drove the RA split-to-register spill strategy: the fourth live
+; i16 arg (`d`, held across the duplicated `a + b` for the `g3 = d` store) makes
+; four absolute-store sources (a+b.lo/.hi, d.lo/.hi) simultaneously live, each
+; constrained to {$a,$x,$y} by `mos6502.st.abs`. That oversubscribes the three
+; real registers, so the colourer spills — but instead of a memory round-trip,
+; RegisterAllocatorPass.TrySplitToRegister keeps the value in the abundant
+; zero-page register file and copies it into a real register only at each store
+; (`LDX $07 / STX g3+1`), mirroring llvm-mos greedy `tryInstructionSplit`
+; ("effectively spilling to a register"). Hence: no `pseudo.spill`, `d` lives in
+; zp/$x, GPRs materialized just-in-time at the stores.
+
+; CHECK: common_subexpr:
+; CHECK: STA \$08
+; CHECK: STX \$04
+; CHECK: LDX \$06
+; CHECK: LDA \$05
+; CHECK: BMI \.bb3
+; CHECK: \.bb1:
+; CHECK: SEC
+; CHECK: TXA
+; CHECK: SBC \#\$01
+; CHECK: TAY
+; CHECK: LDA \$07
+; CHECK: SBC \#\$00
+; CHECK: STY g0
+; CHECK: STA g0\+1
+; CHECK: CLC
+; CHECK: LDA \$08
+; CHECK: ADC \$02
+; CHECK: TAY
+; CHECK: LDA \$04
+; CHECK: ADC \$03
+; CHECK: STY g2
+; CHECK: STA g2\+1
+; CHECK: STX g3
+; CHECK: LDX \$07
+; CHECK: STX g3\+1
+; CHECK: \.bb2:
+; CHECK: RTS
+; CHECK: \.bb3:
+; CHECK: CLC
+; CHECK: TXA
+; CHECK: ADC \#\$01
+; CHECK: TAY
+; CHECK: LDA \$07
+; CHECK: ADC \#\$00
+; CHECK: TAX
+; CHECK: STY g0
+; CHECK: STX g0\+1
+; CHECK: CLC
+; CHECK: LDA \$08
+; CHECK: ADC \$02
+; CHECK: TAY
+; CHECK: LDA \$04
+; CHECK: ADC \$03
+; CHECK: STY g1
+; CHECK: STA g1\+1
+; CHECK: RTS
+
+global @g0 : i16 = bytes "\x00\x00"
+global @g1 : i16 = bytes "\x00\x00"
+global @g2 : i16 = bytes "\x00\x00"
+global @g3 : i16 = bytes "\x00\x00"
+func @common_subexpr : (i16, i16, i16, i16) -> void {
+bb0(%0 : i16, %1 : i16, %2 : i16, %3 : i16):
+    %4 : i16 = arith.constant 0
+    %5 : i16 = arith.constant 1
+    %6 : i1 = arith.cmpi slt, %2, %4
+    cf.cond_br %6, bb1(), bb2()
+bb1():                                  ; c < 0:  g0 = d + 1; g1 = a + b
+    %7 : i16 = arith.addi %3, %5
+    %8 : i16 = mem.symbol @g0
+    mem.store.i16 %8, %7
+    %9 : i16 = arith.addi %0, %1
+    %10 : i16 = mem.symbol @g1
+    mem.store.i16 %10, %9
+    core.return
+bb2():                                  ; c >= 0: g0 = d - 1; g2 = a + b; g3 = d
+    %11 : i16 = arith.subi %3, %5
+    %12 : i16 = mem.symbol @g0
+    mem.store.i16 %12, %11
+    %13 : i16 = arith.addi %0, %1
+    %14 : i16 = mem.symbol @g2
+    mem.store.i16 %14, %13
+    %15 : i16 = mem.symbol @g3
+    mem.store.i16 %15, %3
+    core.return
+}

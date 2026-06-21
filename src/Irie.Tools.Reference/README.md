@@ -36,8 +36,12 @@ Options (all optional):
 | `--out`    | `doc/irie/llvm-mos-comparison.md` |
 
 Instruction count is the headline metric — apples-to-apples without assembling
-llvm-mos. Some converted cases use *adapted* inputs (see the suite README's
-pairing caveat), so read their delta as indicative, not exact.
+llvm-mos. Every `.irie` pairing is a **faithful mirror** of its corpus `.c` —
+adapting the input to dodge an Irie limitation is not allowed (see the suite
+README's *Fidelity rule*). A few deltas are still apples-to-oranges, but only
+because of *output*-level optimizations Irie's pipeline does not perform (e.g.
+loop strength reduction in `loop-counter`) — never because the input was
+simplified; see the suite README's pairing caveat.
 
 See [`ext/llvm-mos-reference/README.md`](../../ext/llvm-mos-reference/README.md)
 for the improvement workflow this scoreboard drives.

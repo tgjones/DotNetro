@@ -27,10 +27,27 @@ Each test:
 > vregs in the input MIR must be **numeric** (`%0`, `%1`, …) — the MIR lexer
 > rejects named vregs.
 
+### Fidelity rule
+
+Every test's input MIR **must be a faithful mirror of its corpus `.c`** — the
+same computation, types, globals, and control-flow structure, translated
+straight into generic-dialect MIR. Adapting the input to dodge an Irie
+limitation is **not allowed**: do not simplify the computation, drop work,
+reduce the number of live values, or restructure the control flow to make a test
+compile, pass, or look better against llvm-mos. The whole point of the corpus is
+to measure Irie on the *same* program a production compiler saw; an adapted input
+measures a different program and silently launders away the very gap the case
+exists to expose.
+
+If a faithful mirror cannot yet survive the pipeline to asm, the case belongs in
+**Blocked** below (and may be a failing/erroring test that doubles as a
+punch-list entry) — it does **not** get trimmed down to pass. Fix the underlying
+Irie limitation, then the faithful mirror compiles on its own.
+
 Filenames match the corpus basename (`add-i16.irie` ↔
 `ext/llvm-mos-reference/basics/add-i16.{c,s,txt}`) so `irie-report` can pair them.
 
-## Converted (16 tests)
+## Converted (17 tests)
 
 | Corpus case | Test |
 |-------------|------|
@@ -44,6 +61,7 @@ Filenames match the corpus basename (`add-i16.irie` ↔
 | control-flow/select (+ coalescing/redundant-copy) | `select` |
 | control-flow/early-return | `early-return` |
 | control-flow/if-else (exact abs-diff) | `if-else` |
+| control-flow/common-subexpr | `common-subexpr` |
 | control-flow/loop-counter | `loop-counter` |
 | pressure/live-across-call | `live-across-call` |
 | realistic/fibonacci | `fibonacci` |
@@ -64,7 +82,7 @@ doubles as a punch-list (and `irie-report` flags each as uncovered):
 
 | Reason | Corpus cases |
 |--------|--------------|
-| **Spill lowering not wired to `--emit=asm`** — `pseudo.spill`/`pseudo.reload` survive to `PseudoExpansionPass`, which throws. (RA *does* spill; the static-stack placement that lowers the spill pseudos is not yet on the asm path.) | pressure/many-calls *(genuine spill)* |
+| **Memory-spill lowering not wired to `--emit=asm`** — when register pressure exhausts even the zero-page register file, RA falls back to a memory `pseudo.spill`/`pseudo.reload`, which survive to `PseudoExpansionPass` and throw. (RA now first tries `TrySplitToRegister` — keep the value in zp and copy it into a GPR at each constraining use, the llvm-mos greedy `tryInstructionSplit` analogue — so only *genuine* pressure reaches the memory path. The static-stack placement that lowers the memory spill pseudos is not yet on the asm path.) | pressure/many-calls *(genuine spill)* |
 | **No `arith` multiply** | basics/chain-arith, control-flow/nested-loop, pressure/pressure-high, memory/struct-pass, realistic/factorial-recursive |
 | **No divide/modulo** | realistic/gcd |
 | **No shift op** | constraints/shift-const, constraints/shift-var |

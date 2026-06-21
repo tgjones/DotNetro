@@ -1,0 +1,2052 @@
+*** IR Dump At Start ***
+; ModuleID = 'common-subexpr.c'
+source_filename = "common-subexpr.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+@g0 = dso_local global i16 0, align 1
+@g1 = dso_local global i16 0, align 1
+@g2 = dso_local global i16 0, align 1
+@g3 = dso_local global i16 0, align 1
+
+; Function Attrs: nounwind optsize
+define dso_local void @common_subexpr(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) #0 {
+  %5 = alloca i16, align 1
+  %6 = alloca i16, align 1
+  %7 = alloca i16, align 1
+  %8 = alloca i16, align 1
+  store i16 %0, ptr %5, align 1, !tbaa !2
+  store i16 %1, ptr %6, align 1, !tbaa !2
+  store i16 %2, ptr %7, align 1, !tbaa !2
+  store i16 %3, ptr %8, align 1, !tbaa !2
+  %9 = load i16, ptr %7, align 1, !tbaa !2
+  %10 = icmp slt i16 %9, 0
+  br i1 %10, label %11, label %17
+
+11:                                               ; preds = %4
+  %12 = load i16, ptr %8, align 1, !tbaa !2
+  %13 = add nsw i16 %12, 1
+  store i16 %13, ptr @g0, align 1, !tbaa !2
+  %14 = load i16, ptr %5, align 1, !tbaa !2
+  %15 = load i16, ptr %6, align 1, !tbaa !2
+  %16 = add nsw i16 %14, %15
+  store i16 %16, ptr @g1, align 1, !tbaa !2
+  br label %24
+
+17:                                               ; preds = %4
+  %18 = load i16, ptr %8, align 1, !tbaa !2
+  %19 = sub nsw i16 %18, 1
+  store i16 %19, ptr @g0, align 1, !tbaa !2
+  %20 = load i16, ptr %5, align 1, !tbaa !2
+  %21 = load i16, ptr %6, align 1, !tbaa !2
+  %22 = add nsw i16 %20, %21
+  store i16 %22, ptr @g2, align 1, !tbaa !2
+  %23 = load i16, ptr %8, align 1, !tbaa !2
+  store i16 %23, ptr @g3, align 1, !tbaa !2
+  br label %24
+
+24:                                               ; preds = %17, %11
+  ret void
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After MemProfRemoveInfo on [module] omitted because no change ***
+*** IR Dump After Annotation2MetadataPass on [module] omitted because no change ***
+*** IR Dump After ForceFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After InferFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After CoroEarlyPass on [module] omitted because no change ***
+*** IR Dump After EntryExitInstrumenterPass on common_subexpr omitted because no change ***
+*** IR Dump After LowerExpectIntrinsicPass on common_subexpr omitted because no change ***
+*** IR Dump After SimplifyCFGPass on common_subexpr omitted because no change ***
+*** IR Dump After SROAPass on common_subexpr ***
+; Function Attrs: nounwind optsize
+define dso_local void @common_subexpr(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) #0 {
+  %5 = icmp slt i16 %2, 0
+  br i1 %5, label %6, label %9
+
+6:                                                ; preds = %4
+  %7 = add nsw i16 %3, 1
+  store i16 %7, ptr @g0, align 1, !tbaa !2
+  %8 = add nsw i16 %0, %1
+  store i16 %8, ptr @g1, align 1, !tbaa !2
+  br label %12
+
+9:                                                ; preds = %4
+  %10 = sub nsw i16 %3, 1
+  store i16 %10, ptr @g0, align 1, !tbaa !2
+  %11 = add nsw i16 %0, %1
+  store i16 %11, ptr @g2, align 1, !tbaa !2
+  store i16 %3, ptr @g3, align 1, !tbaa !2
+  br label %12
+
+12:                                               ; preds = %9, %6
+  ret void
+}
+*** IR Dump After EarlyCSEPass on common_subexpr omitted because no change ***
+*** IR Pass PassManager<Function> on common_subexpr ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After OpenMPOptPass on [module] omitted because no change ***
+*** IR Dump After IPSCCPPass on [module] omitted because no change ***
+*** IR Dump After CalledValuePropagationPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] ***
+; ModuleID = 'common-subexpr.c'
+source_filename = "common-subexpr.c"
+target datalayout = "e-m:e-p:16:8-p1:8:8-i16:8-i32:8-i64:8-f32:8-f64:8-a:8-Fi8-n8"
+target triple = "mos"
+
+@g0 = dso_local local_unnamed_addr global i16 0, align 1
+@g1 = dso_local local_unnamed_addr global i16 0, align 1
+@g2 = dso_local local_unnamed_addr global i16 0, align 1
+@g3 = dso_local local_unnamed_addr global i16 0, align 1
+
+; Function Attrs: nounwind optsize
+define dso_local void @common_subexpr(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) local_unnamed_addr #0 {
+  %5 = icmp slt i16 %2, 0
+  br i1 %5, label %6, label %9
+
+6:                                                ; preds = %4
+  %7 = add nsw i16 %3, 1
+  store i16 %7, ptr @g0, align 1, !tbaa !2
+  %8 = add nsw i16 %0, %1
+  store i16 %8, ptr @g1, align 1, !tbaa !2
+  br label %12
+
+9:                                                ; preds = %4
+  %10 = sub nsw i16 %3, 1
+  store i16 %10, ptr @g0, align 1, !tbaa !2
+  %11 = add nsw i16 %0, %1
+  store i16 %11, ptr @g2, align 1, !tbaa !2
+  store i16 %3, ptr @g3, align 1, !tbaa !2
+  br label %12
+
+12:                                               ; preds = %9, %6
+  ret void
+}
+
+attributes #0 = { nounwind optsize "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
+!llvm.errno.tbaa = !{!2}
+
+!0 = !{i32 7, !"frame-pointer", i32 2}
+!1 = !{!"clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"}
+!2 = !{!3, !3, i64 0}
+!3 = !{!"int", !4, i64 0}
+!4 = !{!"omnipotent char", !5, i64 0}
+!5 = !{!"Simple C/C++ TBAA"}
+*** IR Dump After PromotePass on common_subexpr omitted because no change ***
+*** IR Dump After InstCombinePass on common_subexpr ***
+; Function Attrs: nounwind optsize
+define dso_local void @common_subexpr(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) local_unnamed_addr #0 {
+  %5 = icmp slt i16 %2, 0
+  br i1 %5, label %6, label %9
+
+6:                                                ; preds = %4
+  %7 = add nsw i16 %3, 1
+  store i16 %7, ptr @g0, align 1, !tbaa !2
+  %8 = add nsw i16 %0, %1
+  store i16 %8, ptr @g1, align 1, !tbaa !2
+  br label %12
+
+9:                                                ; preds = %4
+  %10 = add nsw i16 %3, -1
+  store i16 %10, ptr @g0, align 1, !tbaa !2
+  %11 = add nsw i16 %0, %1
+  store i16 %11, ptr @g2, align 1, !tbaa !2
+  store i16 %3, ptr @g3, align 1, !tbaa !2
+  br label %12
+
+12:                                               ; preds = %9, %6
+  ret void
+}
+*** IR Dump After SimplifyCFGPass on common_subexpr omitted because no change ***
+*** IR Pass PassManager<Function> on common_subexpr ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AlwaysInlinerPass on [module] omitted because no change ***
+*** IR Dump After RequireAnalysisPass<llvm::GlobalsAA, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InvalidateAnalysisPass<llvm::AAManager> on common_subexpr omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<Module>> on [module] omitted because no change ***
+*** IR Dump After InlinerPass on (common_subexpr) omitted because no change ***
+*** IR Dump After PostOrderFunctionAttrsPass on (common_subexpr) omitted because no change ***
+*** IR Dump After SROAPass on common_subexpr omitted because no change ***
+*** IR Dump After EarlyCSEPass on common_subexpr omitted because no change ***
+*** IR Dump After SpeculativeExecutionPass on common_subexpr omitted because no change ***
+*** IR Dump After JumpThreadingPass on common_subexpr omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on common_subexpr omitted because no change ***
+*** IR Dump After SimplifyCFGPass on common_subexpr omitted because no change ***
+*** IR Dump After InstCombinePass on common_subexpr omitted because no change ***
+*** IR Dump After AggressiveInstCombinePass on common_subexpr omitted because no change ***
+*** IR Dump After LibCallsShrinkWrapPass on common_subexpr omitted because no change ***
+*** IR Dump After TailCallElimPass on common_subexpr omitted because no change ***
+*** IR Dump After SimplifyCFGPass on common_subexpr omitted because no change ***
+*** IR Dump After ReassociatePass on common_subexpr ***
+; Function Attrs: nounwind optsize
+define dso_local void @common_subexpr(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) local_unnamed_addr #0 {
+  %5 = icmp slt i16 %2, 0
+  br i1 %5, label %6, label %9
+
+6:                                                ; preds = %4
+  %7 = add nsw i16 %3, 1
+  store i16 %7, ptr @g0, align 1, !tbaa !2
+  %8 = add nsw i16 %1, %0
+  store i16 %8, ptr @g1, align 1, !tbaa !2
+  br label %12
+
+9:                                                ; preds = %4
+  %10 = add nsw i16 %3, -1
+  store i16 %10, ptr @g0, align 1, !tbaa !2
+  %11 = add nsw i16 %1, %0
+  store i16 %11, ptr @g2, align 1, !tbaa !2
+  store i16 %3, ptr @g3, align 1, !tbaa !2
+  br label %12
+
+12:                                               ; preds = %9, %6
+  ret void
+}
+*** IR Dump After ConstraintEliminationPass on common_subexpr omitted because no change ***
+*** IR Dump After LoopSimplifyPass on common_subexpr omitted because no change ***
+*** IR Dump After LCSSAPass on common_subexpr omitted because no change ***
+*** IR Pass PassManager<Function> on common_subexpr ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on common_subexpr ignored ***
+*** IR Dump After SimplifyCFGPass on common_subexpr omitted because no change ***
+*** IR Dump After InstCombinePass on common_subexpr omitted because no change ***
+*** IR Dump After LoopSimplifyPass on common_subexpr omitted because no change ***
+*** IR Dump After LCSSAPass on common_subexpr omitted because no change ***
+*** IR Pass PassManager<Function> on common_subexpr ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on common_subexpr ignored ***
+*** IR Dump After SROAPass on common_subexpr omitted because no change ***
+*** IR Dump After VectorCombinePass on common_subexpr omitted because no change ***
+*** IR Dump After MergedLoadStoreMotionPass on common_subexpr ***
+; Function Attrs: nounwind optsize
+define dso_local void @common_subexpr(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) local_unnamed_addr #0 {
+  %5 = icmp slt i16 %2, 0
+  br i1 %5, label %6, label %9
+
+6:                                                ; preds = %4
+  %7 = add nsw i16 %3, 1
+  %8 = add nsw i16 %1, %0
+  store i16 %8, ptr @g1, align 1, !tbaa !2
+  br label %12
+
+9:                                                ; preds = %4
+  %10 = add nsw i16 %3, -1
+  %11 = add nsw i16 %1, %0
+  store i16 %11, ptr @g2, align 1, !tbaa !2
+  store i16 %3, ptr @g3, align 1, !tbaa !2
+  br label %12
+
+12:                                               ; preds = %9, %6
+  %13 = phi i16 [ %7, %6 ], [ %10, %9 ]
+  store i16 %13, ptr @g0, align 1, !tbaa !2
+  ret void
+}
+*** IR Dump After GVNPass on common_subexpr omitted because no change ***
+*** IR Dump After SCCPPass on common_subexpr omitted because no change ***
+*** IR Dump After BDCEPass on common_subexpr omitted because no change ***
+*** IR Dump After InstCombinePass on common_subexpr omitted because no change ***
+*** IR Dump After JumpThreadingPass on common_subexpr omitted because no change ***
+*** IR Dump After CorrelatedValuePropagationPass on common_subexpr omitted because no change ***
+*** IR Dump After ADCEPass on common_subexpr omitted because no change ***
+*** IR Dump After MemCpyOptPass on common_subexpr omitted because no change ***
+*** IR Dump After DSEPass on common_subexpr omitted because no change ***
+*** IR Dump After MoveAutoInitPass on common_subexpr omitted because no change ***
+*** IR Dump After LoopSimplifyPass on common_subexpr omitted because no change ***
+*** IR Dump After LCSSAPass on common_subexpr omitted because no change ***
+*** IR Pass PassManager<Function> on common_subexpr ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on common_subexpr ignored ***
+*** IR Dump After CoroElidePass on common_subexpr omitted because no change ***
+*** IR Dump After SimplifyCFGPass on common_subexpr ***
+; Function Attrs: nounwind optsize
+define dso_local void @common_subexpr(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) local_unnamed_addr #0 {
+  %5 = icmp slt i16 %2, 0
+  %6 = add nsw i16 %1, %0
+  br i1 %5, label %7, label %9
+
+7:                                                ; preds = %4
+  %8 = add nsw i16 %3, 1
+  store i16 %6, ptr @g1, align 1, !tbaa !2
+  br label %11
+
+9:                                                ; preds = %4
+  %10 = add nsw i16 %3, -1
+  store i16 %6, ptr @g2, align 1, !tbaa !2
+  store i16 %3, ptr @g3, align 1, !tbaa !2
+  br label %11
+
+11:                                               ; preds = %9, %7
+  %12 = phi i16 [ %8, %7 ], [ %10, %9 ]
+  store i16 %12, ptr @g0, align 1, !tbaa !2
+  ret void
+}
+*** IR Dump After InstCombinePass on common_subexpr omitted because no change ***
+*** IR Pass PassManager<Function> on common_subexpr ignored ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (common_subexpr) ignored ***
+*** IR Dump After PostOrderFunctionAttrsPass on (common_subexpr) ***
+; Function Attrs: mustprogress nofree norecurse nosync nounwind optsize willreturn memory(write, argmem: none, inaccessiblemem: none, target_mem: none)
+define dso_local void @common_subexpr(i16 noundef %0, i16 noundef %1, i16 noundef %2, i16 noundef %3) local_unnamed_addr #0 {
+  %5 = icmp slt i16 %2, 0
+  %6 = add nsw i16 %1, %0
+  br i1 %5, label %7, label %9
+
+7:                                                ; preds = %4
+  %8 = add nsw i16 %3, 1
+  store i16 %6, ptr @g1, align 1, !tbaa !2
+  br label %11
+
+9:                                                ; preds = %4
+  %10 = add nsw i16 %3, -1
+  store i16 %6, ptr @g2, align 1, !tbaa !2
+  store i16 %3, ptr @g3, align 1, !tbaa !2
+  br label %11
+
+11:                                               ; preds = %9, %7
+  %12 = phi i16 [ %8, %7 ], [ %10, %9 ]
+  store i16 %12, ptr @g0, align 1, !tbaa !2
+  ret void
+}
+*** IR Dump After RequireAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis, llvm::Function, llvm::AnalysisManager<Function>> on common_subexpr omitted because no change ***
+*** IR Pass CGSCCToFunctionPassAdaptor on (common_subexpr) ignored ***
+*** IR Dump After CoroSplitPass on (common_subexpr) omitted because no change ***
+*** IR Dump After CoroAnnotationElidePass on (common_subexpr) omitted because no change ***
+*** IR Pass PassManager<LazyCallGraph::SCC, CGSCCAnalysisManager, LazyCallGraph &, CGSCCUpdateResult &> on (common_subexpr) ignored ***
+*** IR Pass DevirtSCCRepeatedPass on (common_subexpr) ignored ***
+*** IR Pass ModuleToPostOrderCGSCCPassAdaptor on [module] ignored ***
+*** IR Dump After InvalidateAnalysisPass<llvm::ShouldNotRunFunctionPassesAnalysis> on common_subexpr omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Pass ModuleInlinerWrapperPass on [module] ignored ***
+*** IR Dump After DeadArgumentEliminationPass on [module] omitted because no change ***
+*** IR Dump After CoroCleanupPass on [module] omitted because no change ***
+*** IR Dump After GlobalOptPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After EliminateAvailableExternallyPass on [module] omitted because no change ***
+*** IR Dump After ReversePostOrderFunctionAttrsPass on [module] omitted because no change ***
+*** IR Dump After RecomputeGlobalsAAPass on [module] omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on common_subexpr omitted because no change ***
+*** IR Dump After Float2IntPass on common_subexpr omitted because no change ***
+*** IR Dump After LowerConstantIntrinsicsPass on common_subexpr omitted because no change ***
+*** IR Dump After LoopSimplifyPass on common_subexpr omitted because no change ***
+*** IR Dump After LCSSAPass on common_subexpr omitted because no change ***
+*** IR Pass PassManager<Function> on common_subexpr ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on common_subexpr ignored ***
+*** IR Dump After LoopDistributePass on common_subexpr omitted because no change ***
+*** IR Dump After InjectTLIMappings on common_subexpr omitted because no change ***
+*** IR Dump After LoopVectorizePass on common_subexpr omitted because no change ***
+*** IR Dump After DropUnnecessaryAssumesPass on common_subexpr omitted because no change ***
+*** IR Dump After InferAlignmentPass on common_subexpr omitted because no change ***
+*** IR Dump After LoopLoadEliminationPass on common_subexpr omitted because no change ***
+*** IR Dump After InstCombinePass on common_subexpr omitted because no change ***
+*** IR Dump After SimplifyCFGPass on common_subexpr omitted because no change ***
+*** IR Dump After SLPVectorizerPass on common_subexpr omitted because no change ***
+*** IR Dump After VectorCombinePass on common_subexpr omitted because no change ***
+*** IR Dump After InstCombinePass on common_subexpr omitted because no change ***
+*** IR Dump After LoopUnrollPass on common_subexpr omitted because no change ***
+*** IR Dump After WarnMissedTransformationsPass on common_subexpr omitted because no change ***
+*** IR Dump After SROAPass on common_subexpr omitted because no change ***
+*** IR Dump After InferAlignmentPass on common_subexpr omitted because no change ***
+*** IR Dump After InstCombinePass on common_subexpr omitted because no change ***
+*** IR Dump After LoopSimplifyPass on common_subexpr omitted because no change ***
+*** IR Dump After LCSSAPass on common_subexpr omitted because no change ***
+*** IR Pass PassManager<Function> on common_subexpr ignored ***
+*** IR Pass FunctionToLoopPassAdaptor on common_subexpr ignored ***
+*** IR Dump After AlignmentFromAssumptionsPass on common_subexpr omitted because no change ***
+*** IR Dump After LoopSinkPass on common_subexpr omitted because no change ***
+*** IR Dump After InstSimplifyPass on common_subexpr omitted because no change ***
+*** IR Dump After DivRemPairsPass on common_subexpr omitted because no change ***
+*** IR Dump After MergeICmpsPass on common_subexpr omitted because no change ***
+*** IR Dump After ExpandMemCmpPass on common_subexpr omitted because no change ***
+*** IR Dump After TailCallElimPass on common_subexpr omitted because no change ***
+*** IR Dump After SimplifyCFGPass on common_subexpr omitted because no change ***
+*** IR Pass PassManager<Function> on common_subexpr ignored ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After AllocTokenPass on [module] omitted because no change ***
+*** IR Dump After GlobalDCEPass on [module] omitted because no change ***
+*** IR Dump After ConstantMergePass on [module] omitted because no change ***
+*** IR Dump After CGProfilePass on [module] omitted because no change ***
+*** IR Dump After RelLookupTableConverterPass on [module] omitted because no change ***
+*** IR Dump After AnnotationRemarksPass on common_subexpr omitted because no change ***
+*** IR Pass ModuleToFunctionPassAdaptor on [module] ignored ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on common_subexpr omitted because no change ***
+*** IR Dump After IRTranslator (irtranslator) on common_subexpr ***
+# Machine code for function common_subexpr: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.4):
+  successors: %bb.2(0x30000000), %bb.3(0x50000000); %bb.2(37.50%), %bb.3(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:_(s8) = COPY $a
+  %5:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %4:_(s8), %5:_(s8)
+  %6:_(s8) = COPY $rc2
+  %7:_(s8) = COPY $rc3
+  %1:_(s16) = G_MERGE_VALUES %6:_(s8), %7:_(s8)
+  %8:_(s8) = COPY $rc4
+  %9:_(s8) = COPY $rc5
+  %2:_(s16) = G_MERGE_VALUES %8:_(s8), %9:_(s8)
+  %10:_(s8) = COPY $rc6
+  %11:_(s8) = COPY $rc7
+  %3:_(s16) = G_MERGE_VALUES %10:_(s8), %11:_(s8)
+  %12:_(s16) = G_CONSTANT i16 0
+  %15:_(s16) = G_CONSTANT i16 -1
+  %17:_(p0) = G_GLOBAL_VALUE @g2
+  %18:_(p0) = G_GLOBAL_VALUE @g3
+  %19:_(s16) = G_CONSTANT i16 1
+  %21:_(p0) = G_GLOBAL_VALUE @g1
+  %23:_(p0) = G_GLOBAL_VALUE @g0
+  %13:_(s1) = G_ICMP intpred(slt), %2:_(s16), %12:_
+  %14:_(s16) = nsw G_ADD %1:_, %0:_
+  G_BRCOND %13:_(s1), %bb.2
+  G_BR %bb.3
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %20:_(s16) = nsw G_ADD %3:_, %19:_
+  G_STORE %14:_(s16), %21:_(p0) :: (store (s16) into @g1, align 1, !tbaa !2)
+  G_BR %bb.4
+
+bb.3 (%ir-block.9):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %16:_(s16) = nsw G_ADD %3:_, %15:_
+  G_STORE %14:_(s16), %17:_(p0) :: (store (s16) into @g2, align 1, !tbaa !2)
+  G_STORE %3:_(s16), %18:_(p0) :: (store (s16) into @g3, align 1, !tbaa !2)
+
+bb.4 (%ir-block.11):
+; predecessors: %bb.3, %bb.2
+
+  %22:_(s16) = G_PHI %20:_(s16), %bb.2, %16:_(s16), %bb.3
+  G_STORE %22:_(s16), %23:_(p0) :: (store (s16) into @g0, align 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on common_subexpr omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on common_subexpr omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on common_subexpr omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on common_subexpr ***
+# Machine code for function common_subexpr: IsSSA, TracksLiveness
+
+bb.1 (%ir-block.4):
+  successors: %bb.2(0x30000000), %bb.3(0x50000000); %bb.2(37.50%), %bb.3(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:_(s8) = COPY $a
+  %5:_(s8) = COPY $x
+  %0:_(s16) = G_MERGE_VALUES %4:_(s8), %5:_(s8)
+  %6:_(s8) = COPY $rc2
+  %7:_(s8) = COPY $rc3
+  %1:_(s16) = G_MERGE_VALUES %6:_(s8), %7:_(s8)
+  %8:_(s8) = COPY $rc4
+  %9:_(s8) = COPY $rc5
+  %2:_(s16) = G_MERGE_VALUES %8:_(s8), %9:_(s8)
+  %10:_(s8) = COPY $rc6
+  %11:_(s8) = COPY $rc7
+  %3:_(s16) = G_MERGE_VALUES %10:_(s8), %11:_(s8)
+  %12:_(s16) = G_CONSTANT i16 0
+  %15:_(s16) = G_CONSTANT i16 -1
+  %17:_(p0) = G_GLOBAL_VALUE @g2
+  %18:_(p0) = G_GLOBAL_VALUE @g3
+  %19:_(s16) = G_CONSTANT i16 1
+  %21:_(p0) = G_GLOBAL_VALUE @g1
+  %23:_(p0) = G_GLOBAL_VALUE @g0
+  %13:_(s1) = G_ICMP intpred(sge), %2:_(s16), %12:_
+  %14:_(s16) = nsw G_ADD %1:_, %0:_
+  G_BRCOND %13:_(s1), %bb.3
+  G_BR %bb.2
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %20:_(s16) = nsw G_ADD %3:_, %19:_
+  G_STORE %14:_(s16), %21:_(p0) :: (store (s16) into @g1, align 1, !tbaa !2)
+  G_BR %bb.4
+
+bb.3 (%ir-block.9):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %16:_(s16) = nsw G_ADD %3:_, %15:_
+  G_STORE %14:_(s16), %17:_(p0) :: (store (s16) into @g2, align 1, !tbaa !2)
+  G_STORE %3:_(s16), %18:_(p0) :: (store (s16) into @g3, align 1, !tbaa !2)
+
+bb.4 (%ir-block.11):
+; predecessors: %bb.3, %bb.2
+
+  %22:_(s16) = G_PHI %20:_(s16), %bb.2, %16:_(s16), %bb.3
+  G_STORE %22:_(s16), %23:_(p0) :: (store (s16) into @g0, align 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After MOS Shift/Rotate Chaining (mos-shift-rotate-chain) on common_subexpr omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on common_subexpr omitted because no change ***
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on common_subexpr omitted because no change ***
+*** IR Dump After Legalizer (legalizer) on common_subexpr ***
+# Machine code for function common_subexpr: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.4):
+  successors: %bb.2(0x30000000), %bb.3(0x50000000); %bb.2(37.50%), %bb.3(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:_(s8) = COPY $a
+  %5:_(s8) = COPY $x
+  %6:_(s8) = COPY $rc2
+  %7:_(s8) = COPY $rc3
+  %9:_(s8) = COPY $rc5
+  %10:_(s8) = COPY $rc6
+  %11:_(s8) = COPY $rc7
+  %69:_(s8) = G_CONSTANT i8 0
+  %70:_(s1) = G_CONSTANT i1 true
+  %71:_(s8), %72:_(s1), %73:_, %74:_, %75:_ = G_SBC %9:_, %69:_, %70:_
+  %65:_(s1) = COPY %73:_(s1)
+  %64:_(s1) = G_CONSTANT i1 false
+  %60:_(s8), %61:_(s1) = G_UADDE %6:_, %4:_, %64:_
+  %62:_(s8), %63:_(s1) = G_UADDE %7:_, %5:_, %61:_
+  G_BRCOND_IMM %65:_(s1), %bb.3, 0
+  G_BR %bb.2
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %42:_(s8), %43:_(s8) = G_INC %10:_(s8), %11:_(s8)
+  G_STORE_ABS %60:_(s8), @g1 :: (store (s8) into @g1, !tbaa !2)
+  G_STORE_ABS %62:_(s8), @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  G_BR %bb.4
+
+bb.3 (%ir-block.9):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %54:_(s8), %55:_(s8) = G_DEC %10:_(s8), %11:_(s8)
+  G_STORE_ABS %60:_(s8), @g2 :: (store (s8) into @g2, !tbaa !2)
+  G_STORE_ABS %62:_(s8), @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  G_STORE_ABS %10:_(s8), @g3 :: (store (s8) into @g3, !tbaa !2)
+  G_STORE_ABS %11:_(s8), @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+
+bb.4 (%ir-block.11):
+; predecessors: %bb.3, %bb.2
+
+  %34:_(s8) = G_PHI %42:_(s8), %bb.2, %54:_(s8), %bb.3
+  %35:_(s8) = G_PHI %43:_(s8), %bb.2, %55:_(s8), %bb.3
+  G_STORE_ABS %34:_(s8), @g0 :: (store (s8) into @g0, !tbaa !2)
+  G_STORE_ABS %35:_(s8), @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on common_subexpr omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on common_subexpr omitted because no change ***
+*** IR Dump After Analysis containing CSE Info (cseinfo) on common_subexpr omitted because no change ***
+*** IR Dump After MOSCombiner (mos-combiner) on common_subexpr ***
+# Machine code for function common_subexpr: IsSSA, TracksLiveness, Legalized
+
+bb.1 (%ir-block.4):
+  successors: %bb.2(0x30000000), %bb.3(0x50000000); %bb.2(37.50%), %bb.3(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:_(s8) = COPY $a
+  %5:_(s8) = COPY $x
+  %6:_(s8) = COPY $rc2
+  %7:_(s8) = COPY $rc3
+  %9:_(s8) = COPY $rc5
+  %10:_(s8) = COPY $rc6
+  %11:_(s8) = COPY $rc7
+  %69:_(s8) = G_CONSTANT i8 0
+  %70:_(s1) = G_CONSTANT i1 true
+  %71:_(s8), %72:_(s1), %73:_, %74:_, %75:_ = G_SBC %9:_, %69:_, %70:_
+  %64:_(s1) = G_CONSTANT i1 false
+  %60:_(s8), %61:_(s1) = G_UADDE %6:_, %4:_, %64:_
+  %62:_(s8), %63:_(s1) = G_UADDE %7:_, %5:_, %61:_
+  G_BRCOND_IMM %73:_(s1), %bb.3, 0
+  G_BR %bb.2
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %42:_(s8), %43:_(s8) = G_INC %10:_(s8), %11:_(s8)
+  G_STORE_ABS %60:_(s8), @g1 :: (store (s8) into @g1, !tbaa !2)
+  G_STORE_ABS %62:_(s8), @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  G_BR %bb.4
+
+bb.3 (%ir-block.9):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %54:_(s8), %55:_(s8) = G_DEC %10:_(s8), %11:_(s8)
+  G_STORE_ABS %60:_(s8), @g2 :: (store (s8) into @g2, !tbaa !2)
+  G_STORE_ABS %62:_(s8), @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  G_STORE_ABS %10:_(s8), @g3 :: (store (s8) into @g3, !tbaa !2)
+  G_STORE_ABS %11:_(s8), @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+
+bb.4 (%ir-block.11):
+; predecessors: %bb.3, %bb.2
+
+  %34:_(s8) = G_PHI %42:_(s8), %bb.2, %54:_(s8), %bb.3
+  %35:_(s8) = G_PHI %43:_(s8), %bb.2, %55:_(s8), %bb.3
+  G_STORE_ABS %34:_(s8), @g0 :: (store (s8) into @g0, !tbaa !2)
+  G_STORE_ABS %35:_(s8), @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Lower MOS Select pseudo-instruction (mos-lower-select) on common_subexpr omitted because no change ***
+*** IR Dump After RegBankSelect (regbankselect) on common_subexpr ***
+# Machine code for function common_subexpr: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.4):
+  successors: %bb.2(0x30000000), %bb.3(0x50000000); %bb.2(37.50%), %bb.3(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:any(s8) = COPY $a
+  %5:any(s8) = COPY $x
+  %6:any(s8) = COPY $rc2
+  %7:any(s8) = COPY $rc3
+  %9:any(s8) = COPY $rc5
+  %10:any(s8) = COPY $rc6
+  %11:any(s8) = COPY $rc7
+  %69:any(s8) = G_CONSTANT i8 0
+  %70:any(s1) = G_CONSTANT i1 true
+  %71:any(s8), %72:any(s1), %73:any, %74:any, %75:any = G_SBC %9:any, %69:any, %70:any
+  %64:any(s1) = G_CONSTANT i1 false
+  %60:any(s8), %61:any(s1) = G_UADDE %6:any, %4:any, %64:any
+  %62:any(s8), %63:any(s1) = G_UADDE %7:any, %5:any, %61:any
+  G_BRCOND_IMM %73:any(s1), %bb.3, 0
+  G_BR %bb.2
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %42:any(s8), %43:any(s8) = G_INC %10:any(s8), %11:any(s8)
+  G_STORE_ABS %60:any(s8), @g1 :: (store (s8) into @g1, !tbaa !2)
+  G_STORE_ABS %62:any(s8), @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  G_BR %bb.4
+
+bb.3 (%ir-block.9):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %54:any(s8), %55:any(s8) = G_DEC %10:any(s8), %11:any(s8)
+  G_STORE_ABS %60:any(s8), @g2 :: (store (s8) into @g2, !tbaa !2)
+  G_STORE_ABS %62:any(s8), @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  G_STORE_ABS %10:any(s8), @g3 :: (store (s8) into @g3, !tbaa !2)
+  G_STORE_ABS %11:any(s8), @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+
+bb.4 (%ir-block.11):
+; predecessors: %bb.3, %bb.2
+
+  %34:any(s8) = G_PHI %42:any(s8), %bb.2, %54:any(s8), %bb.3
+  %35:any(s8) = G_PHI %43:any(s8), %bb.2, %55:any(s8), %bb.3
+  G_STORE_ABS %34:any(s8), @g0 :: (store (s8) into @g0, !tbaa !2)
+  G_STORE_ABS %35:any(s8), @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Localizer (localizer) on common_subexpr ***
+# Machine code for function common_subexpr: IsSSA, TracksLiveness, Legalized, RegBankSelected
+
+bb.1 (%ir-block.4):
+  successors: %bb.2(0x30000000), %bb.3(0x50000000); %bb.2(37.50%), %bb.3(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:any(s8) = COPY $a
+  %5:any(s8) = COPY $x
+  %6:any(s8) = COPY $rc2
+  %7:any(s8) = COPY $rc3
+  %9:any(s8) = COPY $rc5
+  %10:any(s8) = COPY $rc6
+  %11:any(s8) = COPY $rc7
+  %70:any(s1) = G_CONSTANT i1 true
+  %69:any(s8) = G_CONSTANT i8 0
+  %71:any(s8), %72:any(s1), %73:any, %74:any, %75:any = G_SBC %9:any, %69:any, %70:any
+  %64:any(s1) = G_CONSTANT i1 false
+  %60:any(s8), %61:any(s1) = G_UADDE %6:any, %4:any, %64:any
+  %62:any(s8), %63:any(s1) = G_UADDE %7:any, %5:any, %61:any
+  G_BRCOND_IMM %73:any(s1), %bb.3, 0
+  G_BR %bb.2
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %42:any(s8), %43:any(s8) = G_INC %10:any(s8), %11:any(s8)
+  G_STORE_ABS %60:any(s8), @g1 :: (store (s8) into @g1, !tbaa !2)
+  G_STORE_ABS %62:any(s8), @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  G_BR %bb.4
+
+bb.3 (%ir-block.9):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %54:any(s8), %55:any(s8) = G_DEC %10:any(s8), %11:any(s8)
+  G_STORE_ABS %60:any(s8), @g2 :: (store (s8) into @g2, !tbaa !2)
+  G_STORE_ABS %62:any(s8), @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  G_STORE_ABS %10:any(s8), @g3 :: (store (s8) into @g3, !tbaa !2)
+  G_STORE_ABS %11:any(s8), @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+
+bb.4 (%ir-block.11):
+; predecessors: %bb.3, %bb.2
+
+  %34:any(s8) = G_PHI %42:any(s8), %bb.2, %54:any(s8), %bb.3
+  %35:any(s8) = G_PHI %43:any(s8), %bb.2, %55:any(s8), %bb.3
+  G_STORE_ABS %34:any(s8), @g0 :: (store (s8) into @g0, !tbaa !2)
+  G_STORE_ABS %35:any(s8), @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Analysis for ComputingKnownBits (gisel-known-bits) on common_subexpr omitted because no change ***
+*** IR Dump After InstructionSelect (instruction-select) on common_subexpr ***
+# Machine code for function common_subexpr: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.4):
+  successors: %bb.2(0x30000000), %bb.3(0x50000000); %bb.2(37.50%), %bb.3(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:ac = COPY $rc2
+  %7:ac = COPY $rc3
+  %9:anyi8 = COPY $rc5
+  %10:gpr = COPY $rc6
+  %11:gpr = COPY $rc7
+  %64:cc = LDImm1 0
+  %60:ac, %61:cc, %78:vc = ADCImag8 %6:ac(tied-def 0), %4:imag8, %64:cc
+  %62:ac, %63:cc, %77:vc = ADCImag8 %7:ac(tied-def 0), %5:imag8, %61:cc
+  CmpBrZero %bb.3, undef $n, 0, %9:anyi8, implicit-def $c
+  JMP %bb.2
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %42:anyi8, %43:anyi8 = IncMB %10:gpr(tied-def 0), %11:gpr(tied-def 1), implicit-def $c, implicit-def $v
+  STAbs %60:ac, @g1 :: (store (s8) into @g1, !tbaa !2)
+  STAbs %62:ac, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  JMP %bb.4
+
+bb.3 (%ir-block.9):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  early-clobber %76:gpr, %54:anyi8, %55:anyi8 = DecMB %10:gpr(tied-def 1), %11:gpr(tied-def 2), implicit-def $c, implicit-def $v
+  STAbs %60:ac, @g2 :: (store (s8) into @g2, !tbaa !2)
+  STAbs %62:ac, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  STAbs %10:gpr, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs %11:gpr, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+
+bb.4 (%ir-block.11):
+; predecessors: %bb.3, %bb.2
+
+  %34:gpr = PHI %42:anyi8, %bb.2, %54:anyi8, %bb.3
+  %35:gpr = PHI %43:anyi8, %bb.2, %55:anyi8, %bb.3
+  STAbs %34:gpr, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs %35:gpr, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After ResetMachineFunction on common_subexpr omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on common_subexpr omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on common_subexpr omitted because no change ***
+*** IR Dump After Early Tail Duplication (early-tailduplication) on common_subexpr omitted because no change ***
+*** IR Dump After Optimize machine instruction PHIs (opt-phis) on common_subexpr omitted because no change ***
+*** IR Dump After Slot index numbering (slotindexes) on common_subexpr omitted because no change ***
+*** IR Dump After Merge disjoint stack slots (stack-coloring) on common_subexpr omitted because no change ***
+*** IR Dump After Local Stack Slot Allocation (localstackalloc) on common_subexpr omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on common_subexpr omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on common_subexpr omitted because no change ***
+*** IR Dump After Early Machine Loop Invariant Code Motion (early-machinelicm) on common_subexpr omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Common Subexpression Elimination (machine-cse) on common_subexpr omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Cycle Info Analysis (machine-cycles) on common_subexpr omitted because no change ***
+*** IR Dump After Machine code sinking (machine-sink) on common_subexpr omitted because no change ***
+*** IR Dump After Peephole Optimizations (peephole-opt) on common_subexpr omitted because no change ***
+*** IR Dump After Remove dead machine instructions (dead-mi-elimination) on common_subexpr omitted because no change ***
+*** IR Dump After MOS Copy Insertion (mos-insert-copies) on common_subexpr ***
+# Machine code for function common_subexpr: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.4):
+  successors: %bb.2(0x30000000), %bb.3(0x50000000); %bb.2(37.50%), %bb.3(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:ac = COPY $rc2
+  %7:ac = COPY $rc3
+  %9:anyi8 = COPY $rc5
+  %10:gpr = COPY $rc6
+  %11:gpr = COPY $rc7
+  %64:cc = LDImm1 0
+  %60:ac, %61:cc, %78:vc = ADCImag8 %6:ac(tied-def 0), %4:imag8, %64:cc
+  %62:ac, %63:cc, %77:vc = ADCImag8 %7:ac(tied-def 0), %5:imag8, %61:cc
+  CmpBrZero %bb.3, undef $n, 0, %9:anyi8, implicit-def $c
+  JMP %bb.2
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %79:anyi8 = COPY %10:gpr
+  %80:anyi8 = COPY %11:gpr
+  %42:anyi8, %43:anyi8 = IncMB %79:anyi8(tied-def 0), %80:anyi8(tied-def 1), implicit-def $c, implicit-def $v
+  STAbs %60:ac, @g1 :: (store (s8) into @g1, !tbaa !2)
+  STAbs %62:ac, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  JMP %bb.4
+
+bb.3 (%ir-block.9):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %81:anyi8 = COPY %10:gpr
+  %82:anyi8 = COPY %11:gpr
+  early-clobber %76:gpr, %54:anyi8, %55:anyi8 = DecMB %81:anyi8(tied-def 1), %82:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  STAbs %60:ac, @g2 :: (store (s8) into @g2, !tbaa !2)
+  STAbs %62:ac, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  STAbs %10:gpr, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs %11:gpr, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+
+bb.4 (%ir-block.11):
+; predecessors: %bb.3, %bb.2
+
+  %34:gpr = PHI %42:anyi8, %bb.2, %54:anyi8, %bb.3
+  %35:gpr = PHI %43:anyi8, %bb.2, %55:anyi8, %bb.3
+  STAbs %34:gpr, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs %35:gpr, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Detect Dead Lanes (detect-dead-lanes) on common_subexpr ***
+# Machine code for function common_subexpr: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.1 (%ir-block.4):
+  successors: %bb.2(0x30000000), %bb.3(0x50000000); %bb.2(37.50%), %bb.3(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:ac = COPY $rc2
+  %7:ac = COPY $rc3
+  %9:anyi8 = COPY $rc5
+  %10:gpr = COPY $rc6
+  %11:gpr = COPY $rc7
+  %64:cc = LDImm1 0
+  %60:ac, %61:cc, dead %78:vc = ADCImag8 %6:ac(tied-def 0), %4:imag8, %64:cc
+  %62:ac, dead %63:cc, dead %77:vc = ADCImag8 %7:ac(tied-def 0), %5:imag8, %61:cc
+  CmpBrZero %bb.3, undef $n, 0, %9:anyi8, implicit-def $c
+  JMP %bb.2
+
+bb.2 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %79:anyi8 = COPY %10:gpr
+  %80:anyi8 = COPY %11:gpr
+  %42:anyi8, %43:anyi8 = IncMB %79:anyi8(tied-def 0), %80:anyi8(tied-def 1), implicit-def $c, implicit-def $v
+  STAbs %60:ac, @g1 :: (store (s8) into @g1, !tbaa !2)
+  STAbs %62:ac, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  JMP %bb.4
+
+bb.3 (%ir-block.9):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+
+  %81:anyi8 = COPY %10:gpr
+  %82:anyi8 = COPY %11:gpr
+  dead early-clobber %76:gpr, %54:anyi8, %55:anyi8 = DecMB %81:anyi8(tied-def 1), %82:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  STAbs %60:ac, @g2 :: (store (s8) into @g2, !tbaa !2)
+  STAbs %62:ac, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  STAbs %10:gpr, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs %11:gpr, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+
+bb.4 (%ir-block.11):
+; predecessors: %bb.3, %bb.2
+
+  %34:gpr = PHI %42:anyi8, %bb.2, %54:anyi8, %bb.3
+  %35:gpr = PHI %43:anyi8, %bb.2, %55:anyi8, %bb.3
+  STAbs %34:gpr, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs %35:gpr, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Init Undef Pass (init-undef) on common_subexpr omitted because no change ***
+*** IR Dump After Process Implicit Definitions (processimpdefs) on common_subexpr omitted because no change ***
+*** IR Dump After Remove unreachable machine basic blocks (unreachable-mbb-elimination) on common_subexpr ***
+# Machine code for function common_subexpr: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY $a
+  %5:imag8 = COPY $x
+  %6:ac = COPY $rc2
+  %7:ac = COPY $rc3
+  %9:anyi8 = COPY $rc5
+  %10:gpr = COPY $rc6
+  %11:gpr = COPY $rc7
+  %64:cc = LDImm1 0
+  %60:ac, %61:cc, dead %78:vc = ADCImag8 %6:ac(tied-def 0), %4:imag8, %64:cc
+  %62:ac, dead %63:cc, dead %77:vc = ADCImag8 %7:ac(tied-def 0), %5:imag8, %61:cc
+  CmpBrZero %bb.2, undef $n, 0, %9:anyi8, implicit-def $c
+  JMP %bb.1
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %79:anyi8 = COPY %10:gpr
+  %80:anyi8 = COPY %11:gpr
+  %42:anyi8, %43:anyi8 = IncMB %79:anyi8(tied-def 0), %80:anyi8(tied-def 1), implicit-def $c, implicit-def $v
+  STAbs %60:ac, @g1 :: (store (s8) into @g1, !tbaa !2)
+  STAbs %62:ac, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %81:anyi8 = COPY %10:gpr
+  %82:anyi8 = COPY %11:gpr
+  dead early-clobber %76:gpr, %54:anyi8, %55:anyi8 = DecMB %81:anyi8(tied-def 1), %82:anyi8(tied-def 2), implicit-def $c, implicit-def $v
+  STAbs %60:ac, @g2 :: (store (s8) into @g2, !tbaa !2)
+  STAbs %62:ac, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  STAbs %10:gpr, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs %11:gpr, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.2, %bb.1
+
+  %34:gpr = PHI %42:anyi8, %bb.1, %54:anyi8, %bb.2
+  %35:gpr = PHI %43:anyi8, %bb.1, %55:anyi8, %bb.2
+  STAbs %34:gpr, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs %35:gpr, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Live Variable Analysis (livevars) on common_subexpr ***
+# Machine code for function common_subexpr: IsSSA, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY killed $a
+  %5:imag8 = COPY killed $x
+  %6:ac = COPY killed $rc2
+  %7:ac = COPY killed $rc3
+  %9:anyi8 = COPY killed $rc5
+  %10:gpr = COPY killed $rc6
+  %11:gpr = COPY killed $rc7
+  %64:cc = LDImm1 0
+  %60:ac, %61:cc, dead %78:vc = ADCImag8 killed %6:ac(tied-def 0), killed %4:imag8, killed %64:cc
+  %62:ac, dead %63:cc, dead %77:vc = ADCImag8 killed %7:ac(tied-def 0), killed %5:imag8, killed %61:cc
+  CmpBrZero %bb.2, undef $n, 0, killed %9:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %79:anyi8 = COPY killed %10:gpr
+  %80:anyi8 = COPY killed %11:gpr
+  %42:anyi8, %43:anyi8 = IncMB killed %79:anyi8(tied-def 0), killed %80:anyi8(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STAbs killed %60:ac, @g1 :: (store (s8) into @g1, !tbaa !2)
+  STAbs killed %62:ac, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %81:anyi8 = COPY %10:gpr
+  %82:anyi8 = COPY %11:gpr
+  dead early-clobber %76:gpr, %54:anyi8, %55:anyi8 = DecMB killed %81:anyi8(tied-def 1), killed %82:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  STAbs killed %60:ac, @g2 :: (store (s8) into @g2, !tbaa !2)
+  STAbs killed %62:ac, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  STAbs killed %10:gpr, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs killed %11:gpr, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.2, %bb.1
+
+  %34:gpr = PHI %42:anyi8, %bb.1, %54:anyi8, %bb.2
+  %35:gpr = PHI %43:anyi8, %bb.1, %55:anyi8, %bb.2
+  STAbs killed %34:gpr, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs killed %35:gpr, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on common_subexpr omitted because no change ***
+*** IR Dump After Eliminate PHI nodes for register allocation (phi-node-elimination) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:imag8 = COPY killed $a
+  %5:imag8 = COPY killed $x
+  %6:ac = COPY killed $rc2
+  %7:ac = COPY killed $rc3
+  %9:anyi8 = COPY killed $rc5
+  %10:gpr = COPY killed $rc6
+  %11:gpr = COPY killed $rc7
+  %64:cc = LDImm1 0
+  %60:ac, %61:cc, dead %78:vc = ADCImag8 killed %6:ac(tied-def 0), killed %4:imag8, killed %64:cc
+  %62:ac, dead %63:cc, dead %77:vc = ADCImag8 killed %7:ac(tied-def 0), killed %5:imag8, killed %61:cc
+  CmpBrZero %bb.2, undef $n, 0, killed %9:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %79:anyi8 = COPY killed %10:gpr
+  %80:anyi8 = COPY killed %11:gpr
+  %42:anyi8, %43:anyi8 = IncMB killed %79:anyi8(tied-def 0), killed %80:anyi8(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STAbs killed %60:ac, @g1 :: (store (s8) into @g1, !tbaa !2)
+  STAbs killed %62:ac, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  %83:gpr = COPY killed %42:anyi8
+  %84:gpr = COPY killed %43:anyi8
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %81:anyi8 = COPY %10:gpr
+  %82:anyi8 = COPY %11:gpr
+  dead early-clobber %76:gpr, %54:anyi8, %55:anyi8 = DecMB killed %81:anyi8(tied-def 1), killed %82:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  STAbs killed %60:ac, @g2 :: (store (s8) into @g2, !tbaa !2)
+  STAbs killed %62:ac, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  STAbs killed %10:gpr, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs killed %11:gpr, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  %83:gpr = COPY killed %54:anyi8
+  %84:gpr = COPY killed %55:anyi8
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.2, %bb.1
+
+  %35:gpr = COPY killed %84:gpr
+  %34:gpr = COPY killed %83:gpr
+  STAbs killed %34:gpr, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs killed %35:gpr, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Two-Address instruction pass (twoaddressinstruction) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:ac = COPY killed $a
+  %5:ac = COPY killed $x
+  %6:imag8 = COPY killed $rc2
+  %7:imag8 = COPY killed $rc3
+  %9:anyi8 = COPY killed $rc5
+  %10:gpr = COPY killed $rc6
+  %11:gpr = COPY killed $rc7
+  %64:cc = LDImm1 0
+  %60:ac = COPY killed %4:ac
+  %60:ac, %61:cc, dead %78:vc = ADCImag8 %60:ac(tied-def 0), killed %6:imag8, killed %64:cc
+  %62:ac = COPY killed %5:ac
+  %62:ac, dead %63:cc, dead %77:vc = ADCImag8 %62:ac(tied-def 0), killed %7:imag8, killed %61:cc
+  CmpBrZero %bb.2, undef $n, 0, killed %9:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %79:anyi8 = COPY killed %10:gpr
+  %80:anyi8 = COPY killed %11:gpr
+  %43:anyi8 = COPY killed %80:anyi8
+  %42:anyi8 = COPY killed %79:anyi8
+  %42:anyi8, %43:anyi8 = IncMB %42:anyi8(tied-def 0), %43:anyi8(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STAbs killed %60:ac, @g1 :: (store (s8) into @g1, !tbaa !2)
+  STAbs killed %62:ac, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  %83:gpr = COPY killed %42:anyi8
+  %84:gpr = COPY killed %43:anyi8
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %81:anyi8 = COPY %10:gpr
+  %82:anyi8 = COPY %11:gpr
+  %54:anyi8 = COPY killed %81:anyi8
+  %55:anyi8 = COPY killed %82:anyi8
+  dead early-clobber %76:gpr, %54:anyi8, %55:anyi8 = DecMB %54:anyi8(tied-def 1), %55:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  STAbs killed %60:ac, @g2 :: (store (s8) into @g2, !tbaa !2)
+  STAbs killed %62:ac, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  STAbs killed %10:gpr, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs killed %11:gpr, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  %83:gpr = COPY killed %54:anyi8
+  %84:gpr = COPY killed %55:anyi8
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.2, %bb.1
+
+  %35:gpr = COPY killed %84:gpr
+  %34:gpr = COPY killed %83:gpr
+  STAbs killed %34:gpr, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs killed %35:gpr, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Slot index numbering (slotindexes) on common_subexpr omitted because no change ***
+*** IR Dump After Live Interval Analysis (liveintervals) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %4:ac = COPY $a
+  %5:ac = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %9:anyi8 = COPY $rc5
+  %10:gpr = COPY $rc6
+  %11:gpr = COPY $rc7
+  %64:cc = LDImm1 0
+  %60:ac = COPY %4:ac
+  %60:ac, %61:cc, dead %78:vc = ADCImag8 %60:ac(tied-def 0), %6:imag8, %64:cc
+  %62:ac = COPY %5:ac
+  %62:ac, dead %63:cc, dead %77:vc = ADCImag8 %62:ac(tied-def 0), %7:imag8, %61:cc
+  CmpBrZero %bb.2, undef $n, 0, %9:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %79:anyi8 = COPY %10:gpr
+  %80:anyi8 = COPY %11:gpr
+  %43:anyi8 = COPY %80:anyi8
+  %42:anyi8 = COPY %79:anyi8
+  %42:anyi8, %43:anyi8 = IncMB %42:anyi8(tied-def 0), %43:anyi8(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STAbs %60:ac, @g1 :: (store (s8) into @g1, !tbaa !2)
+  STAbs %62:ac, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  %83:gpr = COPY %42:anyi8
+  %84:gpr = COPY %43:anyi8
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %81:anyi8 = COPY %10:gpr
+  %82:anyi8 = COPY %11:gpr
+  %54:anyi8 = COPY %81:anyi8
+  %55:anyi8 = COPY %82:anyi8
+  dead early-clobber %76:gpr, %54:anyi8, %55:anyi8 = DecMB %54:anyi8(tied-def 1), %55:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  STAbs %60:ac, @g2 :: (store (s8) into @g2, !tbaa !2)
+  STAbs %62:ac, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  STAbs %10:gpr, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs %11:gpr, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  %83:gpr = COPY %54:anyi8
+  %84:gpr = COPY %55:anyi8
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.2, %bb.1
+
+  %35:gpr = COPY %84:gpr
+  %34:gpr = COPY %83:gpr
+  STAbs %34:gpr, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs %35:gpr, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Register Coalescer (register-coalescer) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %60:ac = COPY $a
+  %62:ac = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %9:anyi8 = COPY $rc5
+  %10:gpr = COPY $rc6
+  %11:gpr = COPY $rc7
+  %64:cc = LDImm1 0
+  %60:ac, %61:cc, dead %78:vc = ADCImag8 %60:ac(tied-def 0), %6:imag8, %64:cc
+  %62:ac, dead %63:cc, dead %77:vc = ADCImag8 %62:ac(tied-def 0), %7:imag8, %61:cc
+  CmpBrZero %bb.2, undef $n, 0, %9:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %43:anyi8 = COPY %11:gpr
+  %42:anyi8 = COPY %10:gpr
+  %42:anyi8, %43:anyi8 = IncMB %42:anyi8(tied-def 0), %43:anyi8(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STAbs %60:ac, @g1 :: (store (s8) into @g1, !tbaa !2)
+  STAbs %62:ac, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  %83:gpr = COPY %42:anyi8
+  %84:gpr = COPY %43:anyi8
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %54:anyi8 = COPY %10:gpr
+  %55:anyi8 = COPY %11:gpr
+  dead early-clobber %76:gpr, %54:anyi8, %55:anyi8 = DecMB %54:anyi8(tied-def 1), %55:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  STAbs %60:ac, @g2 :: (store (s8) into @g2, !tbaa !2)
+  STAbs %62:ac, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  STAbs %10:gpr, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs %11:gpr, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  %83:gpr = COPY %54:anyi8
+  %84:gpr = COPY %55:anyi8
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.2, %bb.1
+
+  STAbs %83:gpr, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs %84:gpr, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Register Coalescer (register-coalescer) on common_subexpr omitted because no change ***
+*** IR Dump After Rename Disconnected Subregister Components (rename-independent-subregs) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Instruction Scheduler (machine-scheduler) on common_subexpr omitted because no change ***
+*** IR Dump After Debug Variable Analysis (livedebugvars) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %60:ac = COPY $a
+  %62:ac = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %9:anyi8 = COPY $rc5
+  %10:gpr = COPY $rc6
+  %11:gpr = COPY $rc7
+  %64:cc = LDImm1 0
+  %60:ac, %61:cc, dead %78:vc = ADCImag8 %60:ac(tied-def 0), %6:imag8, %64:cc
+  %62:ac, dead %63:cc, dead %77:vc = ADCImag8 %62:ac(tied-def 0), %7:imag8, %61:cc
+  CmpBrZero %bb.2, undef $n, 0, %9:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %43:anyi8 = COPY %11:gpr
+  %42:anyi8 = COPY %10:gpr
+  %42:anyi8, %43:anyi8 = IncMB %42:anyi8(tied-def 0), %43:anyi8(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  STAbs %60:ac, @g1 :: (store (s8) into @g1, !tbaa !2)
+  STAbs %62:ac, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  %83:gpr = COPY %42:anyi8
+  %84:gpr = COPY %43:anyi8
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %54:anyi8 = COPY %10:gpr
+  %55:anyi8 = COPY %11:gpr
+  dead early-clobber %76:gpr, %54:anyi8, %55:anyi8 = DecMB %54:anyi8(tied-def 1), %55:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  STAbs %60:ac, @g2 :: (store (s8) into @g2, !tbaa !2)
+  STAbs %62:ac, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  STAbs %10:gpr, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs %11:gpr, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  %83:gpr = COPY %54:anyi8
+  %84:gpr = COPY %55:anyi8
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.2, %bb.1
+
+  STAbs %83:gpr, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs %84:gpr, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Live Stack Slot Analysis (livestacks) on common_subexpr omitted because no change ***
+*** IR Dump After Virtual Register Map (virtregmap) on common_subexpr omitted because no change ***
+*** IR Dump After Live Register Matrix (liveregmatrix) on common_subexpr omitted because no change ***
+*** IR Dump After Bundle Machine CFG Edges (edge-bundles) on common_subexpr omitted because no change ***
+*** IR Dump After Spill Code Placement Analysis (spill-code-placement) on common_subexpr omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on common_subexpr omitted because no change ***
+*** IR Dump After Greedy Register Allocator (greedy) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  %90:ac = COPY $a
+  %96:anyi8 = COPY $x
+  %6:imag8 = COPY $rc2
+  %7:imag8 = COPY $rc3
+  %9:anyi8 = COPY $rc5
+  %94:anyi8 = COPY $rc6
+  %11:gpr = COPY $rc7
+  %64:cc = LDImm1 0
+  %90:ac, %61:cc, dead %78:vc = ADCImag8 %90:ac(tied-def 0), %6:imag8, %64:cc
+  %89:anyi8 = COPY %90:ac
+  %97:ac = COPY %96:anyi8
+  %97:ac, dead %63:cc, dead %77:vc = ADCImag8 %97:ac(tied-def 0), %7:imag8, %61:cc
+  %85:anyi8 = COPY %97:ac
+  CmpBrZero %bb.2, undef $n, 0, %9:anyi8, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %43:anyi8 = COPY %11:gpr
+  %42:anyi8 = COPY %94:anyi8
+  %42:anyi8, %43:anyi8 = IncMB %42:anyi8(tied-def 0), %43:anyi8(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  %91:gpr = COPY %89:anyi8
+  STAbs %91:gpr, @g1 :: (store (s8) into @g1, !tbaa !2)
+  %87:gpr = COPY %85:anyi8
+  STAbs %87:gpr, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  %83:gpr = COPY %42:anyi8
+  %84:gpr = COPY %43:anyi8
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+
+  %54:anyi8 = COPY %94:anyi8
+  %55:anyi8 = COPY %11:gpr
+  %98:anyi8 = COPY %94:anyi8
+  dead early-clobber %76:gpr, %54:anyi8, %55:anyi8 = DecMB %54:anyi8(tied-def 1), %55:anyi8(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  %92:gpr = COPY %89:anyi8
+  STAbs %92:gpr, @g2 :: (store (s8) into @g2, !tbaa !2)
+  %88:gpr = COPY %85:anyi8
+  STAbs %88:gpr, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  %99:gpr = COPY %98:anyi8
+  STAbs %99:gpr, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs %11:gpr, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  %83:gpr = COPY %54:anyi8
+  %84:gpr = COPY %55:anyi8
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.2, %bb.1
+
+  STAbs %83:gpr, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs %84:gpr, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Virtual Register Rewriter (virtregrewriter) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $rc4 = COPY $x
+  renamable $x = COPY $rc6
+  renamable $y = COPY $rc7
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $rc4 = COPY killed renamable $a
+  CmpBrZero %bb.2, undef $n, 0, killed renamable $rc5, implicit-def dead $c
+  JMP %bb.1
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $x, $y, $rc4, $rc6
+  renamable $x, renamable $y = IncMB killed renamable $x(tied-def 0), killed renamable $y(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  renamable $a = COPY killed renamable $rc6
+  STAbs killed renamable $a, @g1 :: (store (s8) into @g1, !tbaa !2)
+  renamable $a = COPY killed renamable $rc4
+  STAbs killed renamable $a, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $x, $y, $rc4, $rc6
+  renamable $rc2 = COPY renamable $x
+  renamable $rc3 = COPY renamable $y
+  renamable $rc5 = COPY killed renamable $x
+  dead early-clobber renamable $x, renamable $rc2, renamable $rc3 = DecMB killed renamable $rc2(tied-def 1), killed renamable $rc3(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $a = COPY killed renamable $rc6
+  STAbs killed renamable $a, @g2 :: (store (s8) into @g2, !tbaa !2)
+  renamable $x = COPY killed renamable $rc4
+  STAbs killed renamable $x, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  renamable $x = COPY killed renamable $rc5
+  STAbs killed renamable $x, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs killed renamable $y, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  renamable $x = COPY killed renamable $rc2
+  renamable $y = COPY killed renamable $rc3
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.2, %bb.1
+  liveins: $x, $y
+  STAbs killed renamable $x, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs killed renamable $y, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Register Allocation Pass Scoring (regallocscoringpass) on common_subexpr omitted because no change ***
+*** IR Dump After Stack Slot Coloring (stack-slot-coloring) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Loop Invariant Code Motion (machinelicm) on common_subexpr omitted because no change ***
+*** IR Dump After Remove Redundant DEBUG_VALUE analysis (removeredundantdebugvalues) on common_subexpr omitted because no change ***
+*** IR Dump After Fixup Statepoint Caller Saved (fixup-statepoint-caller-saved) on common_subexpr omitted because no change ***
+*** IR Dump After PostRA Machine Sink (postra-machine-sink) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on common_subexpr omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on common_subexpr omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on common_subexpr omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on common_subexpr omitted because no change ***
+*** IR Dump After Shrink Wrapping analysis (shrink-wrap) on common_subexpr omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on common_subexpr omitted because no change ***
+*** IR Dump After Prologue/Epilogue Insertion & Frame Finalization (prologepilog) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Late Instructions Cleanup Pass (machine-latecleanup) on common_subexpr omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on common_subexpr omitted because no change ***
+*** IR Dump After Control Flow Optimizer (branch-folder) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $rc4 = COPY $x
+  renamable $x = COPY $rc6
+  renamable $y = COPY $rc7
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $rc4 = COPY killed renamable $a
+  CmpBrZero %bb.2, undef $n, 0, killed renamable $rc5, implicit-def $c
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $x, $y, $rc4, $rc6
+  renamable $x, renamable $y = IncMB killed renamable $x(tied-def 0), killed renamable $y(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  renamable $a = COPY killed renamable $rc6
+  STAbs killed renamable $a, @g1 :: (store (s8) into @g1, !tbaa !2)
+  renamable $a = COPY killed renamable $rc4
+  STAbs killed renamable $a, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $x, $y, $rc4, $rc6
+  renamable $rc2 = COPY renamable $x
+  renamable $rc3 = COPY renamable $y
+  renamable $rc5 = COPY killed renamable $x
+  dead early-clobber renamable $x, renamable $rc2, renamable $rc3 = DecMB killed renamable $rc2(tied-def 1), killed renamable $rc3(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $a = COPY killed renamable $rc6
+  STAbs killed renamable $a, @g2 :: (store (s8) into @g2, !tbaa !2)
+  renamable $x = COPY killed renamable $rc4
+  STAbs killed renamable $x, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  renamable $x = COPY killed renamable $rc5
+  STAbs killed renamable $x, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs killed renamable $y, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  renamable $x = COPY killed renamable $rc2
+  renamable $y = COPY killed renamable $rc3
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.2, %bb.1
+  liveins: $x, $y
+  STAbs killed renamable $x, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs killed renamable $y, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on common_subexpr omitted because no change ***
+*** IR Dump After Tail Duplication (tailduplication) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Copy Propagation Pass (machine-cp) on common_subexpr omitted because no change ***
+*** IR Dump After Optimize copies for MOS (mos-copy-opt) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  renamable $rc4 = COPY killed $x
+  renamable $x = COPY killed $rc6
+  renamable $y = COPY killed $rc7
+  renamable $c = LDImm1 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  renamable $rc6 = COPY killed renamable $a
+  renamable $a = COPY killed renamable $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  renamable $rc4 = COPY killed renamable $a
+  CmpBrZero %bb.2, undef $n, 0, killed renamable $rc5, implicit-def dead $c
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc4, $rc6, $x, $y
+  renamable $x, renamable $y = IncMB killed renamable $x(tied-def 0), killed renamable $y(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  renamable $a = COPY killed renamable $rc6
+  STAbs killed renamable $a, @g1 :: (store (s8) into @g1, !tbaa !2)
+  renamable $a = COPY killed renamable $rc4
+  STAbs killed renamable $a, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc4, $rc6, $y, $x
+  renamable $rc2 = COPY renamable $x
+  renamable $rc3 = COPY renamable $y
+  renamable $rc5 = COPY killed renamable $x
+  dead early-clobber renamable $x, renamable $rc2, renamable $rc3 = DecMB killed renamable $rc2(tied-def 1), killed renamable $rc3(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  renamable $a = COPY killed renamable $rc6
+  STAbs killed renamable $a, @g2 :: (store (s8) into @g2, !tbaa !2)
+  renamable $x = COPY killed renamable $rc4
+  STAbs killed renamable $x, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  renamable $x = COPY killed renamable $rc5
+  STAbs killed renamable $x, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs killed renamable $y, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  renamable $x = COPY killed renamable $rc2
+  renamable $y = COPY killed renamable $rc3
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.2, %bb.1
+  liveins: $y, $x
+  STAbs killed renamable $x, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs killed renamable $y, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  $rc4 = STImag8 $x
+  $x = LDImag8 $rc6
+  $y = LDImag8 $rc7
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc4 = STImag8 $a
+  CmpZero killed renamable $rc5, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.2, killed $n, 0
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc4, $rc6, $x, $y
+  renamable $x, renamable $y = IncMB killed renamable $x(tied-def 0), killed renamable $y(tied-def 1), implicit-def dead $c, implicit-def dead $v
+  $a = LDImag8 $rc6
+  STAbs killed renamable $a, @g1 :: (store (s8) into @g1, !tbaa !2)
+  $a = LDImag8 $rc4
+  STAbs killed renamable $a, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc4, $rc6, $y, $x
+  $rc2 = STImag8 $x
+  $rc3 = STImag8 $y
+  $rc5 = STImag8 $x
+  dead early-clobber renamable $x, renamable $rc2, renamable $rc3 = DecMB killed renamable $rc2(tied-def 1), killed renamable $rc3(tied-def 2), implicit-def dead $c, implicit-def dead $v
+  $a = LDImag8 $rc6
+  STAbs killed renamable $a, @g2 :: (store (s8) into @g2, !tbaa !2)
+  $x = LDImag8 $rc4
+  STAbs killed renamable $x, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  $x = LDImag8 $rc5
+  STAbs killed renamable $x, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs killed renamable $y, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.2, %bb.1
+  liveins: $y, $x
+  STAbs killed renamable $x, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs killed renamable $y, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on common_subexpr omitted because no change ***
+*** IR Dump After Finalize ISel and expand pseudo-instructions (finalize-isel) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  $rc4 = STImag8 $x
+  $x = LDImag8 $rc6
+  $y = LDImag8 $rc7
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc4 = STImag8 $a
+  CmpZero killed renamable $rc5, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.2, killed $n, 0
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+  liveins: $rc4, $rc6, $x, $y
+  renamable $x = IncNMOS killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v, implicit-def $z
+  BR %bb.5, $z, -1
+  JMP %bb.4
+
+bb.5 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+  liveins: $x, $y, $rc4, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $y = IncNMOS killed renamable $y(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.4
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.1, %bb.5
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $y, $x, $rc4, $rc6
+  $a = LDImag8 $rc6
+  STAbs killed renamable $a, @g1 :: (store (s8) into @g1, !tbaa !2)
+  $a = LDImag8 $rc4
+  STAbs killed renamable $a, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc4, $rc6, $y, $x
+  $rc2 = STImag8 $x
+  $rc3 = STImag8 $y
+  $rc5 = STImag8 $x
+  $x = LDImm 255
+  $rc2 = DecNMOS $rc2(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $x, killed renamable $rc2, implicit-def $z
+  BR %bb.7, $z, -1
+  JMP %bb.6
+
+bb.7 (%ir-block.9):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $rc3 = DecNMOS killed renamable $rc3(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.6
+
+bb.6 (%ir-block.9):
+; predecessors: %bb.2, %bb.7
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rc3, $rc2, $y, $rc5, $rc4, $rc6
+  $a = LDImag8 $rc6
+  STAbs killed renamable $a, @g2 :: (store (s8) into @g2, !tbaa !2)
+  $x = LDImag8 $rc4
+  STAbs killed renamable $x, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  $x = LDImag8 $rc5
+  STAbs killed renamable $x, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs killed renamable $y, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.4, %bb.6
+  liveins: $y, $x
+  STAbs killed renamable $x, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs killed renamable $y, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Post-RA pseudo instruction expansion pass (postrapseudos) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  $rc4 = STImag8 $x
+  $x = LDImag8 $rc6
+  $y = LDImag8 $rc7
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc4 = STImag8 $a
+  CmpZero killed renamable $rc5, implicit-def $c, implicit-def dead $c, implicit-def $n
+  BR %bb.2, killed $n, 0
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+  liveins: $rc4, $rc6, $x, $y
+  renamable $x = INC killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v, implicit-def $z
+  BR %bb.5, $z, -1
+  JMP %bb.4
+
+bb.5 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+  liveins: $x, $y, $rc4, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $y = INC killed renamable $y(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.4
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.1, %bb.5
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $y, $x, $rc4, $rc6
+  $a = LDImag8 $rc6
+  STAbs killed renamable $a, @g1 :: (store (s8) into @g1, !tbaa !2)
+  $a = LDImag8 $rc4
+  STAbs killed renamable $a, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc4, $rc6, $y, $x
+  $rc2 = STImag8 $x
+  $rc3 = STImag8 $y
+  $rc5 = STImag8 $x
+  $x = LDImm 255
+  $rc2 = DEC $rc2(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $x, killed renamable $rc2, implicit-def $z
+  BR %bb.7, $z, -1
+  JMP %bb.6
+
+bb.7 (%ir-block.9):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $rc3 = DEC killed renamable $rc3(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.6
+
+bb.6 (%ir-block.9):
+; predecessors: %bb.2, %bb.7
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rc3, $rc2, $y, $rc5, $rc4, $rc6
+  $a = LDImag8 $rc6
+  STAbs killed renamable $a, @g2 :: (store (s8) into @g2, !tbaa !2)
+  $x = LDImag8 $rc4
+  STAbs killed renamable $x, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  $x = LDImag8 $rc5
+  STAbs killed renamable $x, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs killed renamable $y, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.4, %bb.6
+  liveins: $y, $x
+  STAbs killed renamable $x, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs killed renamable $y, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Scavenge virtual registers emitted by post-RA pseudos (mos-scavenging) on common_subexpr omitted because no change ***
+*** IR Dump After MOS Late Optimizations (mos-late-opt) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  $rc4 = STImag8 $x
+  $x = LDImag8 $rc6
+  $y = LDImag8 $rc7
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc4 = STImag8 $a
+  dead $a = LDImag8 $rc5, implicit-def $nz
+  BR %bb.2, killed $n, 0
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+  liveins: $rc4, $rc6, $x, $y
+  renamable $x = INC killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v, implicit-def $z
+  BR %bb.5, $z, -1
+  JMP %bb.4
+
+bb.5 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+  liveins: $x, $y, $rc4, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $y = INC killed renamable $y(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.4
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.1, %bb.5
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $y, $x, $rc4, $rc6
+  $a = LDImag8 $rc6
+  STAbs killed renamable $a, @g1 :: (store (s8) into @g1, !tbaa !2)
+  $a = LDImag8 $rc4
+  STAbs killed renamable $a, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+  JMP %bb.3
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc4, $rc6, $y, $x
+  $rc2 = STImag8 $x
+  $rc3 = STImag8 $y
+  $rc5 = STImag8 $x
+  $x = LDImm 255
+  $rc2 = DEC $rc2(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $x, killed renamable $rc2, implicit-def $z
+  BR %bb.7, $z, -1
+  JMP %bb.6
+
+bb.7 (%ir-block.9):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $rc3 = DEC killed renamable $rc3(tied-def 0), implicit-def $c, implicit-def $v
+  JMP %bb.6
+
+bb.6 (%ir-block.9):
+; predecessors: %bb.2, %bb.7
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rc3, $rc2, $y, $rc5, $rc4, $rc6
+  $a = LDImag8 $rc6
+  STAbs killed renamable $a, @g2 :: (store (s8) into @g2, !tbaa !2)
+  $x = LDImag8 $rc4
+  STAbs killed renamable $x, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  $x = LDImag8 $rc5
+  STAbs killed renamable $x, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs killed renamable $y, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.4, %bb.6
+  liveins: $y, $x
+  STAbs killed renamable $x, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs killed renamable $y, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Analyze Machine Code For Garbage Collection (gc-analysis) on common_subexpr omitted because no change ***
+*** IR Dump After MachineDominator Tree Construction (machinedomtree) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Natural Loop Construction (machine-loops) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Block Frequency Analysis (machine-block-freq) on common_subexpr omitted because no change ***
+*** IR Dump After MachinePostDominator Tree Construction (machinepostdomtree) on common_subexpr omitted because no change ***
+*** IR Dump After Branch Probability Basic Block Placement (block-placement) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  successors: %bb.1(0x30000000), %bb.2(0x50000000); %bb.1(37.50%), %bb.2(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  $rc4 = STImag8 $x
+  $x = LDImag8 $rc6
+  $y = LDImag8 $rc7
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc4 = STImag8 $a
+  dead $a = LDImag8 $rc5, implicit-def $nz
+  BR %bb.1, killed $n, 1
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.6(0x40000000), %bb.7(0x40000000); %bb.6(50.00%), %bb.7(50.00%)
+  liveins: $rc4, $rc6, $y, $x
+  $rc2 = STImag8 $x
+  $rc3 = STImag8 $y
+  $rc5 = STImag8 $x
+  $x = LDImm 255
+  $rc2 = DEC $rc2(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $x, killed renamable $rc2, implicit-def $z
+  BR %bb.6, $z, 0
+
+bb.7 (%ir-block.9):
+; predecessors: %bb.2
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $rc3 = DEC killed renamable $rc3(tied-def 0), implicit-def $c, implicit-def $v
+
+bb.6 (%ir-block.9):
+; predecessors: %bb.2, %bb.7
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rc3, $rc2, $y, $rc5, $rc4, $rc6
+  $a = LDImag8 $rc6
+  STAbs killed renamable $a, @g2 :: (store (s8) into @g2, !tbaa !2)
+  $x = LDImag8 $rc4
+  STAbs killed renamable $x, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  $x = LDImag8 $rc5
+  STAbs killed renamable $x, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs killed renamable $y, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+  JMP %bb.3
+
+bb.1 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.4(0x40000000), %bb.5(0x40000000); %bb.4(50.00%), %bb.5(50.00%)
+  liveins: $rc4, $rc6, $x, $y
+  renamable $x = INC killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v, implicit-def $z
+  BR %bb.4, $z, 0
+
+bb.5 (%ir-block.7):
+; predecessors: %bb.1
+  successors: %bb.4(0x80000000); %bb.4(100.00%)
+  liveins: $x, $y, $rc4, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $y = INC killed renamable $y(tied-def 0), implicit-def $c, implicit-def $v
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.1, %bb.5
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $y, $x, $rc4, $rc6
+  $a = LDImag8 $rc6
+  STAbs killed renamable $a, @g1 :: (store (s8) into @g1, !tbaa !2)
+  $a = LDImag8 $rc4
+  STAbs killed renamable $a, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+
+bb.3 (%ir-block.11):
+; predecessors: %bb.4, %bb.6
+  liveins: $y, $x
+  STAbs killed renamable $x, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs killed renamable $y, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Insert fentry calls (fentry-insert) on common_subexpr omitted because no change ***
+*** IR Dump After Insert XRay ops (xray-instrumentation) on common_subexpr omitted because no change ***
+*** IR Dump After Implement the 'patchable-function' attribute (patchable-function) on common_subexpr omitted because no change ***
+*** IR Dump After Branch relaxation pass (branch-relaxation) on common_subexpr ***
+# Machine code for function common_subexpr: NoPHIs, TracksLiveness, NoVRegs, Legalized, RegBankSelected, Selected, TiedOpsRewritten, TracksDebugUserValues
+
+bb.0 (%ir-block.4):
+  successors: %bb.4(0x30000000), %bb.1(0x50000000); %bb.4(37.50%), %bb.1(62.50%)
+  liveins: $a, $x, $rc2, $rc3, $rc4, $rc5, $rc6, $rc7
+  $rc4 = STImag8 $x
+  $x = LDImag8 $rc6
+  $y = LDImag8 $rc7
+  renamable $c = LDCImm 0
+  renamable $a, renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc2, killed renamable $c
+  $rc6 = STImag8 $a
+  $a = LDImag8 $rc4
+  renamable $a, dead renamable $c, dead renamable $v = ADCImag8 killed renamable $a(tied-def 0), killed renamable $rc3, killed renamable $c
+  $rc4 = STImag8 $a
+  dead $a = LDImag8 $rc5, implicit-def $nz
+  BR %bb.4, killed $n, 1
+
+bb.1 (%ir-block.9):
+; predecessors: %bb.0
+  successors: %bb.3(0x40000000), %bb.2(0x40000000); %bb.3(50.00%), %bb.2(50.00%)
+  liveins: $rc4, $rc6, $y, $x
+  $rc2 = STImag8 $x
+  $rc3 = STImag8 $y
+  $rc5 = STImag8 $x
+  $x = LDImm 255
+  $rc2 = DEC $rc2(tied-def 0), implicit-def $c, implicit-def $v
+  $c = CMPImag8 $x, killed renamable $rc2, implicit-def $z
+  BR %bb.3, $z, 0
+
+bb.2 (%ir-block.9):
+; predecessors: %bb.1
+  successors: %bb.3(0x80000000); %bb.3(100.00%)
+  liveins: $y, $rc2, $rc3, $rc4, $rc5, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $rc3 = DEC killed renamable $rc3(tied-def 0), implicit-def $c, implicit-def $v
+
+bb.3 (%ir-block.9):
+; predecessors: %bb.1, %bb.2
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $rc3, $rc2, $y, $rc5, $rc4, $rc6
+  $a = LDImag8 $rc6
+  STAbs killed renamable $a, @g2 :: (store (s8) into @g2, !tbaa !2)
+  $x = LDImag8 $rc4
+  STAbs killed renamable $x, @g2 + 1 :: (store (s8) into @g2 + 1, !tbaa !2)
+  $x = LDImag8 $rc5
+  STAbs killed renamable $x, @g3 :: (store (s8) into @g3, !tbaa !2)
+  STAbs killed renamable $y, @g3 + 1 :: (store (s8) into @g3 + 1, !tbaa !2)
+  $x = LDImag8 $rc2
+  $y = LDImag8 $rc3
+  JMP %bb.7
+
+bb.4 (%ir-block.7):
+; predecessors: %bb.0
+  successors: %bb.6(0x40000000), %bb.5(0x40000000); %bb.6(50.00%), %bb.5(50.00%)
+  liveins: $rc4, $rc6, $x, $y
+  renamable $x = INC killed renamable $x(tied-def 0), implicit-def $c, implicit-def $v, implicit-def $z
+  BR %bb.6, $z, 0
+
+bb.5 (%ir-block.7):
+; predecessors: %bb.4
+  successors: %bb.6(0x80000000); %bb.6(100.00%)
+  liveins: $x, $y, $rc4, $rc6, $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31
+  renamable $y = INC killed renamable $y(tied-def 0), implicit-def $c, implicit-def $v
+
+bb.6 (%ir-block.7):
+; predecessors: %bb.4, %bb.5
+  successors: %bb.7(0x80000000); %bb.7(100.00%)
+  liveins: $rc20, $rc21, $rc22, $rc23, $rc24, $rc25, $rc26, $rc27, $rc28, $rc29, $rc30, $rc31, $y, $x, $rc4, $rc6
+  $a = LDImag8 $rc6
+  STAbs killed renamable $a, @g1 :: (store (s8) into @g1, !tbaa !2)
+  $a = LDImag8 $rc4
+  STAbs killed renamable $a, @g1 + 1 :: (store (s8) into @g1 + 1, !tbaa !2)
+
+bb.7 (%ir-block.11):
+; predecessors: %bb.6, %bb.3
+  liveins: $y, $x
+  STAbs killed renamable $x, @g0 :: (store (s8) into @g0, !tbaa !2)
+  STAbs killed renamable $y, @g0 + 1 :: (store (s8) into @g0 + 1, !tbaa !2)
+  RTS
+
+# End machine code for function common_subexpr.
+
+*** IR Dump After Contiguously Lay Out Funclets (funclet-layout) on common_subexpr omitted because no change ***
+*** IR Dump After Remove Loads Into Fake Uses (remove-loads-into-fake-uses) on common_subexpr omitted because no change ***
+*** IR Dump After StackMap Liveness Analysis (stackmap-liveness) on common_subexpr omitted because no change ***
+*** IR Dump After Live DEBUG_VALUE analysis (livedebugvalues) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Sanitizer Binary Metadata (machine-sanmd) on common_subexpr omitted because no change ***
+*** IR Dump After Lazy Machine Block Frequency Analysis (lazy-machine-block-freq) on common_subexpr omitted because no change ***
+*** IR Dump After Machine Optimization Remark Emitter (machine-opt-remark-emitter) on common_subexpr omitted because no change ***
+*** IR Dump After Stack Frame Layout Analysis (stack-frame-layout) on common_subexpr omitted because no change ***
+*** IR Dump After Unnamed pass: implement Pass::getPassName() on common_subexpr omitted because no change ***

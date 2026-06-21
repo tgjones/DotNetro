@@ -24,6 +24,16 @@ on the **same target family** Irie targets, to:
 This is *reference material*. The Irie `.irie` tests derived from it are a
 separate suite under `src/Irie.Tests/`. Nothing here is wired into Irie's build.
 
+**Each `.irie` pairing must be a faithful mirror of its `.c`** — same
+computation, types, globals, and control-flow structure. Adapting the input to
+dodge an Irie limitation (simplifying, dropping work, reducing register pressure,
+restructuring control flow) is **not allowed**: it would measure a different
+program and launder away the gap the case exists to expose. If a faithful mirror
+cannot yet survive Irie's pipeline, the pairing stays blocked (a failing/erroring
+test) until the underlying limitation is fixed — it is never trimmed down to
+pass. See the suite README's *Fidelity rule*
+([`src/Irie.Tests/Lit/CodeGen/MOS6502/LlvmMosReference/README.md`](../../src/Irie.Tests/Lit/CodeGen/MOS6502/LlvmMosReference/README.md)).
+
 ## How the artifacts are produced
 
 Per case there are three files with a shared basename, e.g. `add-i16.{c,s,txt}`:
@@ -160,7 +170,7 @@ scoreboard. To close a gap:
 
 ## Case index
 
-46 cases across eight categories. Each name links to its source; the `.s` and
+47 cases across eight categories. Each name links to its source; the `.s` and
 `.txt` siblings live alongside it.
 
 ### `basics/` — calling convention & simple arithmetic
@@ -195,6 +205,7 @@ scoreboard. To close a gap:
 - [`nested-loop`](control-flow/nested-loop.c) — two induction vars across two back edges
 - [`switch`](control-flow/switch.c) — wide shallow CFG merging to one return
 - [`early-return`](control-flow/early-return.c) — guard clauses, staggered live-range ends
+- [`common-subexpr`](control-flow/common-subexpr.c) — shared sub-expression *below* differing leading code in both arms; llvm hoists it past the surviving branch (motivates generalizing HoistCommonCodePass beyond its leading-instruction match)
 
 ### `constraints/` — register-specific ops, flags
 - [`inc-dec`](constraints/inc-dec.c) — INC/DEC vs INX/INY register pinning
