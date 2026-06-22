@@ -204,6 +204,70 @@ public sealed class GreedyRegisterAllocatorTests
         await Assert.That(defRegs.Any(r => !axy.Contains(r))).IsTrue();
     }
 
+    // Local split (Stage 2b): a single-block `axy` value fits NO single register
+    // over its whole range — $x is busy across its first half, $a across its
+    // second half, $y throughout (three precoloured physreg windows) — yet each
+    // half CAN be coloured with a different register ($a in the first half, $x in
+    // the second). assign fails (no whole-range register), evict fails (the
+    // interferences are fixed precoloured windows, not evictable), and instruction
+    // split bails (the value's def is an `arith.addi`, not a copy). The greedy
+    // ladder therefore reaches local split, which cuts the range at the interior
+    // use boundary: the first half stays in the value, the second half moves to a
+    // fresh temp via a boundary copy. Reanalysis then colours the halves to $a and
+    // $x. Result: allocation converges with NO memory spill, and the two stores
+    // land on different registers — only local split achieves this (the spill
+    // fallback would emit a `pseudo.spill`).
+    [Test]
+    public async Task ValueFitsNoSingleRegButHalvesDo_LocalSplitsInsteadOfSpilling()
+    {
+        var fn = NewFunction("greedy_local_split");
+        var bb0 = fn.CreateBlock();
+
+        var p = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var v = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var sinkX = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var sinkA = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var sinkY = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+
+        void OpenWindow(int physReg) => bb0.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new PhysicalReg(physReg, IsDefinition: true), new Immediate(9));
+        void CloseWindow(int sink, int physReg) => bb0.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(sink, IsDefinition: true), new PhysicalReg(physReg, IsDefinition: false));
+
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(p, IsDefinition: true), new Immediate(1));
+        OpenWindow(MOS6502Registers.Y);              // $y busy across the whole range.
+        OpenWindow(MOS6502Registers.X);              // $x busy across the first half.
+        // v's def is a non-copy, non-rematerializable op (reads p) so instruction
+        // split bails and the spill fallback cannot rematerialize it.
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v, IsDefinition: true),
+            new VirtualReg(p, IsDefinition: false),
+            new VirtualReg(p, IsDefinition: false));
+        CloseWindow(sinkX, MOS6502Registers.X);      // $x dies before useA.
+        var useA = bb0.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.StAbs),
+            new VirtualReg(v, IsDefinition: false), new Symbol("g"));
+        OpenWindow(MOS6502Registers.A);              // $a busy across the second half.
+        var useB = bb0.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.StAbs),
+            new VirtualReg(v, IsDefinition: false), new Symbol("g"));
+        CloseWindow(sinkA, MOS6502Registers.A);
+        CloseWindow(sinkY, MOS6502Registers.Y);
+
+        Pass.Run(fn); // must converge via local split (would otherwise spill).
+
+        // The two stores read DIFFERENT registers — the value was cut, each piece
+        // coloured to its own free register.
+        var regA = useA.Operands.OfType<PhysicalReg>().First(o => !o.IsDefinition).Id;
+        var regB = useB.Operands.OfType<PhysicalReg>().First(o => !o.IsDefinition).Id;
+        await Assert.That(regA).IsNotEqualTo(regB);
+
+        // And no value was spilled to memory — local split kept everything in
+        // registers, which the store/reload fallback would not have.
+        var spills = fn.Blocks.SelectMany(b => b.Instructions).Count(i =>
+            i.Opcode.Dialect == PseudoDialect.Id && (PseudoOp)i.Opcode.Code == PseudoOp.Spill);
+        await Assert.That(spills).IsEqualTo(0);
+    }
+
     // Spill rung reachable: two DISTINCT values that must both occupy the single
     // $y register at the SAME instruction is genuinely infeasible. The greedy
     // ladder exhausts assign (no free $y), evict (Stage-0 stub), split (Stage-0

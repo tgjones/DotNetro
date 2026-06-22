@@ -357,23 +357,49 @@ internal sealed class GreedyRegisterAllocator
     }
 
     // -------------------------------------------------------------------------
-    // trySplit (Stage 2) — try the live-range split kinds via the SplitEditor.
-    // Returns true if it edited the IR (the caller then returns null so the pass
-    // reanalyses over fresh intervals and re-runs us):
+    // trySplit (Stage 2) — try the live-range split kinds, cheapest first, via
+    // the SplitEditor. Returns true if it edited the IR (the caller then returns
+    // null so the pass reanalyses over fresh intervals and re-runs us):
     //
     //   1. Instruction split (split-to-register) — a copy-defined value used at
     //      narrowing single-physreg uses is split so the value widens to the
     //      flexible class and only the per-use temps need the scarce register.
+    //   2. Local split — a value that fits no single register over its whole
+    //      range, but whose pieces can each take a different free register, is cut
+    //      at an interior use boundary (we supply the busy test from our committed
+    //      assignment + the precoloured physreg windows).
     //
-    // If it does not apply, return false and the value falls through to spill,
-    // where the pass's store/reload still applies. Local split (Stage 2b) and
-    // split-around-call (Stage 3) are the remaining kinds. (Reference:
-    // RegAllocGreedy.cpp trySplit → tryInstructionSplit / tryLocalSplit.)
+    // If neither applies, return false and the value falls through to spill, where
+    // the pass's store/reload still applies. Split-around-call (the
+    // live-across-call lever) is Stage 3. (Reference: RegAllocGreedy.cpp
+    // trySplit → tryInstructionSplit / tryLocalSplit.)
     // -------------------------------------------------------------------------
     private bool TrySplit(int vreg)
     {
         var editor = new SplitEditor(_function, _registerInfo);
-        return editor.TryInstructionSplit(vreg, _splitProducts);
+        if (editor.TryInstructionSplit(vreg, _splitProducts)) return true;
+        return editor.TryLocalSplit(vreg, _intervals, _allowed[vreg], RegisterBusyAcross);
+    }
+
+    // Is `reg` busy anywhere in the half-open slot window [start, end)? Busy means
+    // a precoloured physreg window (call clobber, flag def, livein) covers a point
+    // there, or some vreg already COMMITTED to `reg` this Run is live there. This
+    // is the contention signal local split needs; only the allocator has the
+    // committed-assignment picture, so we supply it as a callback.
+    private bool RegisterBusyAcross(int reg, int start, int end)
+    {
+        var phys = _intervals.PhysIntervalOf(reg);
+        for (var p = start; p < end; p++)
+            if (phys.Covers(p)) return true;
+
+        if (_assignedTo.TryGetValue(reg, out var occupants))
+            foreach (var other in occupants)
+            {
+                var interval = _intervals.IntervalOf(other);
+                for (var p = start; p < end; p++)
+                    if (interval.Covers(p)) return true;
+            }
+        return false;
     }
 
     // -------------------------------------------------------------------------

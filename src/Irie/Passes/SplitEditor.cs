@@ -1,5 +1,6 @@
 using Irie.Dialects.Pseudo;
 using Irie.Mir;
+using Irie.Passes.Analyses;
 using Irie.Target;
 
 namespace Irie.Passes;
@@ -122,19 +123,130 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
     }
 
     // -------------------------------------------------------------------------
-    // Local split (gap-based, within one block) — DEFERRED to Stage 2b. The
-    // mechanical boundary-copy primitive is the same shape as the instruction
-    // split above (mint a temp, insert a `pseudo.copy`, rewrite the in-region
-    // uses), so the editor already has the substrate. What it lacks is the right
-    // CONTENTION model: the case local split exists for is a value whose WHOLE
-    // range fits no single register, but whose halves can each take a DIFFERENT
-    // free register (reg R1 free in the first half / busy in the second, R2 the
-    // reverse). The naive "every allowed register is busy across the gap" test is
-    // a different, mostly-inert condition (it models a value that can hold NO
-    // register across the gap — closer to a hole than a split), so it is omitted
-    // rather than shipped wrong. Stage 2b adds the per-subrange free-register
-    // check (LLVM `calcGapWeights` / `tryLocalSplit`) that makes this fire on the
-    // cases it is meant for (e.g. early-return once the manual funnels are gone).
+    // -------------------------------------------------------------------------
+    // Local split (gap-based, within one block). Reference: RegAllocGreedy.cpp
+    // tryLocalSplit / calcGapWeights.
+    //
+    // The case this exists for: a value whose WHOLE range fits no single register
+    // (so tryAssign already failed), but which CAN be coloured if cut into pieces
+    // because its halves can each take a DIFFERENT free register — reg R1 free in
+    // the first half but busy in the second, R2 the reverse. We pick a split
+    // point (an interior use boundary) such that some register is free across the
+    // first piece and some register is free across the second piece, then cut the
+    // range there: mint a fresh temp in the value's class, copy the value into it
+    // right after the split-point use, and rewrite the later uses to the temp. The
+    // next reanalysis colours the two shorter pieces independently (each finds its
+    // own free register), and the boundary copy lowers to a cheap register move.
+    //
+    // The "is register R free across [start, end)?" test is supplied by the caller
+    // (`isBusyAcross`) because only the allocator knows what it has COMMITTED to
+    // each register this round (its LiveRegMatrix analogue) plus the precoloured
+    // physreg windows — the SplitEditor cannot derive that from LiveIntervals
+    // alone. We split at the FIRST viable interior use boundary rather than
+    // computing true BlockFrequency gap weights (LLVM's full calcGapWeights cost
+    // model); that captures the right shape — cut where each piece can be coloured
+    // — without the weight model. Refine if a corpus case demands it.
+    //
+    // Termination: each split strictly reduces the per-range use count (the two
+    // pieces each have fewer uses than the original), so repeated local splitting
+    // bottoms out at ranges with too few uses to split — which then assign or
+    // spill. Returns true if it split.
+    // -------------------------------------------------------------------------
+    public bool TryLocalSplit(
+        int vreg, LiveIntervals intervals, int[] allowed,
+        Func<int, int, int, bool> isBusyAcross)
+    {
+        var def = function.GetDefinition(vreg);
+        if (def == null) return false; // a livein with no def cannot be locally split.
+
+        // Splitting only helps a value defined and used within ONE block — a
+        // cross-block range needs region splitting (Stage 5, out of scope).
+        var block = def.Parent!;
+        var useIndices = UseIndicesInBlock(block, vreg);
+        if (useIndices.Count < 2) return false; // need an interior use boundary.
+
+        var interval = intervals.IntervalOf(vreg);
+        if (interval.IsEmpty) return false;
+        var lo = interval.Start;
+        var hi = interval.End;
+
+        // Guard against a pointless split: if some register is free across the
+        // whole range, tryAssign should have taken it, so cutting buys nothing.
+        if (AnyFree(allowed, lo, hi, isBusyAcross)) return false;
+
+        // Try each interior use boundary as the split point. The split point is
+        // the slot just AFTER use[g]'s read (its def sub-slot): the first piece is
+        // [lo, split), the second piece [split, hi). Cut at the first boundary
+        // where each piece independently has a free register.
+        for (var g = 0; g < useIndices.Count - 1; g++)
+        {
+            var split = LiveIntervals.DefSlot(intervals.BaseSlotOf[block.Instructions[useIndices[g]]]);
+            if (split <= lo || split >= hi) continue;
+
+            if (!AnyFree(allowed, lo, split, isBusyAcross)) continue;
+            if (!AnyFree(allowed, split, hi, isBusyAcross)) continue;
+
+            SplitAfter(vreg, block, useIndices[g], useIndices[g + 1]);
+            return true;
+        }
+        return false;
+    }
+
+    // Is some register in `allowed` free across the whole half-open window
+    // [start, end) — i.e. not busy anywhere within it?
+    private static bool AnyFree(
+        int[] allowed, int start, int end, Func<int, int, int, bool> isBusyAcross)
+    {
+        foreach (var reg in allowed)
+            if (!isBusyAcross(reg, start, end))
+                return true;
+        return false;
+    }
+
+    // The instruction indices in `block` at which `vreg` is used (read).
+    private static List<int> UseIndicesInBlock(MirBlock block, int vreg)
+    {
+        var indices = new List<int>();
+        for (var i = 0; i < block.Instructions.Count; i++)
+            foreach (var op in block.Instructions[i].Operands)
+                if (op is VirtualReg v && !v.IsDefinition && v.Id == vreg)
+                {
+                    indices.Add(i);
+                    break;
+                }
+        return indices;
+    }
+
+    // Cut `vreg` after the use at block index `afterIdx`: mint a fresh temp in
+    // `vreg`'s class, copy `vreg` → temp right after that use, and rewrite every
+    // use from `beforeIdx` (the next use) onward in this block to the temp. The
+    // next reanalysis colours the two pieces independently.
+    private void SplitAfter(int vreg, MirBlock block, int afterIdx, int beforeIdx)
+    {
+        var (classId, className) = ClassOf(vreg);
+        var temp = function.CreateVirtualRegisterInClass(classId, className);
+
+        block.InsertInstruction(
+            afterIdx + 1,
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(temp, IsDefinition: true),
+            new VirtualReg(vreg, IsDefinition: false));
+
+        // The insert shifted everything at/after afterIdx+1 by one.
+        for (var i = beforeIdx + 1; i < block.Instructions.Count; i++)
+        {
+            var operands = block.Instructions[i].Operands;
+            for (var k = 0; k < operands.Length; k++)
+                if (operands[k] is VirtualReg v && !v.IsDefinition && v.Id == vreg)
+                    operands[k] = new VirtualReg(temp, IsDefinition: false);
+        }
+    }
+
+    private (int ClassId, string Name) ClassOf(int vreg) =>
+        function.GetVRegAnnotation(vreg) is ClassedVReg c
+            ? (c.ClassId, c.Name)
+            : throw new InvalidOperationException(
+                $"SplitEditor: cannot split vreg %{vreg} — it has no register class.");
 
     private static bool IsCopyInstr(MirInstruction instr) =>
         instr.Opcode.Dialect == PseudoDialect.Id

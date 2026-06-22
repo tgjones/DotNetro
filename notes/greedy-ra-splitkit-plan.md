@@ -316,32 +316,58 @@ exists in BOTH `SplitEditor.TryInstructionSplit` (greedy) and the pass's
 during bring-up and is left untouched to avoid risk. They converge when the
 colourer is retired in Stage 4.
 
-### Stage 2b — TODO (next session): local split (the design pivot)
+### Stage 2b — DONE (2026-06-22): local split
 
-`SplitEditor.TryLocalSplit` was **deliberately not shipped** — a half-baked
-version was written and removed. The naive "every allowed register is busy across
-the gap" contention test is the WRONG condition: that models a value that can
-hold no register across the gap (closer to a hole than a split). The case local
-split actually exists for is a value whose WHOLE range fits no single register but
-whose halves can each take a DIFFERENT free register (R1 free in the first half /
-busy in the second; R2 the reverse). Stage 2b must add the **per-subrange
-free-register check** (LLVM `calcGapWeights` / `tryLocalSplit`) so it fires on the
-cases it is meant for. The boundary-copy mechanics are already proven by the
-instruction-split kind — only the gap-selection policy is new. This is the lever
-for `early-return` once the manual funnels are removed (Stage 4). Refs:
-`RegAllocGreedy.cpp` `tryLocalSplit`/`calcGapWeights` (1663/1741),
-`SplitKit.{h,cpp}` `SplitEditor` (462–521).
+`SplitEditor.TryLocalSplit` landed with the CORRECT contention model and is wired
+into `GreedyRegisterAllocator.TrySplit` as the second split kind (after
+instruction split). Still flag-gated; colourer path byte-identical. All green:
+Irie 191/191 (190 + 1 new local-split test), DotNetro.Compiler 21/21;
+`irie-report` unchanged at **-6.7%** (greedy off the default path).
+
+The model is the one the earlier half-baked attempt got wrong: local split exists
+for a value whose WHOLE range fits no single register (so `TryAssign` already
+failed) but whose pieces can each take a DIFFERENT free register. `TryLocalSplit`:
+single-block only; needs ≥2 in-block uses; bails if any register is free across
+the whole `[lo, hi)` range (then assign should have taken it — splitting buys
+nothing); otherwise walks the interior use boundaries and cuts at the first one
+where some register is free across `[lo, split)` AND some register is free across
+`[split, hi)` (`split` = the def sub-slot just after `use[g]`'s read). The cut
+mints a fresh temp in the value's class, copies the value into it right after the
+split-point use, and rewrites the later uses to the temp; the next reanalysis
+colours the two pieces independently. Termination: each split strictly reduces the
+per-range use count, so repeated splitting bottoms out.
+
+The "is register R free across `[start, end)`?" test is supplied by the greedy
+allocator as a callback (`RegisterBusyAcross`) over its committed-assignment map
+(`_assignedTo`) + the precoloured physreg windows (`PhysRegIntervals`) — only the
+allocator has that LiveRegMatrix picture; the SplitEditor cannot derive it from
+`LiveIntervals` alone.
+
+**New test** `ValueFitsNoSingleRegButHalvesDo_LocalSplitsInsteadOfSpilling`: an
+`axy` value with $x busy across its first half, $a across its second, $y
+throughout (three precoloured physreg windows), def by `arith.addi` (non-copy,
+non-rematerializable). assign/evict/instruction-split all fail; local split cuts
+at the interior store boundary; reanalysis colours the halves to $a and $x. The
+`pseudo.spill`-count == 0 assertion is the discriminator — without local split the
+value genuinely cannot assign and the store/reload fallback would emit a spill.
 
 ### Resume checklist for the next session
 
 1. Read this file + `[[project_greedy_ra_plan]]` memory.
-2. Do **Stage 2b — local split** (see above): add `SplitEditor.TryLocalSplit`
-   with a correct per-subrange free-register contention model, driven by the
-   greedy allocator's committed-assignment + precoloured-window state (supply the
-   busy test as a callback — only the allocator has the LiveRegMatrix picture).
-   Wire it into `TrySplit` after the instruction-split kind. Add a synthetic
-   `useGreedy:true` test for the "R1-then-R2" split case.
-3. Then **Stage 3 — split-around-call** (the `live-across-call` lever).
+2. Do **Stage 3 — split-around-call** (the `live-across-call` lever): a value live
+   across a call (whose clobbers are explicit implicit-defs on the call instr, so
+   they already appear in `PhysRegIntervals`) gets split to keep it in a
+   callee-saved register across the call (relocate via copy), letting
+   `PrologueEpilogueInsertionPass` emit the save/restore. A single contiguous
+   across-call region — no edge bundles. Validate against
+   `pressure/live-across-call.s` (llvm-mos relocates `a` to `__rc16` + stack
+   save/restore). Refs: `RegAllocGreedy.cpp` `tryRegionSplit` (1202) — but the
+   single-block contiguous case here is closer to a targeted relocate than full
+   region split.
+3. Then **Stage 4 — flip the default + delete the manual funnels** (and the
+   colourer, `InsertRelocationCopiesForConstrainedDefs`, and the duplicated
+   instruction-split in `RegisterAllocatorPass.TrySplitToRegister`). Regenerate
+   goldens the harness way.
 4. Determinism: keep every queue/tie break on ascending vreg id.
 
 ## Risks & mitigations
