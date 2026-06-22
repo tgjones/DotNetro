@@ -79,6 +79,15 @@ rootCommand.SetAction(parseResult =>
     // still-SSA MIR — the llvm-mos slot for MOSLowerSelect.
     target.AddPreInstructionSelectionPasses(passMgr);
     passMgr.AddPass(new InstructionSelectorPass(target.InstructionSelector));
+    // Insert class-crossing legalization copies wherever a use operand's required
+    // register class is disjoint from its source vreg's def class (e.g. an `ac`
+    // result feeding an `imag8`/zp adc addend) — the llvm-mos ISel copy that gives
+    // every vreg one consistent class so RA never sees an `Ac ∩ Imag8 = ∅` vreg.
+    // A verified no-op while isel's out-funnels relocate every forced-`$a` result
+    // into the flexible Anyi8 class (⊇ Imag8): no operand is class-disjoint, so
+    // zero copies are inserted on every existing function. Runs right after isel,
+    // before the other copy-inserting passes and RA. See OperandLegalizationPass.
+    passMgr.AddPass(new OperandLegalizationPass(target.RegisterInfo));
     passMgr.AddPass(new PhiEliminationPass(target.BranchLowering));
     passMgr.AddPass(new TwoAddressInstructionPass());
     passMgr.AddPass(new RegisterAllocatorPass(target.RegisterInfo));
