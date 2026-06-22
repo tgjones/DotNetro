@@ -546,11 +546,76 @@ pre-colouring split. Alternatives: (B) flip greedy to default but KEEP the isel
 funnels — bank greedy-as-default + its splitting now, defer funnel-removal; (C)
 pause Stage 4, keep greedy flag-gated. Decision pending.
 
+### Stage 4a — DONE (2026-06-22): operand-class legalization pass
+
+`OperandLegalizationPass` (new, wired after InstructionSelector, before RA) inserts
+the class-crossing `ac→imag8` copy llvm-mos emits at ISel, generically: for any use
+operand whose required class is disjoint from the source vreg's def class, mint
+`%tmp = pseudo.copy %src` in the operand's class. No-op while the funnels still make
+results flexible (so zero golden change), load-bearing once they're removed. **This
+fully CLOSED gap 2** — confirmed in the Stage-4b retry: zero `empty allocatable set`
+crashes. Committed, all green (Irie 196/196).
+
+### Stage 3c — DONE (2026-06-22): incumbent-direction split-around-clobber
+
+`SplitEditor.TrySplitIncumbentAcrossClobber` + the shared `RelocateAcrossClobber`
+helper, wired into greedy `TrySplit` (kind 1c). When the FAILING value is the
+re-clobbering def, it relocates the INCUMBENT value live across it (the prior code,
+1b, only relocated when the across-clobber value was itself the failing vreg — which
+never happens for carry chains, where the longer across-clobber value wins $a first).
+Committed, all green. **But it did NOT fix gap 1 on real cases** — see below.
+
+### Stage 4b retry — BLOCKED (2026-06-22): gap 1's true root cause is non-SSA tied-def relocation
+
+Retried the flip (greedy default + remove the seven isel funnels +
+`InsertRelocationCopiesForConstrainedDefs`) with 4a + 3c in place. Gap 2 stayed
+closed; **gap 1 did NOT clear.** New failure split: the carry chains
+(`add-i16/-i32`, `sub-i16`, `many-args`, `global-rw`, `live-across-call`,
+`IntegerAdd32/Sub32`) now *terminate* but by SPILLING (`pseudo.spill` survives to
+PseudoExpansion, which can't lower it — memory-spill→asm is the out-of-scope Future
+item); a second class (`Inc`, `common_subexpr`, `early_return`, `load_store_global`)
+still `did not converge`. Reverted the temp edits; HEAD is green (196/196).
+
+**True root cause (traced on `add_i16`).** Post-TwoAddress the chain is NON-SSA: the
+adc result vreg is its own tied accumulator, so it has TWO defs —
+```
+%19 : any8 = pseudo.copy %3            ; tied-acc materialization (def #1)
+%19 : any8, %20 : cc = mos6502.adc %19(tied-def 0), %5, %18   ; adc result (def #2)
+...
+$a = pseudo.copy %19                   ; %19 live across %21's adc below
+%21 : any8 = pseudo.copy %4
+%21 : any8, %22 : cc = mos6502.adc %21(tied-def 0), %6, %20
+```
+(Note %19/%21 annotate as `any8`; their allowed set is `{$a}` only via the adc's
+`Ac` def + tied-use operand constraints — so the split-trigger correctly sees them
+as single-physreg-pinned.) The relocation edit calls `function.GetDefinition(%19)`,
+which returns the FIRST def (the tied-acc copy, *before* the adc), so it inserts the
+`temp = copy %19` before the adc — relocating the adc INPUT (`arg0lo`), not the adc
+RESULT. The result is still pinned to $a across the next adc, the conflict is
+unresolved, and the value falls through to the pass's store/reload (the stray
+`frame_slot 0` / `pseudo.spill` seen in the post-RA dump). llvm-mos relocates the
+RESULT (`tay`/`tya`) because it targets the precise def point via SlotIndexes.
+
+**The remaining gap-1 work (not a quick patch — design needed).** The split kinds
+were written assuming a single SSA def; they must instead target the correct def
+point in two-address form (the adc that produces the value live across the clobber,
+not the tied-acc copy). And the split must reliably take priority over the pass's
+memory spiller (split-not-spill). The control-flow `did not converge` cases
+(`common_subexpr`, `early_return`) are a SEPARATE class (cross-block liveness, not a
+straight-line chain) and likely need their own analysis. Two patch attempts (3b,
+3c) each hit a further layer (eviction-routing, then non-SSA def-point) — per
+CLAUDE.md, stop solo-iterating and get direction before a third attempt.
+
 ### Resume checklist for the next session
 
 1. Read this file + `[[project_greedy_ra_plan]]` memory.
-2. **Stage 4 is blocked pending the design-fork decision above.** Stages 0–3b are
-   built, green, and flag-gated; the colourer is still the default.
+2. **Stage 4 is blocked on gap 1** (see "Stage 4b retry" above). Gap 2 is solved
+   (4a). The committed split kinds (3b/3c) are correct but relocate at the wrong def
+   point in two-address form. Decision pending with maintainer: (A) finish the
+   llvm-faithful gap-1 fix (correct def-point selection in non-SSA form +
+   split-not-spill priority + the control-flow non-convergence class); (B) flip
+   greedy to default but KEEP the isel funnels (bank greedy + 4a, defer
+   funnel-removal); (C) pause, keep greedy flag-gated.
 3. Determinism: keep every queue/tie break on ascending vreg id.
 
 ## Risks & mitigations
