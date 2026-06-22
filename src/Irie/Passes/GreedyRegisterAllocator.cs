@@ -370,6 +370,13 @@ internal sealed class GreedyRegisterAllocator
     //   1. Instruction split (split-to-register) — a copy-defined value used at
     //      narrowing single-physreg uses is split so the value widens to the
     //      flexible class and only the per-use temps need the scarce register.
+    //   1b. Split-around-clobber (constrained-def-result) — a value pinned to a
+    //      single physreg, live across a later re-definition of that same physreg
+    //      (e.g. an `ac` adc result live across the next adc's $a def in an i16/i32
+    //      chain), is relocated off the constrained register into the flexible
+    //      class (zero page) right after its def. The on-demand analogue of the
+    //      colourer's InsertRelocationCopiesForConstrainedDefs / the deleted isel
+    //      out-funnel.
     //   2. Local split — a value that fits no single register over its whole
     //      range, but whose pieces can each take a different free register, is cut
     //      at an interior use boundary (we supply the busy test from our committed
@@ -388,6 +395,15 @@ internal sealed class GreedyRegisterAllocator
     {
         var editor = new SplitEditor(_function, _registerInfo);
         if (editor.TryInstructionSplit(vreg, _splitProducts)) return true;
+        // Split-around-clobber: a value pinned to a single physreg that is live
+        // across a later re-definition of that same physreg (e.g. an `ac` adc
+        // result live across the next adc in an i16/i32 chain) is relocated off
+        // the constrained register into the flexible class. Placed before local /
+        // split-around-call because it is the COMMON constrained-chain case and is
+        // a cheap def-site relocation (no busy-test callback needed) — the others
+        // handle free-register gaps and call barriers respectively.
+        if (editor.TrySplitConstrainedDefResult(vreg, _intervals, _allowed, _splitProducts))
+            return true;
         if (editor.TryLocalSplit(vreg, _intervals, _allowed[vreg], RegisterBusyAcross))
             return true;
         // Split-around-call. The minted relocation temp is recorded in

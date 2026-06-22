@@ -393,13 +393,127 @@ Discriminators vs. a plain spill: (1) some instr defines a callee-saved reg
 `live-across-call` case needs the default flip (greedy is off the default path by
 construction), and the golden trap warns against standalone `iriec` measurement.
 
+### Stage 4 — BLOCKED (2026-06-22): funnel removal exposes a missing split kind
+
+Attempted the full Stage 4 (flip default to greedy, delete the four isel
+out-funnels + `InsertRelocationCopiesForConstrainedDefs`) and hit a genuine
+**non-convergence on the simplest cases** (`add-i16`, `add-i32`, every
+`Integer{Add,Sub}32-*`, the signed-compare ladders, etc.). Reverted entirely;
+working tree is back at the Stage-3 baseline (`irie-report` -6.7%).
+
+**Root cause — the funnels are a split kind greedy does not have.** After isel
+the adc/sbc/load results are pinned to class `ac` (single physreg `$a`). The
+out-funnel's real job was to RELOCATE such a result off `$a` *the moment the next
+chain link re-defines `$a`*. Concretely, for `add_i16`:
+
+```
+%19 : ac, %20 : cc = mos6502.adc %3, %5, %18   ; result in $a
+%21 : ac, %22 : cc = mos6502.adc %4, %6, %20   ; ALSO defines $a — clobbers %19
+$a = pseudo.copy %19                            ; %19 still needed here
+$x = pseudo.copy %21
+```
+
+`%19` is live across `adc2`'s `$a` definition, so it must vacate `$a` before
+`adc2`. The deleted funnel did exactly that (copy `%19` into an `any8` temp the
+RA parks in zp). Without it, `%19` and `%21` both need `$a` simultaneously and
+**no split kind greedy has can fix it**:
+- `TryInstructionSplit` requires a *copy*-defined value with *narrowing
+  single-physreg operand* uses; `%19` is defined by a non-copy (adc) and the use
+  that conflicts is the *next adc's `$a` clobber-def*, not a narrowing operand.
+- `TryLocalSplit` needs ≥2 in-block uses and a register free across one half;
+  here the only free home is zp, and the conflict is a precolour clobber it
+  doesn't model as a cut point.
+- `TrySplitAroundCall` only matches a call's implicit-def barrier, not an adc's
+  single `$a` def.
+
+So greedy reaches spill, the store/reload temp re-spills, and the round cap
+trips ("spilling did not converge after N rounds"). **The colourer is no better**
+on the same no-funnel IR — it terminates but produces a fully-spilled `add_i16`
+(2 frame slots, spill/reload around every adc). This proves the funnels are
+load-bearing *manual splits* that NEITHER allocator currently reconstructs — the
+gap is a missing **split-around-clobber / split-a-constrained-def-result** kind,
+not a greedy-vs-colourer issue.
+
+**What Stage 4 actually needs first (a design question for the maintainer):** a
+fourth split kind — split a value off a single-physreg class around the point
+where that physreg is re-defined (the llvm-mos analogue is the
+constrained-def relocation that `tryInstructionSplit` + the inflate-to-superclass
+machinery handles when the def's class can be widened). Equivalently: teach
+`TryInstructionSplit` (or a new `TrySplitConstrainedDefResult`) to fire for a
+non-copy `ac`-class def whose value is live across a later def of the same
+physreg, minting an `any8` relocation temp right after the def — i.e. move the
+funnel logic *into the allocator* rather than deleting it outright. Until that
+exists, the isel funnels cannot be removed.
+
+### Stage 3b — DONE (2026-06-22): split-around-clobber kind (necessary, NOT sufficient)
+
+Added `SplitEditor.TrySplitConstrainedDefResult` + `HasLaterReClobber`, wired into
+`GreedyRegisterAllocator.TrySplit` (after instruction-split, before local-split /
+around-call). Trigger: a vreg whose post-intersection allowed set is a single
+physreg `R` that is a flexible-class member, with a real def, live across a LATER
+def of another vreg also pinned to `{R}` (the re-clobber). Edit (the on-demand
+mirror of `InsertRelocationCopiesForConstrainedDefs`): mint an `Anyi8` temp right
+after the def, `temp = pseudo.copy vreg`, redirect later in-block uses to `temp`,
+record `temp` in `splitProducts`. Flag-gated; colourer path untouched. Green: Irie
+193/193 (+1 new `ConstrainedDefLiveAcrossReClobber_SplitsToFlexibleClass`),
+DotNetro.Compiler 21/21; no goldens changed. (Also corrected the Stage-0
+`TwoValuesNeedingSameSingleReg…` test: its `yc` class IS flexible-relocatable, so
+the new kind correctly splits it; switched to `cc` to keep genuine-infeasibility
+coverage.)
+
+**But a throwaway convergence check (flip default + delete funnels + delete
+`InsertRelocationCopiesForConstrainedDefs`, then reverted) proved this kind is
+NECESSARY BUT NOT SUFFICIENT to remove the funnels.** Two deeper gaps remain:
+
+1. **Split-vs-spill convergence race (gap 1).** The new kind *does* fire on the
+   adc chains, but its split products re-spill on later rounds: a relocated `ac`
+   value still fails to assign `$a` and falls through to the pass's store/reload,
+   which loops until the round cap trips. llvm-mos's splitter does NOT fall to
+   memory here — ours does. The on-demand one-vreg-per-round split racing
+   `SpillVregs` does not reproduce the eager all-at-once pre-pass.
+2. **Empty-intersection crash (gap 2).** ~20 cases now throw `vreg %N in class ac
+   has an empty allocatable set` from `ComputeAllowedColours`
+   (`RegisterAllocationSupport.cs:191`) — `Ac ∩ Imag8 = ∅` — *before* the
+   allocator runs any split. A value defined `ac` (non-copy, hard constraint) is
+   directly used as a `zp`/`imag8` operand. No split kind can reach this; the
+   throw is at setup.
+
+### llvm-mos verification (2026-06-22) — the plan's direction is validated, but the work is deeper
+
+Per CLAUDE.md, checked llvm-mos for `unsigned short add16(unsigned short,unsigned short)`:
+- `-Os` asm relocates the low result off `$a` (`clc/adc __rc2/`**`tay`**`/txa/adc
+  __rc3/tax/`**`tya`**`/rts`) — the relocation is real and necessary.
+- **Pre-RA MIR (`llc -stop-before=greedy`)** has `%13:ac` and `%15:ac` — two
+  A-only-class values SIMULTANEOUSLY LIVE — and **NO relocation copy in the IR**.
+  The greedy allocator inserts the `tay`/`tya` itself via live-range splitting +
+  **register-class inflation** (splitting an `ac` value lets the split product
+  take the broader GPR superclass → `$y`/zp). **So llvm-mos really does remove the
+  funnels and reconstruct them in RA — the plan's direction is correct.**
+- Crucially, every ADC OPERAND in llvm-mos is a SEPARATE COPY'd vreg
+  (`%4:imag8 = COPY $rc2`), so no single vreg is ever both `ac` (def) and `imag8`
+  (use). Irie's gap 2 is therefore an **isel structural difference** (Irie's isel,
+  minus the funnel, lets an `ac` result feed a zp operand directly), not something
+  the allocator is expected to untangle.
+
+### Open design fork (raised with maintainer 2026-06-22)
+
+Stage 4 as written ("flip + delete funnels + regen goldens") underestimated the
+work. To fully remove the funnels the llvm-faithful way needs BOTH: (gap 1) make
+the constrained-def split converge — take priority over store/reload and inflate
+the split product so it actually lands (mirror llvm-mos's split-not-spill here);
+and (gap 2) stop the empty-intersection at its source — either isel keeps a
+*structural* copy between an `ac` result and a `zp`-operand use (distinct from the
+deletable out-funnels, matching llvm-mos's separate-COPY'd-operands shape), or
+`ComputeAllowedColours` stops throwing and routes an over-constrained vreg to a
+pre-colouring split. Alternatives: (B) flip greedy to default but KEEP the isel
+funnels — bank greedy-as-default + its splitting now, defer funnel-removal; (C)
+pause Stage 4, keep greedy flag-gated. Decision pending.
+
 ### Resume checklist for the next session
 
 1. Read this file + `[[project_greedy_ra_plan]]` memory.
-2. Do **Stage 4 — flip the default + delete the manual funnels** (and the
-   colourer, `InsertRelocationCopiesForConstrainedDefs`, and the duplicated
-   instruction-split in `RegisterAllocatorPass.TrySplitToRegister`). Regenerate
-   goldens the harness way.
+2. **Stage 4 is blocked pending the design-fork decision above.** Stages 0–3b are
+   built, green, and flag-gated; the colourer is still the default.
 3. Determinism: keep every queue/tie break on ascending vreg id.
 
 ## Risks & mitigations

@@ -300,6 +300,154 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
         return true;
     }
 
+    // -------------------------------------------------------------------------
+    // Split-around-clobber (constrained-def-result relocation). Reference:
+    // RegAllocGreedy.cpp tryInstructionSplit (1587) + the register-class
+    // inflation machinery (getLargestLegalSuperClass): when a value is produced
+    // in a SINGLE-physreg class and a later instruction re-defines that same
+    // physreg while the value is still live, the value must be relocated off the
+    // constrained register into a wider (flexible) class so it can live elsewhere
+    // (zero page) across the re-clobber. The two single-physreg values cannot
+    // share the one register, so ONE of them must vacate it.
+    //
+    // The case this exists for (the Stage-4 blocker): after isel an adc/sbc/load
+    // result is pinned to class `ac` (the single physreg $a). In an i16/i32 add
+    // chain the next adc's result is ALSO `ac` — so it re-defines $a while the
+    // first result is still live (it is read later, after the second adc):
+    //
+    //   %19 : ac = mos6502.adc ...      ; result in $a
+    //   %21 : ac = mos6502.adc ...      ; ALSO defines $a — re-clobbers it
+    //   $a = pseudo.copy %19            ; %19 still needed here
+    //
+    // %19 is live across %21's $a def, so it must vacate $a before %21. assign
+    // fails (its only allowed reg, $a, is busy across the re-clobber), evict fails
+    // (the re-clobber is a constrained def, not an evictable committed vreg of
+    // lighter weight), instruction-split bails (the def is a non-copy adc), local-
+    // split bails (the conflict is a constrained re-def, not a free-register gap),
+    // and split-around-call bails (no implicit-def clobber barrier). So none of
+    // the other kinds fire — this kind is the one that does.
+    //
+    // The fix mirrors InsertRelocationCopiesForConstrainedDefs (the colourer's
+    // eager pre-pass) ON-DEMAND: mint a FLEXIBLE-class temp right AFTER `vreg`'s
+    // defining instruction, copy the value into it (`temp = copy vreg`), and
+    // redirect `vreg`'s later in-block uses to `temp`. The next reanalysis sees
+    // `vreg` occupy $a only for the brief def→copy window (no longer live across
+    // the re-clobber), and the flexible temp carrying the value lives in the
+    // abundant zero-page file — exactly the relocation the deleted isel out-funnel
+    // performed. The temp is recorded in `splitProducts` so it is never itself
+    // re-split.
+    //
+    // Trigger (precise): `vreg`'s allowed set is a single physreg R (so it is
+    // pinned to one register), and there is a LATER instruction — past `vreg`'s
+    // def, while `vreg` is still live — that DEFINES some other vreg whose own
+    // allowed set is also exactly {R} (the re-clobber). We frame it on the
+    // post-intersection allowed sets (`allowedByVreg`) rather than the class
+    // because that is what RA actually colours against: a value whose allowed set
+    // is {R} genuinely cannot live anywhere but R, and a later def of another
+    // {R}-pinned value is the precise re-clobber that forces relocation.
+    // Returns true if it split.
+    // -------------------------------------------------------------------------
+    public bool TrySplitConstrainedDefResult(
+        int vreg, LiveIntervals intervals,
+        IReadOnlyDictionary<int, int[]> allowedByVreg, ISet<int> splitProducts)
+    {
+        var flexibleId = registerInfo.FlexibleI8ClassId;
+        if (flexibleId == 0) return false;
+
+        // A relocation temp we already minted: its def is the copy itself and its
+        // sole use is the constraining one, so re-splitting it would loop.
+        if (splitProducts.Contains(vreg)) return false;
+
+        // `vreg` must be pinned to a single physreg R.
+        if (!allowedByVreg.TryGetValue(vreg, out var myAllowed) || myAllowed.Length != 1)
+            return false;
+        var pinnedReg = myAllowed[0];
+
+        // R must be a member of the flexible class — the relocation parks the value
+        // in a flexible-class temp, so the value must be able to live there. This
+        // is what restricts the kind to data registers ($a / $x / $y, all in the
+        // flexible class) and excludes flag registers ($c / $n / $z / $v), which a
+        // pseudo.copy can never carry. (The colourer's eager equivalent only ever
+        // fires on tied adc/sbc def operands, never on flag defs, for the same
+        // reason.)
+        if (!RegisterAllocationSupport.Contains(
+                registerInfo.GetAllocatableRegisters(flexibleId), pinnedReg))
+            return false;
+
+        // `vreg` must have a real def (a livein has no def to relocate after).
+        var def = function.GetDefinition(vreg);
+        if (def == null) return false;
+        var defBlock = def.Parent!;
+        var defIndex = defBlock.Instructions.IndexOf(def);
+
+        var interval = intervals.IntervalOf(vreg);
+        if (interval.IsEmpty) return false;
+
+        // Find a later instruction that re-defines R (defines some OTHER vreg also
+        // pinned to {R}) while `vreg` is live across it. The re-clobber's def-point
+        // must fall strictly inside `vreg`'s live range (covered, and before its
+        // end) — that is exactly "live across the re-clobber".
+        if (!HasLaterReClobber(vreg, pinnedReg, def, intervals, interval, allowedByVreg))
+            return false;
+
+        // Relocate: mint a flexible temp right after `vreg`'s def, copy the value
+        // into it, and redirect `vreg`'s later in-block uses to the temp. (Block-
+        // local redirect, matching InsertRelocationCopiesForConstrainedDefs: the
+        // straight-line arithmetic chains this targets keep the value within the
+        // defining block.)
+        var flexName = registerInfo.GetRegisterClassName(flexibleId) ?? $"class{flexibleId}";
+        var temp = function.CreateVirtualRegisterInClass(flexibleId, flexName);
+        splitProducts.Add(temp);
+
+        defBlock.InsertInstruction(
+            defIndex + 1,
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(temp, IsDefinition: true),
+            new VirtualReg(vreg, IsDefinition: false));
+
+        // The insert shifted everything at/after defIndex+1 by one; later uses
+        // start at defIndex + 2.
+        for (var j = defIndex + 2; j < defBlock.Instructions.Count; j++)
+        {
+            var operands = defBlock.Instructions[j].Operands;
+            for (var k = 0; k < operands.Length; k++)
+                if (operands[k] is VirtualReg u && !u.IsDefinition && u.Id == vreg)
+                    operands[k] = new VirtualReg(temp, IsDefinition: false);
+        }
+        return true;
+    }
+
+    // Is there a later instruction that re-defines `vreg`'s pinned register while
+    // `vreg` is still live across it? "Re-defines" = defines some OTHER vreg whose
+    // allowed set is also exactly {pinnedReg}; "live across" = the def-point of
+    // that instruction is covered by `vreg`'s interval and lies strictly before
+    // `vreg`'s end (so the value outlives the re-clobber and genuinely conflicts).
+    private bool HasLaterReClobber(
+        int vreg, int pinnedReg, MirInstruction def, LiveIntervals intervals,
+        LiveInterval interval, IReadOnlyDictionary<int, int[]> allowedByVreg)
+    {
+        var defPoint = LiveIntervals.DefSlot(intervals.BaseSlotOf[def]);
+        foreach (var block in function.Blocks)
+            foreach (var instr in block.Instructions)
+            {
+                if (ReferenceEquals(instr, def)) continue;
+                var reDefPoint = LiveIntervals.DefSlot(intervals.BaseSlotOf[instr]);
+                if (reDefPoint <= defPoint) continue;          // not later.
+                if (!interval.Covers(reDefPoint)) continue;    // `vreg` not live across it.
+                if (reDefPoint >= interval.End) continue;      // dies at/before the re-def.
+
+                // Does this instruction define another {pinnedReg}-pinned vreg?
+                foreach (var op in instr.Operands)
+                {
+                    if (op is not VirtualReg d || !d.IsDefinition || d.Id == vreg) continue;
+                    if (allowedByVreg.TryGetValue(d.Id, out var a)
+                        && a.Length == 1 && a[0] == pinnedReg)
+                        return true;
+                }
+            }
+        return false;
+    }
+
     // Find a call barrier the value lives across. A "call" here is recognised
     // structurally: an instruction with one or more implicit-DEF physreg operands
     // (the clobber barrier CallLowering attaches to a jsr). We require the value

@@ -345,32 +345,112 @@ public sealed class GreedyRegisterAllocatorTests
         await Assert.That(spills).IsEqualTo(0);
     }
 
-    // Spill rung reachable: two DISTINCT values that must both occupy the single
-    // $y register at the SAME instruction is genuinely infeasible. The greedy
-    // ladder exhausts assign (no free $y), evict (Stage-0 stub), split (Stage-0
-    // stub), reaches the spill rung, and the pass's spill loop detects
-    // non-convergence and surfaces a clear error rather than hanging — exercising
-    // the greedy → SpilledVregs → SpillVregs path end-to-end.
+    // Split-around-clobber (Stage 3b): two values are each produced by a non-copy
+    // def hard-pinned to the single-physreg class `ac` ({$a}) — the shape of an
+    // adc/sbc/load result in an i16/i32 chain. The FIRST value (`v0`) is live
+    // ACROSS the second's def (it is read AFTER `v1` is defined), so two `ac`
+    // values are simultaneously live → they cannot share the one $a register.
+    // assign fails ($a busy across `v1`'s re-def), evict fails (`v1`'s def is a
+    // constrained def, not an evictable committed vreg), instruction-split bails
+    // (`v0`'s def is a non-copy `arith.addi`, not a copy), local-split bails (the
+    // conflict is a constrained re-def, not a free-register gap), and split-around-
+    // call bails (no implicit-def clobber barrier). So the greedy ladder reaches
+    // split-around-clobber, which relocates `v0` off $a: it mints a flexible temp
+    // right after `v0`'s def, copies `v0` into it, and redirects the later use to
+    // the temp. Reanalysis homes the temp in the zero-page file; `v0` occupies $a
+    // only for the brief def→copy window. This is exactly what the deleted isel
+    // out-funnel / InsertRelocationCopiesForConstrainedDefs did — the kind that
+    // unblocks Stage 4.
     //
-    // NOTE: a *converging* forced spill (where spilling the right victim makes the
-    // function fit) is deferred to Stage 1 — without eviction the Stage-0 skeleton
-    // spills the value that failed to assign rather than the cheaper victim the
-    // colourer's optimistic-spill cost model would pick, so such cases need the
-    // eviction rung. `yc` is used (not a subset of the flexible class) so neither
-    // value can be widened off $y.
+    // Discriminators vs. a plain spill: (1) allocation converges (the Stage-3
+    // ladder without this kind would spill and re-spill, tripping the round cap);
+    // (2) NO `pseudo.spill` is emitted — the relocation kept everything in
+    // registers; (3) some value is homed in the flexible zero-page file (the
+    // relocation target), not on the scarce $a.
+    [Test]
+    public async Task ConstrainedDefLiveAcrossReClobber_SplitsToFlexibleClass()
+    {
+        var fn = NewFunction("greedy_split_clobber");
+        var bb0 = fn.CreateBlock();
+
+        var p = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        // Two values each pinned to the single-physreg class `ac` by a non-copy
+        // def (the adc-result shape). Both want $a.
+        var v0 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Ac, "ac");
+        var v1 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Ac, "ac");
+        var sink = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(p, IsDefinition: true), new Immediate(1));
+        // v0 = non-copy def, pinned to $a.
+        var d0 = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v0, IsDefinition: true),
+            new VirtualReg(p, IsDefinition: false),
+            new VirtualReg(p, IsDefinition: false));
+        // v1 = non-copy def, ALSO pinned to $a — re-clobbers $a while v0 is live.
+        var d1 = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v1, IsDefinition: true),
+            new VirtualReg(p, IsDefinition: false),
+            new VirtualReg(p, IsDefinition: false));
+        // Both v0 (live across v1's def) and v1 are read here → they interfere and
+        // both want $a. v0 must vacate $a before v1's def.
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(sink, IsDefinition: true),
+            new VirtualReg(v0, IsDefinition: false),
+            new VirtualReg(v1, IsDefinition: false));
+
+        Pass.Run(fn); // must converge via split-around-clobber (else it would spill).
+
+        // v1 keeps $a (the constrained re-def winner); v0 was relocated off $a.
+        await Assert.That(DefPhysReg(d1)).IsEqualTo(MOS6502Registers.A);
+        await Assert.That(DefPhysReg(d0)).IsEqualTo(MOS6502Registers.A);
+
+        // The discriminator: NO value was spilled to memory — the relocation kept
+        // everything in registers. A plain spill would emit a `pseudo.spill`.
+        var spills = fn.Blocks.SelectMany(b => b.Instructions).Count(i =>
+            i.Opcode.Dialect == PseudoDialect.Id && (PseudoOp)i.Opcode.Code == PseudoOp.Spill);
+        await Assert.That(spills).IsEqualTo(0);
+
+        // And some value landed in the flexible zero-page file (the relocation
+        // target) — the relocated copy of v0 lives there, off the scarce $a.
+        var zpRegs = Enumerable.Range(2, 30).Select(MOS6502Registers.RC).ToArray();
+        var anyInZp = fn.Blocks.SelectMany(b => b.Instructions)
+            .SelectMany(i => i.Operands)
+            .OfType<PhysicalReg>()
+            .Any(r => zpRegs.Contains(r.Id));
+        await Assert.That(anyInZp).IsTrue();
+    }
+
+    // Spill rung reachable: two DISTINCT values that must both occupy the single
+    // $c (carry-flag) register at the SAME instruction is genuinely infeasible. The
+    // greedy ladder exhausts assign (no free $c), evict (no lighter victim), every
+    // split kind (instruction split needs a copy def; split-around-clobber needs
+    // the pinned reg to be a FLEXIBLE-class member, and $c is NOT — a flag cannot
+    // live in a general register / zero page; local split needs a free-register
+    // gap; split-around-call needs a clobber barrier), reaches the spill rung, and
+    // the pass's spill loop detects non-convergence and surfaces a clear error
+    // rather than hanging — exercising the greedy → SpilledVregs → SpillVregs path
+    // end-to-end.
+    //
+    // The carry-flag class `cc` ({$c}) is the vehicle precisely because $c is the
+    // one single-physreg class that is NOT a subset of the flexible 8-bit class, so
+    // NO split kind can relocate either value off $c. (A `yc`/`ac` value, by
+    // contrast, now relocates via split-around-clobber — $y/$a ARE flexible-class
+    // members — so those classes no longer produce an infeasible conflict.)
     [Test]
     public async Task TwoValuesNeedingSameSingleRegSimultaneously_ReachesSpillAndFails()
     {
         var fn = NewFunction("greedy_infeasible");
         var bb0 = fn.CreateBlock();
-        var v0 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc");
-        var v1 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Yc, "yc");
+        var v0 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Cc, "cc");
+        var v1 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Cc, "cc");
 
         bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
             new VirtualReg(v0, IsDefinition: true), new Immediate(0));
         bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
             new VirtualReg(v1, IsDefinition: true), new Immediate(1));
-        // Both operands of one instruction → both must be live in $y at once.
+        // Both operands of one instruction → both must be live in $c at once, and
+        // neither can relocate off $c (it is not a flexible-class member).
         bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
             new VirtualReg(v0, IsDefinition: false),
             new VirtualReg(v0, IsDefinition: false),
