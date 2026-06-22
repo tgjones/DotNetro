@@ -67,6 +67,10 @@ internal sealed class GreedyRegisterAllocator
     // Per-vreg allocation stage, OWNED by the pass and shared across rounds.
     private readonly Dictionary<int, LiveRangeStage> _stages;
 
+    // Split products (instruction-split reconciliation temps), OWNED by the pass
+    // and shared across rounds so a product is never itself re-split.
+    private readonly ISet<int> _splitProducts;
+
     // The committed colouring built up over one Run.
     private readonly Dictionary<int, int> _assignment = [];
     // Reverse index: physreg → vregs already assigned to it (the LiveRegMatrix
@@ -100,12 +104,14 @@ internal sealed class GreedyRegisterAllocator
 
     public GreedyRegisterAllocator(
         MirFunction function, TargetRegisterInfo registerInfo, LiveIntervals intervals,
-        Dictionary<int, LiveRangeStage> stages, IReadOnlySet<int>? unspillable = null)
+        Dictionary<int, LiveRangeStage> stages, ISet<int> splitProducts,
+        IReadOnlySet<int>? unspillable = null)
     {
         _function = function;
         _registerInfo = registerInfo;
         _intervals = intervals;
         _stages = stages;
+        _splitProducts = splitProducts;
         _unspillable = unspillable ?? new HashSet<int>();
     }
 
@@ -351,12 +357,24 @@ internal sealed class GreedyRegisterAllocator
     }
 
     // -------------------------------------------------------------------------
-    // trySplit — STUB (Stage 2/3). The SplitEditor analogue + tryLocalSplit /
-    // split-around-call land here. Returning false sends the value to spill,
-    // where the pass's existing relief (remat / TrySplitToRegister / store-
-    // reload) still applies — so the skeleton is correct, just not yet splitting.
+    // trySplit (Stage 2) — try the live-range split kinds via the SplitEditor.
+    // Returns true if it edited the IR (the caller then returns null so the pass
+    // reanalyses over fresh intervals and re-runs us):
+    //
+    //   1. Instruction split (split-to-register) — a copy-defined value used at
+    //      narrowing single-physreg uses is split so the value widens to the
+    //      flexible class and only the per-use temps need the scarce register.
+    //
+    // If it does not apply, return false and the value falls through to spill,
+    // where the pass's store/reload still applies. Local split (Stage 2b) and
+    // split-around-call (Stage 3) are the remaining kinds. (Reference:
+    // RegAllocGreedy.cpp trySplit → tryInstructionSplit / tryLocalSplit.)
     // -------------------------------------------------------------------------
-    private bool TrySplit(int vreg) => false;
+    private bool TrySplit(int vreg)
+    {
+        var editor = new SplitEditor(_function, _registerInfo);
+        return editor.TryInstructionSplit(vreg, _splitProducts);
+    }
 
     // -------------------------------------------------------------------------
     // Stage map + priority.

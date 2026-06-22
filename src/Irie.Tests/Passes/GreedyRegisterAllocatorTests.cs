@@ -161,6 +161,49 @@ public sealed class GreedyRegisterAllocatorTests
         await Assert.That(DefPhysReg(i0)).IsNotEqualTo(MOS6502Registers.A);
     }
 
+    // Instruction split (Stage 2): four copy-defined values are each consumed by
+    // an absolute store, whose value operand is the narrowing `axy` class
+    // ({$a,$x,$y}) — a strict subset of the flexible class. All four are
+    // simultaneously live, so they form a 4-clique over a 3-register class:
+    // uncolourable by assign+evict alone (every occupant is equal-weight, so none
+    // can be evicted). The greedy ladder therefore reaches TrySplit, which
+    // instruction-splits a value: its store use is rewritten to a fresh per-use
+    // `axy` temp, so the value itself flows only through copies and widens to the
+    // flexible class — landing in the abundant zero-page file. Result: three
+    // values keep $a/$x/$y, (at least) one relocates to zero page, and allocation
+    // converges (the Stage-0 split stub could not resolve this).
+    [Test]
+    public async Task AxyCliqueExceedingRegisters_InstructionSplitsToZeroPage()
+    {
+        var fn = NewFunction("greedy_instr_split");
+        var bb0 = fn.CreateBlock();
+        var defs = new MirInstruction[4];
+        var vregs = new int[4];
+        for (var i = 0; i < 4; i++)
+        {
+            vregs[i] = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+            defs[i] = bb0.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+                new VirtualReg(vregs[i], IsDefinition: true),
+                new Immediate(i));
+        }
+        // Use all four AFTER all four defs, so all are simultaneously live (a
+        // 4-clique), each at an `axy`-narrowing absolute store.
+        foreach (var v in vregs)
+            bb0.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.StAbs),
+                new VirtualReg(v, IsDefinition: false),
+                new Symbol("g"));
+
+        Pass.Run(fn); // must converge (would throw under the Stage-0 stub).
+
+        var defRegs = defs.Select(DefPhysReg).ToArray();
+        var axy = new[] { MOS6502Registers.A, MOS6502Registers.X, MOS6502Registers.Y };
+        // Every value is assigned a real register...
+        await Assert.That(defRegs.All(r => r >= 0)).IsTrue();
+        // ...and at least one value was split off the scarce {$a,$x,$y} class into
+        // the zero-page file, which only the splitting rung could achieve.
+        await Assert.That(defRegs.Any(r => !axy.Contains(r))).IsTrue();
+    }
+
     // Spill rung reachable: two DISTINCT values that must both occupy the single
     // $y register at the SAME instruction is genuinely infeasible. The greedy
     // ladder exhausts assign (no free $y), evict (Stage-0 stub), split (Stage-0

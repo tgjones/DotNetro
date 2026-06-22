@@ -274,19 +274,75 @@ golden trap warns against standalone `iriec` measurement). Splitting is still a
 stub, so branchy functions that need a split spill rather than converge — that is
 Stage 2's job, not a Stage-1 regression.
 
+### Stage 2a — DONE (2026-06-22): SplitEditor + instruction-split kind
+
+The `SplitEditor` analogue landed and `GreedyRegisterAllocator.TrySplit` now
+performs a real **instruction split** (split-to-register) instead of the Stage-0
+stub. Still flag-gated (`useGreedy`); the colourer (default) path is byte-
+identical — only a new file plus threading a `greedySplitProducts` set into the
+greedy branch. All green: Irie 190/190 (189 + 1 new split test),
+DotNetro.Compiler 21/21. `irie-report` unchanged at **-6.7%** (greedy off the
+default path by construction).
+
+**New file** `src/Irie/Passes/SplitEditor.cs` — the mechanical core (SplitKit
+`SplitEditor` analogue), drastically simplified: it performs only the IR EDIT
+(mint a vreg, insert boundary `pseudo.copy`s, rewrite in-region uses) and returns
+true; the pass's existing per-round `LiveIntervalsAnalysis` reconstructs liveness
+(no incremental `transferValues`). `TryInstructionSplit(vreg, splitProducts)` is
+the first split kind — a faithful port of the pass's `TrySplitToRegister`: for a
+copy-defined value consumed at narrowing single-physreg uses (operand class a
+strict subset of the flexible class, e.g. `axy ⊊ any8`), it mints a flexible temp
+at each narrowing use and copies the value into it, so the value widens to the
+flexible class (zero-page file) and only the short per-use temps need the scarce
+register.
+
+**Edits**
+- `GreedyRegisterAllocator` — ctor gained `ISet<int> splitProducts` (pass-owned,
+  persists across rounds so a reconciliation temp is never re-split); `TrySplit`
+  now `=> new SplitEditor(...).TryInstructionSplit(vreg, _splitProducts)`.
+- `RegisterAllocatorPass` — threads a persistent `greedySplitProducts` set into
+  the greedy ctor (alongside `greedyStages`). Colourer branch untouched.
+- `GreedyRegisterAllocatorTests` — new
+  `AxyCliqueExceedingRegisters_InstructionSplitsToZeroPage`: four copy-defined
+  values each stored via an `axy`-narrowing `mos6502.st.abs`, all simultaneously
+  live → a 4-clique over a 3-register class that assign+evict cannot resolve
+  (equal weights). Greedy reaches TrySplit, instruction-splits one value to zero
+  page; allocation converges (the Stage-0 stub would throw).
+
+**Duplication note (resolves in Stage 4):** the instruction-split logic now
+exists in BOTH `SplitEditor.TryInstructionSplit` (greedy) and the pass's
+`TrySplitToRegister` (colourer spill path). Same discipline as the duplicated
+`RegisterAllocationSupport.ComputeAllowedColours`: the colourer is the default
+during bring-up and is left untouched to avoid risk. They converge when the
+colourer is retired in Stage 4.
+
+### Stage 2b — TODO (next session): local split (the design pivot)
+
+`SplitEditor.TryLocalSplit` was **deliberately not shipped** — a half-baked
+version was written and removed. The naive "every allowed register is busy across
+the gap" contention test is the WRONG condition: that models a value that can
+hold no register across the gap (closer to a hole than a split). The case local
+split actually exists for is a value whose WHOLE range fits no single register but
+whose halves can each take a DIFFERENT free register (R1 free in the first half /
+busy in the second; R2 the reverse). Stage 2b must add the **per-subrange
+free-register check** (LLVM `calcGapWeights` / `tryLocalSplit`) so it fires on the
+cases it is meant for. The boundary-copy mechanics are already proven by the
+instruction-split kind — only the gap-selection policy is new. This is the lever
+for `early-return` once the manual funnels are removed (Stage 4). Refs:
+`RegAllocGreedy.cpp` `tryLocalSplit`/`calcGapWeights` (1663/1741),
+`SplitKit.{h,cpp}` `SplitEditor` (462–521).
+
 ### Resume checklist for the next session
 
 1. Read this file + `[[project_greedy_ra_plan]]` memory.
-2. Start **Stage 2 — SplitEditor analogue + `tryLocalSplit`**: build out the
-   split machinery behind `GreedyRegisterAllocator.TrySplit` (currently `=> false`).
-   Open a new interval, insert boundary `pseudo.copy`s, rewrite in-region uses,
-   then return true so the pass reanalyses (lean on next-round reanalysis — no
-   incremental `transferValues`). Move the pass's `TrySplitToRegister`
-   instruction-split logic into the editor as the first split kind, then add
-   `tryLocalSplit` (gap-weight split within one block). Lever for `early-return`.
-   Refs: `SplitKit.{h,cpp}` `SplitEditor` (462–521), `RegAllocGreedy.cpp`
-   `tryLocalSplit`/`calcGapWeights` (1663/1741), `tryInstructionSplit` (1587).
-3. Determinism: keep every queue/tie break on ascending vreg id.
+2. Do **Stage 2b — local split** (see above): add `SplitEditor.TryLocalSplit`
+   with a correct per-subrange free-register contention model, driven by the
+   greedy allocator's committed-assignment + precoloured-window state (supply the
+   busy test as a callback — only the allocator has the LiveRegMatrix picture).
+   Wire it into `TrySplit` after the instruction-split kind. Add a synthetic
+   `useGreedy:true` test for the "R1-then-R2" split case.
+3. Then **Stage 3 — split-around-call** (the `live-across-call` lever).
+4. Determinism: keep every queue/tie break on ascending vreg id.
 
 ## Risks & mitigations
 

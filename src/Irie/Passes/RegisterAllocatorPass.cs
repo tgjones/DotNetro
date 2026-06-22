@@ -106,6 +106,9 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo, bool 
         // Greedy-engine per-vreg stages, persisted across rounds (a deferred or
         // split range keeps its stage). Unused by the colouring engine.
         var greedyStages = new Dictionary<int, LiveRangeStage>();
+        // Greedy-engine instruction-split products, persisted across rounds so a
+        // reconciliation temp is never itself re-split. Unused by the colourer.
+        var greedySplitProducts = new HashSet<int>();
         LiveIntervals intervals;
         Dictionary<int, int>? assignment;
         IReadOnlyList<int> spilledVregs;
@@ -131,7 +134,8 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo, bool 
             if (useGreedy)
             {
                 var greedy = new GreedyRegisterAllocator(
-                    function, registerInfo, intervals, greedyStages, unspillable);
+                    function, registerInfo, intervals, greedyStages, greedySplitProducts,
+                    unspillable);
                 assignment = greedy.Run();
                 spilledVregs = greedy.SpilledVregs;
             }
