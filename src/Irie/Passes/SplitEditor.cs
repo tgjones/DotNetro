@@ -377,8 +377,6 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
         // `vreg` must have a real def (a livein has no def to relocate after).
         var def = function.GetDefinition(vreg);
         if (def == null) return false;
-        var defBlock = def.Parent!;
-        var defIndex = defBlock.Instructions.IndexOf(def);
 
         var interval = intervals.IntervalOf(vreg);
         if (interval.IsEmpty) return false;
@@ -390,11 +388,86 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
         if (!HasLaterReClobber(vreg, pinnedReg, def, intervals, interval, allowedByVreg))
             return false;
 
-        // Relocate: mint a flexible temp right after `vreg`'s def, copy the value
-        // into it, and redirect `vreg`'s later in-block uses to the temp. (Block-
-        // local redirect, matching InsertRelocationCopiesForConstrainedDefs: the
-        // straight-line arithmetic chains this targets keep the value within the
-        // defining block.)
+        return RelocateAcrossClobber(vreg, splitProducts);
+    }
+
+    // -------------------------------------------------------------------------
+    // Split-around-clobber, INCUMBENT direction. Companion to
+    // TrySplitConstrainedDefResult for the common carry-chain shape where the
+    // FAILING value is the re-clobbering def, not the value live across it:
+    //   %19 = adc ...        ; low result, pinned {$a}, live across the next adc
+    //   %21 = adc ...        ; high result, ALSO pinned {$a}  ← the re-clobber
+    //   $a  = copy %19       ; %19 still needed
+    // The allocator assigns $a to the longer %19 first (largest-interval-first), so
+    // %21 fails. %21 cannot split itself (not live across a later {$a} def) and
+    // cannot evict the heavier %19 — so without this it spills uselessly forever.
+    // The value that must move is the incumbent %19. Given the failing re-clobbering
+    // value, find the {R}-pinned value live across its def IN THE SAME BLOCK (the
+    // straight-line region the block-local relocation can shorten) and relocate THAT
+    // — the same edit as TrySplitConstrainedDefResult. The next reanalysis shortens
+    // %19 to a brief def→copy window, %21 takes $a, and the relocated temp lives in
+    // the flexible file. (llvm-mos reaches the same outcome via
+    // evict→requeue→split-at-higher-stage; Irie's reanalysis architecture splits the
+    // incumbent directly.) Returns true if it split.
+    // -------------------------------------------------------------------------
+    public bool TrySplitIncumbentAcrossClobber(
+        int clobberingVreg, LiveIntervals intervals,
+        IReadOnlyDictionary<int, int[]> allowedByVreg, ISet<int> splitProducts)
+    {
+        var flexibleId = registerInfo.FlexibleI8ClassId;
+        if (flexibleId == 0) return false;
+
+        // The failing value must itself be pinned to a single physreg R and define
+        // it (its def is the re-clobber point that conflicts with the incumbent).
+        if (!allowedByVreg.TryGetValue(clobberingVreg, out var mine) || mine.Length != 1)
+            return false;
+        var pinnedReg = mine[0];
+        if (!RegisterAllocationSupport.Contains(
+                registerInfo.GetAllocatableRegisters(flexibleId), pinnedReg))
+            return false;
+        var clobberDef = function.GetDefinition(clobberingVreg);
+        if (clobberDef == null) return false;
+        var clobberBlock = clobberDef.Parent!;
+        var clobberPoint = LiveIntervals.DefSlot(intervals.BaseSlotOf[clobberDef]);
+
+        // Find an incumbent pinned {R}, live across the clobber, defined in the same
+        // block. Iterate in ascending vreg id for determinism; relocate the first.
+        foreach (var v1 in function.VirtualRegisterIds.OrderBy(x => x))
+        {
+            if (v1 == clobberingVreg || splitProducts.Contains(v1)) continue;
+            if (!allowedByVreg.TryGetValue(v1, out var a) || a.Length != 1 || a[0] != pinnedReg)
+                continue;
+            var iv = intervals.IntervalOf(v1);
+            if (iv.IsEmpty) continue;
+            var v1def = function.GetDefinition(v1);
+            if (v1def == null || !ReferenceEquals(v1def.Parent, clobberBlock)) continue;
+            var v1defPoint = LiveIntervals.DefSlot(intervals.BaseSlotOf[v1def]);
+            if (v1defPoint >= clobberPoint) continue;   // defined after the clobber.
+            if (!iv.Covers(clobberPoint)) continue;     // not live across the clobber.
+            if (clobberPoint >= iv.End) continue;       // dies at/before the clobber.
+            return RelocateAcrossClobber(v1, splitProducts);
+        }
+        return false;
+    }
+
+    // The relocation edit shared by both split-around-clobber directions: mint a
+    // flexible-class temp right AFTER `vreg`'s def, copy the value into it
+    // (`temp = copy vreg`), and redirect `vreg`'s later in-block uses to the temp.
+    // `vreg` then occupies its pinned register only for the brief def→copy window;
+    // the flexible temp carries the value across the re-clobber in the abundant
+    // zero-page / GPR file — the on-demand mirror of
+    // InsertRelocationCopiesForConstrainedDefs / the deleted isel out-funnel. The
+    // temp is recorded in `splitProducts` so it is never itself re-split. Block-
+    // local redirect: the straight-line arithmetic chains this targets keep the
+    // value within the defining block. Returns true.
+    private bool RelocateAcrossClobber(int vreg, ISet<int> splitProducts)
+    {
+        var flexibleId = registerInfo.FlexibleI8ClassId;
+        var def = function.GetDefinition(vreg);
+        if (def == null) return false;
+        var defBlock = def.Parent!;
+        var defIndex = defBlock.Instructions.IndexOf(def);
+
         var flexName = registerInfo.GetRegisterClassName(flexibleId) ?? $"class{flexibleId}";
         var temp = function.CreateVirtualRegisterInClass(flexibleId, flexName);
         splitProducts.Add(temp);

@@ -377,6 +377,13 @@ internal sealed class GreedyRegisterAllocator
     //      class (zero page) right after its def. The on-demand analogue of the
     //      colourer's InsertRelocationCopiesForConstrainedDefs / the deleted isel
     //      out-funnel.
+    //   1c. Split-around-clobber, INCUMBENT direction — when the FAILING value is
+    //      the re-clobbering def (the second adc's $a result), the across-clobber
+    //      value live over it (the incumbent already holding $a) is the one that
+    //      must move. The failing value can neither split itself nor evict the
+    //      heavier incumbent, so we relocate the incumbent. This is the common
+    //      carry-chain shape: the longer across-clobber value wins $a first, so it
+    //      is the re-clobbering newcomer that fails and reaches here.
     //   2. Local split — a value that fits no single register over its whole
     //      range, but whose pieces can each take a different free register, is cut
     //      at an interior use boundary (we supply the busy test from our committed
@@ -403,6 +410,16 @@ internal sealed class GreedyRegisterAllocator
         // a cheap def-site relocation (no busy-test callback needed) — the others
         // handle free-register gaps and call barriers respectively.
         if (editor.TrySplitConstrainedDefResult(vreg, _intervals, _allowed, _splitProducts))
+            return true;
+        // Split-around-clobber, INCUMBENT direction: when the failing value is the
+        // re-clobbering def itself (the second adc's $a result), the value that must
+        // move is the OTHER one — the incumbent live across this def, already holding
+        // $a. The failing value can neither split itself (it is not live across a
+        // later $a def) nor evict the heavier incumbent, so without this it spills
+        // uselessly. Relocate the incumbent instead. (1b handles the case where the
+        // across-clobber value is itself the failing vreg; 1c the more common case
+        // where the re-clobbering value fails first.)
+        if (editor.TrySplitIncumbentAcrossClobber(vreg, _intervals, _allowed, _splitProducts))
             return true;
         if (editor.TryLocalSplit(vreg, _intervals, _allowed[vreg], RegisterBusyAcross))
             return true;
