@@ -606,16 +606,48 @@ straight-line chain) and likely need their own analysis. Two patch attempts (3b,
 3c) each hit a further layer (eviction-routing, then non-SSA def-point) — per
 CLAUDE.md, stop solo-iterating and get direction before a third attempt.
 
+### Stage 4b-i — def-point fix DONE, but gap 1 has a FOURTH layer (2026-06-22)
+
+Fixed the non-SSA def-point bug: `RelocateAcrossClobber` now relocates after the
+value's LATEST def before the clobber (the adc), not `GetDefinition`'s first def
+(the tied-acc copy). `FindLaterReClobber` returns the earliest re-clobber so the
+clobber point is exact. Committed (correctness fix to the 3b/3c split kinds); all
+green (Irie 196/196), no default-path change (greedy flag-gated).
+
+**But a clean convergence re-check (greedy default + adc/sbc funnels removed, then
+reverted) shows gap 1 STILL does not converge** — `add_i16` traces as:
+```
+[RA round 1] assigned=False spills=[]          ; split
+[RA round 2] assigned=False spills=[]          ; split
+[RA round 3] assigned=False spills=[%21:any8]  ; spill a FLEXIBLE value …
+[RA round 4..] spills=[%21:any8] …             ; … forever, until the round cap
+```
+After two split rounds the allocator drops a **flexible (`any8`) value into an
+infinite spill loop** — a value that should NEVER need to spill (the zp pool has
+~30 registers). So greedy reaches its spill rung for a value it should trivially
+assign, and the pass's store/reload never relieves it. This is the FOURTH distinct
+gap-1 failure layer: (1) eviction-routing → (2) non-SSA def-point → (3) split
+products re-spill → (4) greedy spills an assignable flexible value / split+spill
+loop fails to terminate.
+
+**Assessment (CLAUDE.md "the approach is wrong, stop patching").** Each gap-1 fix
+exposes a new failure mode. The heuristic split-kinds + reanalysis-driven spill
+loop are not a robust enough substrate to reconstruct llvm-mos's constrained-chain
+relocations. A faithful fix is a SPLITTER/SPILLER REWORK — SlotIndex-based SplitKit
+with real interval transfer, an eviction/spill cost model that accounts for split
+cost, and split-not-spill that provably terminates — NOT further patches to the
+current split kinds. (Gap 2 / the legalization pass is solid and unaffected.)
+
 ### Resume checklist for the next session
 
 1. Read this file + `[[project_greedy_ra_plan]]` memory.
-2. **Stage 4 is blocked on gap 1** (see "Stage 4b retry" above). Gap 2 is solved
-   (4a). The committed split kinds (3b/3c) are correct but relocate at the wrong def
-   point in two-address form. Decision pending with maintainer: (A) finish the
-   llvm-faithful gap-1 fix (correct def-point selection in non-SSA form +
-   split-not-spill priority + the control-flow non-convergence class); (B) flip
-   greedy to default but KEEP the isel funnels (bank greedy + 4a, defer
-   funnel-removal); (C) pause, keep greedy flag-gated.
+2. **Stage 4 is blocked on gap 1, which has proven to need a splitter/spiller
+   rework, not patches** (see "Stage 4b-i" above; four failure layers). Gap 2 is
+   SOLVED (4a legalization pass). Committed and green: greedy RA + 4 split kinds +
+   def-point fix, all flag-gated; colourer still default. Maintainer decision
+   pending: (A) scope the splitter/spiller rework as dedicated work; (B) flip
+   greedy to default but KEEP the isel funnels (bank greedy + 4a now, defer
+   funnel-removal — lowest-risk realized value); (C) pause, keep greedy flag-gated.
 3. Determinism: keep every queue/tie break on ascending vreg id.
 
 ## Risks & mitigations

@@ -385,10 +385,11 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
         // pinned to {R}) while `vreg` is live across it. The re-clobber's def-point
         // must fall strictly inside `vreg`'s live range (covered, and before its
         // end) — that is exactly "live across the re-clobber".
-        if (!HasLaterReClobber(vreg, pinnedReg, def, intervals, interval, allowedByVreg))
-            return false;
+        var reClobber = FindLaterReClobber(vreg, pinnedReg, def, intervals, interval, allowedByVreg);
+        if (reClobber == null) return false;
 
-        return RelocateAcrossClobber(vreg, splitProducts);
+        var clobberPoint = LiveIntervals.DefSlot(intervals.BaseSlotOf[reClobber]);
+        return RelocateAcrossClobber(vreg, clobberPoint, intervals, splitProducts);
     }
 
     // -------------------------------------------------------------------------
@@ -445,7 +446,7 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
             if (v1defPoint >= clobberPoint) continue;   // defined after the clobber.
             if (!iv.Covers(clobberPoint)) continue;     // not live across the clobber.
             if (clobberPoint >= iv.End) continue;       // dies at/before the clobber.
-            return RelocateAcrossClobber(v1, splitProducts);
+            return RelocateAcrossClobber(v1, clobberPoint, intervals, splitProducts);
         }
         return false;
     }
@@ -460,13 +461,32 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
     // temp is recorded in `splitProducts` so it is never itself re-split. Block-
     // local redirect: the straight-line arithmetic chains this targets keep the
     // value within the defining block. Returns true.
-    private bool RelocateAcrossClobber(int vreg, ISet<int> splitProducts)
+    private bool RelocateAcrossClobber(
+        int vreg, long clobberPoint, LiveIntervals intervals, ISet<int> splitProducts)
     {
         var flexibleId = registerInfo.FlexibleI8ClassId;
-        var def = function.GetDefinition(vreg);
-        if (def == null) return false;
-        var defBlock = def.Parent!;
-        var defIndex = defBlock.Instructions.IndexOf(def);
+
+        // In TWO-ADDRESS (non-SSA) form `vreg` may have several defs — e.g. a tied-
+        // accumulator copy AND the adc that overwrites it (`%19 = copy %3` then
+        // `%19 = adc %19, …`). The value live ACROSS the clobber is the one produced
+        // by `vreg`'s LATEST def before the clobber point, so we relocate after THAT
+        // def — NOT GetDefinition's first def, which would copy the adc INPUT
+        // (`arg0lo`) instead of its RESULT. (Mirrors llvm-mos targeting the precise
+        // def SlotIndex; the prior first-def relocation is what made carry chains
+        // spill instead of split.)
+        MirBlock? defBlock = null;
+        var defIndex = -1;
+        var bestSlot = long.MinValue;
+        foreach (var block in function.Blocks)
+            for (var i = 0; i < block.Instructions.Count; i++)
+            {
+                var instr = block.Instructions[i];
+                if (!DefinesVreg(instr, vreg)) continue;
+                var slot = LiveIntervals.DefSlot(intervals.BaseSlotOf[instr]);
+                if (slot >= clobberPoint || slot <= bestSlot) continue;
+                bestSlot = slot; defBlock = block; defIndex = i;
+            }
+        if (defBlock == null) return false;
 
         var flexName = registerInfo.GetRegisterClassName(flexibleId) ?? $"class{flexibleId}";
         var temp = function.CreateVirtualRegisterInClass(flexibleId, flexName);
@@ -478,34 +498,51 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
             new VirtualReg(temp, IsDefinition: true),
             new VirtualReg(vreg, IsDefinition: false));
 
-        // The insert shifted everything at/after defIndex+1 by one; later uses
-        // start at defIndex + 2.
+        // The insert shifted everything at/after defIndex+1 by one; later uses start
+        // at defIndex + 2. Redirect `vreg`'s later in-block uses to the temp, stopping
+        // at the next REDEFINITION of `vreg` (its later uses read a fresh value). A
+        // tied redefinition both uses and defs `vreg`: redirect its (old-value) use
+        // first, then stop.
         for (var j = defIndex + 2; j < defBlock.Instructions.Count; j++)
         {
-            var operands = defBlock.Instructions[j].Operands;
+            var instr = defBlock.Instructions[j];
+            var operands = instr.Operands;
             for (var k = 0; k < operands.Length; k++)
                 if (operands[k] is VirtualReg u && !u.IsDefinition && u.Id == vreg)
                     operands[k] = new VirtualReg(temp, IsDefinition: false);
+            if (DefinesVreg(instr, vreg)) break;
         }
         return true;
     }
 
-    // Is there a later instruction that re-defines `vreg`'s pinned register while
-    // `vreg` is still live across it? "Re-defines" = defines some OTHER vreg whose
-    // allowed set is also exactly {pinnedReg}; "live across" = the def-point of
-    // that instruction is covered by `vreg`'s interval and lies strictly before
-    // `vreg`'s end (so the value outlives the re-clobber and genuinely conflicts).
-    private bool HasLaterReClobber(
+    private static bool DefinesVreg(MirInstruction instr, int vreg)
+    {
+        foreach (var op in instr.Operands)
+            if (op is VirtualReg d && d.IsDefinition && d.Id == vreg) return true;
+        return false;
+    }
+
+    // Find the later instruction that re-defines `vreg`'s pinned register while
+    // `vreg` is still live across it (or null). "Re-defines" = defines some OTHER
+    // vreg whose allowed set is also exactly {pinnedReg}; "live across" = the
+    // def-point of that instruction is covered by `vreg`'s interval and lies
+    // strictly before `vreg`'s end (so the value outlives the re-clobber and
+    // genuinely conflicts). Returns the EARLIEST such re-clobber — that is the one
+    // `vreg`'s value must vacate the register before.
+    private MirInstruction? FindLaterReClobber(
         int vreg, int pinnedReg, MirInstruction def, LiveIntervals intervals,
         LiveInterval interval, IReadOnlyDictionary<int, int[]> allowedByVreg)
     {
         var defPoint = LiveIntervals.DefSlot(intervals.BaseSlotOf[def]);
+        MirInstruction? best = null;
+        var bestSlot = long.MaxValue;
         foreach (var block in function.Blocks)
             foreach (var instr in block.Instructions)
             {
                 if (ReferenceEquals(instr, def)) continue;
                 var reDefPoint = LiveIntervals.DefSlot(intervals.BaseSlotOf[instr]);
                 if (reDefPoint <= defPoint) continue;          // not later.
+                if (reDefPoint >= bestSlot) continue;          // a later re-clobber.
                 if (!interval.Covers(reDefPoint)) continue;    // `vreg` not live across it.
                 if (reDefPoint >= interval.End) continue;      // dies at/before the re-def.
 
@@ -515,10 +552,12 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
                     if (op is not VirtualReg d || !d.IsDefinition || d.Id == vreg) continue;
                     if (allowedByVreg.TryGetValue(d.Id, out var a)
                         && a.Length == 1 && a[0] == pinnedReg)
-                        return true;
+                    {
+                        best = instr; bestSlot = reDefPoint; break;
+                    }
                 }
             }
-        return false;
+        return best;
     }
 
     // Find a call barrier the value lives across. A "call" here is recognised
