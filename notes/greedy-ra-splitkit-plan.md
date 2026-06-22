@@ -495,7 +495,44 @@ Per CLAUDE.md, checked llvm-mos for `unsigned short add16(unsigned short,unsigne
   minus the funnel, lets an `ac` result feed a zp operand directly), not something
   the allocator is expected to untangle.
 
-### Open design fork (raised with maintainer 2026-06-22)
+### ADC operand-class verification (2026-06-22) — we are NOT over-constrained; gap 2 is a missing legalization copy
+
+Maintainer asked: is our `mos6502.adc.*` over-constrained vs llvm-mos's `ADCImag8`?
+**No — equivalent.** Our `AdcInfo` (`MOS6502Dialect.cs:366`) = `Ac` result + `Ac`
+acc (tied) + `Imag8` addend + `Cc` carry; llvm-mos `ADCImag8` = `ac` acc/result
+(tied) + `imag8` addend + `cc` carry. Identical. The `Imag8` addend is correct —
+real 6502 `ADC` reads its operand from memory (modelled by the imaginary zp
+registers), never a second register.
+
+So gap 2 is NOT an instruction-def mismatch. It is a **missing class-crossing
+legalization copy**. Verified against llvm-mos: for a value computed in `$a` that
+must become an `adc` addend, the pre-RA MIR has
+```
+%23:ac, dead %11:cc = ASL %23
+%10:imag8 = COPY %23            ; class-crossing COPY, a SEPARATE vreg
+%8:ac, ... = ADCImag8 %8, %10, %21
+```
+llvm-mos inserts the `ac → imag8` COPY at ISel so every vreg has ONE consistent
+class; the allocator never sees an `Ac ∩ Imag8` vreg. Our `Ac → Anyi8` funnel
+currently provides this (Anyi8 ⊇ Imag8). Deleting it unconditionally removed the
+legalization, and `ComputeAllowedColours` threw — correctly flagging IR that
+should never have been built.
+
+**Refined Stage 4 design (still the chosen full-llvm-faithful path).** The funnel
+conflates two jobs that llvm-mos splits across two layers:
+1. **Class-crossing legalization** (`Ac` result → `Imag8` use): mandatory, belongs
+   at ISel (llvm-mos emits the COPY there). KEEP — but emit it ONLY where the
+   def-class and a use's required class are disjoint, not after every forced-`$a`
+   def.
+2. **Liveness relocation** (`Ac` result live across another `Ac` def): the
+   redundant `tay`/`tya`. MOVE into RA — the Stage 3b split-around-clobber kind
+   reconstructs it on demand (the codegen win: a result feeding only `Ac` uses
+   stays in `$a`, no round-trip).
+
+Gap 1's re-spilling was almost certainly entangled with the gap-2 crashes; expect
+it to shrink once isel stops producing impossible vregs. Re-measure after 4a.
+
+### Open design fork (raised with maintainer 2026-06-22) — SUPERSEDED by the refined design above; maintainer chose "press on, full llvm-faithful"
 
 Stage 4 as written ("flip + delete funnels + regen goldens") underestimated the
 work. To fully remove the funnels the llvm-faithful way needs BOTH: (gap 1) make
