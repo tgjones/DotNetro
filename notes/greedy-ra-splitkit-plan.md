@@ -351,24 +351,56 @@ at the interior store boundary; reanalysis colours the halves to $a and $x. The
 `pseudo.spill`-count == 0 assertion is the discriminator — without local split the
 value genuinely cannot assign and the store/reload fallback would emit a spill.
 
+### Stage 3 — DONE (2026-06-22): split-around-call
+
+`SplitEditor.TrySplitAroundCall` landed and is wired into
+`GreedyRegisterAllocator.TrySplit` as the third/last split kind (after instruction
+split and local split). Still flag-gated (`useGreedy`); colourer (default) path
+byte-identical. All green: Irie 192/192 (191 + 1 new test), DotNetro.Compiler
+21/21; no goldens changed (greedy off the default path).
+
+The case: a value live ACROSS a call whose class is entirely caller-saved (e.g.
+`axy`). The call carries the caller-saved registers as explicit implicit-defs (the
+clobber barrier `CallLowering` attaches to the `jsr`), so they appear in
+`PhysRegIntervals` as precoloured busy windows covering the call's def-point — a
+value live across that point overlaps every allowed register there, so assign /
+evict / instruction-split / local-split all fail. The fix mirrors llvm-mos
+exactly (`sta __rc20` before / `lda __rc20` after): mint a relocation temp in the
+**flexible** class, copy value→temp right before the call, re-define value←temp
+right after. Reanalysis sees the temp live across the call, so its interference
+with the caller-saved clobber windows leaves only the **callee-saved** registers
+free — `TryAssign` homes it there with no dedicated callee-saved class needed
+(the clobber windows do the constraining, as llvm-mos inflates to the largest
+legal superclass and lets interference pick); `PrologueEpilogueInsertionPass`
+emits the save/restore. Single contiguous across-call region only — no edge
+bundles. Termination: the source's range is shortened to end at the pre-call copy
+(no longer crosses the call, so `FindAcrossCallBarrier` won't re-pick it) and the
+temp is recorded in `_splitProducts`.
+
+`FindAcrossCallBarrier` recognises a call **structurally** (any instruction with
+≥1 implicit-def physreg operand) — no call-opcode coupling. Refs:
+`RegAllocGreedy.cpp` `tryRegionSplit` (1202), but the single-block contiguous
+case here is a targeted relocate, not full region split.
+
+**New test** `GreedyRegisterAllocatorTests.ValueLiveAcrossCall_SplitsIntoCalleeSavedRegister`
+— an `axy` value def'd by non-copy `arith.addi`, single post-call use, live across
+a `jsr.abs` clobbering the full caller-saved set. assign/evict/instruction-split
+(non-copy def) / local-split (<2 uses) all fail; split-around-call relocates it.
+Discriminators vs. a plain spill: (1) some instr defines a callee-saved reg
+(RC20..31); (2) zero `pseudo.spill` ops; (3) the post-call store reads a real GPR.
+
+**Not done (deferred to Stage 4):** real corpus / `irie-report` measurement of the
+`live-across-call` case needs the default flip (greedy is off the default path by
+construction), and the golden trap warns against standalone `iriec` measurement.
+
 ### Resume checklist for the next session
 
 1. Read this file + `[[project_greedy_ra_plan]]` memory.
-2. Do **Stage 3 — split-around-call** (the `live-across-call` lever): a value live
-   across a call (whose clobbers are explicit implicit-defs on the call instr, so
-   they already appear in `PhysRegIntervals`) gets split to keep it in a
-   callee-saved register across the call (relocate via copy), letting
-   `PrologueEpilogueInsertionPass` emit the save/restore. A single contiguous
-   across-call region — no edge bundles. Validate against
-   `pressure/live-across-call.s` (llvm-mos relocates `a` to `__rc16` + stack
-   save/restore). Refs: `RegAllocGreedy.cpp` `tryRegionSplit` (1202) — but the
-   single-block contiguous case here is closer to a targeted relocate than full
-   region split.
-3. Then **Stage 4 — flip the default + delete the manual funnels** (and the
+2. Do **Stage 4 — flip the default + delete the manual funnels** (and the
    colourer, `InsertRelocationCopiesForConstrainedDefs`, and the duplicated
    instruction-split in `RegisterAllocatorPass.TrySplitToRegister`). Regenerate
    goldens the harness way.
-4. Determinism: keep every queue/tie break on ascending vreg id.
+3. Determinism: keep every queue/tie break on ascending vreg id.
 
 ## Risks & mitigations
 
