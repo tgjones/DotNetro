@@ -648,6 +648,7 @@ current split kinds. (Gap 2 / the legalization pass is solid and unaffected.)
    pending: (A) scope the splitter/spiller rework as dedicated work; (B) flip
    greedy to default but KEEP the isel funnels (bank greedy + 4a now, defer
    funnel-removal — lowest-risk realized value); (C) pause, keep greedy flag-gated.
+   **DECIDED 2026-06-22: option A — see [`splitter-spiller-rework-plan.md`](splitter-spiller-rework-plan.md).**
 3. Determinism: keep every queue/tie break on ascending vreg id.
 
 ## Risks & mitigations
