@@ -268,6 +268,83 @@ public sealed class GreedyRegisterAllocatorTests
         await Assert.That(spills).IsEqualTo(0);
     }
 
+    // Split-around-call (Stage 3): a value whose class is entirely CALLER-SAVED
+    // (`axy` = {$a,$x,$y}) is live ACROSS a call. The call (a `jsr.abs` carrying
+    // the caller-saved registers as implicit-DEFs — the clobber barrier) covers
+    // the value's every allowed register at the call point, so it cannot stay in
+    // any of them across the call. Its def is an `arith.addi` (non-copy →
+    // instruction split bails) and it has a single post-call use (one in-block use
+    // → local split bails, needing ≥2). assign fails (no whole-range free reg),
+    // evict fails (the clobbers are fixed precoloured windows), instruction and
+    // local split both bail — so the greedy ladder reaches split-around-call. It
+    // relocates the value into a flexible-class temp across the call (copy out
+    // before, copy back after — the llvm-mos `sta __rc20` / `lda __rc20` shape);
+    // reanalysis homes that temp in a CALLEE-SAVED register (the caller-saved
+    // clobber windows force it there) rather than spilling to memory.
+    //
+    // Discriminator: SOME instruction defines a callee-saved register (RC20..31) —
+    // the across-call relocation home — AND no value was spilled to memory. Only
+    // split-around-call parks a value in a preserved register; a plain spill would
+    // emit a `pseudo.spill` and touch no callee-saved register at all.
+    [Test]
+    public async Task ValueLiveAcrossCall_SplitsIntoCalleeSavedRegister()
+    {
+        var fn = NewFunction("greedy_across_call");
+        var bb0 = fn.CreateBlock();
+
+        var p = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        // v is hard-pinned to axy (all caller-saved) by its store use; its def is a
+        // non-copy arith.addi so instruction split cannot widen it.
+        var v = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Axy, "axy");
+
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(p, IsDefinition: true), new Immediate(1));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v, IsDefinition: true),
+            new VirtualReg(p, IsDefinition: false),
+            new VirtualReg(p, IsDefinition: false));
+
+        // The call: clobbers every caller-saved register as implicit-defs (the
+        // barrier CallLowering attaches to a jsr.abs) — $a/$x/$y plus the
+        // caller-saved zero-page scratch RC2..RC19. Only the callee-saved RC20..31
+        // survive, so the across-call relocation temp can ONLY land there. v is
+        // live across it.
+        var clobbers = new List<MirOperand> { new Symbol("g") };
+        foreach (var caller in new[] { MOS6502Registers.A, MOS6502Registers.X, MOS6502Registers.Y }
+                     .Concat(Enumerable.Range(2, 18).Select(MOS6502Registers.RC)))
+            clobbers.Add(new PhysicalReg(caller, IsDefinition: true, IsImplicit: true));
+        bb0.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.JsrAbs), clobbers.ToArray());
+
+        // The single post-call use — one in-block use, so local split bails.
+        var use = bb0.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.StAbs),
+            new VirtualReg(v, IsDefinition: false), new Symbol("g"));
+
+        Pass.Run(fn); // must converge via split-around-call (else it would spill).
+
+        // The post-call store reads a real GPR (the value's class is axy, satisfied
+        // by the post-call copy-back) — the relocation copied it back out of the
+        // callee-saved home.
+        var useReg = use.Operands.OfType<PhysicalReg>().First(o => !o.IsDefinition).Id;
+        var axy = new[] { MOS6502Registers.A, MOS6502Registers.X, MOS6502Registers.Y };
+        await Assert.That(axy.Contains(useReg)).IsTrue();
+
+        // The discriminator: some instruction DEFINES a callee-saved register — the
+        // across-call relocation home the temp landed in. A plain spill touches no
+        // callee-saved register; only split-around-call parks the value there.
+        var calleeSaved = Enumerable.Range(20, 12).Select(MOS6502Registers.RC).ToArray();
+        var defsCalleeSaved = fn.Blocks.SelectMany(b => b.Instructions)
+            .SelectMany(i => i.Operands)
+            .OfType<PhysicalReg>()
+            .Any(p => p.IsDefinition && calleeSaved.Contains(p.Id));
+        await Assert.That(defsCalleeSaved).IsTrue();
+
+        // And nothing was spilled to memory — only the split-around-call relocation
+        // achieves this; the store/reload fallback would emit a `pseudo.spill`.
+        var spills = fn.Blocks.SelectMany(b => b.Instructions).Count(i =>
+            i.Opcode.Dialect == PseudoDialect.Id && (PseudoOp)i.Opcode.Code == PseudoOp.Spill);
+        await Assert.That(spills).IsEqualTo(0);
+    }
+
     // Spill rung reachable: two DISTINCT values that must both occupy the single
     // $y register at the SAME instruction is genuinely infeasible. The greedy
     // ladder exhausts assign (no free $y), evict (Stage-0 stub), split (Stage-0

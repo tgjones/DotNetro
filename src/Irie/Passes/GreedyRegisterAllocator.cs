@@ -71,6 +71,11 @@ internal sealed class GreedyRegisterAllocator
     // and shared across rounds so a product is never itself re-split.
     private readonly ISet<int> _splitProducts;
 
+    // The target's callee-saved registers — the relocation home for a value split
+    // around a call (a value held in one of these is preserved by the function's
+    // prologue/epilogue). Snapshotted once from the register info.
+    private readonly int[] _calleeSaved;
+
     // The committed colouring built up over one Run.
     private readonly Dictionary<int, int> _assignment = [];
     // Reverse index: physreg → vregs already assigned to it (the LiveRegMatrix
@@ -112,6 +117,7 @@ internal sealed class GreedyRegisterAllocator
         _intervals = intervals;
         _stages = stages;
         _splitProducts = splitProducts;
+        _calleeSaved = registerInfo.GetCalleeSavedRegisters().ToArray();
         _unspillable = unspillable ?? new HashSet<int>();
     }
 
@@ -368,17 +374,29 @@ internal sealed class GreedyRegisterAllocator
     //      range, but whose pieces can each take a different free register, is cut
     //      at an interior use boundary (we supply the busy test from our committed
     //      assignment + the precoloured physreg windows).
+    //   3. Split-around-call — a value live across a call whose class is entirely
+    //      caller-saved (so the call's clobber barrier covers every allowed
+    //      register) is relocated into a flexible-class temp across the call, so
+    //      reanalysis homes the temp in a callee-saved register (the clobber
+    //      windows force it there) and PrologueEpilogueInsertionPass saves it.
     //
-    // If neither applies, return false and the value falls through to spill, where
-    // the pass's store/reload still applies. Split-around-call (the
-    // live-across-call lever) is Stage 3. (Reference: RegAllocGreedy.cpp
-    // trySplit → tryInstructionSplit / tryLocalSplit.)
+    // If none applies, return false and the value falls through to spill, where
+    // the pass's store/reload still applies. (Reference: RegAllocGreedy.cpp
+    // trySplit → tryInstructionSplit / tryLocalSplit / tryRegionSplit.)
     // -------------------------------------------------------------------------
     private bool TrySplit(int vreg)
     {
         var editor = new SplitEditor(_function, _registerInfo);
         if (editor.TryInstructionSplit(vreg, _splitProducts)) return true;
-        return editor.TryLocalSplit(vreg, _intervals, _allowed[vreg], RegisterBusyAcross);
+        if (editor.TryLocalSplit(vreg, _intervals, _allowed[vreg], RegisterBusyAcross))
+            return true;
+        // Split-around-call. The minted relocation temp is recorded in
+        // _splitProducts (so it is never itself re-split); the source's range is
+        // shortened to end at the pre-call copy, so it no longer lives across the
+        // call and FindAcrossCallBarrier won't pick it again — termination is by
+        // range shortening, not a flag.
+        return editor.TrySplitAroundCall(
+            vreg, _intervals, _allowed[vreg], _calleeSaved, _splitProducts, RegisterBusyAcross);
     }
 
     // Is `reg` busy anywhere in the half-open slot window [start, end)? Busy means

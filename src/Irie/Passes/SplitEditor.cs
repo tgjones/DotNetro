@@ -192,6 +192,175 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
         return false;
     }
 
+    // -------------------------------------------------------------------------
+    // Split around a call (the live-across-call lever). Reference:
+    // RegAllocGreedy.cpp tryRegionSplit — but the single contiguous across-call
+    // region here is a targeted RELOCATE, not a full edge-bundle region split.
+    //
+    // The case this exists for: a value live ACROSS a call whose register class
+    // is entirely CALLER-SAVED (e.g. `axy` = {$a,$x,$y}, all clobbered by a
+    // call). A call instruction carries the caller-saved registers as explicit
+    // implicit-DEFs (the clobber barrier emitted by CallLowering), so they appear
+    // in PhysRegIntervals as precoloured busy windows covering the call's
+    // def-point. A value live across that point therefore overlaps every one of
+    // its allowed (caller-saved) registers there: tryAssign fails (no whole-range
+    // free reg), tryEvict fails (the clobbers are fixed precoloured windows, not
+    // evictable committed vregs), instruction-split bails (the def is not a
+    // narrowing copy) and local-split bails (no register in the value's class is
+    // free across the across-call sub-region — they are all clobbered, and the
+    // class has no callee-saved member to escape to).
+    //
+    // The fix mirrors llvm-mos exactly. llvm-mos relocates `a` to a callee-saved
+    // __rcNN ACROSS the call and copies it BACK to a GPR for the post-call use
+    // (`sta __rc20` before the call, `lda __rc20` / `tax` after). We do the same:
+    //   * mint a relocation temp in the FLEXIBLE class (which DOES include the
+    //     callee-saved zero-page registers);
+    //   * copy the value into the temp right BEFORE the call (`temp = copy v`);
+    //   * RE-DEFINE the value from the temp right AFTER the call (`v = copy temp`),
+    //     so the value's live range is cut into two GPR-friendly pieces (before /
+    //     after the call) with the temp carrying it across.
+    // The next reanalysis sees the temp live across the call, so it overlaps every
+    // caller-saved clobber window and the ONLY registers free for it are the
+    // callee-saved ones — tryAssign homes it there automatically (no dedicated
+    // callee-saved class needed; the clobber windows do the constraining, exactly
+    // as llvm-mos inflates to the largest legal superclass and lets interference
+    // pick). The value's two short pieces each take a caller-saved register (its
+    // class is unchanged, so the constrained post-call use is satisfied), and
+    // PrologueEpilogueInsertionPass emits the save/restore for whichever
+    // callee-saved register the temp landed on.
+    //
+    // The "is register R free across [start, end)?" busy test is supplied by the
+    // caller (the allocator's committed-assignment + precoloured-window picture);
+    // we use it to confirm a callee-saved register IS actually free across the
+    // region before splitting, so we never relocate into an occupied reg.
+    //
+    // Single contiguous across-call region only — no edge bundles, no global
+    // region split (out of scope; add only if a corpus case demands it).
+    // Returns true if it split.
+    // -------------------------------------------------------------------------
+    public bool TrySplitAroundCall(
+        int vreg, LiveIntervals intervals, int[] allowed,
+        int[] calleeSavedRegs, ISet<int> splitProducts,
+        Func<int, int, int, bool> isBusyAcross)
+    {
+        if (calleeSavedRegs.Length == 0) return false;
+
+        // A relocation temp we already minted: its sole role is carrying the value
+        // across the call, so re-splitting it would loop.
+        if (splitProducts.Contains(vreg)) return false;
+        var interval = intervals.IntervalOf(vreg);
+        if (interval.IsEmpty) return false;
+
+        // Find the clobber barrier this value lives across: a call instruction
+        // (one carrying implicit-def physregs) such that the value is live both
+        // BEFORE and AFTER its def-point, and the clobbers cover the value's
+        // allowed registers (so the value genuinely cannot stay put across it).
+        var (call, callBlock, callIndex) = FindAcrossCallBarrier(vreg, intervals, allowed);
+        if (call == null) return false;
+
+        // The across-call region runs from the call to the value's last use.
+        var callDefSlot = LiveIntervals.DefSlot(intervals.BaseSlotOf[call]);
+        var hi = interval.End;
+        if (callDefSlot >= hi) return false; // no live range after the call.
+
+        // Confirm a callee-saved register is actually free across [call, hi). If
+        // none is, relocation buys nothing (and the temp would itself fail to
+        // allocate), so leave the value for the spill fallback.
+        if (!AnyFree(calleeSavedRegs, callDefSlot, hi, isBusyAcross))
+            return false;
+
+        // Mint the relocation temp in the FLEXIBLE class so its across-call
+        // interference with the caller-saved clobber windows leaves only the
+        // callee-saved registers free for it.
+        var flexibleId = registerInfo.FlexibleI8ClassId;
+        if (flexibleId == 0) return false;
+        var flexName = registerInfo.GetRegisterClassName(flexibleId) ?? $"class{flexibleId}";
+        var temp = function.CreateVirtualRegisterInClass(flexibleId, flexName);
+        splitProducts.Add(temp);
+
+        // Copy the value into the temp right BEFORE the call (`temp = copy v`),
+        // and re-define the value from the temp right AFTER the call
+        // (`v = copy temp`). The value's range is cut into two pieces (before /
+        // after the call, each free to take a caller-saved register), and the temp
+        // carries it across the call (forced to a callee-saved register because
+        // every caller-saved one is clobbered there).
+        callBlock!.InsertInstruction(
+            callIndex,
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(temp, IsDefinition: true),
+            new VirtualReg(vreg, IsDefinition: false));
+
+        // The pre-call copy shifted the call (and everything after) down by one;
+        // the call is now at callIndex + 1, so the copy-back goes at callIndex + 2.
+        callBlock.InsertInstruction(
+            callIndex + 2,
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(vreg, IsDefinition: true),
+            new VirtualReg(temp, IsDefinition: false));
+        return true;
+    }
+
+    // Find a call barrier the value lives across. A "call" here is recognised
+    // structurally: an instruction with one or more implicit-DEF physreg operands
+    // (the clobber barrier CallLowering attaches to a jsr). We require the value
+    // to be live across the instruction's def-point (used after it AND live into
+    // it) and the clobbers to cover the value's allowed register set, so the
+    // value genuinely cannot remain in any allowed register across the call.
+    // Returns the first such instruction (ascending program order) or null.
+    private (MirInstruction? Call, MirBlock? Block, int Index) FindAcrossCallBarrier(
+        int vreg, LiveIntervals intervals, int[] allowed)
+    {
+        var interval = intervals.IntervalOf(vreg);
+        foreach (var block in function.Blocks)
+            for (var i = 0; i < block.Instructions.Count; i++)
+            {
+                var instr = block.Instructions[i];
+                var clobbers = ImplicitClobbers(instr);
+                if (clobbers.Count == 0) continue;
+
+                // The value must be live across this instruction's def-point: live
+                // before it (covers the use point) AND used somewhere after it.
+                var usePoint = LiveIntervals.UseSlot(intervals.BaseSlotOf[instr]);
+                var defPoint = LiveIntervals.DefSlot(intervals.BaseSlotOf[instr]);
+                if (!interval.Covers(usePoint)) continue;
+                if (interval.End <= defPoint) continue; // dies at/before the call.
+
+                // The value must not appear as an operand of the call itself (an
+                // arg / clobber-target) — we only relocate values that merely pass
+                // OVER the call, not ones it reads or writes.
+                if (UsesOrDefsVreg(instr, vreg)) continue;
+
+                // Every allowed register must be clobbered by the call, so the
+                // value cannot stay in any of them across it.
+                if (AllClobbered(allowed, clobbers))
+                    return (instr, block, i);
+            }
+        return (null, null, 0);
+    }
+
+    private static HashSet<int> ImplicitClobbers(MirInstruction instr)
+    {
+        var set = new HashSet<int>();
+        foreach (var op in instr.Operands)
+            if (op is PhysicalReg { IsDefinition: true, IsImplicit: true } p)
+                set.Add(p.Id);
+        return set;
+    }
+
+    private static bool AllClobbered(int[] allowed, HashSet<int> clobbers)
+    {
+        foreach (var r in allowed)
+            if (!clobbers.Contains(r)) return false;
+        return allowed.Length > 0;
+    }
+
+    private static bool UsesOrDefsVreg(MirInstruction instr, int vreg)
+    {
+        foreach (var op in instr.Operands)
+            if (op is VirtualReg v && v.Id == vreg) return true;
+        return false;
+    }
+
     // Is some register in `allowed` free across the whole half-open window
     // [start, end) — i.e. not busy anywhere within it?
     private static bool AnyFree(
