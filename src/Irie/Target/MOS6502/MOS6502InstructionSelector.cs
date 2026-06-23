@@ -352,30 +352,43 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     }
 
     // A folded absolute-symbol load: the Symbol the ALU op will read directly,
-    // plus the now-dead `lda.abs` and its funnel `pseudo.copy` to erase.
-    private readonly record struct AbsLoadFold(Symbol Symbol, MirInstruction Lda, MirInstruction Copy);
+    // plus the now-dead `lda.abs` and (when the operand reaches the ALU op via a
+    // relocation copy rather than directly) the funnel `pseudo.copy` to erase.
+    private readonly record struct AbsLoadFold(Symbol Symbol, MirInstruction Lda, MirInstruction? Copy);
 
-    // Match `%v = pseudo.copy %lda` where `%lda = mos6502.lda.abs @sym`, both
-    // single-use, with no memory write between the load and `consumer` (which
-    // would make folding the load past it unsound). Returns the symbol + the two
-    // instructions to erase, or null if the pattern / safety check fails.
+    // Match an `lda.abs @sym` feeding `vreg`, accepting EITHER shape
+    // (mirroring llvm-mos m_FoldedLdAbs, which walks to the G_LOAD_ABS def with
+    // no copy in the pattern):
+    //   - direct:      `%v = mos6502.lda.abs @sym`
+    //   - via funnel:  `%v = pseudo.copy %lda` where `%lda = mos6502.lda.abs @sym`
+    // Requires the relevant defs to be single-use and no memory write between the
+    // load and `consumer` (which would make folding the load past it unsound).
+    // Returns the symbol + the instruction(s) to erase, or null if the pattern /
+    // safety check fails.
     private static AbsLoadFold? TryMatchFoldableAbsLoad(MirFunction function, int vreg, MirInstruction consumer)
     {
         if (function.GetUseCount(vreg) != 1) return null;
 
-        var copy = function.GetDefinition(vreg);
-        if (copy is null
-            || copy.Opcode.Dialect != PseudoDialect.Id
-            || (PseudoOp)copy.Opcode.Code != PseudoOp.Copy
-            || copy.Operands.Length != 2
-            || copy.Operands[1] is not VirtualReg copySrc)
-            return null;
+        var def = function.GetDefinition(vreg);
+        if (def is null) return null;
 
-        if (function.GetUseCount(copySrc.Id) != 1) return null;
+        MirInstruction? copy = null;
+        var lda = def;
 
-        var lda = function.GetDefinition(copySrc.Id);
-        if (lda is null
-            || lda.Opcode != MOS6502Dialect.OpRef(MOS6502Op.LdaAbs)
+        // Funnel shape: walk through a single-use relocation copy to its source.
+        if (def.Opcode.Dialect == PseudoDialect.Id
+            && (PseudoOp)def.Opcode.Code == PseudoOp.Copy
+            && def.Operands.Length == 2
+            && def.Operands[1] is VirtualReg copySrc)
+        {
+            if (function.GetUseCount(copySrc.Id) != 1) return null;
+            var srcDef = function.GetDefinition(copySrc.Id);
+            if (srcDef is null) return null;
+            copy = def;
+            lda = srcDef;
+        }
+
+        if (lda.Opcode != MOS6502Dialect.OpRef(MOS6502Op.LdaAbs)
             || lda.Operands.Length != 2
             || lda.Operands[1] is not Symbol symbol)
             return null;
@@ -436,8 +449,8 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         function.ReplaceAllUsesOfRegister(flagOutVreg, newFlag);
         builder.Remove(instr);
 
-        // The load now has no remaining uses (both single-use checks passed).
-        builder.Remove(fold.Copy);
+        // The load now has no remaining uses (the single-use checks passed).
+        if (fold.Copy is { } foldCopy) builder.Remove(foldCopy);
         builder.Remove(fold.Lda);
         return true;
     }
