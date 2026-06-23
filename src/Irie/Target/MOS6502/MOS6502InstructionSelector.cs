@@ -331,21 +331,12 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             new VirtualReg(bVreg,      IsDefinition: false),
             new VirtualReg(flagInVreg, IsDefinition: false));
 
-        // Funnel the result out of $a into a flexible Anyi8 vreg (mirrors the
-        // EOR path's out-funnel). The adc/sbc architecturally produces its
-        // result in $a (def[0] = Ac, tied to use[0]), but a result later used as
-        // a zero-page operand would otherwise intersect Ac ∩ Imag8 = ∅. Routing
-        // downstream uses through `resOut : any8` keeps the value flexible; the
-        // coalescer collapses this copy whenever $a is free for the chain.
-        var resOut = function.CreateVirtualRegisterInClass(
-            MOS6502RegisterClass.Anyi8,
-            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
-        builder.BuildInstruction(
-            PseudoDialect.OpRef(PseudoOp.Copy),
-            new VirtualReg(resOut,    IsDefinition: true),
-            new VirtualReg(newResult, IsDefinition: false));
-
-        function.ReplaceAllUsesOfRegister(resultVreg,  resOut);
+        // The adc/sbc result lands in $a (def[0] = Ac, tied to use[0]). If it
+        // outlives the instruction the generic relocation pass
+        // (RegisterAllocatorPass.InsertRelocationCopiesForConstrainedDefs) moves
+        // it off $a into a flexible vreg — one pass for every tied-def result,
+        // replacing the per-opcode out-funnel that used to live here.
+        function.ReplaceAllUsesOfRegister(resultVreg,  newResult);
         function.ReplaceAllUsesOfRegister(flagOutVreg, newFlag);
         builder.Remove(instr);
         return true;
@@ -406,9 +397,9 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         return new AbsLoadFold(symbol, lda, copy);
     }
 
-    // Emit `%r, %c = mos6502.{adc,sbc}.abs %acc, @sym, %carryIn`, funnel the
-    // result out of $a into a flexible Anyi8 vreg (the same out-funnel the plain
-    // adc/sbc path uses), and erase the original op plus the now-dead load.
+    // Emit `%r, %c = mos6502.{adc,sbc}.abs %acc, @sym, %carryIn` and erase the
+    // original op plus the now-dead load. The result is left in its Ac vreg; the
+    // generic relocation pass moves it off $a if it outlives the op.
     private static bool EmitFoldedAbsCarryBorrow(
         MirBuilder builder, MirInstruction instr, MOS6502Op absOp,
         int resultVreg, int flagOutVreg, int accVreg, int flagInVreg, AbsLoadFold fold)
@@ -437,15 +428,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             fold.Symbol,
             new VirtualReg(flagInVreg, IsDefinition: false));
 
-        var resOut = function.CreateVirtualRegisterInClass(
-            MOS6502RegisterClass.Anyi8,
-            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
-        builder.BuildInstruction(
-            PseudoDialect.OpRef(PseudoOp.Copy),
-            new VirtualReg(resOut,    IsDefinition: true),
-            new VirtualReg(newResult, IsDefinition: false));
-
-        function.ReplaceAllUsesOfRegister(resultVreg,  resOut);
+        function.ReplaceAllUsesOfRegister(resultVreg,  newResult);
         function.ReplaceAllUsesOfRegister(flagOutVreg, newFlag);
         builder.Remove(instr);
 
@@ -455,10 +438,10 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         return true;
     }
 
-    // Emit `%r, %c = mos6502.{adc,sbc} %acc, #imm, %carryIn`, funnel the result
-    // out of $a into a flexible Anyi8 vreg (the same out-funnel the plain/abs
-    // paths use), and erase the original op plus the now-dead constant def. AMS
-    // refines the bare adc/sbc to .imm once operand[3] is an Immediate.
+    // Emit `%r, %c = mos6502.{adc,sbc} %acc, #imm, %carryIn` and erase the
+    // original op plus the now-dead constant def. The result is left in its Ac
+    // vreg; the generic relocation pass moves it off $a if it outlives the op.
+    // AMS refines the bare adc/sbc to .imm once operand[3] is an Immediate.
     private static bool EmitFoldedImmCarryBorrow(
         MirBuilder builder, MirInstruction instr, MOS6502Op aluOp,
         int resultVreg, int flagOutVreg, int accVreg, int flagInVreg,
@@ -487,15 +470,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             new Immediate(immValue),                     // operand[3] → AMS picks AdcImm/SbcImm
             new VirtualReg(flagInVreg, IsDefinition: false));
 
-        var resOut = function.CreateVirtualRegisterInClass(
-            MOS6502RegisterClass.Anyi8,
-            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
-        builder.BuildInstruction(
-            PseudoDialect.OpRef(PseudoOp.Copy),
-            new VirtualReg(resOut,    IsDefinition: true),
-            new VirtualReg(newResult, IsDefinition: false));
-
-        function.ReplaceAllUsesOfRegister(resultVreg,  resOut);
+        function.ReplaceAllUsesOfRegister(resultVreg,  newResult);
         function.ReplaceAllUsesOfRegister(flagOutVreg, newFlag);
         builder.Remove(instr);
 
@@ -949,12 +924,12 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         }
     }
 
-    // Emit `result = byte EOR #imm`, returning a fresh Anyi8 vreg holding the
-    // result. The EOR must run in $a, so the byte is copied into a fresh Ac
-    // vreg, EOR'd in place (def tied to use via EorImmInfo), then copied back
-    // out into an Anyi8 vreg so the RA can park it in zero page for the rest of
-    // the compare chain (otherwise it would be pinned to $a and starve the
-    // per-byte CMP funnel).
+    // Emit `result = byte EOR #imm`, returning the eor.imm result vreg ($a-class).
+    // The EOR must run in $a, so the byte is copied into a fresh Ac vreg and
+    // EOR'd in place (def tied to use via EorImmInfo). The result is left in its
+    // Ac vreg; if it outlives the op the generic relocation pass moves it off $a
+    // into a flexible vreg so the RA can park it in zero page for the rest of the
+    // compare chain (the former per-opcode out-funnel is gone).
     private static int EorByteWithImmediate(MirFunction function, MirBuilder builder, int byteVreg, long imm)
     {
         var aIn = function.CreateVirtualRegisterInClass(
@@ -975,14 +950,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             new VirtualReg(aIn,  IsDefinition: false),
             new Immediate(imm));
 
-        var result = function.CreateVirtualRegisterInClass(
-            MOS6502RegisterClass.Anyi8,
-            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Anyi8)!);
-        builder.BuildInstruction(
-            PseudoDialect.OpRef(PseudoOp.Copy),
-            new VirtualReg(result, IsDefinition: true),
-            new VirtualReg(aOut,   IsDefinition: false));
-        return result;
+        return aOut;
     }
 
     // mos6502.cmp %a, <rhs> implicit-def $n, $z, $c. The rhs is a register

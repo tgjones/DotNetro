@@ -19,20 +19,16 @@
 ; CHECK:     %32 : cc = mos6502.sec
 ; CHECK:     %33 : any8 = pseudo.copy %3
 ; CHECK:     %33 : any8, %34 : cc = mos6502.sbc %33\(tied-def 0\), %7, %32
-; CHECK:     %35 : any8 = pseudo.copy %33
-; CHECK:     %36 : any8 = pseudo.copy %4
-; CHECK:     %36 : any8, %37 : cc = mos6502.sbc %36\(tied-def 0\), %8, %34
-; CHECK:     %38 : any8 = pseudo.copy %36
-; CHECK:     %39 : any8 = pseudo.copy %5
-; CHECK:     %39 : any8, %40 : cc = mos6502.sbc %39\(tied-def 0\), %9, %37
-; CHECK:     %41 : any8 = pseudo.copy %39
-; CHECK:     %42 : any8 = pseudo.copy %6
-; CHECK:     %42 : any8, %43 : cc = mos6502.sbc %42\(tied-def 0\), %10, %40
-; CHECK:     %44 : any8 = pseudo.copy %42
-; CHECK:     \$a = pseudo.copy %35
-; CHECK:     \$x = pseudo.copy %38
-; CHECK:     \$zp2 = pseudo.copy %41
-; CHECK:     \$zp3 = pseudo.copy %44
+; CHECK:     %35 : any8 = pseudo.copy %4
+; CHECK:     %35 : any8, %36 : cc = mos6502.sbc %35\(tied-def 0\), %8, %34
+; CHECK:     %37 : any8 = pseudo.copy %5
+; CHECK:     %37 : any8, %38 : cc = mos6502.sbc %37\(tied-def 0\), %9, %36
+; CHECK:     %39 : any8 = pseudo.copy %6
+; CHECK:     %39 : any8, %40 : cc = mos6502.sbc %39\(tied-def 0\), %10, %38
+; CHECK:     \$a = pseudo.copy %33
+; CHECK:     \$x = pseudo.copy %35
+; CHECK:     \$zp2 = pseudo.copy %37
+; CHECK:     \$zp3 = pseudo.copy %39
 ; CHECK:     mos6502.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
 ; CHECK: \}
 

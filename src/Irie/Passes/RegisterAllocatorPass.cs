@@ -571,59 +571,108 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo, bool 
 
     // -------------------------------------------------------------------------
     // Insert a relocation pseudo.copy after each tied-operand def whose result
-    // is read later in the same block. The fresh vreg is in the flexible 8-bit
+    // outlives the defining instruction. The fresh vreg is in the flexible 8-bit
     // class, so the coalescer is free to place the relocated value on ANY free
-    // register (it does not commit to one here). Later in-block uses of the
-    // original def vreg are redirected to the fresh vreg.
+    // register (it does not commit to one here). Every later use of the original
+    // def vreg — in this block AND in successor blocks — is redirected to the
+    // fresh vreg.
     //
     // Trigger: a tied def (the def end of a two-address instruction such as
     // mos6502.adc). After TwoAddressInstructionPass the def vreg is also the
     // tied use, so it is hard-pinned to the op's single-physreg class ($a). If
     // its value outlives the instruction it MUST be moved off that register
     // before the next link in the chain re-defines it; that is what this copy
-    // provides. Block-local: a value live OUT of the block is handled the same
-    // way the old pass did (no cross-block redirect), which suffices for the
-    // straight-line arithmetic chains this targets — branchy cases keep the
-    // value in the constrained reg only within the defining block.
+    // provides.
+    //
+    // Cross-block: a value live OUT of the defining block (the case the deleted
+    // isel out-funnels covered by renaming ALL uses up front) is redirected
+    // slot-precisely, mirroring SplitEditor.RelocateAcrossClobber and LLVM's
+    // SplitKit/SplitEditor (which work off SlotIndex numbering, NOT a CFG walk):
+    // a use of the constrained value is any use whose use-slot lies strictly
+    // after the producing def's def-slot and strictly before the value's NEXT
+    // def (so a later, unrelated re-definition's value is untouched). Because
+    // LiveIntervals numbers slots in program order across every block, this
+    // redirects the cross-block uses for free. The colourer's global coalescer
+    // then places the single resulting cross-block vreg coherently in one
+    // register.
     // -------------------------------------------------------------------------
     private void InsertRelocationCopiesForConstrainedDefs(MirFunction function, int flexibleI8)
     {
         var flexibleName = registerInfo.GetRegisterClassName(flexibleI8) ?? $"class{flexibleI8}";
 
+        // Slot numbering is built once over the post-TwoAddress MIR. We collect
+        // every relocation against this single snapshot FIRST, then apply them —
+        // the recorded (instruction, operand-index) pairs survive the insertions
+        // because they hold instruction references, not positions.
+        var intervals = new LiveIntervalsAnalysis().Compute(function);
+
+        var plans = new List<(MirInstruction DefInstr, int DefVreg,
+            List<(MirInstruction Instr, int Index)> Uses)>();
+
         foreach (var block in function.Blocks)
-        {
-            var i = 0;
-            while (i < block.Instructions.Count)
+            foreach (var instr in block.Instructions)
             {
-                var instr = block.Instructions[i];
                 var info = DialectRegistry.ById(instr.Opcode.Dialect)
                     .GetInstructionInfo(instr.Opcode.Code);
                 var tiedOperands = info.TiedOperands;
-                if (tiedOperands == null) { i++; continue; }
+                if (tiedOperands == null) continue;
 
                 var operands = instr.Operands;
-                var inserted = 0;
-
                 for (var defIdx = 0; defIdx < operands.Length; defIdx++)
                 {
                     if (operands[defIdx] is not VirtualReg defOp || !defOp.IsDefinition)
                         continue;
                     if (!IsTiedDef(tiedOperands, defIdx)) continue;
-                    if (!IsVregUsedLaterInBlock(block, i + inserted, defOp.Id)) continue;
 
-                    var tempVreg = function.CreateVirtualRegisterInClass(flexibleI8, flexibleName);
-                    block.InsertInstruction(
-                        i + 1 + inserted,
-                        Dialects.Pseudo.PseudoDialect.OpRef(Dialects.Pseudo.PseudoOp.Copy),
-                        new VirtualReg(tempVreg, IsDefinition: true),
-                        new VirtualReg(defOp.Id, IsDefinition: false));
-                    inserted++;
+                    var defVreg = defOp.Id;
+                    var producingDefSlot = LiveIntervals.DefSlot(intervals.BaseSlotOf[instr]);
 
-                    RedirectLaterUsesInBlock(block, i + 1 + inserted, defOp.Id, tempVreg);
+                    // Earliest def of defVreg strictly after the producing one —
+                    // a use at/after it reads a fresh value and must stay put.
+                    var nextDefSlot = long.MaxValue;
+                    foreach (var b in function.Blocks)
+                        foreach (var other in b.Instructions)
+                        {
+                            if (!DefinesVreg(other, defVreg)) continue;
+                            var s = LiveIntervals.DefSlot(intervals.BaseSlotOf[other]);
+                            if (s > producingDefSlot && s < nextDefSlot) nextDefSlot = s;
+                        }
+
+                    // Collect every use of defVreg in (producingDefSlot, nextDefSlot)
+                    // across ALL blocks. The defining instruction's own tied use has
+                    // use-slot == base < producingDefSlot (= base + 1), so it is
+                    // excluded automatically.
+                    var uses = new List<(MirInstruction, int)>();
+                    foreach (var b in function.Blocks)
+                        foreach (var other in b.Instructions)
+                        {
+                            var useSlot = LiveIntervals.UseSlot(intervals.BaseSlotOf[other]);
+                            if (useSlot <= producingDefSlot || useSlot >= nextDefSlot) continue;
+                            var ops = other.Operands;
+                            for (var k = 0; k < ops.Length; k++)
+                                if (ops[k] is VirtualReg u && !u.IsDefinition && u.Id == defVreg)
+                                    uses.Add((other, k));
+                        }
+
+                    // Relocate only if the value is read again; a value never read
+                    // after its def needs no copy.
+                    if (uses.Count > 0)
+                        plans.Add((instr, defVreg, uses));
                 }
-
-                i += 1 + inserted;
             }
+
+        foreach (var (defInstr, defVreg, uses) in plans)
+        {
+            var block = defInstr.Parent!;
+            var tempVreg = function.CreateVirtualRegisterInClass(flexibleI8, flexibleName);
+            block.InsertInstruction(
+                block.Instructions.IndexOf(defInstr) + 1,
+                Dialects.Pseudo.PseudoDialect.OpRef(Dialects.Pseudo.PseudoOp.Copy),
+                new VirtualReg(tempVreg, IsDefinition: true),
+                new VirtualReg(defVreg, IsDefinition: false));
+
+            foreach (var (instr, index) in uses)
+                instr.Operands[index] = new VirtualReg(tempVreg, IsDefinition: false);
         }
     }
 
@@ -634,28 +683,11 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo, bool 
         return false;
     }
 
-    // Is the vreg read by some instruction after instrIdx in this block (before
-    // any re-definition)? A def re-establishes a fresh value, so we stop there.
-    private static bool IsVregUsedLaterInBlock(MirBlock block, int instrIdx, int vreg)
+    private static bool DefinesVreg(MirInstruction instr, int vreg)
     {
-        for (var j = instrIdx + 1; j < block.Instructions.Count; j++)
-        {
-            foreach (var op in block.Instructions[j].Operands)
-                if (op is VirtualReg v && v.Id == vreg)
-                    return !v.IsDefinition;
-        }
+        foreach (var op in instr.Operands)
+            if (op is VirtualReg d && d.IsDefinition && d.Id == vreg) return true;
         return false;
-    }
-
-    private static void RedirectLaterUsesInBlock(MirBlock block, int startIdx, int origVreg, int newVreg)
-    {
-        for (var j = startIdx; j < block.Instructions.Count; j++)
-        {
-            var operands = block.Instructions[j].Operands;
-            for (var k = 0; k < operands.Length; k++)
-                if (operands[k] is VirtualReg v && !v.IsDefinition && v.Id == origVreg)
-                    operands[k] = new VirtualReg(newVreg, IsDefinition: false);
-        }
     }
 
     // -------------------------------------------------------------------------
