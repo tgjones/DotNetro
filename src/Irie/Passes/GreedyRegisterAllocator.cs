@@ -133,6 +133,7 @@ internal sealed class GreedyRegisterAllocator
     {
         var vregs = RegisterAllocationSupport.CollectReferencedVregs(_function);
         _allowed = RegisterAllocationSupport.ComputeAllowedColours(_function, _registerInfo, vregs);
+        ExcludeHardClaimedAcrossRegisters(vregs);
         _blockFrequency = ComputeBlockFrequencies();
 
         // Priority queue: largest interval first, ties by ascending vreg id.
@@ -191,6 +192,71 @@ internal sealed class GreedyRegisterAllocator
         }
 
         return _assignment;
+    }
+
+    // -------------------------------------------------------------------------
+    // Across-clobber correctness exclusion (Stage R1).
+    //
+    // A single-physreg-pinned value W (allowed == {R}, e.g. an `ac` adc result)
+    // can ONLY live in R: it has a HARD claim on R at its def-point. Any OTHER
+    // value V whose live range COVERS W's def-point (V is live ACROSS the
+    // re-clobber of R that W's def is) therefore must NOT be assigned R — if it
+    // were, W would have nowhere to go and would spill, which the reanalysis loop
+    // cannot relieve (W re-pins to R every round). This is exactly the carry-chain
+    // Mode-A hazard: a relocation temp carrying the earlier adc result across the
+    // next adc's $a def is copy-hinted back onto $a, evicting the final adc result
+    // off its only register.
+    //
+    // The interference between V and W is already exact (they overlap at R); this
+    // is a PREFERENCE/ALLOWED correctness narrowing that makes the ordering hazard
+    // impossible — V can never grab R before W is even processed. It mirrors
+    // llvm-mos forcing the across-clobber piece off R through the clobber's
+    // interference window. We only remove R when V has SOME other register left
+    // (so a genuinely {R}-only value is never emptied — that conflict stays for
+    // the spill rung to surface). Deterministic: vregs iterated ascending.
+    // -------------------------------------------------------------------------
+    private void ExcludeHardClaimedAcrossRegisters(IReadOnlyList<int> vregs)
+    {
+        // Hard claimants of each register R: vregs whose allowed set is exactly
+        // {R}, paired with their def-point slot. Built once, iterated deterministic.
+        var hardClaims = new List<(int Reg, int DefSlot)>();
+        foreach (var w in vregs)
+        {
+            if (!_allowed.TryGetValue(w, out var wa) || wa.Length != 1) continue;
+            var def = _function.GetDefinition(w);
+            if (def == null) continue;
+            hardClaims.Add((wa[0], LiveIntervals.DefSlot(_intervals.BaseSlotOf[def])));
+        }
+        if (hardClaims.Count == 0) return;
+
+        foreach (var v in vregs)
+        {
+            if (!_allowed.TryGetValue(v, out var va) || va.Length <= 1) continue;
+            var interval = _intervals.IntervalOf(v);
+            if (interval.IsEmpty) continue;
+
+            // Registers V must yield: some other value hard-claims R at a def-point
+            // strictly inside V's live range (V is live across that re-clobber).
+            var excluded = new HashSet<int>();
+            foreach (var (reg, defSlot) in hardClaims)
+            {
+                if (!RegisterAllocationSupport.Contains(va, reg)) continue;
+                if (defSlot >= interval.End) continue;          // V dies at/before it.
+                if (!interval.Covers(defSlot)) continue;        // V not live across it.
+                // The hard claimant might be V's own def (a {R}-pinned V is handled
+                // by the va.Length <= 1 guard above, so here va.Length > 1 and V is
+                // not the claimant). Exclude R.
+                excluded.Add(reg);
+            }
+            if (excluded.Count == 0) continue;
+
+            var narrowed = va.Where(r => !excluded.Contains(r)).ToArray();
+            // Never empty a value's allowed set — leave at least the original if the
+            // exclusion would remove everything (a genuinely infeasible conflict the
+            // spill rung must surface, not one we mask here).
+            if (narrowed.Length > 0)
+                _allowed[v] = narrowed;
+        }
     }
 
     // -------------------------------------------------------------------------

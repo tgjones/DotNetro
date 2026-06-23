@@ -196,3 +196,107 @@ IRIE_RA_TRACE=1 dotnet src/Irie.Tools.Compiler/bin/Debug/net10.0/iriec.dll \
   disabled, `InsertRelocationCopiesForConstrainedDefs` disabled) are **all
   reverted**; `grep -rn CONVERGENCE-CHECK src/Irie` returns nothing, and the only
   remaining source diff is the `round` threading + `RaTrace.cs`.
+
+---
+
+## Stage R1 — slot-precise SplitEditor (DONE)
+
+Re-expressed the relocation edit in `RelocateAcrossClobber`
+(`src/Irie/Passes/SplitEditor.cs`) in terms of SlotIndexes and multi-def
+(two-address) vregs, and added a single principled across-clobber correctness
+exclusion to the greedy allocator. Both changes are greedy-engine-only — the
+default colourer path is untouched. Convergence-check flips were applied,
+measured, and **reverted**; the only committed source diff is `SplitEditor.cs`,
+`GreedyRegisterAllocator.cs`, and the new unit test.
+
+### What changed
+
+1. **Slot-precise, cross-block relocation** (`SplitEditor.RelocateAcrossClobber`).
+   - The producing-def selection (Stage 4b-i) was already slot-precise — verified
+     and kept: the donor's value is the one produced by `vreg`'s **latest def
+     before the clobber** (`producingDefSlot`), found via `DefSlot` order across
+     all blocks, not `GetDefinition`'s first def.
+   - The **redirect loop is now cross-block and slot-keyed**. It collects, before
+     the edit, every use of `vreg` whose `UseSlot` lies in
+     `(producingDefSlot, nextDefSlot)` across **all** blocks (`nextDefSlot` = the
+     earliest later def of `vreg`, or +∞, so a subsequent value is untouched), then
+     redirects them to the flexible temp. Because `LiveIntervals` numbers slots in
+     program order across every block, this naturally reaches the cross-block uses
+     the old block-local loop left behind — the Stage-R0 **Mode-B** cause (the
+     donor range never shrank because its cross-block uses kept it live across the
+     re-clobbers). Operating on recorded `(instr, index)` pairs makes the rewrite
+     index-shift-proof against the inserted copy.
+   - **Strict-shrink assertion (well-founded measure).** The edit now records
+     whether any redirected use is at/after the clobber point; if none is, it
+     throws (`relocation … redirected no across-clobber use`) rather than looping to
+     the round cap. So a non-shrinking edit fails loudly at its cause.
+
+2. **Across-clobber correctness exclusion**
+   (`GreedyRegisterAllocator.ExcludeHardClaimedAcrossRegisters`, called once per
+   `Run`). A value W with allowed == {R} hard-claims R at its def-point; any other
+   value V whose live range **covers** W's def-point (V is live across that
+   re-clobber of R) must not be assigned R. We remove R from V's allowed set,
+   guarded so V is never emptied (a genuinely {R}-only V's conflict is left for the
+   spill rung). This is the sanctioned R1 correctness fix named in the task: "a
+   value live across a clobber of register R cannot be assigned R." It kills the
+   Mode-A copy-hint hazard where the relocation temp landed **back** on $a (the
+   trace confirms: with the exclusion, the temp `%24` now assigns `$zp2`, off $a).
+   The interference between V and W was always exact; this is a preference/allowed
+   narrowing that removes the ordering hazard (V grabbing R before W is processed),
+   mirroring llvm-mos forcing the across-clobber piece off R through the clobber
+   interference window.
+
+### Unit test
+
+`GreedyRegisterAllocatorTests.ConstrainedDefLiveAcrossReClobber_CrossBlockUse_RedirectsAndConverges`
+— a hand-built two-block fixture: `v0` (`ac`, non-copy def) is live across `v1`'s
+$a re-clobber in bb0 AND used in bb1. Asserts (1) `Pass.Run` does not throw
+(the old block-local edit tripped the round cap), (2) no `pseudo.spill` is
+emitted, (3) `v1` keeps $a while the bb1 use of `v0` reads a non-$a (zero-page)
+register — proving the cross-block redirect. Verified to **fail** (round-cap
+throw) with the Stage-R1 `SplitEditor` change reverted, and pass with it.
+
+### Convergence results (greedy default + funnels-off + relocation-prepass-off)
+
+| case | mode | R0 result | R1 result |
+|------|------|-----------|-----------|
+| `common_subexpr` | B | infinite split loop (round cap) | **converges, 0 spills** |
+| `early_return`   | B | infinite split loop (round cap) | **converges, 0 spills** |
+| `add_i16`        | A | spill loop (round cap)          | bounded; single `pseudo.spill` survives → **needs R2** |
+| `add_i32`        | A | spill loop (round cap)          | bounded; single `pseudo.spill` survives → **needs R2** |
+| `sub_i16`        | A | spill loop (round cap)          | bounded; single `pseudo.spill` survives → **needs R2** |
+
+**Mode B is fully fixed by R1** — both control-flow cases now converge to a valid
+allocation with no spill (each constrained-def-result split fires a bounded number
+of times because the donor range strictly shrinks every round, instead of forever).
+
+**The chains (Mode A) still need R2.** The plan expected the chains to converge in
+R1, but the R0 boundary note was correct: after the relocation temp is forced off
+$a (the new exclusion does this — confirmed in the trace), the chains spill a
+**different** value than R0 reported. The remaining spill is the second adc's
+result vreg (`%21`/`%39`, allowed = {$a}), whose live range now has a **first
+segment over the tied-accumulator copy** (`%21 = pseudo.copy %4` at the top of the
+chain) that conflicts with the **first** adc's $a occupancy. Trace (`add_i16`,
+round 3): `SPILL %21 allowed={0} segments=[17..19,21..25]` — segment `[17..19]` is
+the tied-acc copy, where $a is held by the first chain link. This is **not** a
+relocation-temp problem (R1 fixed that); it is that the accumulator-side value
+(`%4` → `%21`'s tied-acc copy) is pinned to $a too early — it should be held in a
+GPR (`$x`/`$y`) and moved to $a (`txa`/`tya`) only at the adc, which is exactly the
+llvm-mos `tay/txa/adc/tax/tya` shape. Reconstructing that requires either
+split-not-spill for the tied-accumulator copy chain or a cost model that prefers
+splitting the accumulator side over spilling the result — **R2** (cost model +
+split-not-spill + terminating stage ladder), not a small correctness fix.
+**Stopped at the R1/R2 boundary as instructed.**
+
+### Validation
+
+- `dotnet test --project src/Irie.Tests` — **197/197 green** (196 + the new R1
+  unit test) with the convergence-check flips reverted.
+- `dotnet test --project src/DotNetro.Compiler.Tests` — **21/21 green**.
+- Convergence-check flips (greedy default → true, three adc/sbc out-funnels
+  disabled — replaced by a direct `ReplaceAllUsesOfRegister(resultVreg, newResult)`;
+  `InsertRelocationCopiesForConstrainedDefs` disabled) are **all reverted**:
+  `grep -rn CONVERGENCE-CHECK` returns nothing; the only committed diff is
+  `SplitEditor.cs`, `GreedyRegisterAllocator.cs`, and the new unit test. Greedy
+  stays flag-gated (`useGreedy: false` default); the colourer remains the default
+  engine and its goldens are unchanged.

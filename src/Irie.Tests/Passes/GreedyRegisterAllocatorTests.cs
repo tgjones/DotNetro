@@ -1,4 +1,5 @@
 using Irie.Dialects.Arith;
+using Irie.Dialects.Cf;
 using Irie.Dialects.Pseudo;
 using Irie.Mir;
 using Irie.Passes;
@@ -457,5 +458,83 @@ public sealed class GreedyRegisterAllocatorTests
             new VirtualReg(v1, IsDefinition: false));
 
         await Assert.That(() => Pass.Run(fn)).Throws<InvalidOperationException>();
+    }
+
+    // Split-around-clobber, CROSS-BLOCK donor (Stage R1 — the slot-precise edit).
+    //
+    // This is the synthetic two-address adc-chain shape from the Stage-R0 Mode-B
+    // non-termination, reduced to its essence: a value `v0` pinned to the single-
+    // physreg class `ac` ({$a}) is live ACROSS a later re-definition of $a (`v1`,
+    // also `ac`) AND is used in a SUCCESSOR block. The donor's across-clobber use
+    // lives in bb1, not bb0.
+    //
+    // Before Stage R1, RelocateAcrossClobber's redirect loop was block-local: it
+    // rewrote only `v0`'s uses inside bb0, so the bb1 use kept `v0` live across the
+    // re-clobber and the donor range NEVER shrank — the constrained-def-result
+    // split fired every round until the round cap (the pass throws "did not
+    // converge"). The slot-precise edit redirects EVERY use of the donor value in
+    // the across-clobber slot range across ALL blocks, including bb1, so the donor
+    // range strictly shrinks and allocation converges.
+    //
+    // Discriminators: (1) Pass.Run does NOT throw (the old block-local edit would
+    // trip the round cap); (2) NO `pseudo.spill` is emitted (the relocation kept
+    // everything in registers); (3) the bb1 use reads a flexible zero-page register
+    // (the relocated temp), NOT $a — proving the cross-block use was redirected off
+    // the constrained register.
+    [Test]
+    public async Task ConstrainedDefLiveAcrossReClobber_CrossBlockUse_RedirectsAndConverges()
+    {
+        var fn = NewFunction("greedy_split_clobber_xblock");
+        var bb0 = fn.CreateBlock();
+        var bb1 = fn.CreateBlock();
+
+        var p = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        // Two values each pinned to `ac` by a non-copy def (the adc-result shape).
+        var v0 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Ac, "ac");
+        var v1 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Ac, "ac");
+        var sink = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var xsink = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(p, IsDefinition: true), new Immediate(1));
+        // v0 = non-copy def, pinned to $a (the donor — live across v1's def AND
+        // into bb1).
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v0, IsDefinition: true),
+            new VirtualReg(p, IsDefinition: false),
+            new VirtualReg(p, IsDefinition: false));
+        // v1 = non-copy def, ALSO pinned to $a — re-clobbers $a while v0 is live.
+        var d1 = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v1, IsDefinition: true),
+            new VirtualReg(p, IsDefinition: false),
+            new VirtualReg(p, IsDefinition: false));
+        // v1 is consumed in bb0 (it really needs $a here).
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(sink, IsDefinition: true),
+            new VirtualReg(v1, IsDefinition: false),
+            new VirtualReg(v1, IsDefinition: false));
+        bb0.AddInstruction(CfDialect.OpRef(CfOp.Br), new BlockTarget(bb1, []));
+
+        // The CROSS-BLOCK use of v0 — the use the old block-local redirect missed,
+        // which kept v0 live across v1's re-clobber forever.
+        var xuse = bb1.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(xsink, IsDefinition: true),
+            new VirtualReg(v0, IsDefinition: false),
+            new VirtualReg(v0, IsDefinition: false));
+
+        Pass.Run(fn); // must converge via the slot-precise cross-block relocation.
+
+        // No value was spilled to memory — the relocation kept everything in
+        // registers. (The old block-local edit looped to the round cap and threw.)
+        var spills = fn.Blocks.SelectMany(b => b.Instructions).Count(i =>
+            i.Opcode.Dialect == PseudoDialect.Id && (PseudoOp)i.Opcode.Code == PseudoOp.Spill);
+        await Assert.That(spills).IsEqualTo(0);
+
+        // v1 keeps $a; the bb1 use of v0's value reads a flexible zero-page register
+        // (the relocated temp), NOT $a — the cross-block use was redirected off the
+        // constrained register.
+        await Assert.That(DefPhysReg(d1)).IsEqualTo(MOS6502Registers.A);
+        var xuseReg = xuse.Operands.OfType<PhysicalReg>().First(o => !o.IsDefinition).Id;
+        await Assert.That(xuseReg).IsNotEqualTo(MOS6502Registers.A);
     }
 }
