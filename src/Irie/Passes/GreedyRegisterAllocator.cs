@@ -80,6 +80,11 @@ internal sealed class GreedyRegisterAllocator
     // prologue/epilogue). Snapshotted once from the register info.
     private readonly int[] _calleeSaved;
 
+    // The target's cheap-transfer real GPRs, in preference order — the relocation
+    // home preferred ahead of the zero-page pool for split products (Stage R2; see
+    // PreferenceOrder). Snapshotted once from the register info.
+    private readonly int[] _shortRangeGprs;
+
     // The committed colouring built up over one Run.
     private readonly Dictionary<int, int> _assignment = [];
     // Reverse index: physreg → vregs already assigned to it (the LiveRegMatrix
@@ -111,6 +116,37 @@ internal sealed class GreedyRegisterAllocator
     private readonly List<int> _actualSpills = [];
     public IReadOnlyList<int> SpilledVregs => _actualSpills;
 
+    // True when this Run edited the IR by SPLITTING (relocating a value) rather
+    // than spilling — i.e. it returned null with SpilledVregs empty. The pass uses
+    // this to know a split round happened.
+    public bool DidSplit { get; private set; }
+
+    // True when the split this Run performed was a RELOCATION across a clobber
+    // (constrained-def-result / incumbent / relocatable-phys-clobber) — the kinds
+    // whose job is to remove a constrained value's across-clobber liveness, and
+    // the ONLY kinds that could in principle loop (the Mode-B failure). The pass
+    // polices the well-founded measure only on these rounds; the instruction /
+    // local / around-call kinds terminate by their own construction (split
+    // products are never re-split, and each shortens a range or removes a
+    // narrowing use).
+    public bool LastSplitWasRelocation { get; private set; }
+
+    // Well-founded termination measure (Stage R2): the COUNT of constrained,
+    // non-split-product vregs that are still live across a clobber of their pinned
+    // register. A vreg is "constrained" iff its allowed set is a single register R
+    // (it can live only in R); it "spans a clobber" iff some point strictly after
+    // its producing def — where R is busy (a precoloured physreg window OR another
+    // value's def of R) — is covered by its interval. That is EXACTLY the set of
+    // across-clobber relocations still to perform. Each relocation split removes
+    // one such span (RelocateAcrossClobber redirects the donor's across-clobber
+    // use, so the donor no longer spans it), so this count strictly decreases and
+    // is bounded below by zero — a genuine well-founded measure, and (unlike a
+    // raw slot-length total) INSERTION-INVARIANT: inserting a relocation copy
+    // shifts slot numbers but cannot turn a resolved span back into an unresolved
+    // one. The pass asserts the strict decrease on relocation rounds, so a
+    // non-shrinking relocation fails loudly at its cause, not at the round cap.
+    public long ConstrainedRangeMeasure { get; private set; }
+
     public GreedyRegisterAllocator(
         MirFunction function, TargetRegisterInfo registerInfo, LiveIntervals intervals,
         Dictionary<int, LiveRangeStage> stages, ISet<int> splitProducts,
@@ -122,6 +158,7 @@ internal sealed class GreedyRegisterAllocator
         _stages = stages;
         _splitProducts = splitProducts;
         _calleeSaved = registerInfo.GetCalleeSavedRegisters().ToArray();
+        _shortRangeGprs = registerInfo.GetShortRangeGprPreference().ToArray();
         _unspillable = unspillable ?? new HashSet<int>();
         _round = round;
     }
@@ -135,6 +172,7 @@ internal sealed class GreedyRegisterAllocator
         _allowed = RegisterAllocationSupport.ComputeAllowedColours(_function, _registerInfo, vregs);
         ExcludeHardClaimedAcrossRegisters(vregs);
         _blockFrequency = ComputeBlockFrequencies();
+        ConstrainedRangeMeasure = ComputeConstrainedRangeMeasure(vregs);
 
         // Priority queue: largest interval first, ties by ascending vreg id.
         var queue = new PriorityQueue<int, (long, int)>();
@@ -176,6 +214,7 @@ internal sealed class GreedyRegisterAllocator
             // 4. Try splitting the range (stub for now → falls through to spill).
             if (stage < LiveRangeStage.Spill && TrySplit(vreg))
             {
+                DidSplit = true;
                 RaTrace.Split(_function.Name, _round, vreg, _lastSplitKind ?? "?");
                 RaTrace.DumpFunction(_function.Name, _round, _function, "post-split IR");
                 return null; // IR edited → pass reanalyses and re-runs.
@@ -272,9 +311,23 @@ internal sealed class GreedyRegisterAllocator
     }
 
     // Candidate colours in preference order: copy-hint colours first (the other
-    // end of a pseudo.copy that is already a physreg or already assigned), then
-    // the class-intersection allowed order. Quality refinements (short-range GPR
-    // preference, neighbour-hint avoidance) are deferred — Stage 1+.
+    // end of a pseudo.copy that is already a physreg or already assigned), then —
+    // for a RELOCATION split product — the real GPRs ($a/$x/$y) ahead of the
+    // zero-page pool, then the class-intersection allowed order.
+    //
+    // The GPR-ahead-of-zp step (Stage R2) is the copy-cost preference that makes a
+    // relocation match the llvm-mos `tay`/`tya` shape. Reference: llvm-mos
+    // MOSRegisterInfo::getRegAllocationHints, which scores each candidate by the
+    // COPY COST across the value's copies — a relocation temp escaping $a (`%t =
+    // copy <$a value>` … `$a = copy %t`) is cheapest in a real GPR ($a↔$y is
+    // `tay`/`tya`: 1 byte / 2 cycles each) and dearer in zero page ($a↔zp is
+    // `sta`/`lda`: 2 bytes / 3 cycles each). Both Irie's `Anyi8` order and
+    // llvm-mos's put the zp pool first as the GENERAL default (zp is abundant), so
+    // without this nudge the relocation lands in zp. We apply the GPR preference
+    // ONLY to split products (the relocation temps) so the general flexible-value
+    // placement — which deliberately favours zp to keep the three GPRs free — is
+    // unchanged. A split product's whole purpose is to carry a value across a
+    // clobber via the cheapest move, so a free GPR is the right home for it.
     private IEnumerable<int> PreferenceOrder(int vreg)
     {
         var allowed = _allowed[vreg];
@@ -283,6 +336,11 @@ internal sealed class GreedyRegisterAllocator
         foreach (var hint in CopyHintColours(vreg))
             if (RegisterAllocationSupport.Contains(allowed, hint) && emitted.Add(hint))
                 yield return hint;
+
+        if (_splitProducts.Contains(vreg))
+            foreach (var gpr in _shortRangeGprs)
+                if (RegisterAllocationSupport.Contains(allowed, gpr) && emitted.Add(gpr))
+                    yield return gpr;
 
         foreach (var c in allowed)
             if (emitted.Add(c))
@@ -380,7 +438,7 @@ internal sealed class GreedyRegisterAllocator
             if (_intervals.Overlaps(vreg, candidate)) continue;
             if (!_assignedTo.TryGetValue(candidate, out var occupants)) continue;
 
-            if (!TryGatherEvictees(vreg, myWeight, myCascade, occupants,
+            if (!TryGatherEvictees(vreg, myWeight, myCascade, candidate, occupants,
                     out var victims, out var cost))
                 continue;
 
@@ -404,30 +462,81 @@ internal sealed class GreedyRegisterAllocator
         return best;
     }
 
-    // Can `vreg` evict every interfering occupant of one physreg? Gathers the
-    // evictees (only the occupants that actually interfere) and their summed
-    // spill weight, or returns false the moment one occupant is un-evictable.
+    // Can `vreg` evict every interfering occupant of `candidate` (one physreg)?
+    // Gathers the evictees (only the occupants that actually interfere) and their
+    // summed spill weight, or returns false the moment one occupant is
+    // un-evictable.
+    //
+    // Eviction-by-cost (Stage R2). Reference: RegAllocEvictionAdvisor.cpp
+    // canEvictInterferenceBasedOnCost. The default gate is "strictly lighter
+    // spill weight" (shouldEvict's `A.weight() > B.weight()`). But llvm-mos adds a
+    // PREEMPTIVE path: if the FAILING value `vreg` has only ONE option for this
+    // assignment (`getNumRegs() == 1` and cannot widen), then at least one
+    // interference MUST be evicted for `vreg` to be placeable at all — so it may
+    // evict an incumbent regardless of weight, PROVIDED that incumbent can be
+    // REASSIGNED to some other free register (`canReassign`). This is exactly the
+    // carry-chain shape: the failing value is pinned to a single register and the
+    // incumbent holding it is cheaply relocatable. Cascade loop-prevention still
+    // applies (an equal-or-newer cascade is never evicted), so this cannot cycle.
     private bool TryGatherEvictees(
-        int vreg, double myWeight, int myCascade, List<int> occupants,
+        int vreg, double myWeight, int myCascade, int candidate, List<int> occupants,
         out List<int> victims, out double cost)
     {
         victims = [];
         cost = 0;
+        // `vreg` has a single allowed register iff its allowed set is size 1: it
+        // cannot widen (the allowed set is already the class-intersection), so any
+        // interferer on `candidate` must be evicted for `vreg` to place at all.
+        var oneOption = _allowed.TryGetValue(vreg, out var va) && va.Length == 1;
+
         foreach (var other in occupants)
         {
             if (!_intervals.Interfere(vreg, other)) continue; // doesn't block us.
 
             // Unspillable values (spill/remat/reconciliation temps) cannot be
-            // moved; only strictly-lighter values are worth evicting; and a value
-            // with an equal-or-newer cascade must not be evicted (loop-prevention).
+            // moved; a value with an equal-or-newer cascade must not be evicted
+            // (loop-prevention) — both are hard stops regardless of cost.
             if (_unspillable.Contains(other)) { victims = []; return false; }
-            if (SpillWeight(other) >= myWeight) { victims = []; return false; }
             if (CascadeOf(other) >= myCascade) { victims = []; return false; }
+
+            // The default policy: only evict a strictly-lighter value. The
+            // preemptive exception: when `vreg` has one option and `other` can be
+            // reassigned off `candidate` to a free register, evict it regardless of
+            // weight (the only way `vreg` places). Mirrors the
+            // `getNumRegs()==1 && canReassign` `continue` in
+            // canEvictInterferenceBasedOnCost.
+            if (SpillWeight(other) >= myWeight
+                && !(oneOption && CanReassign(other, candidate)))
+            {
+                victims = []; return false;
+            }
 
             victims.Add(other);
             cost += SpillWeight(other);
         }
         return victims.Count > 0;
+    }
+
+    // canReassign (RegAllocGreedy.cpp): is there some OTHER register (≠ fromReg)
+    // in `vreg`'s allowed set that is free across `vreg`'s whole range — i.e. it
+    // interferes with neither that register's precoloured busy window nor any
+    // vreg already committed to it (excluding `vreg` itself)? If so, evicting
+    // `vreg` off `fromReg` is harmless: it can immediately retake another register
+    // when re-enqueued.
+    private bool CanReassign(int vreg, int fromReg)
+    {
+        if (!_allowed.TryGetValue(vreg, out var allowed)) return false;
+        foreach (var reg in allowed)
+        {
+            if (reg == fromReg) continue;
+            if (_intervals.Overlaps(vreg, reg)) continue;
+            var free = true;
+            if (_assignedTo.TryGetValue(reg, out var occ))
+                foreach (var o in occ)
+                    if (o != vreg && _intervals.Interfere(vreg, o)) { free = false; break; }
+            if (free) return true;
+        }
+        return false;
     }
 
     private int CascadeOf(int vreg) => _cascade.GetValueOrDefault(vreg, 0);
@@ -484,6 +593,7 @@ internal sealed class GreedyRegisterAllocator
 
     private bool TrySplit(int vreg)
     {
+        LastSplitWasRelocation = false;
         var editor = new SplitEditor(_function, _registerInfo);
         if (editor.TryInstructionSplit(vreg, _splitProducts)) { _lastSplitKind = "instruction"; return true; }
         // Split-around-clobber: a value pinned to a single physreg that is live
@@ -494,7 +604,7 @@ internal sealed class GreedyRegisterAllocator
         // a cheap def-site relocation (no busy-test callback needed) — the others
         // handle free-register gaps and call barriers respectively.
         if (editor.TrySplitConstrainedDefResult(vreg, _intervals, _allowed, _splitProducts))
-        { _lastSplitKind = "constrained-def-result"; return true; }
+        { _lastSplitKind = "constrained-def-result"; LastSplitWasRelocation = true; return true; }
         // Split-around-clobber, INCUMBENT direction: when the failing value is the
         // re-clobbering def itself (the second adc's $a result), the value that must
         // move is the OTHER one — the incumbent live across this def, already holding
@@ -504,7 +614,17 @@ internal sealed class GreedyRegisterAllocator
         // across-clobber value is itself the failing vreg; 1c the more common case
         // where the re-clobbering value fails first.)
         if (editor.TrySplitIncumbentAcrossClobber(vreg, _intervals, _allowed, _splitProducts))
-        { _lastSplitKind = "incumbent-across-clobber"; return true; }
+        { _lastSplitKind = "incumbent-across-clobber"; LastSplitWasRelocation = true; return true; }
+        // Split-not-spill across a PRECOLOURED physreg clobber (Stage R2,
+        // RS_LightSpill analogue): a {R}-pinned, flexible-superclass value live
+        // across a direct physreg def of R (e.g. the high adc result live across
+        // the ABI return move `$a = copy <low byte>`). Relocate it off R rather
+        // than letting it fall to the memory-spill rung — R is a flexible-class
+        // member, so the value is genuinely relocatable. Placed after the vreg-
+        // re-clobber kinds (those catch the common chain shape) and before local /
+        // around-call, mirroring the constrained-def-result ordering.
+        if (editor.TrySplitRelocatableAcrossPhysClobber(vreg, _intervals, _allowed, _splitProducts))
+        { _lastSplitKind = "relocatable-across-phys-clobber"; LastSplitWasRelocation = true; return true; }
         if (editor.TryLocalSplit(vreg, _intervals, _allowed[vreg], RegisterBusyAcross))
         { _lastSplitKind = "local"; return true; }
         // Split-around-call. The minted relocation temp is recorded in
@@ -562,6 +682,70 @@ internal sealed class GreedyRegisterAllocator
         foreach (var seg in _intervals.IntervalOf(vreg).Segments)
             size += seg.End - seg.Start;
         return size;
+    }
+
+    // The well-founded termination measure (Stage R2): the COUNT of constrained,
+    // non-split-product vregs still live across a clobber of their single pinned
+    // register. See the ConstrainedRangeMeasure property doc for why this is
+    // well-founded and insertion-invariant. Deterministic (vregs iterated in the
+    // CollectReferencedVregs order, which is ascending by construction).
+    private long ComputeConstrainedRangeMeasure(IReadOnlyList<int> vregs)
+    {
+        long measure = 0;
+        foreach (var v in vregs)
+        {
+            if (_splitProducts.Contains(v)) continue;            // a split-minted temp.
+            if (!_allowed.TryGetValue(v, out var a) || a.Length != 1) continue;
+            if (SpansClobberOfPinnedReg(v, a[0])) measure++;
+        }
+        return measure;
+    }
+
+    // Does constrained vreg `v` (allowed == {R}) live across a clobber of R — a
+    // point strictly after `v`'s producing def where R is busy (a precoloured
+    // physreg window OR another value's def of R) and `v`'s interval covers it?
+    // This is the predicate the relocation splits exist to clear.
+    private bool SpansClobberOfPinnedReg(int v, int reg)
+    {
+        var interval = _intervals.IntervalOf(v);
+        if (interval.IsEmpty) return false;
+        var def = _function.GetDefinition(v);
+        // Multi-def (two-address): use the latest def-point so the across-clobber
+        // window is measured from where the live value is produced.
+        var defPoint = long.MinValue;
+        foreach (var block in _function.Blocks)
+            foreach (var instr in block.Instructions)
+                if (DefinesVreg(instr, v))
+                {
+                    var s = LiveIntervals.DefSlot(_intervals.BaseSlotOf[instr]);
+                    if (s > defPoint) defPoint = s;
+                }
+        if (def == null && defPoint == long.MinValue) return false;
+
+        // A precoloured R window opening strictly after the def and covered by `v`.
+        foreach (var seg in _intervals.PhysIntervalOf(reg).Segments)
+            if (seg.Start > defPoint && seg.Start < interval.End && interval.Covers(seg.Start))
+                return true;
+
+        // Another vreg pinned {R} whose def-point `v` lives across.
+        foreach (var w in RegisterAllocationSupport.CollectReferencedVregs(_function))
+        {
+            if (w == v) continue;
+            if (!_allowed.TryGetValue(w, out var wa) || wa.Length != 1 || wa[0] != reg) continue;
+            var wdef = _function.GetDefinition(w);
+            if (wdef == null) continue;
+            var wp = LiveIntervals.DefSlot(_intervals.BaseSlotOf[wdef]);
+            if (wp > defPoint && wp < interval.End && interval.Covers(wp))
+                return true;
+        }
+        return false;
+    }
+
+    private static bool DefinesVreg(MirInstruction instr, int vreg)
+    {
+        foreach (var op in instr.Operands)
+            if (op is VirtualReg d && d.IsDefinition && d.Id == vreg) return true;
+        return false;
     }
 
     // -------------------------------------------------------------------------

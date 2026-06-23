@@ -109,6 +109,11 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo, bool 
         // Greedy-engine instruction-split products, persisted across rounds so a
         // reconciliation temp is never itself re-split. Unused by the colourer.
         var greedySplitProducts = new HashSet<int>();
+        // Greedy-engine well-founded termination measure from the PREVIOUS split
+        // round (total constrained-class live-range length). Each split round must
+        // strictly reduce it; long.MaxValue = no split round seen yet. Unused by
+        // the colourer.
+        var previousSplitMeasure = long.MaxValue;
         LiveIntervals intervals;
         Dictionary<int, int>? assignment;
         IReadOnlyList<int> spilledVregs;
@@ -138,6 +143,29 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo, bool 
                     unspillable, round);
                 assignment = greedy.Run();
                 spilledVregs = greedy.SpilledVregs;
+
+                // Terminating stage ladder (Stage R2): a RELOCATION split round —
+                // the constrained-def-result / incumbent / relocatable-phys-clobber
+                // kinds, the only ones that could loop (the Mode-B failure: a donor
+                // whose across-clobber liveness never shrinks) — MUST strictly
+                // reduce the well-founded measure: the count of constrained vregs
+                // still spanning a clobber. Each relocation clears exactly one such
+                // span, so the count strictly decreases and is bounded below by
+                // zero. If it ever fails to, the relocation is not making progress:
+                // fail loudly here, at the cause, rather than spinning to the round
+                // cap. (The other split kinds terminate by their own construction —
+                // split products are never re-split — so they are not policed here;
+                // their measure can legitimately differ round to round.)
+                if (assignment == null && greedy.DidSplit && greedy.LastSplitWasRelocation)
+                {
+                    if (greedy.ConstrainedRangeMeasure >= previousSplitMeasure)
+                        throw new InvalidOperationException(
+                            $"RegisterAllocator: greedy relocation split for @{function.Name} did " +
+                            $"not reduce the constrained-clobber-span count (was " +
+                            $"{previousSplitMeasure}, now {greedy.ConstrainedRangeMeasure}) — " +
+                            $"non-terminating split.");
+                    previousSplitMeasure = greedy.ConstrainedRangeMeasure;
+                }
             }
             else
             {

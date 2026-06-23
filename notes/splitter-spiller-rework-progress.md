@@ -300,3 +300,153 @@ split-not-spill + terminating stage ladder), not a small correctness fix.
   `SplitEditor.cs`, `GreedyRegisterAllocator.cs`, and the new unit test. Greedy
   stays flag-gated (`useGreedy: false` default); the colourer remains the default
   engine and its goldens are unchanged.
+
+---
+
+## Stage R2 — cost model + split-not-spill + terminating stage ladder (DONE)
+
+Closed the Mode-A residual spill: all five corpus cases now converge with NO
+spill under greedy-with-funnels-off, and the i16 chains (`add_i16`, `sub_i16`)
+reconstruct the exact llvm-mos `tay`/`tya` relocation shape. Greedy-engine-only —
+the default colourer path is byte-for-byte unaffected (goldens untouched).
+
+### Root cause of the R1 residual spill (precise)
+
+The pre-RA two-address i16 chain (post-funnel-off) is, for `add_i16`:
+
+```
+%19 = adc %19, %5, %18        ; LOW result, ac ($a), live across the next adc
+%21 = adc %21, %6, %20        ; HIGH result, ac ($a)
+$a  = pseudo.copy %19         ; ABI return move, LOW byte  (emitted LSB-first)
+$x  = pseudo.copy %21         ; ABI return move, HIGH byte
+```
+
+R1's incumbent-split relocates `%19` (low) off `$a`. The residual spill is `%21`
+(high, allowed `{$a}`). Its interval overlaps `$a`'s **precoloured busy window**:
+`MOS6502CallLowering.LowerReturn` emits the per-byte return copies **LSB-first**,
+so `$a = pseudo.copy <low>` (a DIRECT physreg def of `$a`) is scheduled BEFORE
+`$x = pseudo.copy %21`, clobbering `$a` while `%21` is still needed for its own
+return move. `FindLaterReClobber` did not catch this — the re-clobber is a
+precoloured `$a` def, not another `{$a}`-pinned vreg — so `%21` exhausted assign /
+evict / every split kind and SPILLed (re-spilling to the round cap, since a
+`{$a}`-only reload temp does not relieve the contention). The default colourer
+never hits this because the isel out-funnel relocates BOTH adc results off `$a`
+before RA; greedy (funnels off) must reconstruct that relocation on demand.
+
+The llvm-mos reference confirms the target shape: `clang --target=mos -Os` emits
+`clc / adc __rc2 / tay / txa / adc __rc3 / tax / tya / rts` — the low result is
+held in `$y` across the high-byte adc (`tay`), moved back to `$a` for the return
+(`tya`); the high result is moved to `$x` (`tax`). Pre-RA MIR
+(`llc -stop-before=greedy`) shows the high accumulator `%15:ac = COPY $x` two-
+address, and the **return copies in HIGH-then-LOW order** (`$x = COPY %15` then
+`$a = COPY %13`).
+
+### What changed (greedy-engine-only; all flag-gated)
+
+1. **Split-not-spill across a precoloured physreg clobber** —
+   `SplitEditor.TrySplitRelocatableAcrossPhysClobber`. A `{R}`-pinned,
+   flexible-superclass value live across a DIRECT precoloured def of R (the
+   LSB-first return move clobbering `$a`) is relocated off R via the existing
+   `RelocateAcrossClobber` edit, keyed off R's precoloured busy interval rather
+   than a vreg re-clobber. This is the llvm-mos `RS_LightSpill` analogue ("spill
+   to a wider register class to avoid spilling to the stack"). Wired into
+   `GreedyRegisterAllocator.TrySplit` after the vreg-re-clobber kinds. `%21`
+   relocates instead of spilling. (`SplitEditor.cs`, `GreedyRegisterAllocator.cs`
+   `TrySplit`.)
+
+2. **Tied-use exclusion in the instruction-split** —
+   `SplitEditor.CollectNarrowingUses` now skips operands tied to a def
+   (`GetTiedToIndex(k) >= 0`). Routing a tied use through a copy buys nothing (the
+   tie re-pins the fresh temp to the def's class) and only grows the range; the
+   tied-accumulator copy of a two-address adc/sbc is exactly this futile case, and
+   it was the spurious round-1 split that fought the well-founded measure. The
+   relocation kinds handle that shape. (`SplitEditor.cs`.)
+
+3. **Split-product GPR preference** (the tay/tya shape) —
+   `GreedyRegisterAllocator.PreferenceOrder`. A relocation split product prefers
+   the target's cheap-transfer real GPRs (`GetShortRangeGprPreference()` →
+   `$x/$y/$a`) ahead of the abundant zero-page pool. This is the copy-cost
+   preference of llvm-mos `getRegAllocationHints`: a relocation escaping `$a`
+   (`%t = copy <$a value>` … `$a = copy %t`) is cheapest in a GPR (`tay`/`tya`,
+   1 byte / 2 cycles) and dearer in zp (`sta`/`lda`, 2 bytes / 3 cycles). Applied
+   ONLY to split products (the general flexible-value placement still favours zp to
+   keep the GPRs free for arithmetic). Without it the chains converge but emit
+   `sta`/`lda`; with it they emit `tay`/`tya`, matching the reference exactly.
+   (`GreedyRegisterAllocator.cs`.)
+
+4. **Eviction-by-cost** — `GreedyRegisterAllocator.TryGatherEvictees` + the new
+   `CanReassign`. A faithful port of `canEvictInterferenceBasedOnCost`'s
+   preemptive path: a failing value with ONE allowed register may evict a
+   REASSIGNABLE incumbent regardless of spill weight (the only way it places),
+   provided the incumbent can move to another free register. Cascade
+   loop-prevention unchanged. **Not exercised by the corpus** (the R1 hard-claim
+   exclusion + the split rungs already resolve every case — verified by a
+   one-shot `BYCOST` probe over all five), but the plan lists it as R2 work item 1
+   and it is the documented reference behaviour; kept as a tested cost-model
+   completion (see the isolating unit test). (`GreedyRegisterAllocator.cs`.)
+
+5. **Terminating stage ladder + well-founded measure** —
+   `GreedyRegisterAllocator.ConstrainedRangeMeasure` /
+   `ComputeConstrainedRangeMeasure` / `SpansClobberOfPinnedReg`, asserted in
+   `RegisterAllocatorPass`. The measure is the COUNT of constrained,
+   non-split-product vregs still live across a clobber of their single pinned
+   register — exactly the set of across-clobber relocations still to perform. Each
+   RELOCATION split clears one such span, so the count strictly decreases and is
+   bounded below by zero. It is **insertion-invariant** (a raw slot-length total is
+   NOT — inserting a relocation copy shifts all slot numbers — which is why the
+   first attempt false-positived). Policed only on relocation-split rounds
+   (`LastSplitWasRelocation`); the other split kinds terminate by their own
+   construction (`_splitProducts` are never re-split). A non-shrinking relocation
+   now throws at its cause, not at the round cap. (`GreedyRegisterAllocator.cs`,
+   `RegisterAllocatorPass.cs`.)
+
+### Convergence results (greedy default + funnels-off + relocation-prepass-off)
+
+| case | R1 result | R2 result |
+|------|-----------|-----------|
+| `common_subexpr` | converges, 0 spills | converges, 0 spills |
+| `early_return`   | converges, 0 spills | converges, 0 spills |
+| `add_i16`        | 1 residual `pseudo.spill` | **converges, 0 spills — `CLC / ADC $02 / TAY / TXA / ADC $03 / TAX / TYA / RTS` (matches llvm-mos exactly)** |
+| `sub_i16`        | 1 residual `pseudo.spill` | **converges, 0 spills — `SEC / SBC $02 / TAY / TXA / SBC $03 / TAX / TYA / RTS` (matches llvm-mos exactly)** |
+| `add_i32`        | 1 residual `pseudo.spill` | **converges, 0 spills — `tay`/`tya` on the bytes with a free GPR, zp on the rest (a genuine 4-byte chain; only 3 GPRs exist, so the middle bytes must use zp — correct)** |
+
+The whole Irie lit suite, run under the convergence-check flips, has **zero**
+`did not converge` / `pseudo.spill survived` / `non-terminating split` crashes —
+greedy-with-funnels-off now terminates for every function in the corpus, not just
+the five.
+
+### Unit tests added (`GreedyRegisterAllocatorTests`, all isolating — verified to FAIL with the relevant R2 piece reverted)
+
+- `ConstrainedValueLiveAcrossPrecolouredPhysClobber_SplitsNotSpills` — the
+  split-not-spill rung (#1). Fails (spills) with the rung disabled.
+- `RelocationSplitProduct_PrefersRealGprOverZeroPage` — the GPR preference (#3),
+  with a no-GPR-hint across-clobber use so only the preference can steer it. Fails
+  (lands in zp) with the preference disabled.
+- `PinnedValueEvictsReassignableHeavierIncumbent_ByCost` — eviction-by-cost (#4),
+  with a HEAVIER reassignable incumbent (so the default weight gate refuses) that
+  the pinned value cannot split or rematerialize past. Fails (spills) with the
+  by-cost clause disabled.
+
+### Validation
+
+- `dotnet test --project src/Irie.Tests` — **200/200 green** (197 + 3 new) with
+  flips reverted.
+- `dotnet test --project src/DotNetro.Compiler.Tests` — **21/21 green**.
+- Convergence-check flips **all reverted** (`grep -rn 'CONVERGENCE-CHECK\|//CC\|PROBE'`
+  returns nothing); the only committed diff is `GreedyRegisterAllocator.cs`,
+  `SplitEditor.cs`, `RegisterAllocatorPass.cs`, and the unit-test file. No
+  golden / `.irie` / `.s` / `.cs` lit file is touched — the default colourer path
+  is byte-for-byte unaffected. Greedy stays flag-gated (`useGreedy: false`).
+
+### Scope notes / boundary decisions
+
+- **Stopped at the five corpus cases.** No EdgeBundles / SpillPlacement region
+  split, no InterferenceCache, no last-chance recoloring, no wiring of memory-spill
+  to the asm path (all out of scope per the plan).
+- **Eviction-by-cost is defensive, not corpus-exercised** (see #4) — flagged
+  rather than silently shipped, and isolated by a dedicated test so it is not dead
+  code.
+- **The LSB-first return-copy order is the structural cause** of the Mode-A
+  residual spill; R2 resolves it by relocating the across-clobber value (matching
+  what the colourer's funnel does eagerly), NOT by reordering ABI return copies —
+  reordering would change the default golden path and is out of R2 scope.

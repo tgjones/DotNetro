@@ -103,8 +103,9 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
             foreach (var instr in block.Instructions)
             {
                 if (IsCopyInstr(instr)) continue;
-                var classes = DialectRegistry.ById(instr.Opcode.Dialect)
-                    .GetInstructionInfo(instr.Opcode.Code).OperandClasses;
+                var info = DialectRegistry.ById(instr.Opcode.Dialect)
+                    .GetInstructionInfo(instr.Opcode.Code);
+                var classes = info.OperandClasses;
                 if (classes == null) continue;
 
                 var operands = instr.Operands;
@@ -112,6 +113,14 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
                 {
                     if (operands[k] is not VirtualReg u || u.IsDefinition || u.Id != vreg)
                         continue;
+                    // Skip a TIED use: routing it through a copy buys nothing —
+                    // the tie re-pins the fresh temp to the def's class, so the
+                    // constraint is unchanged (the temp inherits {$a} just as the
+                    // original did). The tied-accumulator copy of a two-address
+                    // adc/sbc is exactly this case; "splitting" it only renames the
+                    // value and grows its range (the Stage-R2 measure showed it
+                    // making no progress). The relocation kinds handle this shape.
+                    if (info.GetTiedToIndex(k) >= 0) continue;
                     var opClass = classes[k];
                     if (opClass == 0 || opClass == flexibleId) continue;
                     var opRegs = registerInfo.GetAllocatableRegisters(opClass);
@@ -389,6 +398,82 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
         if (reClobber == null) return false;
 
         var clobberPoint = LiveIntervals.DefSlot(intervals.BaseSlotOf[reClobber]);
+        return RelocateAcrossClobber(vreg, clobberPoint, intervals, splitProducts);
+    }
+
+    // -------------------------------------------------------------------------
+    // Split-not-spill: relocate a single-physreg-pinned value off a PRECOLOURED
+    // physreg clobber it lives across. Reference: llvm-mos RegAllocGreedy.cpp
+    // RS_LightSpill — "spill to a wider register class to avoid spilling to the
+    // stack" — driven by tryInstructionSplit with the inflate-to-superclass flag.
+    //
+    // The case this exists for (the Stage-R2 chain blocker, distinct from
+    // TrySplitConstrainedDefResult): a value `vreg` pinned to a single physreg R
+    // (e.g. the HIGH adc result `%21:any8` allowed={$a} in an i16 chain) is live
+    // ACROSS a later DIRECT physreg def of R — not another {R}-pinned vreg, but a
+    // precoloured `$a = pseudo.copy …` (the ABI return move that parks the LOW
+    // byte into $a). LowerReturn emits the per-byte copies LSB-first, so the low
+    // byte's `$a = copy …` is scheduled BEFORE the high byte's `$x = copy %21`,
+    // and that `$a` write clobbers $a while `%21` is still needed for its own
+    // return move. The colourer never hits this because the isel out-funnel
+    // relocates BOTH adc results off $a before RA; greedy (funnels off) must
+    // reconstruct that relocation here, on demand.
+    //
+    // FindLaterReClobber does NOT catch this: the re-clobber is a PHYSREG def of R
+    // (operand `$a`, IsDefinition), not a vreg whose allowed set is {R}. So we
+    // detect the clobber directly off R's precoloured busy interval: the earliest
+    // point strictly after `vreg`'s producing def where R is precoloured-busy and
+    // `vreg` is still live. Relocating `vreg`'s across-clobber use(s) to a flexible
+    // temp (RelocateAcrossClobber) frees R for the precoloured write; `vreg` then
+    // occupies R only for the brief def→copy window. This is the relocatable case:
+    // R is a flexible-class member, so the value CAN live elsewhere — split is
+    // strictly better than the memory spill the value would otherwise hit.
+    // Returns true if it relocated.
+    // -------------------------------------------------------------------------
+    public bool TrySplitRelocatableAcrossPhysClobber(
+        int vreg, LiveIntervals intervals,
+        IReadOnlyDictionary<int, int[]> allowedByVreg, ISet<int> splitProducts)
+    {
+        var flexibleId = registerInfo.FlexibleI8ClassId;
+        if (flexibleId == 0) return false;
+        if (splitProducts.Contains(vreg)) return false;
+
+        // `vreg` must be pinned to a single physreg R that is a flexible-class
+        // member (so the relocation temp can carry the value off R — the same
+        // data-register / no-flag restriction as TrySplitConstrainedDefResult).
+        if (!allowedByVreg.TryGetValue(vreg, out var myAllowed) || myAllowed.Length != 1)
+            return false;
+        var pinnedReg = myAllowed[0];
+        if (!RegisterAllocationSupport.Contains(
+                registerInfo.GetAllocatableRegisters(flexibleId), pinnedReg))
+            return false;
+
+        var def = function.GetDefinition(vreg);
+        if (def == null) return false;
+        var interval = intervals.IntervalOf(vreg);
+        if (interval.IsEmpty) return false;
+
+        var defPoint = LiveIntervals.DefSlot(intervals.BaseSlotOf[def]);
+
+        // The earliest precoloured-R def-point strictly after `vreg`'s def that
+        // `vreg` is live across: a point covered by both `vreg`'s interval and R's
+        // precoloured busy interval, lying strictly inside `vreg`'s range. A
+        // precoloured def opens R's segment at its def-point, so the segment START
+        // that is > defPoint and < interval.End and covered by `vreg` is the
+        // clobber `vreg` must vacate R before.
+        var physInterval = intervals.PhysIntervalOf(pinnedReg);
+        if (physInterval.IsEmpty) return false;
+
+        long clobberPoint = long.MaxValue;
+        foreach (var seg in physInterval.Segments)
+        {
+            if (seg.Start <= defPoint) continue;       // not later than our def.
+            if (seg.Start >= interval.End) continue;   // we die at/before it.
+            if (!interval.Covers(seg.Start)) continue; // we are not live across it.
+            if (seg.Start < clobberPoint) clobberPoint = seg.Start;
+        }
+        if (clobberPoint == long.MaxValue) return false;
+
         return RelocateAcrossClobber(vreg, clobberPoint, intervals, splitProducts);
     }
 

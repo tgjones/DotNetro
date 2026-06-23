@@ -537,4 +537,183 @@ public sealed class GreedyRegisterAllocatorTests
         var xuseReg = xuse.Operands.OfType<PhysicalReg>().First(o => !o.IsDefinition).Id;
         await Assert.That(xuseReg).IsNotEqualTo(MOS6502Registers.A);
     }
+
+    // Split-not-spill across a PRECOLOURED physreg clobber (Stage R2 — the chain
+    // blocker, distinct from the vreg-re-clobber kinds). A value `v0:ac` (allowed
+    // {$a}) is live ACROSS a later DIRECT physreg def of $a — a precoloured
+    // `$a = pseudo.copy …` — and is then read at its own use. This is the i16
+    // high-adc-result shape: the result is pinned to $a, but the ABI return move
+    // for the LOW byte (`$a = copy …`, emitted LSB-first) clobbers $a while the
+    // high byte is still needed for its own return move.
+    //
+    // FindLaterReClobber does NOT catch this (the re-clobber is a physreg def, not
+    // another {$a}-pinned vreg), so without the relocatable-across-phys-clobber
+    // rung `v0` exhausts assign (its only register $a is precoloured-busy across
+    // its range), evict (the clobber is a fixed precoloured window), and every
+    // other split kind — and would SPILL to memory, then re-spill to the round cap
+    // (a {$a}-only reload temp does not relieve the contention). The new rung
+    // relocates `v0`'s across-clobber use into a flexible temp, so `v0` occupies $a
+    // only for the brief def→copy window.
+    //
+    // Discriminators: (1) Pass.Run does not throw (no round-cap spill loop); (2) no
+    // `pseudo.spill` is emitted; (3) the across-clobber use reads a register that
+    // is NOT $a — the value was relocated off the clobbered register.
+    [Test]
+    public async Task ConstrainedValueLiveAcrossPrecolouredPhysClobber_SplitsNotSpills()
+    {
+        var fn = NewFunction("greedy_phys_clobber_split");
+        var bb0 = fn.CreateBlock();
+
+        var p = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var v0 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Ac, "ac");
+
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(p, IsDefinition: true), new Immediate(1));
+        // v0 = non-copy def, pinned to $a.
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v0, IsDefinition: true),
+            new VirtualReg(p, IsDefinition: false),
+            new VirtualReg(p, IsDefinition: false));
+        // A DIRECT precoloured def of $a while v0 is still live (the LSB-first ABI
+        // return move that clobbers $a). v0 is read AFTER this, so it lives across
+        // the clobber.
+        bb0.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new PhysicalReg(MOS6502Registers.A, IsDefinition: true),
+            new VirtualReg(p, IsDefinition: false));
+        // v0's across-clobber use — needs v0's value AFTER $a was clobbered.
+        var use = bb0.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.StAbs),
+            new VirtualReg(v0, IsDefinition: false), new Symbol("g"));
+
+        Pass.Run(fn); // must converge via split-not-spill (else it spills to memory).
+
+        var spills = fn.Blocks.SelectMany(b => b.Instructions).Count(i =>
+            i.Opcode.Dialect == PseudoDialect.Id && (PseudoOp)i.Opcode.Code == PseudoOp.Spill);
+        await Assert.That(spills).IsEqualTo(0);
+
+        // The across-clobber use reads a register that is NOT $a — v0's value was
+        // relocated off the clobbered register into a flexible temp.
+        var useReg = use.Operands.OfType<PhysicalReg>().First(o => !o.IsDefinition).Id;
+        await Assert.That(useReg).IsNotEqualTo(MOS6502Registers.A);
+    }
+
+    // Split-product GPR preference (Stage R2 — the tay/tya shape). When a value is
+    // relocated off a constrained register, the relocation temp must prefer a real
+    // GPR ($a/$x/$y) ahead of the abundant zero-page pool — the copy-cost
+    // preference that makes the relocation a `tay`/`tya` register move rather than
+    // a `sta`/`lda` memory round-trip (llvm-mos getRegAllocationHints).
+    //
+    // The across-clobber use here is an `arith.addi` OPERAND (a zp-capable use with
+    // NO physreg copy-hint), so the relocation temp carrying v0 is full `any8` (zp
+    // AND GPRs both legal) AND has no GPR hint to steer it. Irie's `any8` order
+    // lists zp first (it is abundant), so without the split-product GPR preference
+    // the temp would land in zero page; the preference steers it to a real GPR.
+    [Test]
+    public async Task RelocationSplitProduct_PrefersRealGprOverZeroPage()
+    {
+        var fn = NewFunction("greedy_reloc_gpr_pref");
+        var bb0 = fn.CreateBlock();
+
+        var p = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var v0 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Ac, "ac");
+        var sink = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(p, IsDefinition: true), new Immediate(1));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v0, IsDefinition: true),
+            new VirtualReg(p, IsDefinition: false),
+            new VirtualReg(p, IsDefinition: false));
+        // Direct precoloured $a clobber (the LSB-first ABI return move).
+        bb0.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new PhysicalReg(MOS6502Registers.A, IsDefinition: true),
+            new VirtualReg(p, IsDefinition: false));
+        // v0's across-clobber use is an `arith.addi` operand — zp-capable, no GPR
+        // hint, so the relocation temp is full `any8` and the preference decides.
+        var use = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(sink, IsDefinition: true),
+            new VirtualReg(v0, IsDefinition: false),
+            new VirtualReg(v0, IsDefinition: false));
+
+        Pass.Run(fn);
+
+        // The value v0 reads at the across-clobber addi is the relocated temp; its
+        // home must NOT be the zero-page pool (a zp landing would mean the
+        // split-product preference did not steer it — the chains would then emit
+        // sta/lda not tay/tya).
+        var useReg = use.Operands.OfType<PhysicalReg>().First(o => !o.IsDefinition).Id;
+        var zpRegs = Enumerable.Range(2, 30).Select(MOS6502Registers.RC).ToArray();
+        await Assert.That(zpRegs.Contains(useReg)).IsFalse();
+    }
+
+    // Eviction-by-cost: preemptive eviction of a reassignable HEAVIER incumbent
+    // (Stage R2). A value HARD-pinned to a single register ($a, class `ac`)
+    // interferes with a longer-lived FLEXIBLE incumbent that grabbed $a first via a
+    // copy hint. The incumbent is made HEAVIER (more uses → higher spill weight)
+    // AND it is not live across the pinned value's def (so the R1 hard-claim
+    // exclusion does not pre-empt the conflict). By the default policy the pinned
+    // value could only evict a strictly-LIGHTER incumbent, so the weight gate alone
+    // blocks the eviction; and the pinned value cannot SPLIT (its conflict is pure
+    // simultaneous interference, not an across-clobber); and it is not
+    // rematerializable (its def reads a register). So WITHOUT eviction-by-cost it
+    // would spill to memory. The rule (llvm-mos canEvictInterferenceBasedOnCost: a
+    // value with ONE option may evict a REASSIGNABLE incumbent regardless of
+    // weight) evicts the flexible incumbent — which reassigns to the abundant zero
+    // page — so both place. Cascade loop-prevention keeps it from cycling.
+    //
+    // Discriminator: the pinned value wins $a, the incumbent is relocated off it,
+    // and NO value is spilled to memory.
+    [Test]
+    public async Task PinnedValueEvictsReassignableHeavierIncumbent_ByCost()
+    {
+        var fn = NewFunction("greedy_evict_by_cost");
+        var bb0 = fn.CreateBlock();
+        var q = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var v1 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Ac, "ac");
+        var v0 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var s1 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var s2 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+        var s3 = fn.CreateVirtualRegisterInClass(MOS6502RegisterClass.Anyi8, "any8");
+
+        // A source so v1's def reads a register — v1 is NOT rematerializable (the
+        // spill rung cannot dodge the conflict by recomputing it).
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(q, IsDefinition: true), new Immediate(3));
+        // v1 (pinned $a) is defined FIRST and short-lived — so v0 (defined later) is
+        // not live across v1's def and the R1 hard-claim exclusion does not fire.
+        var i1 = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v1, IsDefinition: true),
+            new VirtualReg(q, IsDefinition: false),
+            new VirtualReg(q, IsDefinition: false));
+        // v0 grabs $a via the copy hint and stays live PAST v1 (longer interval →
+        // dequeued first → grabs $a; v1 must then evict it).
+        var i0 = bb0.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(v0, IsDefinition: true),
+            new PhysicalReg(MOS6502Registers.A, IsDefinition: false));
+        // v0 and v1 both read here → they interfere; only $a fits v1.
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(s1, IsDefinition: true),
+            new VirtualReg(v0, IsDefinition: false),
+            new VirtualReg(v1, IsDefinition: false));
+        // Many MORE uses of v0 → v0 is HEAVIER than v1 (higher use density), so the
+        // default strictly-lighter eviction gate REFUSES to evict it — only the
+        // by-cost rule (v1 one-option, v0 reassignable) can.
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(s2, IsDefinition: true),
+            new VirtualReg(v0, IsDefinition: false),
+            new VirtualReg(v0, IsDefinition: false));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(s3, IsDefinition: true),
+            new VirtualReg(v0, IsDefinition: false),
+            new VirtualReg(v0, IsDefinition: false));
+
+        Pass.Run(fn); // converges ONLY via eviction-by-cost.
+
+        var spills = fn.Blocks.SelectMany(b => b.Instructions).Count(i =>
+            i.Opcode.Dialect == PseudoDialect.Id && (PseudoOp)i.Opcode.Code == PseudoOp.Spill);
+        await Assert.That(spills).IsEqualTo(0);
+
+        // v1 (pinned, single-option) wins $a; v0 was evicted to a reassignable reg.
+        await Assert.That(DefPhysReg(i1)).IsEqualTo(MOS6502Registers.A);
+        await Assert.That(DefPhysReg(i0)).IsNotEqualTo(MOS6502Registers.A);
+    }
 }
