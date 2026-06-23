@@ -7,7 +7,7 @@ namespace Irie.Passes;
 // =============================================================================
 //
 // A diagnostic facility for understanding the greedy allocator's round-by-round
-// behaviour while the splitter/spiller rework (notes/splitter-spiller-rework-plan.md)
+// behaviour while the allocator rework (notes/generic-relocation-pass-plan.md)
 // is in flight. It is OFF by default and has ZERO effect on normal compilation
 // or test output: every method short-circuits on `Enabled` (read once from the
 // `IRIE_RA_TRACE` environment variable), and when disabled nothing is written.
