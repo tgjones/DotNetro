@@ -64,6 +64,10 @@ internal sealed class GreedyRegisterAllocator
     private readonly LiveIntervals _intervals;
     private readonly IReadOnlySet<int> _unspillable;
 
+    // The pass's spill-loop round number, threaded in purely so the gated RA
+    // trace (RaTrace) can label its per-round output. Has no effect on allocation.
+    private readonly int _round;
+
     // Per-vreg allocation stage, OWNED by the pass and shared across rounds.
     private readonly Dictionary<int, LiveRangeStage> _stages;
 
@@ -110,7 +114,7 @@ internal sealed class GreedyRegisterAllocator
     public GreedyRegisterAllocator(
         MirFunction function, TargetRegisterInfo registerInfo, LiveIntervals intervals,
         Dictionary<int, LiveRangeStage> stages, ISet<int> splitProducts,
-        IReadOnlySet<int>? unspillable = null)
+        IReadOnlySet<int>? unspillable = null, int round = 0)
     {
         _function = function;
         _registerInfo = registerInfo;
@@ -119,6 +123,7 @@ internal sealed class GreedyRegisterAllocator
         _splitProducts = splitProducts;
         _calleeSaved = registerInfo.GetCalleeSavedRegisters().ToArray();
         _unspillable = unspillable ?? new HashSet<int>();
+        _round = round;
     }
 
     // Returns the final vreg→physreg colouring, or null if the engine edited the
@@ -169,10 +174,18 @@ internal sealed class GreedyRegisterAllocator
 
             // 4. Try splitting the range (stub for now → falls through to spill).
             if (stage < LiveRangeStage.Spill && TrySplit(vreg))
+            {
+                RaTrace.Split(_function.Name, _round, vreg, _lastSplitKind ?? "?");
+                RaTrace.DumpFunction(_function.Name, _round, _function, "post-split IR");
                 return null; // IR edited → pass reanalyses and re-runs.
+            }
 
             // 5. Spill. The pass rewrites it (remat / split-to-register /
             //    store-reload) and re-runs us with fresh intervals.
+            RaTrace.Spill(_function.Name, _round, vreg, ClassNameOf(vreg));
+            RaTrace.Note(_function.Name, _round,
+                $"  %{vreg} allowed={{{string.Join(",", _allowed[vreg])}}} stage={stage} " +
+                $"segments=[{string.Join(",", _intervals.IntervalOf(vreg).Segments.Select(s => $"{s.Start}..{s.End}"))}]");
             _actualSpills.Add(vreg);
             return null;
         }
@@ -259,6 +272,7 @@ internal sealed class GreedyRegisterAllocator
         if (!_assignedTo.TryGetValue(phys, out var list))
             _assignedTo[phys] = list = [];
         list.Add(vreg);
+        RaTrace.Assign(_function.Name, _round, vreg, phys, _registerInfo.GetRegisterName(phys));
     }
 
     // Undo a commit (used when a vreg is evicted): drop it from the colouring and
@@ -398,10 +412,14 @@ internal sealed class GreedyRegisterAllocator
     // the pass's store/reload still applies. (Reference: RegAllocGreedy.cpp
     // trySplit → tryInstructionSplit / tryLocalSplit / tryRegionSplit.)
     // -------------------------------------------------------------------------
+    // Which split kind last fired (for the gated RA trace only). No effect on
+    // allocation; set by TrySplit just before it returns true.
+    private string? _lastSplitKind;
+
     private bool TrySplit(int vreg)
     {
         var editor = new SplitEditor(_function, _registerInfo);
-        if (editor.TryInstructionSplit(vreg, _splitProducts)) return true;
+        if (editor.TryInstructionSplit(vreg, _splitProducts)) { _lastSplitKind = "instruction"; return true; }
         // Split-around-clobber: a value pinned to a single physreg that is live
         // across a later re-definition of that same physreg (e.g. an `ac` adc
         // result live across the next adc in an i16/i32 chain) is relocated off
@@ -410,7 +428,7 @@ internal sealed class GreedyRegisterAllocator
         // a cheap def-site relocation (no busy-test callback needed) — the others
         // handle free-register gaps and call barriers respectively.
         if (editor.TrySplitConstrainedDefResult(vreg, _intervals, _allowed, _splitProducts))
-            return true;
+        { _lastSplitKind = "constrained-def-result"; return true; }
         // Split-around-clobber, INCUMBENT direction: when the failing value is the
         // re-clobbering def itself (the second adc's $a result), the value that must
         // move is the OTHER one — the incumbent live across this def, already holding
@@ -420,17 +438,23 @@ internal sealed class GreedyRegisterAllocator
         // across-clobber value is itself the failing vreg; 1c the more common case
         // where the re-clobbering value fails first.)
         if (editor.TrySplitIncumbentAcrossClobber(vreg, _intervals, _allowed, _splitProducts))
-            return true;
+        { _lastSplitKind = "incumbent-across-clobber"; return true; }
         if (editor.TryLocalSplit(vreg, _intervals, _allowed[vreg], RegisterBusyAcross))
-            return true;
+        { _lastSplitKind = "local"; return true; }
         // Split-around-call. The minted relocation temp is recorded in
         // _splitProducts (so it is never itself re-split); the source's range is
         // shortened to end at the pre-call copy, so it no longer lives across the
         // call and FindAcrossCallBarrier won't pick it again — termination is by
         // range shortening, not a flag.
-        return editor.TrySplitAroundCall(
-            vreg, _intervals, _allowed[vreg], _calleeSaved, _splitProducts, RegisterBusyAcross);
+        if (editor.TrySplitAroundCall(
+            vreg, _intervals, _allowed[vreg], _calleeSaved, _splitProducts, RegisterBusyAcross))
+        { _lastSplitKind = "around-call"; return true; }
+        return false;
     }
+
+    // The printable register-class name of a vreg (for the gated spill trace).
+    private string ClassNameOf(int vreg) =>
+        _function.GetVRegAnnotation(vreg) is ClassedVReg c ? c.Name : "?";
 
     // Is `reg` busy anywhere in the half-open slot window [start, end)? Busy means
     // a precoloured physreg window (call clobber, flag def, livein) covers a point

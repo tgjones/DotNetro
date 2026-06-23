@@ -135,7 +135,7 @@ public sealed class RegisterAllocatorPass(TargetRegisterInfo registerInfo, bool 
             {
                 var greedy = new GreedyRegisterAllocator(
                     function, registerInfo, intervals, greedyStages, greedySplitProducts,
-                    unspillable);
+                    unspillable, round);
                 assignment = greedy.Run();
                 spilledVregs = greedy.SpilledVregs;
             }

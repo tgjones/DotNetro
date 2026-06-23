@@ -137,13 +137,18 @@ Each stage validated by the convergence check (greedy default + funnels removed,
 run `dotnet test --project src/Irie.Tests`, then revert) BEFORE touching goldens,
 plus a focused unit test on synthetic two-address MIR.
 
-- **Stage R0 — instrument & characterize.** Add a gated RA trace (round / assigned
-  / spilled-vreg+class — prototype already shown) and a one-shot post-split IR dump.
-  Capture the round-by-round behaviour of `add_i16`, `add_i32`, `common_subexpr`,
-  `early_return` with funnels off. Pin down layer 4: *why* does greedy spill an
-  `any8` value — over-conservative interference after the edit, or an assign bug?
-  Deliverable: a precise written cause for each, not a guess. (This is the missing
-  data the patch attempts skipped.)
+- **Stage R0 — instrument & characterize.** *(DONE — see
+  [`splitter-spiller-rework-progress.md`](splitter-spiller-rework-progress.md).)*
+  Added a gated RA trace (`IRIE_RA_TRACE`, `src/Irie/Passes/RaTrace.cs`) + one-shot
+  post-split IR dump. Characterized all four cases. Two failure modes: **A** —
+  `add_i16`/`add_i32` spill the final constrained adc result because the relocation
+  temp lands back on `$a` via copy-hint; **B** — `common_subexpr`/`early_return`
+  loop forever at the constrained-def-result split rung because the edit is
+  block-local but the conflict is cross-block, so the donor range never shrinks.
+  **Layer-4 answer: neither over-conservative interference nor an assign bug** —
+  the interference is correct; the "any8" value's *allowed set* is actually `{$a}`
+  (adc def[0]=Ac), and the heuristic block-local edit simply fails to push it off
+  the constrained register.
 
 - **Stage R1 — slot-precise SplitEditor.** Re-express the relocation edit in terms
   of SlotIndexes and multi-def vregs: relocate at the exact producing-def slot,
