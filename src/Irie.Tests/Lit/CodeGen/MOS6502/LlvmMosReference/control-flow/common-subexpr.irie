@@ -32,51 +32,45 @@
 ; register") — no `pseudo.spill`, GPRs materialized at the stores.
 
 ; CHECK: common_subexpr:
-; CHECK: LDY \$02
-; CHECK: STY \$04
-; CHECK: LDY \$03
-; CHECK: STY \$02
-; CHECK: LDY \$06
-; CHECK: CLC
-; CHECK: ADC \$04
-; CHECK: STA \$03
-; CHECK: TXA
-; CHECK: ADC \$02
-; CHECK: STA \$02
-; CHECK: LDA \$05
-; CHECK: BMI \.bb3
+; CHECK:     CLC
+; CHECK:     ADC \$02
+; CHECK:     STA \$02
+; CHECK:     TXA
+; CHECK:     ADC \$03
+; CHECK:     TAY
+; CHECK:     LDA \$05
+; CHECK:     BMI \.bb3
 ; CHECK: \.bb1:
-; CHECK: SEC
-; CHECK: TYA
-; CHECK: SBC \#\$01
-; CHECK: TAX
-; CHECK: LDA \$07
-; CHECK: SBC \#\$00
-; CHECK: STX g0
-; CHECK: STA g0\+1
-; CHECK: LDX \$03
-; CHECK: STX g2
-; CHECK: LDX \$02
-; CHECK: STX g2\+1
-; CHECK: STY g3
-; CHECK: LDX \$07
-; CHECK: STX g3\+1
+; CHECK:     SEC
+; CHECK:     LDA \$06
+; CHECK:     SBC \#\$01
+; CHECK:     TAX
+; CHECK:     LDA \$07
+; CHECK:     SBC \#\$00
+; CHECK:     STX g0
+; CHECK:     STA g0\+1
+; CHECK:     LDX \$02
+; CHECK:     STX g2
+; CHECK:     STY g2\+1
+; CHECK:     LDX \$06
+; CHECK:     STX g3
+; CHECK:     LDX \$07
+; CHECK:     STX g3\+1
 ; CHECK: \.bb2:
-; CHECK: RTS
+; CHECK:     RTS
 ; CHECK: \.bb3:
-; CHECK: CLC
-; CHECK: TYA
-; CHECK: ADC \#\$01
-; CHECK: TAX
-; CHECK: LDA \$07
-; CHECK: ADC \#\$00
-; CHECK: STX g0
-; CHECK: STA g0\+1
-; CHECK: LDX \$03
-; CHECK: STX g1
-; CHECK: LDX \$02
-; CHECK: STX g1\+1
-; CHECK: RTS
+; CHECK:     CLC
+; CHECK:     LDA \$06
+; CHECK:     ADC \#\$01
+; CHECK:     TAX
+; CHECK:     LDA \$07
+; CHECK:     ADC \#\$00
+; CHECK:     STX g0
+; CHECK:     STA g0\+1
+; CHECK:     LDX \$02
+; CHECK:     STX g1
+; CHECK:     STY g1\+1
+; CHECK:     RTS
 
 global @g0 : i16 = bytes "\x00\x00"
 global @g1 : i16 = bytes "\x00\x00"

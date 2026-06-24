@@ -15,13 +15,13 @@
 ; CHECK:     STA \$07
 ; CHECK:     STX \$06
 ; CHECK:     LDA \#\$00
-; CHECK:     STA \$03
-; CHECK:     LDX \#\$00
-; CHECK:     LDA \$03
 ; CHECK:     STA \$05
-; CHECK:     STX \$04
+; CHECK:     LDX \#\$00
+; CHECK:     LDA \$05
+; CHECK:     STA \$04
+; CHECK:     STX \$03
 ; CHECK: \.bb1:
-; CHECK:     LDA \$04
+; CHECK:     LDA \$03
 ; CHECK:     EOR \#\$80
 ; CHECK:     TAY
 ; CHECK:     LDA \$06
@@ -31,27 +31,27 @@
 ; CHECK:     CMP \$02
 ; CHECK:     BCC \.bb3
 ; CHECK:     BNE \.bb2
-; CHECK:     LDA \$05
+; CHECK:     LDA \$04
 ; CHECK:     CMP \$07
 ; CHECK:     BCC \.bb3
 ; CHECK: \.bb2:
-; CHECK:     LDA \$03
+; CHECK:     LDA \$05
 ; CHECK:     RTS
 ; CHECK: \.bb3:
 ; CHECK:     CLC
-; CHECK:     LDA \$03
-; CHECK:     ADC \$05
-; CHECK:     STA \$03
-; CHECK:     TXA
+; CHECK:     LDA \$05
 ; CHECK:     ADC \$04
+; CHECK:     STA \$05
+; CHECK:     TXA
+; CHECK:     ADC \$03
 ; CHECK:     TAX
 ; CHECK:     CLC
-; CHECK:     LDA \$05
-; CHECK:     ADC \#\$01
-; CHECK:     STA \$05
 ; CHECK:     LDA \$04
-; CHECK:     ADC \#\$00
+; CHECK:     ADC \#\$01
 ; CHECK:     STA \$04
+; CHECK:     LDA \$03
+; CHECK:     ADC \#\$00
+; CHECK:     STA \$03
 ; CHECK:     JMP \.bb1
 
 func @loop_counter : (i16) -> i16 {

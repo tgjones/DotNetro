@@ -31,6 +31,52 @@ public abstract class TargetRegisterInfo
     // Return 0 (no class) on targets where no widening is desired.
     public virtual int FlexibleI8ClassId => 0;
 
+    // The class whose allocatable set is the intersection of two classes, or null
+    // if the two are disjoint. The llvm `getCommonSubClass` analogue, used by
+    // RegisterClassConstraining to narrow an operand's vreg toward the operand's
+    // required class (and detect the empty-intersection case that forces a split
+    // copy).
+    //
+    // The default implementation assumes the target's classes are NESTED — for
+    // any two classes one allocatable set contains the other (the common case:
+    // a broad "any" class with single-register sub-classes). It returns the
+    // smaller class, or null when the sets are disjoint. A genuine partial
+    // overlap with no class representing the intersection throws, so adding a
+    // non-nested class without teaching this method fails loudly rather than
+    // silently miscolouring.
+    public virtual int? TryGetCommonSubClass(int classA, int classB)
+    {
+        if (classA == classB) return classA;
+
+        var a = GetAllocatableRegisters(classA);
+        var b = GetAllocatableRegisters(classB);
+
+        var aInB = AllContainedIn(a, b);
+        var bInA = AllContainedIn(b, a);
+
+        if (aInB) return classA;   // set(a) ⊆ set(b): a is the (sub)intersection
+        if (bInA) return classB;   // set(b) ⊆ set(a)
+        if (Disjoint(a, b)) return null;
+
+        throw new InvalidOperationException(
+            $"TryGetCommonSubClass: classes {classA} and {classB} partially overlap " +
+            "with no class representing their intersection (non-nested class lattice).");
+    }
+
+    private static bool AllContainedIn(ReadOnlySpan<int> xs, ReadOnlySpan<int> ys)
+    {
+        foreach (var x in xs)
+            if (!ys.Contains(x)) return false;
+        return true;
+    }
+
+    private static bool Disjoint(ReadOnlySpan<int> xs, ReadOnlySpan<int> ys)
+    {
+        foreach (var x in xs)
+            if (ys.Contains(x)) return false;
+        return true;
+    }
+
     // Scratch general-purpose registers the post-RA RegisterScavengingPass may
     // hand to a `pseudo.copy` that needs a temporary register to lower (e.g. on
     // the MOS6502 an immediate-into-zero-page copy needs a GPR for `LD? #imm ;

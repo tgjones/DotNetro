@@ -50,6 +50,16 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // reused across it (see the JsrAbs case in Select).
     private string? _currentPointerKey;
 
+    // Target register info, used by the adc/sbc emission paths to constrain each
+    // selected op's register operands to their declared operand class (the
+    // RegisterClassConstraining / llvm constrainSelectedInstRegOperands port).
+    private readonly Irie.Target.TargetRegisterInfo _registerInfo;
+
+    public MOS6502InstructionSelector(Irie.Target.TargetRegisterInfo registerInfo)
+    {
+        _registerInfo = registerInfo;
+    }
+
     public override void BeginFunction(MirFunction function)
     {
         _currentPointerKey = null;
@@ -201,7 +211,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // Operand layout: def[0]=result, def[1]=carry_out, use[0]=a, use[1]=b,
     //                 use[2]=carry_in (the carry-in's def — an arith.constant —
     //                 was already selected into a clc/sec earlier in the block).
-    private static bool SelectAddCarry(MirInstruction instr, MirBuilder builder)
+    private bool SelectAddCarry(MirInstruction instr, MirBuilder builder)
         => SelectCarryBorrowOp(
             instr, builder, MOS6502Op.Adc,
             resultVreg:  ((VirtualReg)instr.Operands[0]).Id,
@@ -213,7 +223,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // arith.subi_with_borrow → mos6502.sbc (pre-AMS). Same operand layout,
     // class assignment, and tied-def shape as add-with-carry — the only
     // difference is the emitted opcode tag.
-    private static bool SelectSubBorrow(MirInstruction instr, MirBuilder builder)
+    private bool SelectSubBorrow(MirInstruction instr, MirBuilder builder)
         => SelectCarryBorrowOp(
             instr, builder, MOS6502Op.Sbc,
             resultVreg:  ((VirtualReg)instr.Operands[0]).Id,
@@ -229,15 +239,15 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // the carry-in, then reuses the addi_with_carry lowering. The carry-out is
     // unused — a fresh dead Cc vreg absorbs it. Mirrors llvm-mos selecting a
     // legal S8 G_ADD directly.
-    private static bool SelectAddI(MirInstruction instr, MirBuilder builder)
+    private bool SelectAddI(MirInstruction instr, MirBuilder builder)
         => SelectBareAddSub(instr, builder, MOS6502Op.Adc, MOS6502Op.Clc);
 
     // arith.subi : i8 → sec + mos6502.sbc. Carry-in head is a SEC (6502 "no
     // borrow"), mirroring the subi_with_borrow chain head. See SelectAddI.
-    private static bool SelectSubI(MirInstruction instr, MirBuilder builder)
+    private bool SelectSubI(MirInstruction instr, MirBuilder builder)
         => SelectBareAddSub(instr, builder, MOS6502Op.Sbc, MOS6502Op.Sec);
 
-    private static bool SelectBareAddSub(
+    private bool SelectBareAddSub(
         MirInstruction instr, MirBuilder builder, MOS6502Op aluOp, MOS6502Op carryHeadOp)
     {
         var function = builder.Function;
@@ -264,7 +274,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             resultVreg, flagOutVreg: deadCarryOut, aVreg, bVreg, flagInVreg: carryInVreg);
     }
 
-    private static bool SelectCarryBorrowOp(
+    private bool SelectCarryBorrowOp(
         MirInstruction instr, MirBuilder builder, MOS6502Op targetOp,
         int resultVreg, int flagOutVreg, int aVreg, int bVreg, int flagInVreg)
     {
@@ -297,24 +307,6 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
                 builder, instr, targetOp, resultVreg, flagOutVreg,
                 accVreg: bVreg, flagInVreg, immValue: aConst, foldedConstVreg: aVreg);
 
-        // Do NOT pin aVreg/bVreg to a *single-physreg* class. The class-
-        // intersection gap (plan §3.1) arises when a single value is pinned `Ac`
-        // here and used as a zero-page (`Imag8`) operand elsewhere: Ac ∩ Imag8 =
-        // ∅ in RA. Keep both operands broad instead:
-        //   - use[0] (a) is *tied* to def[0], so TwoAddressInstructionPass
-        //     materialises it as a fresh copy that picks up the `Ac` operand
-        //     constraint from AdcInfo/SbcInfo. It reads the tied use's class to
-        //     classify that copy, so aVreg must carry *a* class — but the broad
-        //     flexible class (`Anyi8`), not `Ac`. That keeps aVreg free to live
-        //     in zero page too while still satisfying the pass.
-        //   - use[1] (b) keeps the `Imag8` operand constraint from the dialect
-        //     info directly; a broad bVreg intersects to zero page in RA, which
-        //     is correct. With no `Ac` pin reaching bVreg, Ac ∩ Imag8 can't arise.
-        // The carry-in genuinely must live in the carry register and has no
-        // multi-role conflict, so it keeps its in-place class.
-        ReclassifyTo(function, aVreg,      MOS6502RegisterClass.Anyi8);
-        ReclassifyTo(function, flagInVreg, MOS6502RegisterClass.Cc);
-
         var newResult = function.CreateVirtualRegisterInClass(
             MOS6502RegisterClass.Ac,
             MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
@@ -323,13 +315,23 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             MOS6502RegisterClass.GetName(MOS6502RegisterClass.Cc)!);
 
         builder.SetInsertionPointBefore(instr);
-        builder.BuildInstruction(
+        var adc = builder.BuildInstruction(
             MOS6502Dialect.OpRef(targetOp),
             new VirtualReg(newResult,  IsDefinition: true),
             new VirtualReg(newFlag,    IsDefinition: true),
             new VirtualReg(aVreg,      IsDefinition: false),
             new VirtualReg(bVreg,      IsDefinition: false),
             new VirtualReg(flagInVreg, IsDefinition: false));
+
+        // Constrain each operand to its declared class (AdcInfo/SbcInfo: use[0]=Ac
+        // tied to def[0], use[1]=Imag8, carry=Cc), narrowing the operand vregs in
+        // place or splitting with a copy on conflict — the llvm-mos
+        // constrainSelectedInstRegOperands behaviour. This replaces the old
+        // defensive `Anyi8` pin on the accumulator: instead of keeping `a` broad
+        // to dodge the Ac ∩ Imag8 = ∅ RA hazard, we narrow it to `Ac` and let the
+        // utility split the rare case where the same value is also a zp operand.
+        RegisterClassConstraining.ConstrainSelectedInstRegOperands(
+            adc, function, _registerInfo, builder);
 
         // The adc/sbc result lands in $a (def[0] = Ac, tied to use[0]). If it
         // outlives the instruction the generic relocation pass
@@ -400,17 +402,11 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // Emit `%r, %c = mos6502.{adc,sbc}.abs %acc, @sym, %carryIn` and erase the
     // original op plus the now-dead load. The result is left in its Ac vreg; the
     // generic relocation pass moves it off $a if it outlives the op.
-    private static bool EmitFoldedAbsCarryBorrow(
+    private bool EmitFoldedAbsCarryBorrow(
         MirBuilder builder, MirInstruction instr, MOS6502Op absOp,
         int resultVreg, int flagOutVreg, int accVreg, int flagInVreg, AbsLoadFold fold)
     {
         var function = builder.Function;
-
-        // The accumulator (use[0], tied to def[0]) carries the broad Anyi8 class
-        // for the same reason the plain path keeps `a` flexible; the carry-in
-        // lives in the carry register.
-        ReclassifyTo(function, accVreg,    MOS6502RegisterClass.Anyi8);
-        ReclassifyTo(function, flagInVreg, MOS6502RegisterClass.Cc);
 
         var newResult = function.CreateVirtualRegisterInClass(
             MOS6502RegisterClass.Ac,
@@ -420,13 +416,18 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             MOS6502RegisterClass.GetName(MOS6502RegisterClass.Cc)!);
 
         builder.SetInsertionPointBefore(instr);
-        builder.BuildInstruction(
+        var adc = builder.BuildInstruction(
             MOS6502Dialect.OpRef(absOp),
             new VirtualReg(newResult,  IsDefinition: true),
             new VirtualReg(newFlag,    IsDefinition: true),
             new VirtualReg(accVreg,    IsDefinition: false),
             fold.Symbol,
             new VirtualReg(flagInVreg, IsDefinition: false));
+
+        // Constrain operands to AdcInfo/SbcInfo classes (acc=Ac tied to def, the
+        // folded symbol is operand[3]=Imag8 but a Symbol so it is skipped, carry=Cc).
+        RegisterClassConstraining.ConstrainSelectedInstRegOperands(
+            adc, function, _registerInfo, builder);
 
         function.ReplaceAllUsesOfRegister(resultVreg,  newResult);
         function.ReplaceAllUsesOfRegister(flagOutVreg, newFlag);
@@ -442,17 +443,12 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // original op plus the now-dead constant def. The result is left in its Ac
     // vreg; the generic relocation pass moves it off $a if it outlives the op.
     // AMS refines the bare adc/sbc to .imm once operand[3] is an Immediate.
-    private static bool EmitFoldedImmCarryBorrow(
+    private bool EmitFoldedImmCarryBorrow(
         MirBuilder builder, MirInstruction instr, MOS6502Op aluOp,
         int resultVreg, int flagOutVreg, int accVreg, int flagInVreg,
         long immValue, int foldedConstVreg)
     {
         var function = builder.Function;
-
-        // Accumulator stays broad (tied to def, like the plain path); carry-in
-        // lives in the carry register.
-        ReclassifyTo(function, accVreg,    MOS6502RegisterClass.Anyi8);
-        ReclassifyTo(function, flagInVreg, MOS6502RegisterClass.Cc);
 
         var newResult = function.CreateVirtualRegisterInClass(
             MOS6502RegisterClass.Ac,
@@ -462,13 +458,18 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
             MOS6502RegisterClass.GetName(MOS6502RegisterClass.Cc)!);
 
         builder.SetInsertionPointBefore(instr);
-        builder.BuildInstruction(
+        var adc = builder.BuildInstruction(
             MOS6502Dialect.OpRef(aluOp),                 // stays pre-AMS adc/sbc; AMS → .imm
             new VirtualReg(newResult,  IsDefinition: true),
             new VirtualReg(newFlag,    IsDefinition: true),
             new VirtualReg(accVreg,    IsDefinition: false),
             new Immediate(immValue),                     // operand[3] → AMS picks AdcImm/SbcImm
             new VirtualReg(flagInVreg, IsDefinition: false));
+
+        // Constrain operands to AdcInfo/SbcInfo classes (acc=Ac tied to def,
+        // operand[3] is an Immediate so skipped, carry=Cc).
+        RegisterClassConstraining.ConstrainSelectedInstRegOperands(
+            adc, function, _registerInfo, builder);
 
         function.ReplaceAllUsesOfRegister(resultVreg,  newResult);
         function.ReplaceAllUsesOfRegister(flagOutVreg, newFlag);
