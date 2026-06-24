@@ -161,7 +161,7 @@ coalesce or place it.
 ```
 dotnet test --project src/Irie.Tests                 # unit + lit
 dotnet test --project src/DotNetro.Compiler.Tests    # emulator (behaviour, not just shape)
-dotnet run -c Release --project src/Irie.Tools.Reference   # irie-report headline
+dotnet run -c Release --project src/Irie.Tools.Reference -- generate-report   # irie-report headline
 ```
 Default stays the **colourer** throughout B (the validation oracle). Greedy stays
 flag-gated; B should leave greedy *simpler* (the up-front copy obviates greedy's
