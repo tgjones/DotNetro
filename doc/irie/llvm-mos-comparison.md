@@ -2,7 +2,7 @@
 
 # Irie vs llvm-mos — MOS6502 codegen
 
-Irie emits **-7.8%** instructions vs llvm-mos (**317** vs **344**, ratio **0.92**) across **17/47** corpus cases.
+Irie emits **-8.4%** instructions vs llvm-mos (**315** vs **344**, ratio **0.92**) across **17/47** corpus cases.
 
 Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 worse. Sorted worst-first. Blocked cases have no Irie test yet (see the [suite README](../../src/Irie.Tests/Lit/CodeGen/MOS6502/LlvmMosReference/README.md)).
 
@@ -19,12 +19,12 @@ Lower ratio is better — 🟢 Irie beats llvm-mos, ⚪ parity (1.00), 🔴 wors
 | basics | ret-const | converted | 3 | 3 | 0 | 1.00 | ⚪ |
 | basics | sub-i16 | converted | 8 | 8 | 0 | 1.00 | ⚪ |
 | constraints | inc-dec | converted | 4 | 4 | 0 | 1.00 | ⚪ |
-| control-flow | if-else | converted | 36 | 36 | 0 | 1.00 | ⚪ |
 | control-flow | select | converted | 12 | 12 | 0 | 1.00 | ⚪ |
 | memory | global-rw | converted | 10 | 10 | 0 | 1.00 | ⚪ |
 | widths | truncate | converted | 3 | 3 | 0 | 1.00 | ⚪ |
 | control-flow | common-subexpr | converted | 39 | 36 | -3 | 0.92 | 🟢 |
-| control-flow | loop-counter | converted | 65 | 38 | -27 | 0.58 | 🟢 |
+| control-flow | if-else | converted | 36 | 32 | -4 | 0.89 | 🟢 |
+| control-flow | loop-counter | converted | 65 | 40 | -25 | 0.62 | 🟢 |
 | basics | chain-arith | blocked | 51 | — | — | — |  |
 | basics | stack-args | blocked | 122 | — | — | — |  |
 | coalescing | commutative | blocked | 8 | — | — | — |  |
@@ -1126,148 +1126,6 @@ inc_dec:
 </details>
 
 <details>
-<summary>control-flow/if-else — llvm-mos 36, Irie 36, ratio 1.00</summary>
-
-llvm-mos (36):
-
-```asm
-    .zeropage    __rc0
-    .zeropage    __rc1
-    .zeropage    __rc2
-    .zeropage    __rc3
-    .zeropage    __rc4
-    .zeropage    __rc5
-    .zeropage    __rc6
-    .zeropage    __rc7
-    .zeropage    __rc8
-    .zeropage    __rc9
-    .zeropage    __rc10
-    .zeropage    __rc11
-    .zeropage    __rc12
-    .zeropage    __rc13
-    .zeropage    __rc14
-    .zeropage    __rc15
-    .zeropage    __rc16
-    .zeropage    __rc17
-    .zeropage    __rc18
-    .zeropage    __rc19
-    .zeropage    __rc20
-    .zeropage    __rc21
-    .zeropage    __rc22
-    .zeropage    __rc23
-    .zeropage    __rc24
-    .zeropage    __rc25
-    .zeropage    __rc26
-    .zeropage    __rc27
-    .zeropage    __rc28
-    .zeropage    __rc29
-    .zeropage    __rc30
-    .zeropage    __rc31
-    .file    "if-else.c"
-    .section    .text.if_else,"ax",@progbits
-    .globl    if_else                         ; -- Begin function if_else
-    .type    if_else,@function
-if_else:                                ; @if_else
-; %bb.0:
-    sta    __rc4
-    pha
-    txa
-    tay
-    pla
-    ldx    __rc2
-    sta    __rc5
-    cpx    __rc4
-    lda    __rc3
-    pha
-    tya
-    tax
-    pla
-    sty    __rc4
-    sbc    __rc4
-    bvc    .LBB0_2
-; %bb.1:
-    eor    #128
-.LBB0_2:
-    tay
-    bpl    .LBB0_4
-; %bb.3:
-    sec
-    lda    __rc5
-    sbc    __rc2
-    tay
-    txa
-    sbc    __rc3
-    jmp    .LBB0_5
-.LBB0_4:
-    sec
-    lda    __rc2
-    sbc    __rc5
-    tay
-    lda    __rc3
-    stx    __rc2
-    sbc    __rc2
-.LBB0_5:
-    tax
-    tya
-    rts
-.Lfunc_end0:
-    .size    if_else, .Lfunc_end0-if_else
-                                        ; -- End function
-    .ident    "clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"
-    .section    ".note.GNU-stack","",@progbits
-    .addrsig
-    ;Declaring this symbol tells the CRT that the stack pointer needs to be initialized.
-    .globl    __do_init_stack
-```
-
-Irie (36):
-
-```asm
-abs_diff:
-    STA $06
-    STX $04
-    LDA $02
-    STA $05
-    TXA
-    EOR #$80
-    TAY
-    LDA $03
-    EOR #$80
-    STA $02
-    TYA
-    CMP $02
-    BCC .bb3
-    BNE .bb1
-    LDA $06
-    LDX $05
-    STX $02
-    CMP $02
-    BCC .bb3
-.bb1:
-    SEC
-    LDA $06
-    SBC $05
-    TAY
-    LDA $04
-    SBC $03
-    TAX
-.bb2:
-    TYA
-    RTS
-.bb3:
-    SEC
-    LDA $05
-    SBC $06
-    TAY
-    LDA $03
-    SBC $04
-    TAX
-    JMP .bb2
-```
-
-</details>
-
-<details>
 <summary>control-flow/select — llvm-mos 12, Irie 12, ratio 1.00</summary>
 
 llvm-mos (12):
@@ -1695,7 +1553,145 @@ common_subexpr:
 </details>
 
 <details>
-<summary>control-flow/loop-counter — llvm-mos 65, Irie 38, ratio 0.58</summary>
+<summary>control-flow/if-else — llvm-mos 36, Irie 32, ratio 0.89</summary>
+
+llvm-mos (36):
+
+```asm
+    .zeropage    __rc0
+    .zeropage    __rc1
+    .zeropage    __rc2
+    .zeropage    __rc3
+    .zeropage    __rc4
+    .zeropage    __rc5
+    .zeropage    __rc6
+    .zeropage    __rc7
+    .zeropage    __rc8
+    .zeropage    __rc9
+    .zeropage    __rc10
+    .zeropage    __rc11
+    .zeropage    __rc12
+    .zeropage    __rc13
+    .zeropage    __rc14
+    .zeropage    __rc15
+    .zeropage    __rc16
+    .zeropage    __rc17
+    .zeropage    __rc18
+    .zeropage    __rc19
+    .zeropage    __rc20
+    .zeropage    __rc21
+    .zeropage    __rc22
+    .zeropage    __rc23
+    .zeropage    __rc24
+    .zeropage    __rc25
+    .zeropage    __rc26
+    .zeropage    __rc27
+    .zeropage    __rc28
+    .zeropage    __rc29
+    .zeropage    __rc30
+    .zeropage    __rc31
+    .file    "if-else.c"
+    .section    .text.if_else,"ax",@progbits
+    .globl    if_else                         ; -- Begin function if_else
+    .type    if_else,@function
+if_else:                                ; @if_else
+; %bb.0:
+    sta    __rc4
+    pha
+    txa
+    tay
+    pla
+    ldx    __rc2
+    sta    __rc5
+    cpx    __rc4
+    lda    __rc3
+    pha
+    tya
+    tax
+    pla
+    sty    __rc4
+    sbc    __rc4
+    bvc    .LBB0_2
+; %bb.1:
+    eor    #128
+.LBB0_2:
+    tay
+    bpl    .LBB0_4
+; %bb.3:
+    sec
+    lda    __rc5
+    sbc    __rc2
+    tay
+    txa
+    sbc    __rc3
+    jmp    .LBB0_5
+.LBB0_4:
+    sec
+    lda    __rc2
+    sbc    __rc5
+    tay
+    lda    __rc3
+    stx    __rc2
+    sbc    __rc2
+.LBB0_5:
+    tax
+    tya
+    rts
+.Lfunc_end0:
+    .size    if_else, .Lfunc_end0-if_else
+                                        ; -- End function
+    .ident    "clang version 23.0.0git (https://github.com/llvm-mos/llvm-mos.git c798c31416f72b395c658b5502d281a162387ab1)"
+    .section    ".note.GNU-stack","",@progbits
+    .addrsig
+    ;Declaring this symbol tells the CRT that the stack pointer needs to be initialized.
+    .globl    __do_init_stack
+```
+
+Irie (32):
+
+```asm
+abs_diff:
+    STA $05
+    STX $04
+    TXA
+    EOR #$80
+    TAY
+    LDA $03
+    EOR #$80
+    STA $06
+    TYA
+    CMP $06
+    BCC .bb3
+    BNE .bb1
+    LDA $05
+    CMP $02
+    BCC .bb3
+.bb1:
+    SEC
+    LDA $05
+    SBC $02
+    TAY
+    LDA $04
+    SBC $03
+    TAX
+.bb2:
+    TYA
+    RTS
+.bb3:
+    SEC
+    LDA $02
+    SBC $05
+    TAY
+    LDA $03
+    SBC $04
+    TAX
+    JMP .bb2
+```
+
+</details>
+
+<details>
+<summary>control-flow/loop-counter — llvm-mos 65, Irie 40, ratio 0.62</summary>
 
 llvm-mos (65):
 
@@ -1830,50 +1826,52 @@ loop_counter:                           ; @loop_counter
     .globl    __do_init_stack
 ```
 
-Irie (38):
+Irie (40):
 
 ```asm
 loop_counter:
     STA $07
     STX $06
     LDA #$00
-    STA $05
-    LDX #$00
-    LDA $05
     STA $04
-    STX $03
+    LDX #$00
+    LDA $04
+    STA $05
+    STX $02
 .bb1:
-    LDA $03
+    LDA $02
     EOR #$80
     TAY
     LDA $06
     EOR #$80
-    STA $02
+    STA $03
     TYA
-    CMP $02
+    CMP $03
     BCC .bb3
     BNE .bb2
-    LDA $04
+    LDA $05
     CMP $07
     BCC .bb3
 .bb2:
-    LDA $05
+    LDA $04
     RTS
 .bb3:
     CLC
     LDA $05
-    ADC $04
-    STA $05
-    TXA
+    STA $03
+    LDA $04
     ADC $03
+    STA $04
+    TXA
+    ADC $02
     TAX
     CLC
-    LDA $04
+    LDA $05
     ADC #$01
-    STA $04
-    LDA $03
+    STA $05
+    LDA $02
     ADC #$00
-    STA $03
+    STA $02
     JMP .bb1
 ```
 

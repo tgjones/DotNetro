@@ -29,6 +29,7 @@
 ; CHECK: \.bb2:
 ; CHECK:     LDA \$03
 ; CHECK:     RTS
+
 func @select_min8 : (i8, i8) -> i8 {
 bb0(%0 : i8, %1 : i8):
     %2 : i1 = arith.cmpi slt, %0, %1
@@ -52,6 +53,7 @@ bb0(%0 : i8, %1 : i8):
 ; CHECK: \.bb2:
 ; CHECK:     TXA
 ; CHECK:     RTS
+
 func @select_max8 : (i8, i8) -> i8 {
 bb0(%0 : i8, %1 : i8):
     %2 : i1 = arith.cmpi slt, %0, %1
@@ -68,19 +70,18 @@ bb0(%0 : i8, %1 : i8):
 ; The CMP #$00 is then dropped by MOS6502LateOptimization (the preceding LDA $02
 ; already set N), leaving just LDA + BMI.
 ; CHECK: select_abs8:
-; CHECK:     STA \$02
 ; CHECK:     LDX \#\$00
-; CHECK:     LDA \$02
+; CHECK:     CMP \#\$00
 ; CHECK:     BMI \.bb2
 ; CHECK: \.bb1:
-; CHECK:     LDA \$02
 ; CHECK:     RTS
 ; CHECK: \.bb2:
 ; CHECK:     SEC
+; CHECK:     STA \$02
 ; CHECK:     TXA
 ; CHECK:     SBC \$02
-; CHECK:     STA \$02
-; CHECK:     JMP \.bb1
+; CHECK:     RTS
+
 func @select_abs8 : (i8) -> i8 {
 bb0(%0 : i8):
     %1 : i8 = arith.constant 0
@@ -116,6 +117,7 @@ bb0(%0 : i8):
 ; CHECK: \.bb2:
 ; CHECK:     LDA \$04
 ; CHECK:     RTS
+
 func @select_min16 : (i16, i16) -> i16 {
 bb0(%0 : i16, %1 : i16):
     %2 : i1 = arith.cmpi slt, %0, %1

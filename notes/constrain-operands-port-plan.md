@@ -72,11 +72,41 @@ and types the tie copy `ac` — matches llvm); the coalescer (already coalesces
 across classes via allowed-set intersection in `CoalesceIsSafe`/`Combine`); the RA
 class-intersection (kept as a now-rarely-exercised safety net).
 
-## Phase 2 — migrate the cmp/eor explicit `Ac`-funnels (NOT done)
+## Phase 2 — migrate the cmp/eor explicit `Ac`-funnels — DONE (commit on main)
 
-Today the compare/eor lowering *always* emits a preserving `Ac` funnel copy, where
-llvm splits only on conflict. Migrate these to the utility so a compare operand
-that is dead-after needs no copy (llvm behaviour). **Expect high golden churn.**
+Migrated the two cmp funnels to the utility; left `EorByteWithImmediate`'s
+destructive-EOR copy alone (it is the two-address materialization, not a funnel).
+`EmitI8CmpBranch` / `EmitMultiByteCmpLadder` / `EmitCmp` / `SelectCondBr` became
+instance methods (need `_registerInfo`); `EmitCmp` now builds the `cmp` with the
+raw operands, calls `RegisterClassConstraining.ConstrainSelectedInstRegOperands`
+(narrows use[0]→`Ac`, use[1]→`Imag8` in place; split copy only on conflict), then
+`SetInsertionPointAfter(cmp)` so the caller's branches stay after it.
+
+Net result (net win): if-else −4, CmpI8Branch −1, SelectMaterialized −2,
+IncrementStrengthReduction −2 (the increment fold correctly stops firing for a
+*compared* counter — without CPX/CPY a Y-counter must be TYA'd into $a per
+iteration, so CLC/ADC in $a is strictly smaller; golden + comment updated to
+document this, RUN-noadc removed). loop-counter regressed +2 (a 16-bit
+accumulating loop — the only case where the funnel's manual live-range split
+helped our weaker colourer). **Aggregate improved −7.8% → −8.4% (Irie 315 vs
+llvm-mos 344, 17/47 paired).** All 200 Irie tests + 21 execution tests + full
+solution suite green.
+
+Gotcha for future regens: `SelectMaterialized-MachineCode.irie` interleaves
+CHECK blocks with `func` defs (one pair per function); the simple
+`/tmp/regen_golden.py` (single header/CHECK/trailer assumption) **deletes the
+intermediate funcs** — use a per-func-block regen, and regenerate against the
+**harness** `iriec` (`src/Irie.Tests/bin/.../iriec`), not the standalone dll.
+Also: DotLit parses `[A-Z]+:` anywhere on a comment line as a directive, so prose
+like `TYA: …` throws "Invalid command TYA" — avoid uppercase-word-then-colon in
+`.irie` comments.
+
+### Original notes (kept for reference)
+
+The compare/eor lowering used to *always* emit a preserving `Ac` funnel copy,
+where llvm splits only on conflict. Migrated these to the utility so a compare
+operand that is dead-after needs no copy (llvm behaviour). High golden churn as
+predicted.
 
 Sites in `MOS6502InstructionSelector.cs` (line numbers approximate post-Phase-1):
 - `EmitI8CmpBranch` (~667): builds an `aCmpVreg : Ac = pseudo.copy <a>` (~714) then

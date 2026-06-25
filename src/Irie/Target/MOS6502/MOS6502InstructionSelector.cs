@@ -568,7 +568,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     //   * an arith.cmpi (i8)                       → CMP + conditional branch;
     //   * a wide-compare lexicographic select tree → the multi-byte CMP ladder;
     //   * either of the above wrapped in arith.not → same, with T/F swapped.
-    private static bool SelectCondBr(MirInstruction condBr, MirBuilder builder)
+    private bool SelectCondBr(MirInstruction condBr, MirBuilder builder)
     {
         var function = builder.Function;
 
@@ -664,7 +664,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     //     signed path), so the unsigned CMP + BCC computes signed less-than.
     // Emits at the builder's current insertion point; does not remove the cmpi
     // (the caller does).
-    private static void EmitI8CmpBranch(
+    private void EmitI8CmpBranch(
         MirFunction function, MirBuilder builder, MirInstruction cmpi,
         BlockTarget tTarget, BlockTarget fTarget)
     {
@@ -703,30 +703,13 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
                     "reached the i8 selector; after legalizer normalization only eq, uge, slt are expected.");
         }
 
-        // Funnel the (possibly sign-biased) %a through a fresh `Ac` vreg instead
-        // of pinning it in place. cmp's use[0] is *not* tied, so an in-place `Ac`
-        // reclassify would be a direct pin — and if the same value is also used as
-        // a zero-page operand elsewhere, Ac ∩ Imag8 = ∅ in RA (plan §3.2). Routing
-        // the `Ac` requirement through a copy leaves the source broad; the
-        // coalescer collapses the copy whenever $a is free. The b operand stays
-        // broad as use[1]; the `Imag8` operand constraint from CmpInfo applies to
-        // it directly and, with no `Ac` pin reaching it, cannot conflict.
-        var aCmpVreg = function.CreateVirtualRegisterInClass(
-            MOS6502RegisterClass.Ac,
-            MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
-        builder.BuildInstruction(
-            PseudoDialect.OpRef(PseudoOp.Copy),
-            new VirtualReg(aCmpVreg, IsDefinition: true),
-            new VirtualReg(cmpAVreg, IsDefinition: false));
-
-        // mos6502.cmp %a_cmp, <rhs> implicit-def $n, implicit-def $z, implicit-def $c
-        builder.BuildInstruction(
-            MOS6502Dialect.OpRef(MOS6502Op.Cmp),
-            new VirtualReg(aCmpVreg, IsDefinition: false),
-            cmpRhs,
-            new PhysicalReg(MOS6502Registers.N, IsDefinition: true, IsImplicit: true),
-            new PhysicalReg(MOS6502Registers.Z, IsDefinition: true, IsImplicit: true),
-            new PhysicalReg(MOS6502Registers.C, IsDefinition: true, IsImplicit: true));
+        // mos6502.cmp %a, <rhs> implicit-def $n, $z, $c. Build with the raw
+        // (possibly sign-biased) %a operand and constrain each register operand to
+        // CmpInfo's classes (use[0]=Ac, use[1]=Imag8): the utility narrows the vreg
+        // in place or splits with a copy only on a class conflict, matching llvm's
+        // constrainSelectedInstRegOperands. This replaces the old always-on `Ac`
+        // funnel copy — a dead-after compare operand now needs no copy at all.
+        EmitCmp(function, builder, cmpAVreg, cmpRhs);
 
         // mos6502.b<pred> T implicit <flag>
         var implicitFlag = branchOp switch
@@ -849,7 +832,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // For uge: BCC → F; BNE → T (last byte: BCS → T else F).
     // A signed `slt` runs the ult ladder after flipping bit 7 of the most-
     // significant byte of both operands (a <s b == (a^msb) <u (b^msb)).
-    private static void EmitMultiByteCmpLadder(
+    private void EmitMultiByteCmpLadder(
         MirFunction function,
         MirBuilder builder,
         ArithCmpPredicate predicate,
@@ -872,12 +855,13 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
         // copy — and a defensive funnel would actively hurt: when the same value
         // is also live past the compare (e.g. an operand the arms later subtract),
         // the funnel vreg and the original interfere, forcing two zero-page slots
-        // plus the copy. This mirrors the single-byte path (EmitI8CmpAndBranch):
-        // emit only the one `Ac` class-constraint copy the loop already makes and
-        // trust the coalescer to fold it; leave `b` broad so CmpInfo's `Imag8`
-        // use[1] constraint parks it in zero page without an explicit reclassify.
-        // Only the signed-flip top byte takes a copy, and that is the *necessary*
-        // preserving copy emitted by EorByteWithImmediate (#$80 EOR is destructive).
+        // plus the copy. Each per-byte cmp is built with the raw operands and run
+        // through RegisterClassConstraining (in EmitCmp), which narrows use[0] to
+        // `Ac` and use[1] to `Imag8` in place — splitting with a copy only on a
+        // genuine class conflict, the llvm constrainSelectedInstRegOperands
+        // behaviour. Only the signed-flip top byte takes a guaranteed copy, and
+        // that is the *necessary* preserving copy emitted by EorByteWithImmediate
+        // (#$80 EOR is destructive).
         var aBytes = (int[])aBytesRaw.Clone();
 
         // Resolve each `b` byte to a compare rhs. A constant byte (the zero of a
@@ -908,17 +892,7 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
 
         for (var pos = byteCount - 1; pos >= 0; pos--)
         {
-            var byteA = aBytes[pos];
-
-            var aCmpVreg = function.CreateVirtualRegisterInClass(
-                MOS6502RegisterClass.Ac,
-                MOS6502RegisterClass.GetName(MOS6502RegisterClass.Ac)!);
-            builder.BuildInstruction(
-                PseudoDialect.OpRef(PseudoOp.Copy),
-                new VirtualReg(aCmpVreg, IsDefinition: true),
-                new VirtualReg(byteA,    IsDefinition: false));
-
-            EmitCmp(builder, aCmpVreg, bRhs[pos]);
+            EmitCmp(function, builder, aBytes[pos], bRhs[pos]);
 
             var isLast = pos == 0;
             EmitMultiByteExits(builder, chainPredicate, isLast, tTarget, fTarget);
@@ -958,15 +932,29 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // operand (zero-page byte) or an Immediate (constant operand folded directly
     // — the AddressingModeSelector refines the opcode to cmp.imm). Mirrors
     // llvm-mos's CmpImm fold against a constant operand.
-    private static void EmitCmp(MirBuilder builder, int aVreg, MirOperand rhs)
+    //
+    // Built with the raw `a` / rhs operands and then run through
+    // RegisterClassConstraining (the llvm constrainSelectedInstRegOperands port):
+    // it narrows use[0] toward `Ac` and use[1] toward `Imag8` (CmpInfo's classes)
+    // in place, inserting a `pseudo.copy` split only when the vreg is already
+    // committed to a disjoint class. No defensive funnel copy is forced — a
+    // dead-after operand stays where it is. The constrain utility moves the
+    // builder's insertion point to before the cmp (where it inserts any split
+    // copy), so reposition it after the cmp for the caller's following branches.
+    private void EmitCmp(MirFunction function, MirBuilder builder, int aVreg, MirOperand rhs)
     {
-        builder.BuildInstruction(
+        var cmp = builder.BuildInstruction(
             MOS6502Dialect.OpRef(MOS6502Op.Cmp),
             new VirtualReg(aVreg, IsDefinition: false),
             rhs,
             new PhysicalReg(MOS6502Registers.N, IsDefinition: true, IsImplicit: true),
             new PhysicalReg(MOS6502Registers.Z, IsDefinition: true, IsImplicit: true),
             new PhysicalReg(MOS6502Registers.C, IsDefinition: true, IsImplicit: true));
+
+        RegisterClassConstraining.ConstrainSelectedInstRegOperands(
+            cmp, function, _registerInfo, builder);
+
+        builder.SetInsertionPointAfter(cmp);
     }
 
     private static void EmitMultiByteExits(

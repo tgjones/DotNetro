@@ -1,33 +1,34 @@
 ; RUN: @iriec --target mos6502 --emit=asm @file
-; RUN-noadc: not @iriec --target mos6502 --emit=asm @file | grep -qi 'adc'
 
-; Increment strength reduction (plan Item 1): an in-place 8-bit `value + 1`
-; on a value the register allocator parks in a register (or zero page) folds
-; to a single INX / INY / INC, instead of the generic
-; `lda / clc / adc #1 / sta` sequence the legalizer + isel emit.
+; @Inc loops `i = i + 1` until `i >= limit`, with the loop-carried counter %2 a
+; block parameter (one physreg held across the back-edge). The counter is BOTH
+; incremented AND compared each iteration.
 ;
-; @Inc loops `i = i + 1` until `i >= limit`. The loop-carried counter %2 is a
-; block parameter, so the same physreg holds it across the back-edge; the
-; allocator picks Y. After AMS the loop body is
-;   $zp3 = pseudo.copy 1 ; clc ; $a = copy $y ; adc.zp $a,$zp3 ; $y = copy $a
-; which MOS6502IncrementStrengthReductionPass rewrites to a single INY, then
-; drops the now-dead constant-1 copy and CLC. The carry-out of the adc is dead
-; (the compare that follows recomputes the flags), so the fold is sound.
+; The increment strength-reduction pass (plan Item 1) rewrites an in-place
+; `value + 1` to a single INX / INY / INC when the allocator has parked the
+; value in X / Y / zero page. It does NOT fire here, and that is correct: our
+; `cmp` lowering only emits CMP (which compares $a) — it has no CPX / CPY — so a
+; counter kept in Y would have to be copied to $a (TYA) before each compare
+; anyway. Pinning the counter to $a and incrementing with CLC / ADC #1 is then
+; strictly smaller than the folded `Y + INY + TYA` form — it drops the entry
+; copy-to-Y, the per-iteration copy-to-$a, and the epilogue copy-to-$a
+; (8 instructions here vs. 11 for the folded form).
 ;
-; The second RUN line (RUN-noadc) asserts there is NO ADC anywhere in the
-; output: the increment must not fall back to the generic adc path.
+; This became reachable once the cmp lowering stopped funnelling its $a operand
+; through a defensive copy (the constrainSelectedInstRegOperands port): the
+; counter's compare-use now narrows it to $a directly, so the allocator keeps it
+; there for the whole loop instead of in Y. Folding the increment AND keeping the
+; counter in Y would need a CPX / CPY-based compare lowering — future work.
 
 ; CHECK: Inc:
 ; CHECK:     STX \$02
-; CHECK:     TAY
 ; CHECK: \.bb1:
-; CHECK:     INY
-; CHECK:     TYA
+; CHECK:     CLC
+; CHECK:     ADC \#\$01
 ; CHECK:     CMP \$02
 ; CHECK:     BCS \.bb2
 ; CHECK:     JMP \.bb1
 ; CHECK: \.bb2:
-; CHECK:     TYA
 ; CHECK:     RTS
 
 func @Inc : (i8, i8) -> i8 {
