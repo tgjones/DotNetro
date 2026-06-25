@@ -12,16 +12,16 @@
 ;   %4 : i8  = pseudo.extract %2, 8            ; bits [8..16) → matches %1
 ; After combine: %3 → %0, %4 → %1, the merge and both extracts are erased.
 
-; CHECK: func @TestExtractMerge : \(i8, i8\) -> void \{
-; CHECK:   bb0\(\):
-; CHECK:     \[liveins: \$a, \$x\]
-; CHECK:     %0 : i8 = pseudo.copy \$a
-; CHECK:     %1 : i8 = pseudo.copy \$x
-; CHECK:     \$a = pseudo.copy %0
-; CHECK:     \$x = pseudo.copy %1
-; CHECK:     mos6502.jsr.abs @Use2, implicit \$a, implicit \$x
+; CHECK: func @TestExtractMerge : (i8, i8) -> void {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x]
+; CHECK:     %0 : i8 = pseudo.copy $a
+; CHECK:     %1 : i8 = pseudo.copy $x
+; CHECK:     $a = pseudo.copy %0
+; CHECK:     $x = pseudo.copy %1
+; CHECK:     mos6502.jsr.abs @Use2, implicit $a, implicit $x, implicit-def $a, implicit-def $x, implicit-def $y, implicit-def $c, implicit-def $n, implicit-def $v, implicit-def $z, implicit-def $b, implicit-def $zp2, implicit-def $zp3, implicit-def $zp4, implicit-def $zp5, implicit-def $zp6, implicit-def $zp7, implicit-def $zp8, implicit-def $zp9, implicit-def $zp10, implicit-def $zp11, implicit-def $zp12, implicit-def $zp13, implicit-def $zp14, implicit-def $zp15, implicit-def $zp16, implicit-def $zp17, implicit-def $zp18, implicit-def $zp19
 ; CHECK:     pseudo.return
-; CHECK: \}
+; CHECK: }
 
 func @TestExtractMerge : (i8, i8) -> void {
 bb0(%0 : i8, %1 : i8):

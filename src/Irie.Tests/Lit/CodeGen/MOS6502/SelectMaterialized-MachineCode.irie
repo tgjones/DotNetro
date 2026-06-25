@@ -15,19 +15,19 @@
 
 ; --- min(a, b) = a <s b ? a : b -----------------------------------------------
 ; CHECK: select_min8:
-; CHECK:     STA \$03
-; CHECK:     EOR \#\$80
+; CHECK:     STA $03
+; CHECK:     EOR #$80
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     EOR \#\$80
-; CHECK:     STA \$02
+; CHECK:     EOR #$80
+; CHECK:     STA $02
 ; CHECK:     TYA
-; CHECK:     CMP \$02
-; CHECK:     BCC \.bb2
-; CHECK: \.bb1:
-; CHECK:     STX \$03
-; CHECK: \.bb2:
-; CHECK:     LDA \$03
+; CHECK:     CMP $02
+; CHECK:     BCC .bb2
+; CHECK: .bb1:
+; CHECK:     STX $03
+; CHECK: .bb2:
+; CHECK:     LDA $03
 ; CHECK:     RTS
 
 func @select_min8 : (i8, i8) -> i8 {
@@ -39,18 +39,18 @@ bb0(%0 : i8, %1 : i8):
 
 ; --- max(a, b) = a <s b ? b : a (arms swapped) --------------------------------
 ; CHECK: select_max8:
-; CHECK:     STA \$03
-; CHECK:     EOR \#\$80
+; CHECK:     STA $03
+; CHECK:     EOR #$80
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     EOR \#\$80
-; CHECK:     STA \$02
+; CHECK:     EOR #$80
+; CHECK:     STA $02
 ; CHECK:     TYA
-; CHECK:     CMP \$02
-; CHECK:     BCC \.bb2
-; CHECK: \.bb1:
-; CHECK:     LDX \$03
-; CHECK: \.bb2:
+; CHECK:     CMP $02
+; CHECK:     BCC .bb2
+; CHECK: .bb1:
+; CHECK:     LDX $03
+; CHECK: .bb2:
 ; CHECK:     TXA
 ; CHECK:     RTS
 
@@ -70,16 +70,16 @@ bb0(%0 : i8, %1 : i8):
 ; The CMP #$00 is then dropped by MOS6502LateOptimization (the preceding LDA $02
 ; already set N), leaving just LDA + BMI.
 ; CHECK: select_abs8:
-; CHECK:     LDX \#\$00
-; CHECK:     CMP \#\$00
-; CHECK:     BMI \.bb2
-; CHECK: \.bb1:
+; CHECK:     LDX #$00
+; CHECK:     CMP #$00
+; CHECK:     BMI .bb2
+; CHECK: .bb1:
 ; CHECK:     RTS
-; CHECK: \.bb2:
+; CHECK: .bb2:
 ; CHECK:     SEC
-; CHECK:     STA \$02
+; CHECK:     STA $02
 ; CHECK:     TXA
-; CHECK:     SBC \$02
+; CHECK:     SBC $02
 ; CHECK:     RTS
 
 func @select_abs8 : (i8) -> i8 {
@@ -94,28 +94,28 @@ bb0(%0 : i8):
 ; --- 16-bit min: exercises same-test merge (narrowed to 2 i8 selects sharing
 ; the condition → ONE diamond, both bytes set per arm) + wide cmpi. ------------
 ; CHECK: select_min16:
-; CHECK:     STA \$04
-; CHECK:     LDA \$02
-; CHECK:     STA \$05
+; CHECK:     STA $04
+; CHECK:     LDA $02
+; CHECK:     STA $05
 ; CHECK:     TXA
-; CHECK:     EOR \#\$80
+; CHECK:     EOR #$80
 ; CHECK:     TAY
-; CHECK:     LDA \$03
-; CHECK:     EOR \#\$80
-; CHECK:     STA \$02
+; CHECK:     LDA $03
+; CHECK:     EOR #$80
+; CHECK:     STA $02
 ; CHECK:     TYA
-; CHECK:     CMP \$02
-; CHECK:     BCC \.bb2
-; CHECK:     BNE \.bb1
-; CHECK:     LDA \$04
-; CHECK:     CMP \$05
-; CHECK:     BCC \.bb2
-; CHECK: \.bb1:
-; CHECK:     LDA \$05
-; CHECK:     STA \$04
-; CHECK:     LDX \$03
-; CHECK: \.bb2:
-; CHECK:     LDA \$04
+; CHECK:     CMP $02
+; CHECK:     BCC .bb2
+; CHECK:     BNE .bb1
+; CHECK:     LDA $04
+; CHECK:     CMP $05
+; CHECK:     BCC .bb2
+; CHECK: .bb1:
+; CHECK:     LDA $05
+; CHECK:     STA $04
+; CHECK:     LDX $03
+; CHECK: .bb2:
+; CHECK:     LDA $04
 ; CHECK:     RTS
 
 func @select_min16 : (i16, i16) -> i16 {

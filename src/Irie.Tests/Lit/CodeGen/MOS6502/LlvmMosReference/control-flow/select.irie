@@ -11,17 +11,17 @@
 ; CHECK: select_val:
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     BNE \.bb2
+; CHECK:     BNE .bb2
 ; CHECK:     TYA
-; CHECK:     BNE \.bb2
-; CHECK: \.bb1:
-; CHECK:     LDA \$04
-; CHECK:     STA \$02
-; CHECK:     LDA \$05
-; CHECK:     STA \$03
-; CHECK: \.bb2:
-; CHECK:     LDA \$02
-; CHECK:     LDX \$03
+; CHECK:     BNE .bb2
+; CHECK: .bb1:
+; CHECK:     LDA $04
+; CHECK:     STA $02
+; CHECK:     LDA $05
+; CHECK:     STA $03
+; CHECK: .bb2:
+; CHECK:     LDA $02
+; CHECK:     LDX $03
 ; CHECK:     RTS
 
 func @select_val : (i16, i16, i16) -> i16 {

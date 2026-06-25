@@ -13,20 +13,20 @@
 ; to the flexible Anyi8 pool so they can live in zero page. Y is zeroed and the
 ; load uses indirect-Y; the result is funnelled through an Anyi8 vreg.
 
-; CHECK: func @LoadThroughPtr : \(i16\) -> i8 \{
-; CHECK:   bb0\(\):
-; CHECK:     \[liveins: \$a, \$x\]
-; CHECK:     %2 : any8 = pseudo.copy \$a
-; CHECK:     %3 : any8 = pseudo.copy \$x
-; CHECK:     \$zp0 = pseudo.copy %2
-; CHECK:     \$zp1 = pseudo.copy %3
+; CHECK: func @LoadThroughPtr : (i16) -> i8 {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x]
+; CHECK:     %2 : any8 = pseudo.copy $a
+; CHECK:     %3 : any8 = pseudo.copy $x
+; CHECK:     $zp0 = pseudo.copy %2
+; CHECK:     $zp1 = pseudo.copy %3
 ; CHECK:     %5 : yc = mos6502.ldy.imm 0
-; CHECK:     \$y = pseudo.copy %5
-; CHECK:     %6 : ac = mos6502.lda.indy \$zp0, implicit \$zp1, implicit \$y
+; CHECK:     $y = pseudo.copy %5
+; CHECK:     %6 : ac = mos6502.lda.indy $zp0, implicit $zp1, implicit $y
 ; CHECK:     %7 : any8 = pseudo.copy %6
-; CHECK:     \$a = pseudo.copy %7
-; CHECK:     mos6502.rts implicit \$a
-; CHECK: \}
+; CHECK:     $a = pseudo.copy %7
+; CHECK:     mos6502.rts implicit $a
+; CHECK: }
 
 func @LoadThroughPtr : (i16) -> i8 {
 bb0(%0 : i16):

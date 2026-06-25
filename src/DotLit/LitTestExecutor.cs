@@ -73,7 +73,7 @@ internal static class LitTestExecutor
             var currentCharIndex = 0;
             foreach (var check in checks)
             {
-                var match = Regex.Match(labelOutput[currentCharIndex..], check.Pattern);
+                var match = Regex.Match(labelOutput[currentCharIndex..], LitPattern.ToRegex(check.Pattern));
                 if (!match.Success)
                 {
                     var prefix = label == "" ? "CHECK" : $"CHECK-{label}";
@@ -91,7 +91,28 @@ internal static class LitTestExecutor
     private static string NormalizeOutput(string output) =>
         output.Replace("\r\n", "\n");
 
+    /// <summary>Runs a RUN command and returns its combined output, ignoring the exit code (used by regeneration).</summary>
+    internal static string CaptureRunOutput(string commandLine) => RunProcess(commandLine).Output;
+
     private static string ExecuteRunCommand(string commandLine, bool expectFailure = false)
+    {
+        var (output, exitCode) = RunProcess(commandLine);
+
+        if (expectFailure)
+        {
+            if (exitCode == 0)
+                throw new Exception($"Command `{commandLine}` was expected to fail but succeeded. Output: {output}");
+        }
+        else
+        {
+            if (exitCode != 0)
+                throw new Exception($"Command `{commandLine}` failed with exit code {exitCode}. Output: {output}");
+        }
+
+        return output;
+    }
+
+    private static (string Output, int ExitCode) RunProcess(string commandLine)
     {
         using var process = new Process();
 
@@ -131,20 +152,7 @@ internal static class LitTestExecutor
 
         process.WaitForExit();
 
-        var output = outputBuilder.ToString();
-
-        if (expectFailure)
-        {
-            if (process.ExitCode == 0)
-                throw new Exception($"Command `{commandLine}` was expected to fail but succeeded. Output: {output}");
-        }
-        else
-        {
-            if (process.ExitCode != 0)
-                throw new Exception($"Command `{commandLine}` failed with exit code {process.ExitCode}. Output: {output}");
-        }
-
-        return output;
+        return (outputBuilder.ToString(), process.ExitCode);
     }
 }
 

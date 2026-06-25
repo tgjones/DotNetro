@@ -12,17 +12,17 @@
 
 ; CHECK: TestFunction:
 ; CHECK:     CLC
-; CHECK:     ADC \$04
+; CHECK:     ADC $04
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     ADC \$05
+; CHECK:     ADC $05
 ; CHECK:     TAX
-; CHECK:     LDA \$02
-; CHECK:     ADC \$06
-; CHECK:     STA \$02
-; CHECK:     LDA \$03
-; CHECK:     ADC \$07
-; CHECK:     STA \$03
+; CHECK:     LDA $02
+; CHECK:     ADC $06
+; CHECK:     STA $02
+; CHECK:     LDA $03
+; CHECK:     ADC $07
+; CHECK:     STA $03
 ; CHECK:     TYA
 ; CHECK:     RTS
 

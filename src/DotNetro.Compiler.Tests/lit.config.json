@@ -1,0 +1,8 @@
+{
+  "substitutions": {
+    "cs_compiler":   "../DotNetro.Compiler.Tests.CsCompiler/bin/${config}/net10.0/DotNetro.Compiler.Tests.CsCompiler",
+    "dnrc":          "../DotNetro.Compiler.Driver/bin/${config}/net10.0/dnrc",
+    "dotnet_runner": "../DotNetro.Compiler.Tests.DotNetRunner/bin/${config}/net10.0/DotNetro.Compiler.Tests.DotNetRunner",
+    "emulator":      "../DotNetro.Compiler.Tests.Emulator/bin/${config}/net10.0/DotNetro.Compiler.Tests.Emulator"
+  }
+}

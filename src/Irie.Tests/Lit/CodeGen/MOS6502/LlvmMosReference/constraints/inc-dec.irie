@@ -19,9 +19,9 @@
 ; generated mechanically from iriec and verified under `dotnet test`.
 
 ; CHECK: inc_dec:
-; CHECK:     STX \$02
+; CHECK:     STX $02
 ; CHECK:     CLC
-; CHECK:     ADC \$02
+; CHECK:     ADC $02
 ; CHECK:     RTS
 
 func @inc_dec : (i8, i8) -> i8 {

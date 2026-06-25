@@ -14,36 +14,36 @@
 ;  - Identity copies (e.g. `$zp2 = pseudo.copy $zp2`) survive here and are
 ;    cleaned up by CopyEliminationPass (the safety net behind the coalescer).
 
-; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
-; CHECK: bb0\(\):
-; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
-; CHECK:     \$a = pseudo\.copy \$a
-; CHECK:     \$x = pseudo\.copy \$x
-; CHECK:     \$zp2 = pseudo\.copy \$zp2
-; CHECK:     \$zp3 = pseudo\.copy \$zp3
-; CHECK:     \$zp4 = pseudo\.copy \$zp4
-; CHECK:     \$zp5 = pseudo\.copy \$zp5
-; CHECK:     \$zp6 = pseudo\.copy \$zp6
-; CHECK:     \$zp7 = pseudo\.copy \$zp7
-; CHECK:     \$c = mos6502\.clc
-; CHECK:     \$a = pseudo\.copy \$a
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp4, \$c
-; CHECK:     \$y = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$x
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp5, \$c
-; CHECK:     \$x = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$zp2
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp6, \$c
-; CHECK:     \$zp2 = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$zp3
-; CHECK:     \$a, \$c = mos6502\.adc \$a, \$zp7, \$c
-; CHECK:     \$zp3 = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$y
-; CHECK:     \$x = pseudo\.copy \$x
-; CHECK:     \$zp2 = pseudo\.copy \$zp2
-; CHECK:     \$zp3 = pseudo\.copy \$zp3
-; CHECK:     mos6502\.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
-; CHECK: \}
+; CHECK: func @TestFunction : (i32, i32) -> i32 {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x, $zp2, $zp3, $zp4, $zp5, $zp6, $zp7]
+; CHECK:     $a = pseudo.copy $a
+; CHECK:     $x = pseudo.copy $x
+; CHECK:     $zp2 = pseudo.copy $zp2
+; CHECK:     $zp3 = pseudo.copy $zp3
+; CHECK:     $zp4 = pseudo.copy $zp4
+; CHECK:     $zp5 = pseudo.copy $zp5
+; CHECK:     $zp6 = pseudo.copy $zp6
+; CHECK:     $zp7 = pseudo.copy $zp7
+; CHECK:     $c = mos6502.clc
+; CHECK:     $a = pseudo.copy $a
+; CHECK:     $a, $c = mos6502.adc $a, $zp4, $c
+; CHECK:     $y = pseudo.copy $a
+; CHECK:     $a = pseudo.copy $x
+; CHECK:     $a, $c = mos6502.adc $a, $zp5, $c
+; CHECK:     $x = pseudo.copy $a
+; CHECK:     $a = pseudo.copy $zp2
+; CHECK:     $a, $c = mos6502.adc $a, $zp6, $c
+; CHECK:     $zp2 = pseudo.copy $a
+; CHECK:     $a = pseudo.copy $zp3
+; CHECK:     $a, $c = mos6502.adc $a, $zp7, $c
+; CHECK:     $zp3 = pseudo.copy $a
+; CHECK:     $a = pseudo.copy $y
+; CHECK:     $x = pseudo.copy $x
+; CHECK:     $zp2 = pseudo.copy $zp2
+; CHECK:     $zp3 = pseudo.copy $zp3
+; CHECK:     mos6502.rts implicit $a, implicit $x, implicit $zp2, implicit $zp3
+; CHECK: }
 
 func @TestFunction : (i32, i32) -> i32 {
 bb0(%0 : i32, %1 : i32):

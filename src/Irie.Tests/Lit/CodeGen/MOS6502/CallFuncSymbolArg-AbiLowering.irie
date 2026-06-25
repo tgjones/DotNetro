@@ -8,15 +8,19 @@
 ; Here arg1 is a mem.symbol in the second (zp2/zp3) slot: both unmerges must
 ; appear before the first `$a = pseudo.copy`.
 
-; CHECK: func @TestSymbolArg : \(\) -> void \{
-; CHECK:     %\d+ : i8, %\d+ : i8 = pseudo.unmerge %\d+
-; CHECK:     %\d+ : i8, %\d+ : i8 = pseudo.unmerge %\d+
-; CHECK:     \$a = pseudo.copy %\d+
-; CHECK:     \$x = pseudo.copy %\d+
-; CHECK:     \$zp2 = pseudo.copy %\d+
-; CHECK:     \$zp3 = pseudo.copy %\d+
-; CHECK:     mos6502.jsr.abs @Callee
-; CHECK: \}
+; CHECK: func @TestSymbolArg : () -> void {
+; CHECK: bb0():
+; CHECK:     %0 : i16 = arith.constant 0
+; CHECK:     %1 : i16 = mem.symbol @g
+; CHECK:     %2 : i8, %3 : i8 = pseudo.unmerge %0
+; CHECK:     %4 : i8, %5 : i8 = pseudo.unmerge %1
+; CHECK:     $a = pseudo.copy %2
+; CHECK:     $x = pseudo.copy %3
+; CHECK:     $zp2 = pseudo.copy %4
+; CHECK:     $zp3 = pseudo.copy %5
+; CHECK:     mos6502.jsr.abs @Callee, implicit $a, implicit $x, implicit $zp2, implicit $zp3, implicit-def $a, implicit-def $x, implicit-def $y, implicit-def $c, implicit-def $n, implicit-def $v, implicit-def $z, implicit-def $b, implicit-def $zp2, implicit-def $zp3, implicit-def $zp4, implicit-def $zp5, implicit-def $zp6, implicit-def $zp7, implicit-def $zp8, implicit-def $zp9, implicit-def $zp10, implicit-def $zp11, implicit-def $zp12, implicit-def $zp13, implicit-def $zp14, implicit-def $zp15, implicit-def $zp16, implicit-def $zp17, implicit-def $zp18, implicit-def $zp19
+; CHECK:     pseudo.return
+; CHECK: }
 
 global @g : i16
 

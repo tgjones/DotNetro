@@ -17,13 +17,13 @@
 ;     / sty.abs for whichever register RA placed the byte in.
 ; No zero-page pointer pair and no Y register are materialised.
 
-; CHECK: func @TestMemByte : \(\) -> void \{
-; CHECK: bb0\(\):
-; CHECK:     %3 : ac = mos6502\.lda\.abs @hello
-; CHECK:     %4 : any8 = pseudo\.copy %3
-; CHECK:     mos6502\.st\.abs %4, @hello
-; CHECK:     mos6502\.rts
-; CHECK: \}
+; CHECK: func @TestMemByte : () -> void {
+; CHECK: bb0():
+; CHECK:     %3 : ac = mos6502.lda.abs @hello
+; CHECK:     %4 : any8 = pseudo.copy %3
+; CHECK:     mos6502.st.abs %4, @hello
+; CHECK:     mos6502.rts
+; CHECK: }
 
 global @hello : i32 = bytes "Hi!"
 

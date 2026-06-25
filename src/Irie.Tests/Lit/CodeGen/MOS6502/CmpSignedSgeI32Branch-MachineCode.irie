@@ -9,36 +9,36 @@
 ; higher bytes, with only the last-byte branch sense flipped.
 
 ; CHECK: TestSge32:
-; CHECK:     STA \$09
-; CHECK:     STX \$08
-; CHECK:     LDX \$02
-; CHECK:     LDA \$03
-; CHECK:     EOR \#\$80
+; CHECK:     STA $09
+; CHECK:     STX $08
+; CHECK:     LDX $02
+; CHECK:     LDA $03
+; CHECK:     EOR #$80
 ; CHECK:     TAY
-; CHECK:     LDA \$07
-; CHECK:     EOR \#\$80
-; CHECK:     STA \$02
+; CHECK:     LDA $07
+; CHECK:     EOR #$80
+; CHECK:     STA $02
 ; CHECK:     TYA
-; CHECK:     CMP \$02
-; CHECK:     BCC \.bb3
-; CHECK:     BNE \.bb1
+; CHECK:     CMP $02
+; CHECK:     BCC .bb3
+; CHECK:     BNE .bb1
 ; CHECK:     TXA
-; CHECK:     CMP \$06
-; CHECK:     BCC \.bb3
-; CHECK:     BNE \.bb1
-; CHECK:     LDA \$08
-; CHECK:     CMP \$05
-; CHECK:     BCC \.bb3
-; CHECK:     BNE \.bb1
-; CHECK:     LDA \$09
-; CHECK:     CMP \$04
-; CHECK:     BCC \.bb3
-; CHECK: \.bb1:
-; CHECK:     LDA \#\$01
-; CHECK: \.bb2:
+; CHECK:     CMP $06
+; CHECK:     BCC .bb3
+; CHECK:     BNE .bb1
+; CHECK:     LDA $08
+; CHECK:     CMP $05
+; CHECK:     BCC .bb3
+; CHECK:     BNE .bb1
+; CHECK:     LDA $09
+; CHECK:     CMP $04
+; CHECK:     BCC .bb3
+; CHECK: .bb1:
+; CHECK:     LDA #$01
+; CHECK: .bb2:
 ; CHECK:     RTS
-; CHECK: \.bb3:
-; CHECK:     LDA \#\$00
+; CHECK: .bb3:
+; CHECK:     LDA #$00
 ; CHECK:     RTS
 
 func @TestSge32 : (i32, i32) -> i8 {

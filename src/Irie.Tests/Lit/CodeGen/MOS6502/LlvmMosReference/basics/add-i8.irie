@@ -11,9 +11,9 @@
 ; Matches ext/llvm-mos-reference/basics/add-i8.s exactly (stx __rc2; clc; adc __rc2; rts).
 
 ; CHECK: add_i8:
-; CHECK:     STX \$02
+; CHECK:     STX $02
 ; CHECK:     CLC
-; CHECK:     ADC \$02
+; CHECK:     ADC $02
 ; CHECK:     RTS
 
 func @add_i8 : (i8, i8) -> i8 {

@@ -22,9 +22,9 @@
 ; $x; the low/high materialisations are sequenced through $y to avoid clobbering.
 
 ; CHECK: owner:
-; CHECK:     LDA #\$04
-; CHECK:     STA \$70
-; CHECK:     LDA \$70
+; CHECK:     LDA #$04
+; CHECK:     STA $70
+; CHECK:     LDA $70
 ; CHECK:     LDA #<owner_local0
 ; CHECK:     TAY
 ; CHECK:     LDA #>owner_local0

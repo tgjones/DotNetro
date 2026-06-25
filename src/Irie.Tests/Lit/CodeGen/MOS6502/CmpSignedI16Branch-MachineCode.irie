@@ -6,27 +6,27 @@
 
 ; CHECK: TestSlt16:
 ; CHECK:     TAY
-; CHECK:     LDA \$02
-; CHECK:     STA \$04
+; CHECK:     LDA $02
+; CHECK:     STA $04
 ; CHECK:     TXA
-; CHECK:     EOR \#\$80
+; CHECK:     EOR #$80
 ; CHECK:     TAX
-; CHECK:     LDA \$03
-; CHECK:     EOR \#\$80
-; CHECK:     STA \$02
+; CHECK:     LDA $03
+; CHECK:     EOR #$80
+; CHECK:     STA $02
 ; CHECK:     TXA
-; CHECK:     CMP \$02
-; CHECK:     BCC \.bb3
-; CHECK:     BNE \.bb1
+; CHECK:     CMP $02
+; CHECK:     BCC .bb3
+; CHECK:     BNE .bb1
 ; CHECK:     TYA
-; CHECK:     CMP \$04
-; CHECK:     BCC \.bb3
-; CHECK: \.bb1:
-; CHECK:     LDA \#\$00
-; CHECK: \.bb2:
+; CHECK:     CMP $04
+; CHECK:     BCC .bb3
+; CHECK: .bb1:
+; CHECK:     LDA #$00
+; CHECK: .bb2:
 ; CHECK:     RTS
-; CHECK: \.bb3:
-; CHECK:     LDA \#\$01
+; CHECK: .bb3:
+; CHECK:     LDA #$01
 ; CHECK:     RTS
 
 func @TestSlt16 : (i16, i16) -> i8 {

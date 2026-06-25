@@ -4,11 +4,11 @@
 ; The non-identity copy ($a = pseudo.copy $x) and the mos6502.adc instruction
 ; (a non-copy with two physical-register defs) are both left untouched.
 
-; CHECK: func @mixed : \(\) -> void \{
-; CHECK:   bb0\(\):
-; CHECK:     \$a = pseudo.copy \$x
-; CHECK:     \$a, \$c = mos6502.adc \$a, \$zp4, \$c
-; CHECK: \}
+; CHECK: func @mixed : () -> void {
+; CHECK: bb0():
+; CHECK:     $a = pseudo.copy $x
+; CHECK:     $a, $c = mos6502.adc $a, $zp4, $c
+; CHECK: }
 
 func @mixed : () -> void {
 bb0():

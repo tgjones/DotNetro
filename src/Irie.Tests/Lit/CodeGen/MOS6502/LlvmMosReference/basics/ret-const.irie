@@ -8,8 +8,8 @@
 ; Compare against ext/llvm-mos-reference/basics/ret-const.s; close gaps via irie-report.
 
 ; CHECK: ret_const:
-; CHECK:     LDA \#\$D2
-; CHECK:     LDX \#\$04
+; CHECK:     LDA #$D2
+; CHECK:     LDX #$04
 ; CHECK:     RTS
 
 func @ret_const : () -> i16 {

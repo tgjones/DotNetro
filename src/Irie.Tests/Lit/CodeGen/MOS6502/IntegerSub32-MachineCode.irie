@@ -6,17 +6,17 @@
 
 ; CHECK: TestFunction:
 ; CHECK:     SEC
-; CHECK:     SBC \$04
+; CHECK:     SBC $04
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     SBC \$05
+; CHECK:     SBC $05
 ; CHECK:     TAX
-; CHECK:     LDA \$02
-; CHECK:     SBC \$06
-; CHECK:     STA \$02
-; CHECK:     LDA \$03
-; CHECK:     SBC \$07
-; CHECK:     STA \$03
+; CHECK:     LDA $02
+; CHECK:     SBC $06
+; CHECK:     STA $02
+; CHECK:     LDA $03
+; CHECK:     SBC $07
+; CHECK:     STA $03
 ; CHECK:     TYA
 ; CHECK:     RTS
 

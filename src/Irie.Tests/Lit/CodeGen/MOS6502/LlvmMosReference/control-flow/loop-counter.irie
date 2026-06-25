@@ -12,49 +12,49 @@
 ; Compare against ext/llvm-mos-reference/control-flow/loop-counter.s; close gaps via irie-report.
 
 ; CHECK: loop_counter:
-; CHECK:     STA \$07
-; CHECK:     STX \$06
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$04
-; CHECK:     LDX \#\$00
-; CHECK:     LDA \$04
-; CHECK:     STA \$05
-; CHECK:     STX \$02
-; CHECK: \.bb1:
-; CHECK:     LDA \$02
-; CHECK:     EOR \#\$80
+; CHECK:     STA $07
+; CHECK:     STX $06
+; CHECK:     LDA #$00
+; CHECK:     STA $04
+; CHECK:     LDX #$00
+; CHECK:     LDA $04
+; CHECK:     STA $05
+; CHECK:     STX $02
+; CHECK: .bb1:
+; CHECK:     LDA $02
+; CHECK:     EOR #$80
 ; CHECK:     TAY
-; CHECK:     LDA \$06
-; CHECK:     EOR \#\$80
-; CHECK:     STA \$03
+; CHECK:     LDA $06
+; CHECK:     EOR #$80
+; CHECK:     STA $03
 ; CHECK:     TYA
-; CHECK:     CMP \$03
-; CHECK:     BCC \.bb3
-; CHECK:     BNE \.bb2
-; CHECK:     LDA \$05
-; CHECK:     CMP \$07
-; CHECK:     BCC \.bb3
-; CHECK: \.bb2:
-; CHECK:     LDA \$04
+; CHECK:     CMP $03
+; CHECK:     BCC .bb3
+; CHECK:     BNE .bb2
+; CHECK:     LDA $05
+; CHECK:     CMP $07
+; CHECK:     BCC .bb3
+; CHECK: .bb2:
+; CHECK:     LDA $04
 ; CHECK:     RTS
-; CHECK: \.bb3:
+; CHECK: .bb3:
 ; CHECK:     CLC
-; CHECK:     LDA \$05
-; CHECK:     STA \$03
-; CHECK:     LDA \$04
-; CHECK:     ADC \$03
-; CHECK:     STA \$04
+; CHECK:     LDA $05
+; CHECK:     STA $03
+; CHECK:     LDA $04
+; CHECK:     ADC $03
+; CHECK:     STA $04
 ; CHECK:     TXA
-; CHECK:     ADC \$02
+; CHECK:     ADC $02
 ; CHECK:     TAX
 ; CHECK:     CLC
-; CHECK:     LDA \$05
-; CHECK:     ADC \#\$01
-; CHECK:     STA \$05
-; CHECK:     LDA \$02
-; CHECK:     ADC \#\$00
-; CHECK:     STA \$02
-; CHECK:     JMP \.bb1
+; CHECK:     LDA $05
+; CHECK:     ADC #$01
+; CHECK:     STA $05
+; CHECK:     LDA $02
+; CHECK:     ADC #$00
+; CHECK:     STA $02
+; CHECK:     JMP .bb1
 
 func @loop_counter : (i16) -> i16 {
 bb0(%0 : i16):

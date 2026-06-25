@@ -20,29 +20,31 @@
 ; single shared RTS that both BEQ edges reach. ---
 
 ; CHECK: CmpEqZeroI8:
-; CHECK:     CMP \#\$00
-; CHECK:     BEQ \.bb1
-; CHECK: \.bb1:
+; CHECK:     CMP #$00
+; CHECK:     BEQ .bb1
+; CHECK: .bb1:
 ; CHECK:     RTS
+; CHECK:
 ; CHECK: CmpEqZeroI16:
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     BNE \.bb1
+; CHECK:     BNE .bb1
 ; CHECK:     TYA
-; CHECK:     BNE \.bb1
-; CHECK: \.bb1:
+; CHECK:     BNE .bb1
+; CHECK: .bb1:
 ; CHECK:     RTS
+; CHECK:
 ; CHECK: CmpEqZeroI32:
 ; CHECK:     TAY
-; CHECK:     LDA \$03
-; CHECK:     BNE \.bb1
-; CHECK:     LDA \$02
-; CHECK:     BNE \.bb1
+; CHECK:     LDA $03
+; CHECK:     BNE .bb1
+; CHECK:     LDA $02
+; CHECK:     BNE .bb1
 ; CHECK:     TXA
-; CHECK:     BNE \.bb1
+; CHECK:     BNE .bb1
 ; CHECK:     TYA
-; CHECK:     BNE \.bb1
-; CHECK: \.bb1:
+; CHECK:     BNE .bb1
+; CHECK: .bb1:
 ; CHECK:     RTS
 
 func @CmpEqZeroI8 : (i8) -> void {

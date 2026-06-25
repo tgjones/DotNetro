@@ -10,6 +10,19 @@ internal static partial class LitTestParser
     [GeneratedRegex(@"([A-Z]+(?:-[a-zA-Z0-9][a-zA-Z0-9-]*)?):(.*)")]
     private static partial Regex CommandRegex();
 
+    /// <summary>Exposes the directive regex so the regenerator can locate CHECK lines in the source.</summary>
+    internal static Match MatchDirective(string line) => CommandRegex().Match(line);
+
+    /// <summary>Applies the same variable substitution the parser uses (including the implicit @file).</summary>
+    internal static string SubstituteVariables(string text, LitTestConfiguration configuration, string filePath)
+    {
+        var variables = new Dictionary<string, string>(configuration.Variables)
+        {
+            ["file"] = filePath
+        };
+        return ReplaceVariables(text, variables);
+    }
+
     public static TestFile ParseFile(string filePath, LitTestConfiguration configuration) => Parse(File.ReadAllLines(filePath), filePath, configuration);
 
     public static TestFile ParseString(string fileContents, string filePath, LitTestConfiguration configuration) => Parse(fileContents.Split(Environment.NewLine), filePath, configuration);

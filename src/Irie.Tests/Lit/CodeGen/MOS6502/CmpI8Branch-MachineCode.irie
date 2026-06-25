@@ -6,10 +6,10 @@
 ; reaches on either edge (no JMP to a separate return tail).
 
 ; CHECK: CmpEq:
-; CHECK:     STX \$02
-; CHECK:     CMP \$02
-; CHECK:     BEQ \.bb1
-; CHECK: \.bb1:
+; CHECK:     STX $02
+; CHECK:     CMP $02
+; CHECK:     BEQ .bb1
+; CHECK: .bb1:
 ; CHECK:     RTS
 
 func @CmpEq : (i8, i8) -> void {

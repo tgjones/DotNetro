@@ -7,15 +7,15 @@
 ; change). For the store, the wide value is split via pseudo.unmerge into
 ; byte vregs that feed each per-offset store.
 
-; CHECK: func @TestMemI16 : \(\) -> void \{
-; CHECK:   bb0\(\):
+; CHECK: func @TestMemI16 : () -> void {
+; CHECK: bb0():
 ; CHECK:     %0 : i16 = mem.symbol @ptr
 ; CHECK:     %4 : i8 = mem.load.byte_at %0, 0
 ; CHECK:     %5 : i8 = mem.load.byte_at %0, 1
 ; CHECK:     mem.store.byte_at %0, 0, %4
 ; CHECK:     mem.store.byte_at %0, 1, %5
 ; CHECK:     pseudo.return
-; CHECK: \}
+; CHECK: }
 
 global @ptr : i32
 

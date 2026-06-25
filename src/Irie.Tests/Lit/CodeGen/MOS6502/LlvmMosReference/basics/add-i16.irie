@@ -8,10 +8,10 @@
 
 ; CHECK: add_i16:
 ; CHECK:     CLC
-; CHECK:     ADC \$02
+; CHECK:     ADC $02
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     ADC \$03
+; CHECK:     ADC $03
 ; CHECK:     TAX
 ; CHECK:     TYA
 ; CHECK:     RTS

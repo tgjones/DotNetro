@@ -11,27 +11,27 @@
 ;   - `mos6502.sbc` (pre-AMS)  same shape as `mos6502.adc`: class ac / cc defs
 ;     and class ac / zp / cc uses. use[0] is tied to def[0].
 
-; CHECK: func @TestFunction : \(i32, i32\) -> i32 {
-; CHECK: bb0\(\):
-; CHECK:     [liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7]
-; CHECK:     %3 : ac = pseudo\.copy \$a
-; CHECK:     %4 : ac = pseudo\.copy \$x
-; CHECK:     %5 : ac = pseudo\.copy \$zp2
-; CHECK:     %6 : ac = pseudo\.copy \$zp3
-; CHECK:     %7 : zp = pseudo\.copy \$zp4
-; CHECK:     %8 : zp = pseudo\.copy \$zp5
-; CHECK:     %9 : zp = pseudo\.copy \$zp6
-; CHECK:     %10 : zp = pseudo\.copy \$zp7
-; CHECK:     %32 : cc = mos6502\.sec
-; CHECK:     %33 : ac, %34 : cc = mos6502\.sbc %3\(tied-def 0\), %7, %32
-; CHECK:     %35 : ac, %36 : cc = mos6502\.sbc %4\(tied-def 0\), %8, %34
-; CHECK:     %37 : ac, %38 : cc = mos6502\.sbc %5\(tied-def 0\), %9, %36
-; CHECK:     %39 : ac, %40 : cc = mos6502\.sbc %6\(tied-def 0\), %10, %38
-; CHECK:     \$a = pseudo\.copy %33
-; CHECK:     \$x = pseudo\.copy %35
-; CHECK:     \$zp2 = pseudo\.copy %37
-; CHECK:     \$zp3 = pseudo\.copy %39
-; CHECK:     mos6502\.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
+; CHECK: func @TestFunction : (i32, i32) -> i32 {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x, $zp2, $zp3, $zp4, $zp5, $zp6, $zp7]
+; CHECK:     %3 : ac = pseudo.copy $a
+; CHECK:     %4 : ac = pseudo.copy $x
+; CHECK:     %5 : ac = pseudo.copy $zp2
+; CHECK:     %6 : ac = pseudo.copy $zp3
+; CHECK:     %7 : zp = pseudo.copy $zp4
+; CHECK:     %8 : zp = pseudo.copy $zp5
+; CHECK:     %9 : zp = pseudo.copy $zp6
+; CHECK:     %10 : zp = pseudo.copy $zp7
+; CHECK:     %32 : cc = mos6502.sec
+; CHECK:     %33 : ac, %34 : cc = mos6502.sbc %3(tied-def 0), %7, %32
+; CHECK:     %35 : ac, %36 : cc = mos6502.sbc %4(tied-def 0), %8, %34
+; CHECK:     %37 : ac, %38 : cc = mos6502.sbc %5(tied-def 0), %9, %36
+; CHECK:     %39 : ac, %40 : cc = mos6502.sbc %6(tied-def 0), %10, %38
+; CHECK:     $a = pseudo.copy %33
+; CHECK:     $x = pseudo.copy %35
+; CHECK:     $zp2 = pseudo.copy %37
+; CHECK:     $zp3 = pseudo.copy %39
+; CHECK:     mos6502.rts implicit $a, implicit $x, implicit $zp2, implicit $zp3
 ; CHECK: }
 
 func @TestFunction : (i32, i32) -> i32 {

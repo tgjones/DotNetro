@@ -14,13 +14,14 @@
 
 ; CHECK: SinkI32:
 ; CHECK:     RTS
+; CHECK:
 ; CHECK: CallI32:
-; CHECK:     LDA \#\$78
-; CHECK:     LDX \#\$56
-; CHECK:     LDY \#\$34
-; CHECK:     STY \$02
-; CHECK:     LDY \#\$12
-; CHECK:     STY \$03
+; CHECK:     LDA #$78
+; CHECK:     LDX #$56
+; CHECK:     LDY #$34
+; CHECK:     STY $02
+; CHECK:     LDY #$12
+; CHECK:     STY $03
 ; CHECK:     JSR SinkI32
 ; CHECK:     RTS
 ; The $02-home byte 0 is evacuated to scratch before $02 is reused ...

@@ -17,14 +17,18 @@
 ;     at $72 — disjoint, so @caller's slot survives the JSR;
 ;   * the store value carried in $a (no $x pin).
 
-; CHECK: func @leaf : \(\) -> void \{
+; CHECK: func @leaf : () -> void {
 ; CHECK:   frame_slot 0 : i16 @leaf_local0 stackid 1 offset 112
-; CHECK:     mos6502.frame.store.byte @leaf_local0, 0, \$a,
+; CHECK: bb0():
+; CHECK:     $a = pseudo.copy 7
+; CHECK:     mos6502.frame.store.byte @leaf_local0, 0, $a, implicit-def $x, implicit-def $y, implicit-def $zp0, implicit-def $zp1
 
-; CHECK: func @caller : \(\) -> void \{
+; CHECK: func @caller : () -> void {
 ; CHECK:   frame_slot 0 : i16 @caller_local0 stackid 1 offset 114
-; CHECK:     mos6502.frame.store.byte @caller_local0, 0, \$a,
-; CHECK:     mos6502.jsr.abs @leaf,
+; CHECK: bb0():
+; CHECK:     $a = pseudo.copy 3
+; CHECK:     mos6502.frame.store.byte @caller_local0, 0, $a, implicit-def $x, implicit-def $y, implicit-def $zp0, implicit-def $zp1
+; CHECK:     mos6502.jsr.abs @leaf, implicit-def $a, implicit-def $x, implicit-def $y, implicit-def $c, implicit-def $n, implicit-def $v, implicit-def $z, implicit-def $b, implicit-def $zp2, implicit-def $zp3, implicit-def $zp4, implicit-def $zp5, implicit-def $zp6, implicit-def $zp7, implicit-def $zp8, implicit-def $zp9, implicit-def $zp10, implicit-def $zp11, implicit-def $zp12, implicit-def $zp13, implicit-def $zp14, implicit-def $zp15, implicit-def $zp16, implicit-def $zp17, implicit-def $zp18, implicit-def $zp19
 
 func @leaf : () -> void {
   frame_slot 0 : i16 @leaf_local0

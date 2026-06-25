@@ -16,27 +16,27 @@
 
 ; CHECK: TestCmpI32:
 ; CHECK:     TAY
-; CHECK:     LDA \$03
-; CHECK:     CMP \$07
-; CHECK:     BCC \.bb1
-; CHECK:     BNE \.bb3
-; CHECK:     LDA \$02
-; CHECK:     CMP \$06
-; CHECK:     BCC \.bb1
-; CHECK:     BNE \.bb3
+; CHECK:     LDA $03
+; CHECK:     CMP $07
+; CHECK:     BCC .bb1
+; CHECK:     BNE .bb3
+; CHECK:     LDA $02
+; CHECK:     CMP $06
+; CHECK:     BCC .bb1
+; CHECK:     BNE .bb3
 ; CHECK:     TXA
-; CHECK:     CMP \$05
-; CHECK:     BCC \.bb1
-; CHECK:     BNE \.bb3
+; CHECK:     CMP $05
+; CHECK:     BCC .bb1
+; CHECK:     BNE .bb3
 ; CHECK:     TYA
-; CHECK:     CMP \$04
-; CHECK:     BCS \.bb3
-; CHECK: \.bb1:
-; CHECK:     LDA \#\$01
-; CHECK: \.bb2:
+; CHECK:     CMP $04
+; CHECK:     BCS .bb3
+; CHECK: .bb1:
+; CHECK:     LDA #$01
+; CHECK: .bb2:
 ; CHECK:     RTS
-; CHECK: \.bb3:
-; CHECK:     LDA \#\$00
+; CHECK: .bb3:
+; CHECK:     LDA #$00
 ; CHECK:     RTS
 
 func @TestCmpI32 : (i32, i32) -> i8 {

@@ -17,24 +17,24 @@
 ; live $a value into a free scratch zp slot (here $zp8 / $zp9) and emits the
 ; $a-destined load last, so the lda+sta expansion no longer corrupts $a.
 
-; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
-; CHECK: bb0\(\):
-; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
-; CHECK:     \$c = mos6502\.clc
-; CHECK:     \$a, \$c = mos6502\.adc\.zp \$a, \$zp4, \$c
-; CHECK:     \$y = mos6502\.tay \$a
-; CHECK:     \$a = mos6502\.txa \$x
-; CHECK:     \$a, \$c = mos6502\.adc\.zp \$a, \$zp5, \$c
-; CHECK:     \$x = mos6502\.tax \$a
-; CHECK:     \$a = mos6502\.lda\.zp \$zp2
-; CHECK:     \$a, \$c = mos6502\.adc\.zp \$a, \$zp6, \$c
-; CHECK:     \$zp2 = mos6502\.sta\.zp \$a
-; CHECK:     \$a = mos6502\.lda\.zp \$zp3
-; CHECK:     \$a, \$c = mos6502\.adc\.zp \$a, \$zp7, \$c
-; CHECK:     \$zp3 = mos6502\.sta\.zp \$a
-; CHECK:     \$a = mos6502\.tya \$y
-; CHECK:     mos6502\.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
-; CHECK: \}
+; CHECK: func @TestFunction : (i32, i32) -> i32 {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x, $zp2, $zp3, $zp4, $zp5, $zp6, $zp7]
+; CHECK:     $c = mos6502.clc
+; CHECK:     $a, $c = mos6502.adc.zp $a, $zp4, $c
+; CHECK:     $y = mos6502.tay $a
+; CHECK:     $a = mos6502.txa $x
+; CHECK:     $a, $c = mos6502.adc.zp $a, $zp5, $c
+; CHECK:     $x = mos6502.tax $a
+; CHECK:     $a = mos6502.lda.zp $zp2
+; CHECK:     $a, $c = mos6502.adc.zp $a, $zp6, $c
+; CHECK:     $zp2 = mos6502.sta.zp $a
+; CHECK:     $a = mos6502.lda.zp $zp3
+; CHECK:     $a, $c = mos6502.adc.zp $a, $zp7, $c
+; CHECK:     $zp3 = mos6502.sta.zp $a
+; CHECK:     $a = mos6502.tya $y
+; CHECK:     mos6502.rts implicit $a, implicit $x, implicit $zp2, implicit $zp3
+; CHECK: }
 
 func @TestFunction : (i32, i32) -> i32 {
 bb0(%0 : i32, %1 : i32):

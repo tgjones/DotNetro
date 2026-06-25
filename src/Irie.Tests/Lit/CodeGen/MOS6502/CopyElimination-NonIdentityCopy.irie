@@ -3,10 +3,10 @@
 ; $a = pseudo.copy $x has different def and use registers — not an identity
 ; copy — so the instruction is left untouched.
 
-; CHECK: func @non_identity : \(\) -> void \{
-; CHECK:   bb0\(\):
-; CHECK:     \$a = pseudo.copy \$x
-; CHECK: \}
+; CHECK: func @non_identity : () -> void {
+; CHECK: bb0():
+; CHECK:     $a = pseudo.copy $x
+; CHECK: }
 
 func @non_identity : () -> void {
 bb0():

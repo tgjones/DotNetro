@@ -15,7 +15,11 @@
 ; the downstream asm is exercised by the *-MachineCode tests.
 
 ; ne → eq, result negated (edges unchanged).
-; CHECK: func @Ne : \(i8, i8\) -> void \{
+; CHECK: func @Ne : (i8, i8) -> void {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x]
+; CHECK:     %0 : i8 = pseudo.copy $a
+; CHECK:     %1 : i8 = pseudo.copy $x
 ; CHECK:     %3 : i1 = arith.cmpi eq, %0, %1
 ; CHECK:     %2 : i1 = arith.not %3
 ; CHECK:     cf.cond_br %2, bb1, bb2
@@ -28,7 +32,11 @@ bb2(): core.return
 }
 
 ; ult → uge, result negated.
-; CHECK: func @Ult : \(i8, i8\) -> void \{
+; CHECK: func @Ult : (i8, i8) -> void {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x]
+; CHECK:     %0 : i8 = pseudo.copy $a
+; CHECK:     %1 : i8 = pseudo.copy $x
 ; CHECK:     %3 : i1 = arith.cmpi uge, %0, %1
 ; CHECK:     %2 : i1 = arith.not %3
 ; CHECK:     cf.cond_br %2, bb1, bb2
@@ -41,7 +49,11 @@ bb2(): core.return
 }
 
 ; ugt → swap operands to ult, then negate to uge: uge %1, %0 + arith.not.
-; CHECK: func @Ugt : \(i8, i8\) -> void \{
+; CHECK: func @Ugt : (i8, i8) -> void {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x]
+; CHECK:     %0 : i8 = pseudo.copy $a
+; CHECK:     %1 : i8 = pseudo.copy $x
 ; CHECK:     %3 : i1 = arith.cmpi uge, %1, %0
 ; CHECK:     %2 : i1 = arith.not %3
 ; CHECK:     cf.cond_br %2, bb1, bb2
@@ -54,7 +66,11 @@ bb2(): core.return
 }
 
 ; ule → swap operands to uge: uge %1, %0, no negate.
-; CHECK: func @Ule : \(i8, i8\) -> void \{
+; CHECK: func @Ule : (i8, i8) -> void {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x]
+; CHECK:     %0 : i8 = pseudo.copy $a
+; CHECK:     %1 : i8 = pseudo.copy $x
 ; CHECK:     %2 : i1 = arith.cmpi uge, %1, %0
 ; CHECK:     cf.cond_br %2, bb1, bb2
 func @Ule : (i8, i8) -> void {
@@ -66,7 +82,11 @@ bb2(): core.return
 }
 
 ; sgt → swap operands to slt: slt %1, %0, no negate.
-; CHECK: func @Sgt : \(i8, i8\) -> void \{
+; CHECK: func @Sgt : (i8, i8) -> void {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x]
+; CHECK:     %0 : i8 = pseudo.copy $a
+; CHECK:     %1 : i8 = pseudo.copy $x
 ; CHECK:     %2 : i1 = arith.cmpi slt, %1, %0
 ; CHECK:     cf.cond_br %2, bb1, bb2
 func @Sgt : (i8, i8) -> void {
@@ -78,7 +98,11 @@ bb2(): core.return
 }
 
 ; sle → swap operands to sge, then negate to slt: slt %1, %0 + arith.not.
-; CHECK: func @Sle : \(i8, i8\) -> void \{
+; CHECK: func @Sle : (i8, i8) -> void {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x]
+; CHECK:     %0 : i8 = pseudo.copy $a
+; CHECK:     %1 : i8 = pseudo.copy $x
 ; CHECK:     %3 : i1 = arith.cmpi slt, %1, %0
 ; CHECK:     %2 : i1 = arith.not %3
 ; CHECK:     cf.cond_br %2, bb1, bb2
@@ -91,7 +115,11 @@ bb2(): core.return
 }
 
 ; sge → negate to slt: slt %0, %1 + arith.not.
-; CHECK: func @Sge : \(i8, i8\) -> void \{
+; CHECK: func @Sge : (i8, i8) -> void {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x]
+; CHECK:     %0 : i8 = pseudo.copy $a
+; CHECK:     %1 : i8 = pseudo.copy $x
 ; CHECK:     %3 : i1 = arith.cmpi slt, %0, %1
 ; CHECK:     %2 : i1 = arith.not %3
 ; CHECK:     cf.cond_br %2, bb1, bb2

@@ -1,0 +1,3 @@
+// A {{...}} hole embeds a regex within an otherwise-literal CHECK line.
+// RUN: printf 'addr 4096 done\n'
+// CHECK: addr {{[0-9]+}} done

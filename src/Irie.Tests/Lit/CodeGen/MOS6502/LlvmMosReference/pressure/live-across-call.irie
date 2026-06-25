@@ -9,28 +9,29 @@
 
 ; CHECK: g:
 ; CHECK:     RTS
+; CHECK:
 ; CHECK: live_across_call:
 ; CHECK:     TAY
-; CHECK:     LDA \$14
+; CHECK:     LDA $14
 ; CHECK:     PHA
-; CHECK:     LDA \$15
+; CHECK:     LDA $15
 ; CHECK:     PHA
 ; CHECK:     TYA
-; CHECK:     STA \$15
-; CHECK:     STX \$14
+; CHECK:     STA $15
+; CHECK:     STX $14
 ; CHECK:     JSR g
 ; CHECK:     CLC
-; CHECK:     ADC \$15
+; CHECK:     ADC $15
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     ADC \$14
+; CHECK:     ADC $14
 ; CHECK:     TAX
 ; CHECK:     TYA
 ; CHECK:     TAY
 ; CHECK:     PLA
-; CHECK:     STA \$15
+; CHECK:     STA $15
 ; CHECK:     PLA
-; CHECK:     STA \$14
+; CHECK:     STA $14
 ; CHECK:     TYA
 ; CHECK:     RTS
 

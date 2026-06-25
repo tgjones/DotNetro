@@ -125,7 +125,7 @@ CI runs `dotnet test --solution src` in both Debug and Release configurations.
 
 - **DotNetro.Compiler.Tests.CsCompiler** — helper tool used by `DotNetro.Compiler.Tests` lit tests; compiles a `.cs` source file to a `.dll` via Roslyn, piped into `dnrc`
 
-- **DotLit** — LIT-style test infrastructure; parses `RUN:` and `CHECK:` directives from any comment line; used by both `DotNetro.Compiler.Tests` (`.cs` files, `//` comments) and `Irie.Tests` (`.irie` files for MIR tests, `.s` files for MachineCode tests; all use `;` comments)
+- **DotLit** — LIT-style test infrastructure; parses `RUN:` and `CHECK:` directives from any comment line; used by both `DotNetro.Compiler.Tests` (`.cs` files, `//` comments) and `Irie.Tests` (`.irie` files for MIR tests, `.s` files for MachineCode tests; all use `;` comments). Also an executable (`dotlit`): `dotlit --regenerate <folder|file>` rewrites the `CHECK` directives to match current RUN output — see "Regenerating `CHECK` blocks" below
 
 ### Irie Layer Roadmap
 
@@ -149,24 +149,56 @@ Two layers (unified IR landed; see [`notes/unified-ir-plan.md`](notes/unified-ir
 
 For any `.irie`/`.s`/`.cs` lit test that pins emitted output (e.g. `--emit=asm`),
 write the `CHECK` block as the **complete listing** — one `CHECK` line per output
-line, in order — not a handful of landmark instructions. DotLit matches each
-`CHECK` as an ordered regex substring search (`LitTestExecutor`), and the parser
-**trims** the pattern (`LitTestParser` `.Trim()`), so leading indentation is
-cosmetic. House style: `; CHECK: ` followed by the verbatim asm line (label at
-column 0, instructions indented 4), with regex metacharacters escaped
-(`. $ ( ) # +` → `\.` `\$` `\(` `\)` `\#` `\+`; spaces/commas/colons left
-literal). A loose block (a few landmarks) silently tolerates regressions — extra
+line, in order — not a handful of landmark instructions. Following LLVM FileCheck,
+DotLit matches each `CHECK` pattern **literally** (`LitPattern` translates it to a
+regex, escaping the literal text); a regular expression is embedded only inside
+`{{…}}` holes (e.g. `; CHECK: addr {{[0-9]+}} done`). So a `CHECK` line is just the
+**verbatim output line** — no escaping of `.`, `$`, `(`, `)`, etc. — with `{{…}}`
+reserved for the genuinely-variable parts. (FileCheck's `[[…]]` variable capture is
+not supported.) Matching is an ordered substring search advancing through the run
+output (`LitTestExecutor`), and the parser **trims** the pattern
+(`LitTestParser` `.Trim()`), so leading indentation is cosmetic. House style:
+`; CHECK: ` followed by the verbatim asm line (label at column 0, instructions
+indented 4). A loose block (a few landmarks) silently tolerates regressions — extra
 or changed instructions between landmarks go uncaught.
 
-When (re)generating a golden, **produce it the same way the harness runs the
-test, or verify it under `dotnet test` afterwards** — do not trust a one-off
-standalone `iriec` run. A few static-stack / address-taken frame-slot cases
-(`AddressTakenFrameSlot`, `StaticFrameAllocChain`, `FrameSlotStructRoundtrip`)
-emit a *different but valid* allocation form standalone vs. under the test
-harness (zero-page-direct `STA $70` vs. an indirect `#<sym`/`#>sym` pointer);
-their goldens are pinned to the harness form. This is a known latent
-nondeterminism in frame-slot placement — pin the harness output, don't "fix" the
-golden to the standalone form.
+To (re)generate a golden, use `dotlit --regenerate` (below) rather than a one-off
+standalone `iriec` run — it replays each test's own `RUN` command through the same
+tool binaries the harness uses, so the output is the harness form by construction.
+This matters for a few static-stack / address-taken frame-slot cases
+(`AddressTakenFrameSlot`, `StaticFrameAllocChain`, `FrameSlotStructRoundtrip`),
+which emit a *different but valid* allocation form under a hand-rolled standalone
+invocation (zero-page-direct `STA $70` vs. an indirect `#<sym`/`#>sym` pointer) —
+the regenerator and harness agree, so just regenerate and verify under
+`dotnet test`; don't hand-edit a golden to the standalone form.
+
+#### Regenerating `CHECK` blocks: `dotlit --regenerate`
+
+Instead of a throwaway script, refresh the `CHECK` directives in a folder (or a
+single file) of lit tests with the `dotlit` tool:
+
+```bash
+# Re-run each lit test's RUN commands and rewrite its CHECK directives to match.
+dotnet run --project src/DotLit -- --regenerate src/Irie.Tests/Lit
+dotnet run --project src/DotLit -- --regenerate src/Irie.Tests/Lit/CodeGen/MOS6502/Foo.irie
+```
+
+It resolves the tool variables (`@iriec`, `@dnrc`, `@emulator`, …) exactly as the
+test harness does, via `LitConfig.Load`: the nearest `lit.config.json` walking up
+from each test file (one per test project root — `src/Irie.Tests/lit.config.json`,
+`src/DotNetro.Compiler.Tests/lit.config.json`), whose `substitutions` are paths
+relative to that config file with a `${config}` placeholder. It runs against
+whichever configuration you invoke it under (`-c Release` for Release; default
+Debug), so **build that configuration first**. Each maximal run of consecutive
+same-label `CHECK` lines is one **block**; the block is anchored in the RUN output
+by matching its existing patterns in order, then replaced by the **complete
+listing** of every output line from the first to the last line it matched (the
+"envelope" — interior gaps are filled; output before/after the envelope stays
+unchecked). This refreshes single-block goldens as they grow/shrink and keeps the
+per-function windows of threaded files in place — but it will *expand* a
+deliberately-curated partial block to a full listing, so eyeball the diff and
+re-run `dotnet test` afterwards. Files with no `CHECK` directives (e.g. the
+`RUN`/`DIFF`-only `.cs` tests) are skipped without running their pipelines.
 
 ### External Libraries (in `/lib/`)
 

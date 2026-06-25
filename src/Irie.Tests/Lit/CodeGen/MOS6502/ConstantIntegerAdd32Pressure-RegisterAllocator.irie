@@ -20,30 +20,30 @@
 ; and the four `a`-side bytes live in $a/$x/$zp2/$zp3 with $a reused per chained
 ; ADC.
 
-; CHECK: func @F : \(\) -> i32 {
-; CHECK: bb0\(\):
-; CHECK:     \$a = pseudo\.copy 1
-; CHECK:     \$x = pseudo\.copy 0
-; CHECK:     \$zp2 = pseudo\.copy 0
-; CHECK:     \$zp3 = pseudo\.copy 0
-; CHECK:     \$c = mos6502\.clc
-; CHECK:     \$a = pseudo\.copy \$a
-; CHECK:     \$a, \$c = mos6502\.adc \$a, 1, \$c
-; CHECK:     \$y = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$x
-; CHECK:     \$a, \$c = mos6502\.adc \$a, 0, \$c
-; CHECK:     \$x = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$zp2
-; CHECK:     \$a, \$c = mos6502\.adc \$a, 0, \$c
-; CHECK:     \$zp2 = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$zp3
-; CHECK:     \$a, \$c = mos6502\.adc \$a, 0, \$c
-; CHECK:     \$zp3 = pseudo\.copy \$a
-; CHECK:     \$a = pseudo\.copy \$y
-; CHECK:     \$x = pseudo\.copy \$x
-; CHECK:     \$zp2 = pseudo\.copy \$zp2
-; CHECK:     \$zp3 = pseudo\.copy \$zp3
-; CHECK:     mos6502\.rts implicit \$a, implicit \$x, implicit \$zp2, implicit \$zp3
+; CHECK: func @F : () -> i32 {
+; CHECK: bb0():
+; CHECK:     $a = pseudo.copy 1
+; CHECK:     $x = pseudo.copy 0
+; CHECK:     $zp2 = pseudo.copy 0
+; CHECK:     $zp3 = pseudo.copy 0
+; CHECK:     $c = mos6502.clc
+; CHECK:     $a = pseudo.copy $a
+; CHECK:     $a, $c = mos6502.adc $a, 1, $c
+; CHECK:     $y = pseudo.copy $a
+; CHECK:     $a = pseudo.copy $x
+; CHECK:     $a, $c = mos6502.adc $a, 0, $c
+; CHECK:     $x = pseudo.copy $a
+; CHECK:     $a = pseudo.copy $zp2
+; CHECK:     $a, $c = mos6502.adc $a, 0, $c
+; CHECK:     $zp2 = pseudo.copy $a
+; CHECK:     $a = pseudo.copy $zp3
+; CHECK:     $a, $c = mos6502.adc $a, 0, $c
+; CHECK:     $zp3 = pseudo.copy $a
+; CHECK:     $a = pseudo.copy $y
+; CHECK:     $x = pseudo.copy $x
+; CHECK:     $zp2 = pseudo.copy $zp2
+; CHECK:     $zp3 = pseudo.copy $zp3
+; CHECK:     mos6502.rts implicit $a, implicit $x, implicit $zp2, implicit $zp3
 ; CHECK: }
 
 func @F : () -> i32 {

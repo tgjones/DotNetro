@@ -12,19 +12,19 @@
 ;
 ; bb0 → bb1 is a non-cycle edge, so its copies sequence straightforwardly.
 
-; CHECK: func @swap : \(\) -> void \{
-; CHECK:   bb0\(\):
+; CHECK: func @swap : () -> void {
+; CHECK: bb0():
 ; CHECK:     %0 : i8 = arith.constant 1
 ; CHECK:     %1 : i8 = arith.constant 2
 ; CHECK:     %2 : i8 = pseudo.copy %0
 ; CHECK:     %3 : i8 = pseudo.copy %1
 ; CHECK:     cf.br bb1
-; CHECK:   bb1\(\):
+; CHECK: bb1():
 ; CHECK:     %4 : i8 = pseudo.copy %3
 ; CHECK:     %3 : i8 = pseudo.copy %2
 ; CHECK:     %2 : i8 = pseudo.copy %4
 ; CHECK:     cf.br bb1
-; CHECK: \}
+; CHECK: }
 
 func @swap : () -> void {
 bb0():

@@ -25,22 +25,22 @@
 
 ; CHECK: TestCrossCall16:
 ; CHECK:     TAY
-; CHECK:     LDA \$14
+; CHECK:     LDA $14
 ; CHECK:     PHA
-; CHECK:     LDA \$15
+; CHECK:     LDA $15
 ; CHECK:     PHA
 ; CHECK:     TYA
-; CHECK:     STA \$15
-; CHECK:     STX \$14
+; CHECK:     STA $15
+; CHECK:     STX $14
 ; CHECK:     JSR Callee
-; CHECK:     LDA \$15
-; CHECK:     LDX \$14
+; CHECK:     LDA $15
+; CHECK:     LDX $14
 ; CHECK:     JSR Callee
 ; CHECK:     TAY
 ; CHECK:     PLA
-; CHECK:     STA \$15
+; CHECK:     STA $15
 ; CHECK:     PLA
-; CHECK:     STA \$14
+; CHECK:     STA $14
 ; CHECK:     TYA
 ; CHECK:     RTS
 

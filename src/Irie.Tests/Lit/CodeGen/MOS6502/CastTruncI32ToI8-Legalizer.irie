@@ -8,14 +8,14 @@
 ; surviving extract / merge instructions. The cascade DCE then erases the
 ; three high-byte argument copies (%4/%5/%6), which the truncation left dead.
 
-; CHECK: func @TestTrunc8 : \(i32\) -> void \{
-; CHECK:   bb0\(\):
-; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3\]
-; CHECK:     %3 : i8 = pseudo.copy \$a
+; CHECK: func @TestTrunc8 : (i32) -> void {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x, $zp2, $zp3]
+; CHECK:     %3 : i8 = pseudo.copy $a
 ; CHECK:     %2 : i16 = mem.symbol @ptr
 ; CHECK:     mem.store.byte_at %2, 0, %3
 ; CHECK:     pseudo.return
-; CHECK: \}
+; CHECK: }
 
 global @ptr : i32
 

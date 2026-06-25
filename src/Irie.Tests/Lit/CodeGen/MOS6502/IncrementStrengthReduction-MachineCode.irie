@@ -21,14 +21,14 @@
 ; counter in Y would need a CPX / CPY-based compare lowering — future work.
 
 ; CHECK: Inc:
-; CHECK:     STX \$02
-; CHECK: \.bb1:
+; CHECK:     STX $02
+; CHECK: .bb1:
 ; CHECK:     CLC
-; CHECK:     ADC \#\$01
-; CHECK:     CMP \$02
-; CHECK:     BCS \.bb2
-; CHECK:     JMP \.bb1
-; CHECK: \.bb2:
+; CHECK:     ADC #$01
+; CHECK:     CMP $02
+; CHECK:     BCS .bb2
+; CHECK:     JMP .bb1
+; CHECK: .bb2:
 ; CHECK:     RTS
 
 func @Inc : (i8, i8) -> i8 {

@@ -15,33 +15,33 @@
 ; the address bytes flow through $a and the zero-page scratch slot $00.
 
 ; CHECK: ReadLine:
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$37
-; CHECK:     LDA \#\$06
-; CHECK:     STA \$38
-; CHECK:     LDA \#\$EE
-; CHECK:     STA \$39
-; CHECK:     LDA \#\$20
-; CHECK:     STA \$3A
-; CHECK:     LDA \#\$FF
-; CHECK:     STA \$3B
-; CHECK:     LDY \#\$00
-; CHECK:     LDX \#\$37
-; CHECK:     LDA \#\$00
-; CHECK:     JSR \$FFF1
-; CHECK:     LDA \#\$00
-; CHECK:     LDX \#\$06
+; CHECK:     LDA #$00
+; CHECK:     STA $37
+; CHECK:     LDA #$06
+; CHECK:     STA $38
+; CHECK:     LDA #$EE
+; CHECK:     STA $39
+; CHECK:     LDA #$20
+; CHECK:     STA $3A
+; CHECK:     LDA #$FF
+; CHECK:     STA $3B
+; CHECK:     LDY #$00
+; CHECK:     LDX #$37
+; CHECK:     LDA #$00
+; CHECK:     JSR $FFF1
+; CHECK:     LDA #$00
+; CHECK:     LDX #$06
 ; CHECK:     RTS
 
 ; CHECK: Beep:
-; CHECK:     LDA \#<Sound
-; CHECK:     STA \$00
-; CHECK:     LDX \$00
-; CHECK:     LDA \#>Sound
-; CHECK:     STA \$00
-; CHECK:     LDY \$00
-; CHECK:     LDA \#\$07
-; CHECK:     JSR \$FFF1
+; CHECK:     LDA #<Sound
+; CHECK:     STA $00
+; CHECK:     LDX $00
+; CHECK:     LDA #>Sound
+; CHECK:     STA $00
+; CHECK:     LDY $00
+; CHECK:     LDA #$07
+; CHECK:     JSR $FFF1
 ; CHECK:     RTS
 
 func @ReadLine : () -> i16 {

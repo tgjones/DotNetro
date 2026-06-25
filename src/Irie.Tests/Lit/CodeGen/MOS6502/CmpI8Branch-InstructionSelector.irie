@@ -23,20 +23,20 @@
 ; split `pseudo.copy` would appear only if a vreg were already committed to a
 ; class disjoint from the one the cmp requires.
 
-; CHECK: func @CmpEq : \(i8, i8\) -> void {
-; CHECK: bb0\(\):
-; CHECK:     [liveins: \$a, \$x]
-; CHECK:     %0 : ac = pseudo\.copy \$a
-; CHECK:     %1 : zp = pseudo\.copy \$x
-; CHECK:     mos6502\.cmp %0, %1, implicit-def \$n, implicit-def \$z, implicit-def \$c
-; CHECK:     mos6502\.beq bb1, implicit \$z
-; CHECK:     mos6502\.jmp\.abs bb2
-; CHECK: bb1\(\):
-; CHECK:     mos6502\.jmp\.abs bb3
-; CHECK: bb2\(\):
-; CHECK:     mos6502\.jmp\.abs bb3
-; CHECK: bb3\(\):
-; CHECK:     mos6502\.rts
+; CHECK: func @CmpEq : (i8, i8) -> void {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x]
+; CHECK:     %0 : ac = pseudo.copy $a
+; CHECK:     %1 : zp = pseudo.copy $x
+; CHECK:     mos6502.cmp %0, %1, implicit-def $n, implicit-def $z, implicit-def $c
+; CHECK:     mos6502.beq bb1, implicit $z
+; CHECK:     mos6502.jmp.abs bb2
+; CHECK: bb1():
+; CHECK:     mos6502.jmp.abs bb3
+; CHECK: bb2():
+; CHECK:     mos6502.jmp.abs bb3
+; CHECK: bb3():
+; CHECK:     mos6502.rts
 ; CHECK: }
 
 func @CmpEq : (i8, i8) -> void {

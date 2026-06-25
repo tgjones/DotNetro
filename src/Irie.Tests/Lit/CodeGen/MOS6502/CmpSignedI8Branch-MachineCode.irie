@@ -13,20 +13,20 @@
 ; tail and inlined into the true tail by MOS6502TailDuplication.
 
 ; CHECK: TestSltI8:
-; CHECK:     EOR \#\$80
+; CHECK:     EOR #$80
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     EOR \#\$80
-; CHECK:     STA \$02
+; CHECK:     EOR #$80
+; CHECK:     STA $02
 ; CHECK:     TYA
-; CHECK:     CMP \$02
-; CHECK:     BCC \.bb3
-; CHECK: \.bb1:
-; CHECK:     LDA \#\$00
-; CHECK: \.bb2:
+; CHECK:     CMP $02
+; CHECK:     BCC .bb3
+; CHECK: .bb1:
+; CHECK:     LDA #$00
+; CHECK: .bb2:
 ; CHECK:     RTS
-; CHECK: \.bb3:
-; CHECK:     LDA \#\$01
+; CHECK: .bb3:
+; CHECK:     LDA #$01
 ; CHECK:     RTS
 
 func @TestSltI8 : (i8, i8) -> i8 {

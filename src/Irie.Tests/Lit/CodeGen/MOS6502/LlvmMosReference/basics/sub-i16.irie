@@ -9,10 +9,10 @@
 
 ; CHECK: sub_i16:
 ; CHECK:     SEC
-; CHECK:     SBC \$02
+; CHECK:     SBC $02
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     SBC \$03
+; CHECK:     SBC $03
 ; CHECK:     TAX
 ; CHECK:     TYA
 ; CHECK:     RTS

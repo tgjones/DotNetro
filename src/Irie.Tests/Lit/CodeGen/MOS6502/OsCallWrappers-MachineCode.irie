@@ -7,15 +7,15 @@
 ; because nothing between the live-in and the JSR clobbers them. Plan §6 step 6.
 
 ; CHECK: oswrch:
-; CHECK:     JSR \$FFEE
+; CHECK:     JSR $FFEE
 ; CHECK:     RTS
 
 ; CHECK: osasci:
-; CHECK:     JSR \$FFE3
+; CHECK:     JSR $FFE3
 ; CHECK:     RTS
 
 ; CHECK: osword:
-; CHECK:     JSR \$FFF1
+; CHECK:     JSR $FFF1
 ; CHECK:     RTS
 
 func @oswrch : (i8) -> void {

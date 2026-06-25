@@ -8,12 +8,13 @@
 ; the per-function reservation alongside the materialised global.
 
 ; CHECK: global @TestStruct_local0 : i32
-; CHECK: func @TestStruct : \(\) -> void \{
+; CHECK:
+; CHECK: func @TestStruct : () -> void {
 ; CHECK:   frame_slot 0 : i32 @TestStruct_local0
-; CHECK:   bb0\(\):
+; CHECK: bb0():
 ; CHECK:     %0 : i16 = mem.symbol @TestStruct_local0
 ; CHECK:     core.return
-; CHECK: \}
+; CHECK: }
 
 func @TestStruct : () -> void {
   frame_slot 0 : i32 @TestStruct_local0

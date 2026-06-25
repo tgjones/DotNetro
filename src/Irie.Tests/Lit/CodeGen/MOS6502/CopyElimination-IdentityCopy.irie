@@ -3,9 +3,9 @@
 ; $a = pseudo.copy $a is an identity copy (def and use are the same physical
 ; register) and should be removed, leaving an empty block.
 
-; CHECK: func @identity : \(\) -> void \{
-; CHECK:   bb0\(\):
-; CHECK: \}
+; CHECK: func @identity : () -> void {
+; CHECK: bb0():
+; CHECK: }
 
 func @identity : () -> void {
 bb0():

@@ -9,10 +9,10 @@
 ; CHECK: load_store_global:
 ; CHECK:     LDA g
 ; CHECK:     TAY
-; CHECK:     LDA g\+1
+; CHECK:     LDA g+1
 ; CHECK:     TAX
 ; CHECK:     STY g
-; CHECK:     STX g\+1
+; CHECK:     STX g+1
 ; CHECK:     TYA
 ; CHECK:     RTS
 

@@ -12,41 +12,41 @@
 ; Compare against ext/llvm-mos-reference/control-flow/if-else.s; close gaps via irie-report.
 
 ; CHECK: abs_diff:
-; CHECK:     STA \$05
-; CHECK:     STX \$04
+; CHECK:     STA $05
+; CHECK:     STX $04
 ; CHECK:     TXA
-; CHECK:     EOR \#\$80
+; CHECK:     EOR #$80
 ; CHECK:     TAY
-; CHECK:     LDA \$03
-; CHECK:     EOR \#\$80
-; CHECK:     STA \$06
+; CHECK:     LDA $03
+; CHECK:     EOR #$80
+; CHECK:     STA $06
 ; CHECK:     TYA
-; CHECK:     CMP \$06
-; CHECK:     BCC \.bb3
-; CHECK:     BNE \.bb1
-; CHECK:     LDA \$05
-; CHECK:     CMP \$02
-; CHECK:     BCC \.bb3
-; CHECK: \.bb1:
+; CHECK:     CMP $06
+; CHECK:     BCC .bb3
+; CHECK:     BNE .bb1
+; CHECK:     LDA $05
+; CHECK:     CMP $02
+; CHECK:     BCC .bb3
+; CHECK: .bb1:
 ; CHECK:     SEC
-; CHECK:     LDA \$05
-; CHECK:     SBC \$02
+; CHECK:     LDA $05
+; CHECK:     SBC $02
 ; CHECK:     TAY
-; CHECK:     LDA \$04
-; CHECK:     SBC \$03
+; CHECK:     LDA $04
+; CHECK:     SBC $03
 ; CHECK:     TAX
-; CHECK: \.bb2:
+; CHECK: .bb2:
 ; CHECK:     TYA
 ; CHECK:     RTS
-; CHECK: \.bb3:
+; CHECK: .bb3:
 ; CHECK:     SEC
-; CHECK:     LDA \$02
-; CHECK:     SBC \$05
+; CHECK:     LDA $02
+; CHECK:     SBC $05
 ; CHECK:     TAY
-; CHECK:     LDA \$03
-; CHECK:     SBC \$04
+; CHECK:     LDA $03
+; CHECK:     SBC $04
 ; CHECK:     TAX
-; CHECK:     JMP \.bb2
+; CHECK:     JMP .bb2
 
 func @abs_diff : (i16, i16) -> i16 {
 bb0(%0 : i16, %1 : i16):

@@ -13,18 +13,18 @@
 ; The value 0x01020304 makes the LSB-first ordering obvious: byte 0 is 4,
 ; byte 1 is 3, byte 2 is 2, byte 3 is 1.
 
-; CHECK: func @TestConstant : \(\) -> i32 \{
-; CHECK:   bb0\(\):
-; CHECK:     %[0-9]+ : i8 = arith.constant 4
-; CHECK:     %[0-9]+ : i8 = arith.constant 3
-; CHECK:     %[0-9]+ : i8 = arith.constant 2
-; CHECK:     %[0-9]+ : i8 = arith.constant 1
-; CHECK:     \$a = pseudo.copy %[0-9]+
-; CHECK:     \$x = pseudo.copy %[0-9]+
-; CHECK:     \$zp2 = pseudo.copy %[0-9]+
-; CHECK:     \$zp3 = pseudo.copy %[0-9]+
+; CHECK: func @TestConstant : () -> i32 {
+; CHECK: bb0():
+; CHECK:     %5 : i8 = arith.constant 4
+; CHECK:     %6 : i8 = arith.constant 3
+; CHECK:     %7 : i8 = arith.constant 2
+; CHECK:     %8 : i8 = arith.constant 1
+; CHECK:     $a = pseudo.copy %5
+; CHECK:     $x = pseudo.copy %6
+; CHECK:     $zp2 = pseudo.copy %7
+; CHECK:     $zp3 = pseudo.copy %8
 ; CHECK:     pseudo.return
-; CHECK: \}
+; CHECK: }
 
 func @TestConstant : () -> i32 {
 bb0():

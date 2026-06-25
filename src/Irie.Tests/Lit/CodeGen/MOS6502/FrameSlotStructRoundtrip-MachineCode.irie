@@ -14,18 +14,18 @@
 ; there is no TXA and no pointer setup.
 
 ; CHECK: TestStruct:
-; CHECK:     LDA #\$00
-; CHECK:     STA \$02
-; CHECK:     LDA \$02
-; CHECK:     STA \$70
-; CHECK:     LDA \$02
-; CHECK:     STA \$71
-; CHECK:     LDA \$02
-; CHECK:     STA \$72
-; CHECK:     LDA \$02
-; CHECK:     STA \$73
-; CHECK:     LDA \$02
-; CHECK:     STA \$70
+; CHECK:     LDA #$00
+; CHECK:     STA $02
+; CHECK:     LDA $02
+; CHECK:     STA $70
+; CHECK:     LDA $02
+; CHECK:     STA $71
+; CHECK:     LDA $02
+; CHECK:     STA $72
+; CHECK:     LDA $02
+; CHECK:     STA $73
+; CHECK:     LDA $02
+; CHECK:     STA $70
 ; CHECK:     RTS
 
 func @TestStruct : () -> void {

@@ -22,23 +22,23 @@
 
 ; --- leaf_a: slot at $70 (base 0) ---------------------------------------
 ; CHECK: leaf_a:
-; CHECK:     LDA #\$07
-; CHECK:     STA \$70
+; CHECK:     LDA #$07
+; CHECK:     STA $70
 ; CHECK:     RTS
 
 ; --- leaf_b: independent leaf — REUSES $70 (base 0) ----------------------
 ; CHECK: leaf_b:
-; CHECK:     LDA #\$09
-; CHECK:     STA \$70
+; CHECK:     LDA #$09
+; CHECK:     STA $70
 ; CHECK:     RTS
 
 ; --- mid: calls leaf_a — frame DISJOINT from callee, slot at $72 ---------
 ; CHECK: mid:
-; CHECK:     LDA #\$03
-; CHECK:     STA \$72
+; CHECK:     LDA #$03
+; CHECK:     STA $72
 ; CHECK:     JSR leaf_a
-; CHECK:     LDA \$72
-; CHECK:     STA \$72
+; CHECK:     LDA $72
+; CHECK:     STA $72
 ; CHECK:     RTS
 
 func @leaf_a : () -> void {

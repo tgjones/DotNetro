@@ -18,10 +18,10 @@
 ; CHECK:     ADC counter
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     ADC counter\+1
+; CHECK:     ADC counter+1
 ; CHECK:     TAX
 ; CHECK:     STY counter
-; CHECK:     STX counter\+1
+; CHECK:     STX counter+1
 ; CHECK:     TYA
 ; CHECK:     RTS
 

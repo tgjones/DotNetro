@@ -12,22 +12,23 @@
 
 ; CHECK: WriteLineString:
 ; CHECK:     RTS
+; CHECK:
 ; CHECK: WriteLineBoolean:
-; CHECK:     CMP \#\$00
-; CHECK:     BEQ \.bb3
-; CHECK: \.bb1:
-; CHECK:     LDA \#<True_String
+; CHECK:     CMP #$00
+; CHECK:     BEQ .bb3
+; CHECK: .bb1:
+; CHECK:     LDA #<True_String
 ; CHECK:     TAY
-; CHECK:     LDA \#>True_String
+; CHECK:     LDA #>True_String
 ; CHECK:     TAX
 ; CHECK:     TYA
 ; CHECK:     JSR WriteLineString
-; CHECK: \.bb2:
+; CHECK: .bb2:
 ; CHECK:     RTS
-; CHECK: \.bb3:
-; CHECK:     LDA \#<False_String
+; CHECK: .bb3:
+; CHECK:     LDA #<False_String
 ; CHECK:     TAY
-; CHECK:     LDA \#>False_String
+; CHECK:     LDA #>False_String
 ; CHECK:     TAX
 ; CHECK:     TYA
 ; CHECK:     JSR WriteLineString

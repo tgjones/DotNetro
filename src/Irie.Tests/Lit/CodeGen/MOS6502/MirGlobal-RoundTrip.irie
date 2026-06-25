@@ -10,13 +10,13 @@
 
 ; CHECK: global @hello : i32 = bytes "Hi!"
 ; CHECK: global @counter : i32
-; CHECK: global @MyClass_vtable : i32 = \[@hello, @counter\]
+; CHECK: global @MyClass_vtable : i32 = [@hello, @counter]
 
-; CHECK: func @TestSymbol : \(\) -> i16 \{
-; CHECK:   bb0\(\):
+; CHECK: func @TestSymbol : () -> i16 {
+; CHECK: bb0():
 ; CHECK:     %0 : i16 = mem.symbol @hello
 ; CHECK:     core.return %0
-; CHECK: \}
+; CHECK: }
 
 global @hello : i32 = bytes "Hi!"
 global @counter : i32

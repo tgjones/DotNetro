@@ -14,19 +14,19 @@
 ; with cmp+cond_br fusion: branches consume 6502 N/Z/C/V flags directly,
 ; avoiding the need for i1 combiner ops at the MIR level.
 
-; CHECK: func @TestCmpI8 : \(i8, i8\) -> void {
-; CHECK: bb0\(\):
-; CHECK:     [liveins: \$a, \$x]
-; CHECK:     %0 : i8 = pseudo\.copy \$a
-; CHECK:     %1 : i8 = pseudo\.copy \$x
-; CHECK:     %2 : i1 = arith\.cmpi slt, %0, %1
-; CHECK:     cf\.cond_br %2, bb1, bb2
-; CHECK: bb1\(\):
-; CHECK:     cf\.br bb3
-; CHECK: bb2\(\):
-; CHECK:     cf\.br bb3
-; CHECK: bb3\(\):
-; CHECK:     pseudo\.return
+; CHECK: func @TestCmpI8 : (i8, i8) -> void {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x]
+; CHECK:     %0 : i8 = pseudo.copy $a
+; CHECK:     %1 : i8 = pseudo.copy $x
+; CHECK:     %2 : i1 = arith.cmpi slt, %0, %1
+; CHECK:     cf.cond_br %2, bb1, bb2
+; CHECK: bb1():
+; CHECK:     cf.br bb3
+; CHECK: bb2():
+; CHECK:     cf.br bb3
+; CHECK: bb3():
+; CHECK:     pseudo.return
 ; CHECK: }
 
 func @TestCmpI8 : (i8, i8) -> void {

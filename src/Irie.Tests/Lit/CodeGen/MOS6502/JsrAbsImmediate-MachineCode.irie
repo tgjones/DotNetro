@@ -6,7 +6,7 @@
 ; BBC Micro's OSWRCH ($FFEE) and OSWORD ($FFF1). Plan §6 step 13.
 
 ; CHECK: CallOswrch:
-; CHECK:     JSR \$FFEE
+; CHECK:     JSR $FFEE
 ; CHECK:     RTS
 
 func @CallOswrch : () -> void {

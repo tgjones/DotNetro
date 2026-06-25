@@ -5,7 +5,8 @@
 ; otherwise normalize every predicate to the canonical {eq, uge, slt} set
 ; (consumer-independently), so it cannot be used to keep all ten visible.
 
-; CHECK: func @TestCmpAll : \(i8, i8\) -> void \{
+; CHECK: func @TestCmpAll : (i8, i8) -> void {
+; CHECK: bb0(%0 : i8, %1 : i8):
 ; CHECK:     %2 : i1 = arith.cmpi eq, %0, %1
 ; CHECK:     %3 : i1 = arith.cmpi ne, %0, %1
 ; CHECK:     %4 : i1 = arith.cmpi slt, %0, %1

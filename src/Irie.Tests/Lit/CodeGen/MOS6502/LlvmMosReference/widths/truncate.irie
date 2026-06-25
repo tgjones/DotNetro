@@ -12,7 +12,7 @@
 
 ; CHECK: truncate:
 ; CHECK:     CLC
-; CHECK:     ADC \$02
+; CHECK:     ADC $02
 ; CHECK:     RTS
 
 func @truncate : (i16, i16) -> i8 {

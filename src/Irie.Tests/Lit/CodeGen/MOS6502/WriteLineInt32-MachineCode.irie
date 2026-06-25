@@ -13,607 +13,607 @@
 ; the line.
 
 ; CHECK: WriteLineInt32:
-; CHECK:     STA \$04
-; CHECK:     STX \$05
-; CHECK:     LDA \$02
-; CHECK:     STA \$06
-; CHECK:     LDA \$03
-; CHECK:     STA \$07
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$08
-; CHECK:     STA \$0D
-; CHECK:     LDA \$07
-; CHECK:     BPL \.bb2
-; CHECK: \.bb1:
-; CHECK:     LDA \#\$2D
+; CHECK:     STA $04
+; CHECK:     STX $05
+; CHECK:     LDA $02
+; CHECK:     STA $06
+; CHECK:     LDA $03
+; CHECK:     STA $07
+; CHECK:     LDA #$00
+; CHECK:     STA $08
+; CHECK:     STA $0D
+; CHECK:     LDA $07
+; CHECK:     BPL .bb2
+; CHECK: .bb1:
+; CHECK:     LDA #$2D
 ; CHECK:     JSR osasci
 ; CHECK:     CLC
-; CHECK:     LDA \$04
-; CHECK:     EOR \#\$FF
-; CHECK:     ADC \#\$01
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     EOR \#\$FF
-; CHECK:     ADC \#\$00
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     EOR \#\$FF
-; CHECK:     ADC \#\$00
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     EOR \#\$FF
-; CHECK:     ADC \#\$00
-; CHECK:     STA \$07
-; CHECK: \.bb2:
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$09
-; CHECK:     LDA \#\$CA
-; CHECK:     STA \$0A
-; CHECK:     LDA \#\$9A
-; CHECK:     STA \$0B
-; CHECK:     LDA \#\$3B
-; CHECK:     STA \$0C
-; CHECK:     LDX \#\$00
-; CHECK: \.bb3:
+; CHECK:     LDA $04
+; CHECK:     EOR #$FF
+; CHECK:     ADC #$01
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     EOR #$FF
+; CHECK:     ADC #$00
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     EOR #$FF
+; CHECK:     ADC #$00
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     EOR #$FF
+; CHECK:     ADC #$00
+; CHECK:     STA $07
+; CHECK: .bb2:
+; CHECK:     LDA #$00
+; CHECK:     STA $09
+; CHECK:     LDA #$CA
+; CHECK:     STA $0A
+; CHECK:     LDA #$9A
+; CHECK:     STA $0B
+; CHECK:     LDA #$3B
+; CHECK:     STA $0C
+; CHECK:     LDX #$00
+; CHECK: .bb3:
 ; CHECK:     SEC
-; CHECK:     LDA \$04
-; CHECK:     SBC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     SBC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     SBC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     SBC \$0C
-; CHECK:     STA \$07
-; CHECK:     BCS \.bb65
-; CHECK: \.bb4:
+; CHECK:     LDA $04
+; CHECK:     SBC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     SBC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     SBC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     SBC $0C
+; CHECK:     STA $07
+; CHECK:     BCS .bb65
+; CHECK: .bb4:
 ; CHECK:     CLC
-; CHECK:     LDA \$04
-; CHECK:     ADC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     ADC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     ADC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     ADC \$0C
-; CHECK:     STA \$07
-; CHECK: \.bb5:
+; CHECK:     LDA $04
+; CHECK:     ADC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     ADC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     ADC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     ADC $0C
+; CHECK:     STA $07
+; CHECK: .bb5:
 ; CHECK:     TXA
-; CHECK:     BNE \.bb7
-; CHECK: \.bb6:
-; CHECK:     LDA \$08
-; CHECK:     BEQ \.bb8
-; CHECK:     LDA \#\$00
-; CHECK: \.bb7:
-; CHECK:     ORA \#\$30
-; CHECK:     STA \$0D
-; CHECK:     LDA \#\$30
-; CHECK:     STA \$08
-; CHECK:     LDA \$0D
+; CHECK:     BNE .bb7
+; CHECK: .bb6:
+; CHECK:     LDA $08
+; CHECK:     BEQ .bb8
+; CHECK:     LDA #$00
+; CHECK: .bb7:
+; CHECK:     ORA #$30
+; CHECK:     STA $0D
+; CHECK:     LDA #$30
+; CHECK:     STA $08
+; CHECK:     LDA $0D
 ; CHECK:     JSR osasci
-; CHECK: \.bb8:
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$09
-; CHECK:     LDA \#\$E1
-; CHECK:     STA \$0A
-; CHECK:     LDA \#\$F5
-; CHECK:     STA \$0B
-; CHECK:     LDA \#\$05
-; CHECK:     STA \$0C
-; CHECK:     LDX \#\$00
-; CHECK: \.bb9:
+; CHECK: .bb8:
+; CHECK:     LDA #$00
+; CHECK:     STA $09
+; CHECK:     LDA #$E1
+; CHECK:     STA $0A
+; CHECK:     LDA #$F5
+; CHECK:     STA $0B
+; CHECK:     LDA #$05
+; CHECK:     STA $0C
+; CHECK:     LDX #$00
+; CHECK: .bb9:
 ; CHECK:     SEC
-; CHECK:     LDA \$04
-; CHECK:     SBC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     SBC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     SBC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     SBC \$0C
-; CHECK:     STA \$07
-; CHECK:     BCS \.bb66
-; CHECK: \.bb10:
+; CHECK:     LDA $04
+; CHECK:     SBC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     SBC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     SBC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     SBC $0C
+; CHECK:     STA $07
+; CHECK:     BCS .bb66
+; CHECK: .bb10:
 ; CHECK:     CLC
-; CHECK:     LDA \$04
-; CHECK:     ADC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     ADC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     ADC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     ADC \$0C
-; CHECK:     STA \$07
-; CHECK: \.bb11:
+; CHECK:     LDA $04
+; CHECK:     ADC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     ADC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     ADC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     ADC $0C
+; CHECK:     STA $07
+; CHECK: .bb11:
 ; CHECK:     TXA
-; CHECK:     BNE \.bb13
-; CHECK: \.bb12:
-; CHECK:     LDA \$08
-; CHECK:     BEQ \.bb14
-; CHECK:     LDA \#\$00
-; CHECK: \.bb13:
-; CHECK:     ORA \#\$30
-; CHECK:     STA \$0D
-; CHECK:     LDA \#\$30
-; CHECK:     STA \$08
-; CHECK:     LDA \$0D
+; CHECK:     BNE .bb13
+; CHECK: .bb12:
+; CHECK:     LDA $08
+; CHECK:     BEQ .bb14
+; CHECK:     LDA #$00
+; CHECK: .bb13:
+; CHECK:     ORA #$30
+; CHECK:     STA $0D
+; CHECK:     LDA #$30
+; CHECK:     STA $08
+; CHECK:     LDA $0D
 ; CHECK:     JSR osasci
-; CHECK: \.bb14:
-; CHECK:     LDA \#\$80
-; CHECK:     STA \$09
-; CHECK:     LDA \#\$96
-; CHECK:     STA \$0A
-; CHECK:     LDA \#\$98
-; CHECK:     STA \$0B
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0C
-; CHECK:     LDX \#\$00
-; CHECK: \.bb15:
+; CHECK: .bb14:
+; CHECK:     LDA #$80
+; CHECK:     STA $09
+; CHECK:     LDA #$96
+; CHECK:     STA $0A
+; CHECK:     LDA #$98
+; CHECK:     STA $0B
+; CHECK:     LDA #$00
+; CHECK:     STA $0C
+; CHECK:     LDX #$00
+; CHECK: .bb15:
 ; CHECK:     SEC
-; CHECK:     LDA \$04
-; CHECK:     SBC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     SBC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     SBC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     SBC \$0C
-; CHECK:     STA \$07
-; CHECK:     BCS \.bb67
-; CHECK: \.bb16:
+; CHECK:     LDA $04
+; CHECK:     SBC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     SBC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     SBC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     SBC $0C
+; CHECK:     STA $07
+; CHECK:     BCS .bb67
+; CHECK: .bb16:
 ; CHECK:     CLC
-; CHECK:     LDA \$04
-; CHECK:     ADC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     ADC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     ADC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     ADC \$0C
-; CHECK:     STA \$07
-; CHECK: \.bb17:
+; CHECK:     LDA $04
+; CHECK:     ADC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     ADC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     ADC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     ADC $0C
+; CHECK:     STA $07
+; CHECK: .bb17:
 ; CHECK:     TXA
-; CHECK:     BNE \.bb19
-; CHECK: \.bb18:
-; CHECK:     LDA \$08
-; CHECK:     BEQ \.bb20
-; CHECK:     LDA \#\$00
-; CHECK: \.bb19:
-; CHECK:     ORA \#\$30
-; CHECK:     STA \$0D
-; CHECK:     LDA \#\$30
-; CHECK:     STA \$08
-; CHECK:     LDA \$0D
+; CHECK:     BNE .bb19
+; CHECK: .bb18:
+; CHECK:     LDA $08
+; CHECK:     BEQ .bb20
+; CHECK:     LDA #$00
+; CHECK: .bb19:
+; CHECK:     ORA #$30
+; CHECK:     STA $0D
+; CHECK:     LDA #$30
+; CHECK:     STA $08
+; CHECK:     LDA $0D
 ; CHECK:     JSR osasci
-; CHECK: \.bb20:
-; CHECK:     LDA \#\$40
-; CHECK:     STA \$09
-; CHECK:     LDA \#\$42
-; CHECK:     STA \$0A
-; CHECK:     LDA \#\$0F
-; CHECK:     STA \$0B
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0C
-; CHECK:     LDX \#\$00
-; CHECK: \.bb21:
+; CHECK: .bb20:
+; CHECK:     LDA #$40
+; CHECK:     STA $09
+; CHECK:     LDA #$42
+; CHECK:     STA $0A
+; CHECK:     LDA #$0F
+; CHECK:     STA $0B
+; CHECK:     LDA #$00
+; CHECK:     STA $0C
+; CHECK:     LDX #$00
+; CHECK: .bb21:
 ; CHECK:     SEC
-; CHECK:     LDA \$04
-; CHECK:     SBC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     SBC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     SBC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     SBC \$0C
-; CHECK:     STA \$07
-; CHECK:     BCS \.bb68
-; CHECK: \.bb22:
+; CHECK:     LDA $04
+; CHECK:     SBC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     SBC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     SBC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     SBC $0C
+; CHECK:     STA $07
+; CHECK:     BCS .bb68
+; CHECK: .bb22:
 ; CHECK:     CLC
-; CHECK:     LDA \$04
-; CHECK:     ADC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     ADC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     ADC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     ADC \$0C
-; CHECK:     STA \$07
-; CHECK: \.bb23:
+; CHECK:     LDA $04
+; CHECK:     ADC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     ADC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     ADC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     ADC $0C
+; CHECK:     STA $07
+; CHECK: .bb23:
 ; CHECK:     TXA
-; CHECK:     BNE \.bb25
-; CHECK: \.bb24:
-; CHECK:     LDA \$08
-; CHECK:     BEQ \.bb26
-; CHECK:     LDA \#\$00
-; CHECK: \.bb25:
-; CHECK:     ORA \#\$30
-; CHECK:     STA \$0D
-; CHECK:     LDA \#\$30
-; CHECK:     STA \$08
-; CHECK:     LDA \$0D
+; CHECK:     BNE .bb25
+; CHECK: .bb24:
+; CHECK:     LDA $08
+; CHECK:     BEQ .bb26
+; CHECK:     LDA #$00
+; CHECK: .bb25:
+; CHECK:     ORA #$30
+; CHECK:     STA $0D
+; CHECK:     LDA #$30
+; CHECK:     STA $08
+; CHECK:     LDA $0D
 ; CHECK:     JSR osasci
-; CHECK: \.bb26:
-; CHECK:     LDA \#\$A0
-; CHECK:     STA \$09
-; CHECK:     LDA \#\$86
-; CHECK:     STA \$0A
-; CHECK:     LDA \#\$01
-; CHECK:     STA \$0B
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0C
-; CHECK:     LDX \#\$00
-; CHECK: \.bb27:
+; CHECK: .bb26:
+; CHECK:     LDA #$A0
+; CHECK:     STA $09
+; CHECK:     LDA #$86
+; CHECK:     STA $0A
+; CHECK:     LDA #$01
+; CHECK:     STA $0B
+; CHECK:     LDA #$00
+; CHECK:     STA $0C
+; CHECK:     LDX #$00
+; CHECK: .bb27:
 ; CHECK:     SEC
-; CHECK:     LDA \$04
-; CHECK:     SBC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     SBC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     SBC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     SBC \$0C
-; CHECK:     STA \$07
-; CHECK:     BCS \.bb69
-; CHECK: \.bb28:
+; CHECK:     LDA $04
+; CHECK:     SBC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     SBC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     SBC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     SBC $0C
+; CHECK:     STA $07
+; CHECK:     BCS .bb69
+; CHECK: .bb28:
 ; CHECK:     CLC
-; CHECK:     LDA \$04
-; CHECK:     ADC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     ADC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     ADC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     ADC \$0C
-; CHECK:     STA \$07
-; CHECK: \.bb29:
+; CHECK:     LDA $04
+; CHECK:     ADC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     ADC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     ADC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     ADC $0C
+; CHECK:     STA $07
+; CHECK: .bb29:
 ; CHECK:     TXA
-; CHECK:     BNE \.bb31
-; CHECK: \.bb30:
-; CHECK:     LDA \$08
-; CHECK:     BEQ \.bb32
-; CHECK:     LDA \#\$00
-; CHECK: \.bb31:
-; CHECK:     ORA \#\$30
-; CHECK:     STA \$0D
-; CHECK:     LDA \#\$30
-; CHECK:     STA \$08
-; CHECK:     LDA \$0D
+; CHECK:     BNE .bb31
+; CHECK: .bb30:
+; CHECK:     LDA $08
+; CHECK:     BEQ .bb32
+; CHECK:     LDA #$00
+; CHECK: .bb31:
+; CHECK:     ORA #$30
+; CHECK:     STA $0D
+; CHECK:     LDA #$30
+; CHECK:     STA $08
+; CHECK:     LDA $0D
 ; CHECK:     JSR osasci
-; CHECK: \.bb32:
-; CHECK:     LDA \#\$10
-; CHECK:     STA \$09
-; CHECK:     LDA \#\$27
-; CHECK:     STA \$0A
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0B
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0C
-; CHECK:     LDX \#\$00
-; CHECK: \.bb33:
+; CHECK: .bb32:
+; CHECK:     LDA #$10
+; CHECK:     STA $09
+; CHECK:     LDA #$27
+; CHECK:     STA $0A
+; CHECK:     LDA #$00
+; CHECK:     STA $0B
+; CHECK:     LDA #$00
+; CHECK:     STA $0C
+; CHECK:     LDX #$00
+; CHECK: .bb33:
 ; CHECK:     SEC
-; CHECK:     LDA \$04
-; CHECK:     SBC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     SBC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     SBC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     SBC \$0C
-; CHECK:     STA \$07
-; CHECK:     BCS \.bb70
-; CHECK: \.bb34:
+; CHECK:     LDA $04
+; CHECK:     SBC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     SBC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     SBC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     SBC $0C
+; CHECK:     STA $07
+; CHECK:     BCS .bb70
+; CHECK: .bb34:
 ; CHECK:     CLC
-; CHECK:     LDA \$04
-; CHECK:     ADC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     ADC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     ADC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     ADC \$0C
-; CHECK:     STA \$07
-; CHECK: \.bb35:
+; CHECK:     LDA $04
+; CHECK:     ADC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     ADC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     ADC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     ADC $0C
+; CHECK:     STA $07
+; CHECK: .bb35:
 ; CHECK:     TXA
-; CHECK:     BNE \.bb37
-; CHECK: \.bb36:
-; CHECK:     LDA \$08
-; CHECK:     BEQ \.bb38
-; CHECK:     LDA \#\$00
-; CHECK: \.bb37:
-; CHECK:     ORA \#\$30
-; CHECK:     STA \$0D
-; CHECK:     LDA \#\$30
-; CHECK:     STA \$08
-; CHECK:     LDA \$0D
+; CHECK:     BNE .bb37
+; CHECK: .bb36:
+; CHECK:     LDA $08
+; CHECK:     BEQ .bb38
+; CHECK:     LDA #$00
+; CHECK: .bb37:
+; CHECK:     ORA #$30
+; CHECK:     STA $0D
+; CHECK:     LDA #$30
+; CHECK:     STA $08
+; CHECK:     LDA $0D
 ; CHECK:     JSR osasci
-; CHECK: \.bb38:
-; CHECK:     LDA \#\$E8
-; CHECK:     STA \$09
-; CHECK:     LDA \#\$03
-; CHECK:     STA \$0A
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0B
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0C
-; CHECK:     LDX \#\$00
-; CHECK: \.bb39:
+; CHECK: .bb38:
+; CHECK:     LDA #$E8
+; CHECK:     STA $09
+; CHECK:     LDA #$03
+; CHECK:     STA $0A
+; CHECK:     LDA #$00
+; CHECK:     STA $0B
+; CHECK:     LDA #$00
+; CHECK:     STA $0C
+; CHECK:     LDX #$00
+; CHECK: .bb39:
 ; CHECK:     SEC
-; CHECK:     LDA \$04
-; CHECK:     SBC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     SBC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     SBC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     SBC \$0C
-; CHECK:     STA \$07
-; CHECK:     BCS \.bb71
-; CHECK: \.bb40:
+; CHECK:     LDA $04
+; CHECK:     SBC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     SBC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     SBC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     SBC $0C
+; CHECK:     STA $07
+; CHECK:     BCS .bb71
+; CHECK: .bb40:
 ; CHECK:     CLC
-; CHECK:     LDA \$04
-; CHECK:     ADC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     ADC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     ADC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     ADC \$0C
-; CHECK:     STA \$07
-; CHECK: \.bb41:
+; CHECK:     LDA $04
+; CHECK:     ADC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     ADC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     ADC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     ADC $0C
+; CHECK:     STA $07
+; CHECK: .bb41:
 ; CHECK:     TXA
-; CHECK:     BNE \.bb43
-; CHECK: \.bb42:
-; CHECK:     LDA \$08
-; CHECK:     BEQ \.bb44
-; CHECK:     LDA \#\$00
-; CHECK: \.bb43:
-; CHECK:     ORA \#\$30
-; CHECK:     STA \$0D
-; CHECK:     LDA \#\$30
-; CHECK:     STA \$08
-; CHECK:     LDA \$0D
+; CHECK:     BNE .bb43
+; CHECK: .bb42:
+; CHECK:     LDA $08
+; CHECK:     BEQ .bb44
+; CHECK:     LDA #$00
+; CHECK: .bb43:
+; CHECK:     ORA #$30
+; CHECK:     STA $0D
+; CHECK:     LDA #$30
+; CHECK:     STA $08
+; CHECK:     LDA $0D
 ; CHECK:     JSR osasci
-; CHECK: \.bb44:
-; CHECK:     LDA \#\$64
-; CHECK:     STA \$09
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0A
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0B
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0C
-; CHECK:     LDX \#\$00
-; CHECK: \.bb45:
+; CHECK: .bb44:
+; CHECK:     LDA #$64
+; CHECK:     STA $09
+; CHECK:     LDA #$00
+; CHECK:     STA $0A
+; CHECK:     LDA #$00
+; CHECK:     STA $0B
+; CHECK:     LDA #$00
+; CHECK:     STA $0C
+; CHECK:     LDX #$00
+; CHECK: .bb45:
 ; CHECK:     SEC
-; CHECK:     LDA \$04
-; CHECK:     SBC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     SBC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     SBC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     SBC \$0C
-; CHECK:     STA \$07
-; CHECK:     BCS \.bb72
-; CHECK: \.bb46:
+; CHECK:     LDA $04
+; CHECK:     SBC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     SBC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     SBC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     SBC $0C
+; CHECK:     STA $07
+; CHECK:     BCS .bb72
+; CHECK: .bb46:
 ; CHECK:     CLC
-; CHECK:     LDA \$04
-; CHECK:     ADC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     ADC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     ADC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     ADC \$0C
-; CHECK:     STA \$07
-; CHECK: \.bb47:
+; CHECK:     LDA $04
+; CHECK:     ADC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     ADC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     ADC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     ADC $0C
+; CHECK:     STA $07
+; CHECK: .bb47:
 ; CHECK:     TXA
-; CHECK:     BNE \.bb49
-; CHECK: \.bb48:
-; CHECK:     LDA \$08
-; CHECK:     BEQ \.bb50
-; CHECK:     LDA \#\$00
-; CHECK: \.bb49:
-; CHECK:     ORA \#\$30
-; CHECK:     STA \$0D
-; CHECK:     LDA \#\$30
-; CHECK:     STA \$08
-; CHECK:     LDA \$0D
+; CHECK:     BNE .bb49
+; CHECK: .bb48:
+; CHECK:     LDA $08
+; CHECK:     BEQ .bb50
+; CHECK:     LDA #$00
+; CHECK: .bb49:
+; CHECK:     ORA #$30
+; CHECK:     STA $0D
+; CHECK:     LDA #$30
+; CHECK:     STA $08
+; CHECK:     LDA $0D
 ; CHECK:     JSR osasci
-; CHECK: \.bb50:
-; CHECK:     LDA \#\$0A
-; CHECK:     STA \$09
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0A
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0B
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0C
-; CHECK:     LDX \#\$00
-; CHECK: \.bb51:
+; CHECK: .bb50:
+; CHECK:     LDA #$0A
+; CHECK:     STA $09
+; CHECK:     LDA #$00
+; CHECK:     STA $0A
+; CHECK:     LDA #$00
+; CHECK:     STA $0B
+; CHECK:     LDA #$00
+; CHECK:     STA $0C
+; CHECK:     LDX #$00
+; CHECK: .bb51:
 ; CHECK:     SEC
-; CHECK:     LDA \$04
-; CHECK:     SBC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     SBC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     SBC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     SBC \$0C
-; CHECK:     STA \$07
-; CHECK:     BCS \.bb73
-; CHECK: \.bb52:
+; CHECK:     LDA $04
+; CHECK:     SBC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     SBC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     SBC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     SBC $0C
+; CHECK:     STA $07
+; CHECK:     BCS .bb73
+; CHECK: .bb52:
 ; CHECK:     CLC
-; CHECK:     LDA \$04
-; CHECK:     ADC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     ADC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     ADC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     ADC \$0C
-; CHECK:     STA \$07
-; CHECK: \.bb53:
+; CHECK:     LDA $04
+; CHECK:     ADC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     ADC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     ADC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     ADC $0C
+; CHECK:     STA $07
+; CHECK: .bb53:
 ; CHECK:     TXA
-; CHECK:     BNE \.bb55
-; CHECK: \.bb54:
-; CHECK:     LDA \$08
-; CHECK:     BEQ \.bb56
-; CHECK:     LDA \#\$00
-; CHECK: \.bb55:
-; CHECK:     ORA \#\$30
-; CHECK:     STA \$0D
-; CHECK:     LDA \#\$30
-; CHECK:     STA \$08
-; CHECK:     LDA \$0D
+; CHECK:     BNE .bb55
+; CHECK: .bb54:
+; CHECK:     LDA $08
+; CHECK:     BEQ .bb56
+; CHECK:     LDA #$00
+; CHECK: .bb55:
+; CHECK:     ORA #$30
+; CHECK:     STA $0D
+; CHECK:     LDA #$30
+; CHECK:     STA $08
+; CHECK:     LDA $0D
 ; CHECK:     JSR osasci
-; CHECK: \.bb56:
-; CHECK:     LDA \#\$01
-; CHECK:     STA \$09
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0A
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0B
-; CHECK:     LDA \#\$00
-; CHECK:     STA \$0C
-; CHECK:     LDX \#\$00
-; CHECK: \.bb57:
+; CHECK: .bb56:
+; CHECK:     LDA #$01
+; CHECK:     STA $09
+; CHECK:     LDA #$00
+; CHECK:     STA $0A
+; CHECK:     LDA #$00
+; CHECK:     STA $0B
+; CHECK:     LDA #$00
+; CHECK:     STA $0C
+; CHECK:     LDX #$00
+; CHECK: .bb57:
 ; CHECK:     SEC
-; CHECK:     LDA \$04
-; CHECK:     SBC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     SBC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     SBC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     SBC \$0C
-; CHECK:     STA \$07
-; CHECK:     BCS \.bb74
-; CHECK: \.bb58:
+; CHECK:     LDA $04
+; CHECK:     SBC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     SBC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     SBC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     SBC $0C
+; CHECK:     STA $07
+; CHECK:     BCS .bb74
+; CHECK: .bb58:
 ; CHECK:     CLC
-; CHECK:     LDA \$04
-; CHECK:     ADC \$09
-; CHECK:     STA \$04
-; CHECK:     LDA \$05
-; CHECK:     ADC \$0A
-; CHECK:     STA \$05
-; CHECK:     LDA \$06
-; CHECK:     ADC \$0B
-; CHECK:     STA \$06
-; CHECK:     LDA \$07
-; CHECK:     ADC \$0C
-; CHECK:     STA \$07
-; CHECK: \.bb59:
+; CHECK:     LDA $04
+; CHECK:     ADC $09
+; CHECK:     STA $04
+; CHECK:     LDA $05
+; CHECK:     ADC $0A
+; CHECK:     STA $05
+; CHECK:     LDA $06
+; CHECK:     ADC $0B
+; CHECK:     STA $06
+; CHECK:     LDA $07
+; CHECK:     ADC $0C
+; CHECK:     STA $07
+; CHECK: .bb59:
 ; CHECK:     TXA
-; CHECK:     BNE \.bb61
-; CHECK: \.bb60:
-; CHECK:     LDA \$08
-; CHECK:     BEQ \.bb62
-; CHECK:     LDA \#\$00
-; CHECK: \.bb61:
-; CHECK:     ORA \#\$30
-; CHECK:     STA \$0D
-; CHECK:     LDA \#\$30
-; CHECK:     STA \$08
-; CHECK:     LDA \$0D
+; CHECK:     BNE .bb61
+; CHECK: .bb60:
+; CHECK:     LDA $08
+; CHECK:     BEQ .bb62
+; CHECK:     LDA #$00
+; CHECK: .bb61:
+; CHECK:     ORA #$30
+; CHECK:     STA $0D
+; CHECK:     LDA #$30
+; CHECK:     STA $08
+; CHECK:     LDA $0D
 ; CHECK:     JSR osasci
-; CHECK: \.bb62:
-; CHECK:     LDA \$0D
-; CHECK:     BNE \.bb64
-; CHECK: \.bb63:
-; CHECK:     LDA \#\$30
+; CHECK: .bb62:
+; CHECK:     LDA $0D
+; CHECK:     BNE .bb64
+; CHECK: .bb63:
+; CHECK:     LDA #$30
 ; CHECK:     JSR osasci
-; CHECK: \.bb64:
-; CHECK:     LDA \#\$0D
+; CHECK: .bb64:
+; CHECK:     LDA #$0D
 ; CHECK:     JSR osasci
 ; CHECK:     RTS
-; CHECK: \.bb65:
+; CHECK: .bb65:
 ; CHECK:     INX
-; CHECK:     JMP \.bb3
-; CHECK: \.bb66:
+; CHECK:     JMP .bb3
+; CHECK: .bb66:
 ; CHECK:     INX
-; CHECK:     JMP \.bb9
-; CHECK: \.bb67:
+; CHECK:     JMP .bb9
+; CHECK: .bb67:
 ; CHECK:     INX
-; CHECK:     JMP \.bb15
-; CHECK: \.bb68:
+; CHECK:     JMP .bb15
+; CHECK: .bb68:
 ; CHECK:     INX
-; CHECK:     JMP \.bb21
-; CHECK: \.bb69:
+; CHECK:     JMP .bb21
+; CHECK: .bb69:
 ; CHECK:     INX
-; CHECK:     JMP \.bb27
-; CHECK: \.bb70:
+; CHECK:     JMP .bb27
+; CHECK: .bb70:
 ; CHECK:     INX
-; CHECK:     JMP \.bb33
-; CHECK: \.bb71:
+; CHECK:     JMP .bb33
+; CHECK: .bb71:
 ; CHECK:     INX
-; CHECK:     JMP \.bb39
-; CHECK: \.bb72:
+; CHECK:     JMP .bb39
+; CHECK: .bb72:
 ; CHECK:     INX
-; CHECK:     JMP \.bb45
-; CHECK: \.bb73:
+; CHECK:     JMP .bb45
+; CHECK: .bb73:
 ; CHECK:     INX
-; CHECK:     JMP \.bb51
-; CHECK: \.bb74:
+; CHECK:     JMP .bb51
+; CHECK: .bb74:
 ; CHECK:     INX
-; CHECK:     JMP \.bb57
+; CHECK:     JMP .bb57
 
 func @osasci : (i8) -> void {
 bb0(%0 : i8):

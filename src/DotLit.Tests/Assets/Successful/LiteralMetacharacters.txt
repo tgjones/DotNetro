@@ -1,0 +1,3 @@
+// Regex metacharacters in a CHECK line are matched literally (not as regex).
+// RUN: printf 'f(x) = a.b + c$\n'
+// CHECK: f(x) = a.b + c$

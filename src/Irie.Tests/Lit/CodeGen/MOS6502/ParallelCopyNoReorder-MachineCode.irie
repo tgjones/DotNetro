@@ -7,9 +7,10 @@
 
 ; CHECK: SinkI16:
 ; CHECK:     RTS
+; CHECK:
 ; CHECK: CallI16:
-; CHECK:     LDA \#\$34
-; CHECK:     LDX \#\$12
+; CHECK:     LDA #$34
+; CHECK:     LDX #$12
 ; CHECK:     JSR SinkI16
 ; CHECK:     RTS
 

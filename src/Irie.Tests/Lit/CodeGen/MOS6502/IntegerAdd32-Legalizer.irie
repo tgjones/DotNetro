@@ -14,28 +14,28 @@
 ; rename is deferred to step 17 of notes/unified-ir-plan.md. The new v2
 ; engine lit tests use the `-v2` suffix until the old engine is retired.
 
-; CHECK: func @TestFunction : \(i32, i32\) -> i32 \{
-; CHECK:   bb0\(\):
-; CHECK:     \[liveins: \$a, \$x, \$zp2, \$zp3, \$zp4, \$zp5, \$zp6, \$zp7\]
-; CHECK:     %3 : i8 = pseudo.copy \$a
-; CHECK:     %4 : i8 = pseudo.copy \$x
-; CHECK:     %5 : i8 = pseudo.copy \$zp2
-; CHECK:     %6 : i8 = pseudo.copy \$zp3
-; CHECK:     %7 : i8 = pseudo.copy \$zp4
-; CHECK:     %8 : i8 = pseudo.copy \$zp5
-; CHECK:     %9 : i8 = pseudo.copy \$zp6
-; CHECK:     %10 : i8 = pseudo.copy \$zp7
+; CHECK: func @TestFunction : (i32, i32) -> i32 {
+; CHECK: bb0():
+; CHECK:     [liveins: $a, $x, $zp2, $zp3, $zp4, $zp5, $zp6, $zp7]
+; CHECK:     %3 : i8 = pseudo.copy $a
+; CHECK:     %4 : i8 = pseudo.copy $x
+; CHECK:     %5 : i8 = pseudo.copy $zp2
+; CHECK:     %6 : i8 = pseudo.copy $zp3
+; CHECK:     %7 : i8 = pseudo.copy $zp4
+; CHECK:     %8 : i8 = pseudo.copy $zp5
+; CHECK:     %9 : i8 = pseudo.copy $zp6
+; CHECK:     %10 : i8 = pseudo.copy $zp7
 ; CHECK:     %23 : i1 = arith.constant 0
 ; CHECK:     %24 : i8, %25 : i1 = arith.addi_with_carry %3, %7, %23
 ; CHECK:     %26 : i8, %27 : i1 = arith.addi_with_carry %4, %8, %25
 ; CHECK:     %28 : i8, %29 : i1 = arith.addi_with_carry %5, %9, %27
 ; CHECK:     %30 : i8, %31 : i1 = arith.addi_with_carry %6, %10, %29
-; CHECK:     \$a = pseudo.copy %24
-; CHECK:     \$x = pseudo.copy %26
-; CHECK:     \$zp2 = pseudo.copy %28
-; CHECK:     \$zp3 = pseudo.copy %30
+; CHECK:     $a = pseudo.copy %24
+; CHECK:     $x = pseudo.copy %26
+; CHECK:     $zp2 = pseudo.copy %28
+; CHECK:     $zp3 = pseudo.copy %30
 ; CHECK:     pseudo.return
-; CHECK: \}
+; CHECK: }
 
 func @TestFunction : (i32, i32) -> i32 {
 bb0(%0 : i32, %1 : i32):

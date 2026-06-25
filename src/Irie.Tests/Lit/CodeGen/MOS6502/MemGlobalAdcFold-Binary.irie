@@ -13,7 +13,7 @@
 ; CHECK:     ADC g
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     ADC g\+1
+; CHECK:     ADC g+1
 ; CHECK:     TAX
 ; CHECK:     TYA
 ; CHECK:     RTS

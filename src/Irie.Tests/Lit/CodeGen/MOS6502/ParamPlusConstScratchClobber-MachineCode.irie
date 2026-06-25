@@ -23,17 +23,17 @@
 
 ; CHECK: M:
 ; CHECK:     CLC
-; CHECK:     ADC \#\$01
+; CHECK:     ADC #$01
 ; CHECK:     TAY
 ; CHECK:     TXA
-; CHECK:     ADC \#\$00
+; CHECK:     ADC #$00
 ; CHECK:     TAX
-; CHECK:     LDA \$02
-; CHECK:     ADC \#\$00
-; CHECK:     STA \$02
-; CHECK:     LDA \$03
-; CHECK:     ADC \#\$00
-; CHECK:     STA \$03
+; CHECK:     LDA $02
+; CHECK:     ADC #$00
+; CHECK:     STA $02
+; CHECK:     LDA $03
+; CHECK:     ADC #$00
+; CHECK:     STA $03
 ; CHECK:     TYA
 ; CHECK:     RTS
 
