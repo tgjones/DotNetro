@@ -90,6 +90,22 @@ rootCommand.SetAction(parseResult =>
     passMgr.AddPass(new OperandLegalizationPass(target.RegisterInfo));
     passMgr.AddPass(new PhiEliminationPass(target.BranchLowering));
     passMgr.AddPass(new TwoAddressInstructionPass());
+    // Coalesce vreg↔vreg pseudo.copies before allocation — the llvm-mos
+    // RegisterCoalescer slot (after TwoAddress/LiveIntervals, before the
+    // allocator). Deletes a copy by merging its two ends' live ranges when they
+    // do not interfere; physreg copies are left as allocation hints. See
+    // RegisterCoalescerPass.
+    //
+    // GATED OFF by default (IRIE_COALESCE=1 to enable). The coalescer is
+    // AGGRESSIVE (non-interference joining, faithful to llvm), which only pays
+    // off with a SPLITTING allocator: it is the prerequisite for the greedy
+    // bring-up. The current default allocator is the graph-COLOURER, whose
+    // conservative coalescer + (not-yet-lowered) store/reload spill cannot absorb
+    // the extra register pressure aggressive pre-coalescing creates. So this runs
+    // only when explicitly enabled, alongside the greedy path. Remove the gate
+    // when the colourer is retired (greedy-RA plan endgame).
+    if (Environment.GetEnvironmentVariable("IRIE_COALESCE") == "1")
+        passMgr.AddPass(new RegisterCoalescerPass(target.RegisterInfo));
     passMgr.AddPass(new RegisterAllocatorPass(target.RegisterInfo));
     // Target branch-folding passes run on physreg-only MIR after RA and before
     // CopyElimination — the llvm-mos Control Flow Optimizer slot (after the VReg
