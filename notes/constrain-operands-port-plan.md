@@ -145,7 +145,7 @@ STOP — that signals the cmp lowering wants the copy for a real reason (e.g. th
 value is live-after and the compare would otherwise clobber it — but `cmp` is
 non-destructive, so it should be safe; verify, don't assume).
 
-## Phase 3 — evaluate removing `InsertRelocationCopiesForConstrainedDefs` (NOT done)
+## Phase 3 — evaluate removing `InsertRelocationCopiesForConstrainedDefs` — DONE (decision: KEEP)
 
 `RegisterAllocatorPass.cs:599` (`InsertRelocationCopiesForConstrainedDefs`, called
 at line 88) inserts a flexible `pseudo.copy` after every tied-def whose result
@@ -153,14 +153,25 @@ outlives the op, so the result can leave `$a`. In the llvm model this is the
 coalescer + copy-prop's job, not a mandatory pre-pass. It is orthogonal to Phase 1
 (it relocates tied *defs*, not the *uses* Phase 1 narrowed) so it was kept.
 
-Plan:
-1. Try removing the call at line 88 (and the method if unused).
-2. `irie-report` + full lit suite + 21/21 execution tests.
-3. **Risk:** Irie's graph-colouring allocator is weaker than llvm's greedy; without
-   the relocation copy a tied-def result pinned `Ac` that outlives its op may force
-   a spill the colourer can't avoid. If the aggregate regresses or any case spills,
-   keep the pass (it is a legitimate Irie-specific aid, not a workaround to delete
-   on principle). Decide by the scoreboard, not aesthetics.
+**Outcome (2026-06-25): the pass is load-bearing — KEEP it.** Removing the call at
+line 88 hard-crashes the pipeline on every ADC-chain corpus case. After a *clean*
+rebuild (a stale iriec briefly masked it), 11 previously-`converted` cases turn to
+`error`: `add-i16`/`add-i32`/`global-rw` throw "spilling did not converge … likely
+an unspillable interference cycle" (24/42/31 rounds); `if-else`/`loop-counter` throw
+"`pseudo.spill` survived to the final pass". The scoreboard collapsed from 17/47
+paired (−8.4%) to 6/47 paired (0.0%). This is exactly the documented risk: Irie's
+graph-colouring allocator (weaker than llvm's greedy) has no way to vacate a
+tied-def result pinned `Ac` that outlives its op *unless* an explicit move exists
+in the IR to carry it — there is no instruction for any colourer to relocate
+otherwise. The pass is a legitimate Irie-specific aid, not a workaround to delete on
+principle; revisit only if/when the greedy allocator (project_greedy_ra_plan.md)
+fully replaces the colourer and gains live-range splitting strong enough to
+introduce the move itself.
+
+Verification performed: edit (remove call) + clean `dotnet build` of iriec, ran the
+ADC-chain `.irie` corpus cases through the harness `iriec` directly (all crashed),
+regenerated `irie-report` (6/47, 0.0%). Reverted both the code and the scoreboard;
+working tree clean, scoreboard back to −8.4% baseline. No commit (negative result).
 
 ## Regenerating goldens (harness-faithful)
 
