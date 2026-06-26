@@ -8,4 +8,8 @@
     <EmbeddedResource Include="Target/MOS6502/runtime.irie" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Irie.Tests" />
+  </ItemGroup>
+
 </Project>

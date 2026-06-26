@@ -118,6 +118,18 @@ public sealed record LiveIntervals(
     // The segments of a physreg's interval, or an empty interval if untracked.
     public LiveInterval PhysIntervalOf(int physReg) =>
         PhysRegIntervals.TryGetValue(physReg, out var p) ? p : LiveInterval.Empty;
+
+    // The value number of the segment of `vreg` that COVERS `slot`, or null if no
+    // segment covers it (the vreg is not live across that point). SplitKit (S2)
+    // uses this to identify which value of a vreg is live at a split point — the
+    // value the split relocates. See LiveSegment's ValNo doc.
+    public int? ValNoAt(int vreg, int slot)
+    {
+        if (!VRegIntervals.TryGetValue(vreg, out var v)) return null;
+        foreach (var s in v.Segments)
+            if (s.Contains(slot)) return s.ValNo;
+        return null;
+    }
 }
 
 // A half-open live window [Start, End) over the global sub-slot numbering.

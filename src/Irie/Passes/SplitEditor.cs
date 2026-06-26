@@ -51,6 +51,296 @@ namespace Irie.Passes;
 // when the colourer is retired in Stage 4.
 internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo registerInfo)
 {
+    // =========================================================================
+    // SplitAtPoint — the value-number-precise split primitive (SplitKit S2).
+    // =========================================================================
+    //
+    // Reference: llvm SplitKit.cpp SplitEditor open/enter/leave/use/finish, but
+    // collapsed to a single IR-edit primitive (the reanalysis architecture drops
+    // incremental liveness; PhiElimination already ran so there are no PHIs /
+    // block args to repair — see notes/generic-relocation-pass-plan.md, "The
+    // split primitive").
+    //
+    // This GENERALIZES RelocateAcrossClobber (above): instead of redirecting uses
+    // by the program-order slot window (producingDefSlot, nextDefSlot) — which is
+    // only correct on straight-line code — it redirects exactly the uses that read
+    // the relocated value, determined by a forward CFG reachability walk that stops
+    // at any re-def of the value. In a branching/looping CFG a use can fall inside
+    // the naive slot window yet read a DIFFERENT reaching definition; the
+    // reachability walk excludes it, the slot window does not. (RelocateAcrossClobber
+    // is left in place; S3 rewires the ladder onto this primitive.)
+    //
+    // Semantics: cut `value`'s live range at the program point `at`+`side`,
+    // relocating the post-point portion into a fresh vreg V' with a boundary copy
+    // `V' = pseudo.copy value`, and rename every downstream use of `value` reached
+    // forward from the split point (without passing another def of `value`) to V'.
+    // The boundary copy's own read of `value` is the boundary and is never renamed.
+    //
+    //   side = Before  → split point is `at`'s USE point; copy inserted before `at`;
+    //                    `at`'s own use of `value` (and all later reachable uses) move.
+    //   side = After   → split point is `at`'s DEF point; copy inserted after `at`;
+    //                    only strictly-later reachable uses move (`at`'s own reads
+    //                    happen at the use point, before the split, and stay).
+    //
+    // Returns false (no edit) when `value` is not live across the split point, or
+    // no relocation class is available. Returns true after editing; the caller
+    // reanalyses.
+    public enum InsertSide { Before, After }
+
+    public bool SplitAtPoint(
+        int value, MirInstruction at, InsertSide side,
+        LiveIntervals intervals, ISet<int> splitProducts,
+        int? overrideClassId = null)
+    {
+        var atBlock = at.Parent
+            ?? throw new InvalidOperationException("SplitAtPoint: `at` has no parent block.");
+        var atIndex = atBlock.Instructions.IndexOf(at);
+        if (atIndex < 0)
+            throw new InvalidOperationException("SplitAtPoint: `at` is not in its parent block.");
+
+        var baseSlot = intervals.BaseSlotOf[at];
+        // The slot at which the value must be live for there to be anything to
+        // split. Before → the use point (`at` reads the value); After → the def
+        // point (the value flows past `at`).
+        var splitSlot = side == InsertSide.Before
+            ? LiveIntervals.UseSlot(baseSlot)
+            : LiveIntervals.DefSlot(baseSlot);
+
+        // Step 1: the value number of `value` live across the split point. If no
+        // segment covers the split slot, the value is not live there — nothing to
+        // split.
+        var valNo = intervals.ValNoAt(value, splitSlot);
+        if (valNo == null) return false;
+
+        // Step 2: mint the relocation vreg V'. Override class if given, else the
+        // flexible 8-bit class (the relocation default). Bail if neither is usable.
+        int classId;
+        string className;
+        if (overrideClassId is { } oc)
+        {
+            classId = oc;
+            className = registerInfo.GetRegisterClassName(oc) ?? $"class{oc}";
+        }
+        else
+        {
+            classId = registerInfo.FlexibleI8ClassId;
+            if (classId == 0) return false;
+            className = registerInfo.GetRegisterClassName(classId) ?? $"class{classId}";
+        }
+
+        // Step 4 (computed BEFORE the edit so recorded references stay valid): the
+        // set of (instruction, operand-index) use sites that read the relocated
+        // value, via forward CFG reachability from the split point. The boundary
+        // copy does not exist yet, so it cannot appear in this set — its read of
+        // `value` is added by hand below and is correctly never renamed.
+        var renameSites = CollectForwardReachableUses(value, atBlock, atIndex, side);
+
+        // If the split relocates nothing downstream there is no point cutting — the
+        // value already dies at/before the split point on every forward path.
+        if (renameSites.Count == 0) return false;
+
+        // Step 2/3: mint V' and insert the boundary copy at the split point.
+        var prime = function.CreateVirtualRegisterInClass(classId, className);
+        splitProducts.Add(prime);
+        var copyIndex = side == InsertSide.Before ? atIndex : atIndex + 1;
+        atBlock.InsertInstruction(
+            copyIndex,
+            PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(prime, IsDefinition: true),
+            new VirtualReg(value, IsDefinition: false));
+
+        // Step 4: rename the collected use sites to V'. Operating on held
+        // (instruction, index) references is index-shift-proof: the inserted copy
+        // moved instructions within atBlock, but we never recorded positions.
+        foreach (var (instr, index) in renameSites)
+            instr.Operands[index] = new VirtualReg(prime, IsDefinition: false);
+
+        return true;
+    }
+
+    // -------------------------------------------------------------------------
+    // The reachability core (reused by S4's tryBlockSplit): the use sites of
+    // `value` reached FORWARD from the split point without passing through another
+    // def of `value`. This is what makes the split value-number-correct in a
+    // branching/looping CFG — a slot-order window cannot express "reached from the
+    // split point", and so mis-renames sibling/back-edge uses that read a different
+    // reaching def.
+    //
+    // The split point is "just after the boundary copy", which sits at:
+    //   side = Before → before `at` (copy at atIndex): the rename region in the
+    //          split block begins AT `at` (atIndex) — `at`'s own read of `value`
+    //          reads the just-copied boundary value and moves.
+    //   side = After  → after `at` (copy at atIndex+1): the rename region begins
+    //          strictly AFTER `at` (atIndex+1) — `at`'s reads happen before the
+    //          split and stay.
+    //
+    // Block-carry dataflow (a standard forward worklist):
+    //   * The split block "carries V' out" iff no instruction in its rename region
+    //     re-defines `value` (a redef there kills the relocated value before block
+    //     end). Uses in the split block's rename region are renamed up to — and at
+    //     a tied redef, including the redef's own read of `value` — the first redef.
+    //   * A successor block is "reached carrying V'" if some predecessor carried it
+    //     out. Such a block renames its uses of `value` from block entry up to its
+    //     first redef of `value`, and carries V' out iff it has no redef of `value`.
+    //   * Propagation stops at any block that redefines `value` (it does not carry
+    //     out) and never enters a block not reached carrying V'.
+    //
+    // Deterministic: blocks visited in ascending function-order index; instructions
+    // in program order; operands left-to-right.
+    // -------------------------------------------------------------------------
+    private List<(MirInstruction Instr, int Index)> CollectForwardReachableUses(
+        int value, MirBlock atBlock, int atIndex, InsertSide side)
+    {
+        var sites = new List<(MirInstruction, int)>();
+
+        // A stable index per block for deterministic worklist ordering.
+        var blockOrder = new Dictionary<MirBlock, int>(function.Blocks.Count);
+        for (var i = 0; i < function.Blocks.Count; i++)
+            blockOrder[function.Blocks[i]] = i;
+
+        // Rename `value`'s use operands in `block` over [startIndex, end), in order,
+        // stopping at (and INCLUDING the read of) the first instruction that
+        // re-defines `value`. Returns true iff the value reaches the block's end
+        // with no redef (i.e. the block carries V' out).
+        bool RenameRegion(MirBlock block, int startIndex)
+        {
+            for (var i = startIndex; i < block.Instructions.Count; i++)
+            {
+                var instr = block.Instructions[i];
+                var redefines = DefinesVreg(instr, value);
+
+                // Rename the instruction's USE operands of `value` first — a use is
+                // read before this instruction's def point, so even a tied redef's
+                // own read takes the relocated (pre-redef) value.
+                var operands = instr.Operands;
+                for (var k = 0; k < operands.Length; k++)
+                    if (operands[k] is VirtualReg u && !u.IsDefinition && u.Id == value)
+                        sites.Add((instr, k));
+
+                // A redef ends the relocated value's live region here; downstream
+                // (this block's tail + successors) reads the fresh value.
+                if (redefines) return false;
+            }
+            return true; // reached block end with the relocated value still live.
+        }
+
+        // Walk the split block's rename region. side=Before begins at `at`; side=
+        // After begins strictly after `at`. (atIndex is `at`'s position in the
+        // PRE-insertion list, which is the list this method reads.)
+        var splitRegionStart = side == InsertSide.Before ? atIndex : atIndex + 1;
+        var splitCarriesOut = RenameRegion(atBlock, splitRegionStart);
+
+        if (splitCarriesOut)
+        {
+            // Forward worklist over successor blocks reached carrying V'. A block B
+            // is renamed only when BOTH hold:
+            //   (a) the split point DOMINATES B — i.e. `atBlock` dominates B (the
+            //       split point sits before atBlock's terminator, so every path
+            //       leaving atBlock crosses the split region first). Domination is
+            //       what excludes a diamond JOIN (reached from the split arm but
+            //       ALSO from the sibling arm, so it reads a value not from the
+            //       split) and a loop back-edge re-entry of `atBlock` itself (its
+            //       pre-split uses read the original value flowing round the loop,
+            //       which legitimately stays live). Pure forward reachability would
+            //       wrongly include both.
+            //   (b) B is reached carrying V' with no intervening redef (the carry
+            //       worklist, stopping at any block that redefines `value`).
+            // Together these give exactly the dominance-and-no-redef set: the uses
+            // whose ONLY reaching definition is the relocated value.
+            var dom = ComputeDominators();
+
+            var reached = new HashSet<MirBlock>();
+            var worklist = new List<MirBlock>();
+            void Enqueue(MirBlock b)
+            {
+                // Never re-enter the split block: its pre-split region reads the
+                // original value (e.g. round a loop back-edge) and must NOT be
+                // renamed. Only enter blocks the split point dominates.
+                if (ReferenceEquals(b, atBlock)) return;
+                if (!Dominates(dom, atBlock, b)) return;
+                if (reached.Add(b)) worklist.Add(b);
+            }
+            foreach (var succ in OrderedSuccessors(atBlock, blockOrder))
+                Enqueue(succ);
+
+            while (worklist.Count > 0)
+            {
+                // Pop the lowest-ordered block for determinism.
+                var idx = 0;
+                for (var j = 1; j < worklist.Count; j++)
+                    if (blockOrder[worklist[j]] < blockOrder[worklist[idx]]) idx = j;
+                var block = worklist[idx];
+                worklist.RemoveAt(idx);
+
+                var carriesOut = RenameRegion(block, 0);
+                if (carriesOut)
+                    foreach (var succ in OrderedSuccessors(block, blockOrder))
+                        Enqueue(succ);
+            }
+        }
+
+        return sites;
+    }
+
+    private static List<MirBlock> OrderedSuccessors(
+        MirBlock block, Dictionary<MirBlock, int> blockOrder) =>
+        block.Successors.OrderBy(s => blockOrder.TryGetValue(s, out var o) ? o : int.MaxValue)
+            .ToList();
+
+    // Iterative dataflow dominator sets over the rebuilt CFG (Dom[B] = {B} ∪
+    // ⋂_{p∈preds} Dom[p]; entry's Dom is {entry}). Small functions, so the simple
+    // O(N²·E) fixpoint is fine — no need for Cooper-Harvey-Kennedy idom. The CFG is
+    // already current (LiveIntervalsAnalysis.Compute called RebuildCfg before the
+    // intervals this primitive consumes were built). Deterministic: blocks iterated
+    // in function order.
+    private Dictionary<MirBlock, HashSet<MirBlock>> ComputeDominators()
+    {
+        var blocks = function.Blocks;
+        var dom = new Dictionary<MirBlock, HashSet<MirBlock>>(blocks.Count);
+
+        if (blocks.Count == 0) return dom;
+        var entry = blocks[0];
+
+        // Initialize: entry dominated by itself; every other block tentatively
+        // dominated by ALL blocks (narrowed by intersection below).
+        var all = new HashSet<MirBlock>(blocks);
+        foreach (var b in blocks)
+            dom[b] = ReferenceEquals(b, entry) ? [entry] : new HashSet<MirBlock>(all);
+
+        bool changed;
+        do
+        {
+            changed = false;
+            foreach (var b in blocks)
+            {
+                if (ReferenceEquals(b, entry)) continue;
+
+                HashSet<MirBlock>? newDom = null;
+                foreach (var p in b.Predecessors)
+                {
+                    if (newDom == null) newDom = new HashSet<MirBlock>(dom[p]);
+                    else newDom.IntersectWith(dom[p]);
+                }
+                newDom ??= []; // an unreachable block with no preds.
+                newDom.Add(b);
+
+                if (!newDom.SetEquals(dom[b]))
+                {
+                    dom[b] = newDom;
+                    changed = true;
+                }
+            }
+        }
+        while (changed);
+
+        return dom;
+    }
+
+    // True iff `a` dominates `b` per the computed dominator sets.
+    private static bool Dominates(
+        Dictionary<MirBlock, HashSet<MirBlock>> dom, MirBlock a, MirBlock b) =>
+        dom.TryGetValue(b, out var set) && set.Contains(a);
+
     // -------------------------------------------------------------------------
     // Instruction split (split-to-register). Returns true if it split `vreg`;
     // the caller then returns control to the pass for reanalysis. Minted temps
