@@ -850,8 +850,6 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
     private bool RelocateAcrossClobber(
         int vreg, long clobberPoint, LiveIntervals intervals, ISet<int> splitProducts)
     {
-        var flexibleId = registerInfo.FlexibleI8ClassId;
-
         // In TWO-ADDRESS (non-SSA) form `vreg` may have several defs — e.g. a tied-
         // accumulator copy AND the adc that overwrites it (`%19 = copy %3` then
         // `%19 = adc %19, …`). The value live ACROSS the clobber is the one produced
@@ -863,9 +861,6 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
         MirBlock? defBlock = null;
         var defIndex = -1;
         var producingDefSlot = long.MinValue;
-        // The slot of `vreg`'s NEXT def after the producing one (or +∞). A use at or
-        // after this slot reads a fresh value and must NOT be redirected.
-        var nextDefSlot = long.MaxValue;
         foreach (var block in function.Blocks)
             for (var i = 0; i < block.Instructions.Count; i++)
             {
@@ -879,67 +874,15 @@ internal sealed class SplitEditor(MirFunction function, TargetRegisterInfo regis
             }
         if (defBlock == null) return false;
 
-        // Find the earliest def strictly after the producing def — the value the
-        // redirect must stop at (a use reading that fresh value stays put).
-        foreach (var block in function.Blocks)
-            foreach (var instr in block.Instructions)
-            {
-                if (!DefinesVreg(instr, vreg)) continue;
-                var slot = LiveIntervals.DefSlot(intervals.BaseSlotOf[instr]);
-                if (slot > producingDefSlot && slot < nextDefSlot)
-                    nextDefSlot = slot;
-            }
-
-        // Collect the uses to redirect, BEFORE the edit (so the recorded slots are
-        // still valid): every use of `vreg` whose use-slot lies in
-        // (producingDefSlot, nextDefSlot), across ALL blocks. Tracked as
-        // (instruction, operand index) pairs; record whether any redirected use is
-        // at/after the clobber so we can prove the donor range strictly shrinks.
-        var toRedirect = new List<(MirInstruction Instr, int Index)>();
-        var shrinksAcrossClobber = false;
-        foreach (var block in function.Blocks)
-            foreach (var instr in block.Instructions)
-            {
-                var useSlot = LiveIntervals.UseSlot(intervals.BaseSlotOf[instr]);
-                if (useSlot <= producingDefSlot || useSlot >= nextDefSlot) continue;
-                var operands = instr.Operands;
-                for (var k = 0; k < operands.Length; k++)
-                    if (operands[k] is VirtualReg u && !u.IsDefinition && u.Id == vreg)
-                    {
-                        toRedirect.Add((instr, k));
-                        if (useSlot >= clobberPoint) shrinksAcrossClobber = true;
-                    }
-            }
-
-        // Well-founded measure (Stage R1): the edit MUST move at least one use that
-        // is live across the clobber off `vreg`, or the donor range does not shrink
-        // and the split rung would loop forever (the Stage-R0 Mode-B bug). Fail
-        // loudly at the cause rather than at the round cap.
-        if (!shrinksAcrossClobber)
-            throw new InvalidOperationException(
-                $"SplitEditor: relocation of %{vreg} across clobber at slot " +
-                $"{clobberPoint} redirected no across-clobber use — the donor range " +
-                $"would not shrink (non-terminating split). producingDefSlot=" +
-                $"{producingDefSlot}, nextDefSlot=" +
-                $"{(nextDefSlot == long.MaxValue ? "∞" : nextDefSlot.ToString())}.");
-
-        var flexName = registerInfo.GetRegisterClassName(flexibleId) ?? $"class{flexibleId}";
-        var temp = function.CreateVirtualRegisterInClass(flexibleId, flexName);
-        splitProducts.Add(temp);
-
-        defBlock.InsertInstruction(
-            defIndex + 1,
-            PseudoDialect.OpRef(PseudoOp.Copy),
-            new VirtualReg(temp, IsDefinition: true),
-            new VirtualReg(vreg, IsDefinition: false));
-
-        // Redirect the collected uses to the temp. Operating on the recorded
-        // (instruction, index) pairs is index-shift-proof: inserting the copy moves
-        // instructions within `defBlock`, but we hold instruction references, not
-        // positions, so the rewrite targets the right operands regardless.
-        foreach (var (instr, index) in toRedirect)
-            instr.Operands[index] = new VirtualReg(temp, IsDefinition: false);
-        return true;
+        // S3: route the relocation through the value-number-precise split primitive.
+        // SplitAtPoint mints the flexible-class temp, records it in splitProducts,
+        // inserts the boundary copy AFTER the producing def, and renames exactly the
+        // downstream uses reached forward from the split point via dominance +
+        // stop-at-redef over the CFG — replacing the old program-order slot-window
+        // redirect (which mis-renamed sibling/back-edge uses on branching code). It
+        // returns false when nothing downstream relocates; propagate that.
+        var producingDefInstruction = defBlock.Instructions[defIndex];
+        return SplitAtPoint(vreg, producingDefInstruction, InsertSide.After, intervals, splitProducts);
     }
 
     private static bool DefinesVreg(MirInstruction instr, int vreg)
