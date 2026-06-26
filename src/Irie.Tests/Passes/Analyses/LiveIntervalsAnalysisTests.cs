@@ -71,8 +71,12 @@ public sealed class LiveIntervalsAnalysisTests
         //   seg0 = [def i0, def i1)  (defined at i0, last used at i1)
         //   seg1 = [def i3, def i4)  (re-defined at i3, last used at i4)
         await Assert.That(seg.Count).IsEqualTo(2);
-        await Assert.That(seg[0]).IsEqualTo(new LiveSegment(DefPt(li, i0), DefPt(li, i1)));
-        await Assert.That(seg[1]).IsEqualTo(new LiveSegment(DefPt(li, i3), DefPt(li, i4)));
+        await Assert.That((seg[0].Start, seg[0].End))
+            .IsEqualTo((DefPt(li, i0), DefPt(li, i1)));
+        await Assert.That((seg[1].Start, seg[1].End))
+            .IsEqualTo((DefPt(li, i3), DefPt(li, i4)));
+        // The two segments are distinct value numbers (a hole / re-def between).
+        await Assert.That(seg[0].ValNo).IsNotEqualTo(seg[1].ValNo);
 
         // %0 is live at its first use (i1's use point) but NOT in the hole that
         // follows: the gap between the first segment's end and the re-definition
@@ -371,5 +375,220 @@ public sealed class LiveIntervalsAnalysisTests
         // %1 dies in bb0 and must not reach bb1 (its end is below bb1's slots).
         await Assert.That(li.IntervalOf(v1).End).IsLessThan(DefPt(li, i3));
         await Assert.That(li.Interfere(v0, v1)).IsTrue(); // both live in bb0
+    }
+
+    // =========================================================================
+    // Value-number tests (SplitKit S1). A value number identifies the maximal set
+    // of segments of one vreg carrying the SAME value — segments connected through
+    // the CFG with no intervening def. A def starts a new value number; at a CFG
+    // join the inflowing value numbers unify into one. Nothing reads ValNo yet —
+    // these tests pin the tagging the later SplitKit stages will consume.
+    // =========================================================================
+
+    // VN-1. Straight-line single def: one value number across the whole range.
+    //
+    //   %0 = arith.constant 1   ; i0 — def %0
+    //   %1 = arith.addi %0, %0  ; i1 — use of %0
+    //   %2 = pseudo.copy %0     ; i2 — use of %0 again (still the same value)
+    [Test]
+    public async Task ValNo_StraightLineSingleDef_OneValueNumber()
+    {
+        var fn = new MirFunction("vn_straight", [], IRType.Void);
+        var bb0 = fn.CreateBlock();
+        var v0 = fn.CreateVirtualRegister(IRType.I8);
+        var v1 = fn.CreateVirtualRegister(IRType.I8);
+        var v2 = fn.CreateVirtualRegister(IRType.I8);
+
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(v0, true), new Immediate(1));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v1, true), new VirtualReg(v0, false), new VirtualReg(v0, false));
+        bb0.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(v2, true), new VirtualReg(v0, false));
+
+        var li = Analysis.Compute(fn);
+
+        var seg = li.IntervalOf(v0).Segments;
+        // One continuous segment, one value number.
+        await Assert.That(seg.Count).IsEqualTo(1);
+        await Assert.That(seg[0].ValNo).IsGreaterThanOrEqualTo(0); // a real (non-sentinel) VN
+    }
+
+    // VN-2. In-block re-def with a hole: def, use, re-def, use → two distinct
+    // value numbers with the hole between them.
+    //
+    //   %0 = arith.constant 1   ; i0 — def %0 (value A)
+    //   %1 = arith.addi %0, %0  ; i1 — last use of A
+    //                           ;      (hole: %0 dead)
+    //   %0 = arith.constant 3   ; i2 — re-def %0 (value B)
+    //   %2 = arith.addi %0, %0  ; i3 — use of B
+    [Test]
+    public async Task ValNo_InBlockRedefWithHole_TwoValueNumbers()
+    {
+        var fn = new MirFunction("vn_hole", [], IRType.Void);
+        var bb0 = fn.CreateBlock();
+        var v0 = fn.CreateVirtualRegister(IRType.I8);
+        var v1 = fn.CreateVirtualRegister(IRType.I8);
+        var v2 = fn.CreateVirtualRegister(IRType.I8);
+
+        var i0 = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(v0, true), new Immediate(1));
+        var i1 = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v1, true), new VirtualReg(v0, false), new VirtualReg(v0, false));
+        var i2 = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(v0, true), new Immediate(3));
+        var i3 = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v2, true), new VirtualReg(v0, false), new VirtualReg(v0, false));
+
+        var li = Analysis.Compute(fn);
+
+        var seg = li.IntervalOf(v0).Segments;
+        await Assert.That(seg.Count).IsEqualTo(2);
+        // Distinct value numbers; the two segments do NOT merge despite both being
+        // the same vreg — the re-def started a new value.
+        await Assert.That(seg[0].ValNo).IsNotEqualTo(seg[1].ValNo);
+        // Each value number is anchored at its own def slot.
+        await Assert.That(seg[0]).IsEqualTo(
+            new LiveSegment(DefPt(li, i0), DefPt(li, i1), seg[0].ValNo));
+        await Assert.That(seg[1]).IsEqualTo(
+            new LiveSegment(DefPt(li, i2), DefPt(li, i3), seg[1].ValNo));
+    }
+
+    // VN-3. Two-address tied through-segment: a vreg used AND re-defined by the
+    // SAME instruction (a tied operand) runs *through* the instruction. The tied
+    // re-def starts a new value number at its def slot, with a continuous segment
+    // (no spurious hole) across the boundary.
+    //
+    //   %0 = arith.constant 1       ; i0 — def %0 (value A)
+    //   %0 = arith.addi %0, %1      ; i1 — %0 tied: read (A) then written (B)
+    //   %2 = pseudo.copy %0         ; i2 — use of B
+    [Test]
+    public async Task ValNo_TwoAddressTied_NewValueNumberAtDef_NoHole()
+    {
+        var fn = new MirFunction("vn_tied", [], IRType.Void);
+        var bb0 = fn.CreateBlock();
+        var v0 = fn.CreateVirtualRegister(IRType.I8);
+        var v1 = fn.CreateVirtualRegister(IRType.I8);
+        var v2 = fn.CreateVirtualRegister(IRType.I8);
+
+        var i0 = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(v0, true), new Immediate(1));
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(v1, true), new Immediate(2));
+        // %0 both used and re-defined here (two-address / tied form).
+        var i1 = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.AddI),
+            new VirtualReg(v0, true), new VirtualReg(v0, false), new VirtualReg(v1, false));
+        var i2 = bb0.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(v2, true), new VirtualReg(v0, false));
+
+        var li = Analysis.Compute(fn);
+
+        var seg = li.IntervalOf(v0).Segments;
+        // Two value numbers: A = [def i0 .. def i1), B = [def i1 .. def i2).
+        await Assert.That(seg.Count).IsEqualTo(2);
+        await Assert.That(seg[0].ValNo).IsNotEqualTo(seg[1].ValNo);
+        // The boundary is the tied instruction's def slot — and the two segments
+        // ABUT there (seg0.End == seg1.Start == def i1): the value runs through
+        // the instruction with NO hole. (They stay two segments only because of
+        // the value-number change, not because of a gap.)
+        await Assert.That(seg[0].End).IsEqualTo(DefPt(li, i1));
+        await Assert.That(seg[1].Start).IsEqualTo(DefPt(li, i1));
+        await Assert.That(seg[0].Start).IsEqualTo(DefPt(li, i0));
+        await Assert.That(seg[1].End).IsEqualTo(DefPt(li, i2));
+        // No uncovered point between them: covering is continuous across i1's def.
+        await Assert.That(li.IntervalOf(v0).Covers(DefPt(li, i1))).IsTrue();
+    }
+
+    // VN-4. Cross-block live-out / live-in (no join): def in A, use in successor B
+    // → ONE value number spanning the edge (the live-in value in B is the value
+    // defined in A, carried across the edge).
+    //
+    //   bb0: %0 = arith.constant 1 ; i0 — def %0 (value A)
+    //        cf.br bb1
+    //   bb1: %1 = pseudo.copy %0   ; i1 — use of A in the successor
+    [Test]
+    public async Task ValNo_CrossBlockNoJoin_OneValueNumber()
+    {
+        var fn = new MirFunction("vn_xblock", [], IRType.Void);
+        var bb0 = fn.CreateBlock();
+        var bb1 = fn.CreateBlock();
+        var v0 = fn.CreateVirtualRegister(IRType.I8);
+        var v1 = fn.CreateVirtualRegister(IRType.I8);
+
+        var i0 = bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(v0, true), new Immediate(1));
+        bb0.AddInstruction(CfDialect.OpRef(CfOp.Br), new BlockTarget(bb1, []));
+        bb1.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(v1, true), new VirtualReg(v0, false));
+
+        var li = Analysis.Compute(fn);
+
+        var seg = li.IntervalOf(v0).Segments;
+        // One continuous segment across the edge, so necessarily one value number.
+        await Assert.That(seg.Count).IsEqualTo(1);
+        await Assert.That(seg[0].Start).IsEqualTo(DefPt(li, i0));
+        await Assert.That(seg[0].ValNo).IsGreaterThanOrEqualTo(0);
+        // The value number flowing into bb1 is the def's value number — the carry.
+        await Assert.That(li.IntervalOf(v0).Segments[0].ValNo).IsGreaterThanOrEqualTo(0);
+    }
+
+    // VN-5. CFG join (the union-find case): a diamond where the vreg is defined on
+    // BOTH arms and used at the join. The two arm-defs' values must UNIFY into ONE
+    // value number at the join's live-in segment — proving the cross-block carry.
+    //
+    //   bb0:  cf.cond_br %c, bb1, bb2
+    //   bb1:  %0 = arith.constant 1   ; def %0 (value A)   → bb3
+    //   bb2:  %0 = arith.constant 2   ; def %0 (value B)   → bb3
+    //   bb3:  %1 = pseudo.copy %0     ; use of %0 (merged value at the join)
+    [Test]
+    public async Task ValNo_CfgJoin_ArmDefsUnifyToOneValueNumber()
+    {
+        var fn = new MirFunction("vn_join", [], IRType.Void);
+        var bb0 = fn.CreateBlock();
+        var bb1 = fn.CreateBlock();
+        var bb2 = fn.CreateBlock();
+        var bb3 = fn.CreateBlock();
+        var c = fn.CreateVirtualRegister(IRType.I1);
+        var v0 = fn.CreateVirtualRegister(IRType.I8);
+        var v1 = fn.CreateVirtualRegister(IRType.I8);
+
+        bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(c, true), new Immediate(1));
+        bb0.AddInstruction(CfDialect.OpRef(CfOp.CondBr),
+            new VirtualReg(c, false),
+            new BlockTarget(bb1, []),
+            new BlockTarget(bb2, []));
+
+        var armA = bb1.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(v0, true), new Immediate(1));
+        bb1.AddInstruction(CfDialect.OpRef(CfOp.Br), new BlockTarget(bb3, []));
+
+        var armB = bb2.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
+            new VirtualReg(v0, true), new Immediate(2));
+        bb2.AddInstruction(CfDialect.OpRef(CfOp.Br), new BlockTarget(bb3, []));
+
+        var join = bb3.AddInstruction(PseudoDialect.OpRef(PseudoOp.Copy),
+            new VirtualReg(v1, true), new VirtualReg(v0, false));
+
+        var li = Analysis.Compute(fn);
+
+        // %0 has three segments: the two arm defs and the join's live-in segment.
+        // The join's segment (the one covering the use at bb3) must carry a value
+        // number EQUAL to BOTH arm-def value numbers — the union-find unified them.
+        var iv = li.IntervalOf(v0);
+        int ValNoCovering(int point)
+        {
+            foreach (var s in iv.Segments)
+                if (s.Contains(point)) return s.ValNo;
+            throw new InvalidOperationException($"no segment covers {point}");
+        }
+
+        var armAValNo = ValNoCovering(DefPt(li, armA));
+        var armBValNo = ValNoCovering(DefPt(li, armB));
+        var joinValNo = ValNoCovering(UsePt(li, join));
+
+        // The two arm definitions and the merged join value are ONE value number.
+        await Assert.That(armAValNo).IsEqualTo(armBValNo);
+        await Assert.That(joinValNo).IsEqualTo(armAValNo);
     }
 }

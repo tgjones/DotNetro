@@ -132,9 +132,12 @@ public sealed class RegisterScavengingPass(
         // the scratch as busy across the whole instruction (use point through
         // the def point inclusive — DefSlot+1 makes the window half-open over
         // both sub-slots).
+        // Transient span used only for slot-overlap testing; ValNo is irrelevant
+        // (OverlapsWith ignores it), so use the physreg sentinel.
         var span = new LiveSegment(
             LiveIntervals.UseSlot(baseSlot),
-            LiveIntervals.DefSlot(baseSlot) + 1);
+            LiveIntervals.DefSlot(baseSlot) + 1,
+            LiveSegment.PhysRegValNo);
 
         // Physregs the copy itself touches (its dst / src) cannot serve as
         // scratch — the lowering needs the scratch distinct from both.
@@ -171,9 +174,11 @@ public sealed class RegisterScavengingPass(
         // Find a zero-page slot dead across the copy to park the GPR in. Exclude
         // the registers the copy itself touches and the scratch GPR.
         var baseSlot = intervals.BaseSlotOf[copy];
+        // Transient span used only for slot-overlap testing; ValNo is irrelevant.
         var span = new LiveSegment(
             LiveIntervals.UseSlot(baseSlot),
-            LiveIntervals.DefSlot(baseSlot) + 1);
+            LiveIntervals.DefSlot(baseSlot) + 1,
+            LiveSegment.PhysRegValNo);
         var touched = TouchedPhysRegs(copy);
         touched.Add(scratchGpr);
 

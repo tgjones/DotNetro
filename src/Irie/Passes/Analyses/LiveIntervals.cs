@@ -124,8 +124,28 @@ public sealed record LiveIntervals(
 // Half-open is deliberate: it makes "ends exactly where the next thing starts"
 // (def/use sharing) a non-overlap, which is the whole point of the sub-slot
 // scheme. Start == End is an empty segment (never stored).
-public readonly record struct LiveSegment(int Start, int End)
+//
+// ValNo — value number (SplitKit foundation, S1)
+// ----------------------------------------------
+// A *value number* identifies the maximal set of segments of one vreg that carry
+// the SAME value: segments connected through the CFG with no intervening def of
+// that vreg. A def starts a new value number; at a CFG join the value numbers
+// flowing in from each predecessor are unified into one (post-PhiElimination MIR
+// is non-SSA, so a vreg can legitimately have multiple defs reaching a join — the
+// join's live-in is genuinely one merged value). Computed by
+// LiveIntervalsValueNumbering (a reaching-definition union-find) and threaded
+// onto each emitted segment. ValNo is NOT involved in interference: Overlaps /
+// Interfere / Covers test slot overlap only, never ValNo. Later SplitKit stages
+// (S2+) consume ValNo to split one value number out of a vreg's range; nothing
+// reads it yet at S1.
+//
+// PHYSREG segments use the sentinel ValNo PhysRegValNo (SplitKit splits vregs,
+// not physregs, so physregs need no value numbering for S1).
+public readonly record struct LiveSegment(int Start, int End, int ValNo)
 {
+    // Sentinel value number for segments that are not value-numbered (physregs).
+    public const int PhysRegValNo = -1;
+
     public bool OverlapsWith(LiveSegment other) =>
         Start < other.End && other.Start < End;
 
@@ -151,17 +171,24 @@ public sealed class LiveInterval
     public int Start => _segments.Count == 0 ? 0 : _segments[0].Start;
     public int End => _segments.Count == 0 ? 0 : _segments[^1].End;
 
-    // Add a raw [start, end) window. Empty/reversed windows are dropped.
-    // Call Normalize() once after all Add()s before querying.
-    public void Add(int start, int end)
+    // Add a raw [start, end) window tagged with a value number. Empty/reversed
+    // windows are dropped. Call Normalize() once after all Add()s before querying.
+    // Physreg segments pass LiveSegment.PhysRegValNo (the sentinel).
+    public void Add(int start, int end, int valNo)
     {
         if (end <= start) return;
-        _segments.Add(new LiveSegment(start, end));
+        _segments.Add(new LiveSegment(start, end, valNo));
     }
 
     // Sort by start and coalesce touching or overlapping segments into maximal
-    // runs. "Touching" (prev.End == next.Start) segments merge because a value
-    // live up to a point and again from that same point has no real hole there.
+    // runs — but ONLY when the two segments share the same ValNo. "Touching"
+    // (prev.End == next.Start) segments merge because a value live up to a point
+    // and again from that same point has no real hole there; however two abutting
+    // segments with DIFFERENT value numbers must stay distinct (that is the whole
+    // point of value numbers — SplitKit splits one value number out of a range).
+    // Overlapping segments of the same ValNo still merge. Physreg segments all
+    // carry the sentinel PhysRegValNo, so they merge on adjacency exactly as
+    // before — preserving physreg interference behaviour.
     public void Normalize()
     {
         if (_segments.Count <= 1) return;
@@ -173,7 +200,9 @@ public sealed class LiveInterval
         for (var i = 1; i < _segments.Count; i++)
         {
             var s = _segments[i];
-            if (s.Start <= current.End) // overlapping or touching → extend
+            // Merge only same-value-number neighbours. Different ValNo abutting
+            // segments stay separate even though they touch/overlap.
+            if (s.Start <= current.End && s.ValNo == current.ValNo) // same value → extend
                 current = current with { End = Math.Max(current.End, s.End) };
             else
             {

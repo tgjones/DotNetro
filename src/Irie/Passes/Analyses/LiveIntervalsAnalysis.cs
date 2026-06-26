@@ -78,6 +78,15 @@ public sealed class LiveIntervalsAnalysis : MirFunctionAnalysis<LiveIntervals>
         // --- Step 2: backward dataflow for vreg LiveIn / LiveOut. ------------
         var (liveIn, liveOut) = ComputeVRegDataflow(function);
 
+        // --- Step 2b: value numbering (reaching definitions via union-find). -
+        // Assigns a small deterministic integer value number to each vreg def
+        // and to each block-entry value of a live-in vreg, unifying the values
+        // that flow together across CFG edges (so a join's live-in is one
+        // merged value). The segment builder reads this to tag each emitted
+        // segment with its value number. See ValueNumbering for the algorithm.
+        var valueNumbers = ValueNumbering.Compute(
+            function, blocks, baseSlotOf, blockFirstSlot, liveIn, liveOut);
+
         // --- Step 3: build precise segments per value. -----------------------
         // We accumulate into one builder per value (vregs keyed by id, physregs
         // keyed by id in a separate map). Each block contributes a set of
@@ -94,7 +103,8 @@ public sealed class LiveIntervalsAnalysis : MirFunctionAnalysis<LiveIntervals>
         foreach (var block in blocks)
         {
             BuildVRegSegmentsForBlock(block, baseSlotOf, blockFirstSlot[block],
-                blockEndSlot[block], liveIn[block], liveOut[block], VRegBuilder);
+                blockEndSlot[block], liveIn[block], liveOut[block], valueNumbers,
+                VRegBuilder);
 
             BuildPhysRegSegmentsForBlock(block, baseSlotOf, blockFirstSlot[block],
                 blockEndSlot[block], PhysBuilder);
@@ -204,8 +214,13 @@ public sealed class LiveIntervalsAnalysis : MirFunctionAnalysis<LiveIntervals>
         int endSlot,
         HashSet<int> liveIn,
         HashSet<int> liveOut,
+        ValueNumbering valueNumbers,
         Func<int, LiveInterval> builder)
     {
+        // The value number currently flowing in each open vreg segment. It starts
+        // as the block-entry value number for a live-in vreg and becomes the def's
+        // value number at each def of the vreg. Tagged onto each emitted segment.
+        var currentValNo = new Dictionary<int, int>();
         // For each currently-live vreg we track the slot its open segment began
         // (openAt) and the slot at which it should close so far (closeAt).
         // closeAt starts one point past the open point — a dead def
@@ -226,12 +241,14 @@ public sealed class LiveIntervalsAnalysis : MirFunctionAnalysis<LiveIntervals>
         {
             openAt[v] = firstUsePoint;
             closeAt[v] = firstUsePoint;
+            currentValNo[v] = valueNumbers.BlockEntryValNo(block, v);
         }
         foreach (var v in liveIn)
         {
             if (openAt.ContainsKey(v)) continue;
             openAt[v] = firstUsePoint;
             closeAt[v] = firstUsePoint;
+            currentValNo[v] = valueNumbers.BlockEntryValNo(block, v);
         }
 
         foreach (var instr in block.Instructions)
@@ -261,9 +278,11 @@ public sealed class LiveIntervalsAnalysis : MirFunctionAnalysis<LiveIntervals>
                 if (op is not VirtualReg { IsDefinition: true } def) continue;
                 var v = def.Id;
                 if (openAt.TryGetValue(v, out var prevOpen))
-                    builder(v).Add(prevOpen, closeAt[v]);
+                    builder(v).Add(prevOpen, closeAt[v], currentValNo[v]);
                 openAt[v] = defPoint;
                 closeAt[v] = defPoint + 1; // dead-def unit until a use appears
+                // A def starts a new value number, anchored at its def slot.
+                currentValNo[v] = valueNumbers.DefValNo(v, defPoint);
             }
         }
 
@@ -274,7 +293,7 @@ public sealed class LiveIntervalsAnalysis : MirFunctionAnalysis<LiveIntervals>
         foreach (var (v, open) in openAt)
         {
             var close = liveOut.Contains(v) ? Math.Max(endSlot, open + 1) : closeAt[v];
-            builder(v).Add(open, close);
+            builder(v).Add(open, close, currentValNo[v]);
         }
     }
 
@@ -342,7 +361,7 @@ public sealed class LiveIntervalsAnalysis : MirFunctionAnalysis<LiveIntervals>
                 if (op is not PhysicalReg { IsDefinition: true } pd) continue;
                 var p = pd.Id;
                 if (openAt.TryGetValue(p, out var prevOpen))
-                    builder(p).Add(prevOpen, closeAt[p]);
+                    builder(p).Add(prevOpen, closeAt[p], LiveSegment.PhysRegValNo);
                 openAt[p] = defPoint;
                 closeAt[p] = defPoint + 1; // dead-def / clobber unit until a use
             }
@@ -372,7 +391,10 @@ public sealed class LiveIntervalsAnalysis : MirFunctionAnalysis<LiveIntervals>
             var close = closeAt[p];
             if (IsLiveOut(block, p) && endSlot > close)
                 close = endSlot;
-            builder(p).Add(open, close);
+            // Physregs are not value-numbered (SplitKit splits vregs only);
+            // tag with the sentinel so Normalize merges them purely on adjacency,
+            // preserving the prior physreg-interference behaviour exactly.
+            builder(p).Add(open, close, LiveSegment.PhysRegValNo);
         }
     }
 
@@ -430,5 +452,216 @@ public sealed class LiveIntervalsAnalysis : MirFunctionAnalysis<LiveIntervals>
 
         postOrder.Reverse();
         return postOrder;
+    }
+}
+
+// =============================================================================
+// ValueNumbering — reaching-definition value numbers for vregs (SplitKit S1).
+// =============================================================================
+//
+// A *value number* identifies the maximal set of live-range segments of one vreg
+// that carry the SAME value: segments connected through the CFG with no
+// intervening def of that vreg. A def starts a new value number; at a CFG join
+// the value numbers flowing in from each predecessor are unified into one.
+// Post-PhiElimination MIR is non-SSA — a vreg can legitimately have several defs
+// reaching a join (PhiElimination lowered phis to per-predecessor copies into the
+// same destination vreg) — so the join's live-in is genuinely one merged value.
+//
+// This is a standard reaching-definition computation, done with union-find:
+//
+//   1. Build a union-find node per def of a vreg, keyed by (vreg, def-slot), and
+//      a node per (block, vreg) where the vreg is live-in to the block (the
+//      block-entry value).
+//   2. To compute reaching defs: for each block B and vreg V live-in to B, for
+//      each predecessor P of B where V is live-out of P, union node(B-entry, V)
+//      with the value live-out of P — which is the last def of V within P if P
+//      defines V, else node(P-entry, V) (V passes straight through P).
+//   3. Assign a small deterministic ValNo per union-find representative,
+//      allocated in a deterministic walk (ascending block index, then ascending
+//      vreg id for entry values; ascending vreg id, then ascending def slot for
+//      defs) so output is stable, as CLAUDE.md requires.
+//
+// The segment builder threads a "current value node" — node(B-entry, V) for a
+// live-in V, becoming node(V, def-slot) at each def — and tags each emitted
+// segment with the ValNo of find(current node). Only the cross-block carry
+// (step 2) is genuinely new; the rest falls out of the existing slot machinery.
+internal sealed class ValueNumbering
+{
+    // Two node-key spaces, kept disjoint by a tag:
+    //   def value:        key = (Vreg: v, Slot: defSlot, IsEntry: false)
+    //   block-entry value: key = (Vreg: v, Slot: blockIndex, IsEntry: true)
+    private readonly record struct Node(int Vreg, int Slot, bool IsEntry);
+
+    // Union-find parent map over Node keys.
+    private readonly Dictionary<Node, Node> _parent = new();
+
+    // Final small integer value number per representative node.
+    private readonly Dictionary<Node, int> _repValNo = new();
+
+    // Block → its 0-based index (deterministic node ordering for entry values).
+    private readonly Dictionary<MirBlock, int> _blockIndex = new();
+
+    public static ValueNumbering Compute(
+        MirFunction function,
+        IReadOnlyList<MirBlock> blocks,
+        IReadOnlyDictionary<MirInstruction, int> baseSlotOf,
+        IReadOnlyDictionary<MirBlock, int> blockFirstSlot,
+        IReadOnlyDictionary<MirBlock, HashSet<int>> liveIn,
+        IReadOnlyDictionary<MirBlock, HashSet<int>> liveOut)
+    {
+        var vn = new ValueNumbering();
+        for (var i = 0; i < blocks.Count; i++)
+            vn._blockIndex[blocks[i]] = i;
+
+        // --- Pass A: discover all nodes and, per block, the last def slot of
+        // each vreg defined in it. Defs and live-in entry values become nodes. --
+        // lastDefSlotInBlock[B][V] = the def slot of V's last definition in B.
+        var lastDefSlotInBlock = new Dictionary<MirBlock, Dictionary<int, int>>();
+
+        foreach (var block in blocks)
+        {
+            var lastDef = new Dictionary<int, int>();
+            lastDefSlotInBlock[block] = lastDef;
+
+            // Live-in vregs and block parameters get a block-entry value node.
+            foreach (var v in block.Parameters)
+                vn.MakeSet(EntryNode(block, v, vn));
+            foreach (var v in liveIn[block])
+                vn.MakeSet(EntryNode(block, v, vn));
+
+            foreach (var instr in block.Instructions)
+            {
+                var defPoint = LiveIntervals.DefSlot(baseSlotOf[instr]);
+                foreach (var op in instr.Operands)
+                {
+                    if (op is not VirtualReg { IsDefinition: true } def) continue;
+                    vn.MakeSet(DefNode(def.Id, defPoint));
+                    lastDef[def.Id] = defPoint; // later defs overwrite → last wins
+                }
+            }
+        }
+
+        // --- Pass B: union block-entry values with the reaching value live-out
+        // of each predecessor (the cross-block carry). ------------------------
+        foreach (var block in blocks)
+        {
+            foreach (var v in EntryVregs(block, liveIn[block]))
+            {
+                var entry = EntryNode(block, v, vn);
+                foreach (var pred in block.Predecessors)
+                {
+                    // Only predecessors that actually carry V out to this block
+                    // contribute the reaching value.
+                    if (!liveOut[pred].Contains(v)) continue;
+                    var predValue = vn.ValueLiveOut(pred, v, lastDefSlotInBlock[pred]);
+                    vn.Union(entry, predValue);
+                }
+            }
+        }
+
+        // --- Pass C: assign deterministic small value numbers to representatives.
+        // Walk in a stable order: all block-entry values (ascending block index,
+        // then ascending vreg id) then all defs (ascending vreg id, then
+        // ascending def slot). First time a representative is seen, it gets the
+        // next ascending id.
+        var entryKeys = new List<Node>();
+        var defKeys = new List<Node>();
+        foreach (var node in vn._parent.Keys)
+            (node.IsEntry ? entryKeys : defKeys).Add(node);
+
+        entryKeys.Sort(static (a, b) =>
+            a.Slot != b.Slot ? a.Slot.CompareTo(b.Slot) : a.Vreg.CompareTo(b.Vreg));
+        defKeys.Sort(static (a, b) =>
+            a.Vreg != b.Vreg ? a.Vreg.CompareTo(b.Vreg) : a.Slot.CompareTo(b.Slot));
+
+        var next = 0;
+        foreach (var node in entryKeys.Concat(defKeys))
+        {
+            var rep = vn.Find(node);
+            if (!vn._repValNo.ContainsKey(rep))
+                vn._repValNo[rep] = next++;
+        }
+
+        return vn;
+    }
+
+    // The value number flowing into block B for live-in vreg V.
+    public int BlockEntryValNo(MirBlock block, int vreg) =>
+        ValNoOf(EntryNode(block, vreg, this));
+
+    // The value number of the def of vreg V at the given def slot.
+    public int DefValNo(int vreg, int defSlot) =>
+        ValNoOf(DefNode(vreg, defSlot));
+
+    // --- internals ---------------------------------------------------------
+
+    private static Node EntryNode(MirBlock block, int vreg, ValueNumbering vn) =>
+        new(vreg, vn._blockIndex[block], IsEntry: true);
+
+    private static Node DefNode(int vreg, int defSlot) =>
+        new(vreg, defSlot, IsEntry: false);
+
+    private static IEnumerable<int> EntryVregs(MirBlock block, HashSet<int> liveIn)
+    {
+        foreach (var v in block.Parameters) yield return v;
+        foreach (var v in liveIn)
+            if (!block.Parameters.Contains(v)) yield return v;
+    }
+
+    // The value number live-out of predecessor P for vreg V: the last def of V in
+    // P if P defines V, else V's block-entry value in P (straight pass-through).
+    private Node ValueLiveOut(MirBlock pred, int vreg, Dictionary<int, int> lastDefInPred) =>
+        lastDefInPred.TryGetValue(vreg, out var defSlot)
+            ? DefNode(vreg, defSlot)
+            : EntryNode(pred, vreg, this);
+
+    private int ValNoOf(Node node)
+    {
+        // A node may be queried that was never built (e.g. a live-in not seen in
+        // pass A — should not happen, but stay total). Treat as its own value.
+        if (!_parent.ContainsKey(node)) return LiveSegment.PhysRegValNo;
+        return _repValNo[Find(node)];
+    }
+
+    private void MakeSet(Node node)
+    {
+        if (!_parent.ContainsKey(node)) _parent[node] = node;
+    }
+
+    private Node Find(Node node)
+    {
+        var root = node;
+        while (!_parent[root].Equals(root))
+            root = _parent[root];
+        // Path compression.
+        while (!_parent[node].Equals(root))
+        {
+            var nextNode = _parent[node];
+            _parent[node] = root;
+            node = nextNode;
+        }
+        return root;
+    }
+
+    private void Union(Node a, Node b)
+    {
+        MakeSet(a);
+        MakeSet(b);
+        var ra = Find(a);
+        var rb = Find(b);
+        if (ra.Equals(rb)) return;
+        // Deterministic representative choice: keep the "smaller" node by a total
+        // ordering so the union direction never depends on hash iteration order.
+        if (Less(rb, ra)) (ra, rb) = (rb, ra);
+        _parent[rb] = ra;
+    }
+
+    // Total order on nodes for a deterministic union direction. Entry values sort
+    // before defs; within each, by (vreg, slot).
+    private static bool Less(Node a, Node b)
+    {
+        if (a.IsEntry != b.IsEntry) return a.IsEntry; // entry < def
+        if (a.Vreg != b.Vreg) return a.Vreg < b.Vreg;
+        return a.Slot < b.Slot;
     }
 }
