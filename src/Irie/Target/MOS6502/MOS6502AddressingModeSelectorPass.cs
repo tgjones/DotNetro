@@ -4,10 +4,11 @@ using Irie.Passes;
 namespace Irie.Target.MOS6502;
 
 // Target-private pass that refines each pre-AMS `mos6502.*` opcode to a
-// concrete addressing-mode form (e.g. `mos6502.cmp` → `mos6502.cmp.zp` /
-// `mos6502.cmp.imm`) based on its post-RA operands. (adc/sbc are not handled
-// here — the instruction selector picks their concrete form directly, since
-// the choice follows from the operand kind, not from the RA-assigned register.)
+// concrete addressing-mode form based on its post-RA operands. The only family
+// handled here is `mos6502.st.abs` → `sta/stx/sty.abs`, whose choice depends
+// on the physical register RA assigned to the value — a decision not available
+// at isel. (adc/sbc/cmp are not handled here: the selector picks their
+// concrete form directly since the choice follows from the operand kind.)
 //
 // Lives entirely under the target — added to the pipeline by
 // MOS6502TargetV2.AddPostRegisterAllocationPasses. Per unified-IR plan §5.5
@@ -43,15 +44,10 @@ public sealed class MOS6502AddressingModeSelectorPass : MirFunctionPass
         }
     }
 
-    // Pre-AMS opcodes are refined based on the source operand (the RHS).
     // Returns null if the opcode is already addressing-mode-specific or has no
-    // refinement rule yet.
+    // refinement rule.
     private static MOS6502Op? TryRefine(MOS6502Op op, MirOperand[] operands) => op switch
     {
-        // cmp: implicit flag defs come AFTER explicit uses in the operand array;
-        // explicit operands are use[0]=a (operands[0]) and use[1]=b (operands[1]).
-        // RHS is operands[1].
-        MOS6502Op.Cmp => RefineByOperand(operands, 1, MOS6502Op.CmpZp, MOS6502Op.CmpImm),
         // st.abs: the generic absolute store. Its value is operands[0]; select the
         // concrete sta.abs / stx.abs / sty.abs for whichever of $a/$x/$y RA placed
         // it in. All three share st.abs's exact operand layout (value in slot 0,
@@ -74,20 +70,4 @@ public sealed class MOS6502AddressingModeSelectorPass : MirFunctionPass
         };
     }
 
-    // Refine an opcode based on the operand at the given index.
-    //   PhysicalReg in zero-page → zp form.
-    //   Immediate                → imm form.
-    private static MOS6502Op? RefineByOperand(MirOperand[] operands, int index, MOS6502Op zpForm, MOS6502Op immForm)
-    {
-        if (operands.Length <= index) return null;
-        return operands[index] switch
-        {
-            PhysicalReg phys when IsZeroPage(phys.Id) => zpForm,
-            Immediate                                 => immForm,
-            _ => null,
-        };
-    }
-
-    private static bool IsZeroPage(int physReg) =>
-        physReg >= MOS6502Registers.RC(0);
 }

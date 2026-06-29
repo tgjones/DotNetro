@@ -109,7 +109,7 @@ public sealed class LiveIntervalsAnalysisTests
             new VirtualReg(va, true), new PhysicalReg(MOS6502Registers.A, false));
         bb0.AddInstruction(ArithDialect.OpRef(ArithOp.Constant),
             new VirtualReg(vb, true), new Immediate(5));
-        var cmp = bb0.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.Cmp),
+        var cmp = bb0.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.CmpZp),
             new VirtualReg(va, false),
             new VirtualReg(vb, false),
             new PhysicalReg(MOS6502Registers.N, IsDefinition: true, IsImplicit: true),

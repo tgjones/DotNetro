@@ -4,9 +4,9 @@ namespace Irie.Target.MOS6502;
 //
 // - Pre-AMS (addressing-mode-agnostic): emitted by the instruction selector
 //   from arith/cf ops. The MOS6502AddressingModeSelectorPass refines each one
-//   to a post-AMS form based on its concrete operands. e.g. `Cmp` → `CmpZp` /
-//   `CmpImm`. (adc/sbc are an exception — the selector picks the concrete
-//   addressing-mode form directly, so there is no pre-AMS `Adc`/`Sbc`.)
+//   to a post-AMS form based on its concrete post-RA operands. e.g. `StAbs` →
+//   `StaAbs` / `StxAbs` / `StyAbs`. (adc/sbc/cmp are not in this category —
+//   the selector picks their concrete addressing-mode form directly.)
 // - Post-AMS: the mnemonic-plus-addressing-mode forms that have a direct 6502
 //   byte mapping. Mirrors MOS6502Opcode 1:1.
 //
@@ -24,7 +24,6 @@ public enum MOS6502Op : ushort
     And,
     Ora,
     Eor,
-    Cmp,
     Cpx,
     Cpy,
     Inc,

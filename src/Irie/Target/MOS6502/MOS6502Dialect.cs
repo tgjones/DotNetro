@@ -29,7 +29,6 @@ public sealed class MOS6502Dialect : Dialect
         [MOS6502Op.And] = "and",
         [MOS6502Op.Ora] = "ora",
         [MOS6502Op.Eor] = "eor",
-        [MOS6502Op.Cmp] = "cmp",
         [MOS6502Op.Cpx] = "cpx",
         [MOS6502Op.Cpy] = "cpy",
         [MOS6502Op.Inc] = "inc",
@@ -293,7 +292,6 @@ public sealed class MOS6502Dialect : Dialect
             MOS6502Op.SbcZp  => SbcInfo,
             MOS6502Op.SbcImm => SbcInfo,
             MOS6502Op.SbcAbs => SbcInfo,
-            MOS6502Op.Cmp    => CmpInfo,
             MOS6502Op.CmpZp  => CmpInfo,
             MOS6502Op.CmpImm => CmpInfo,
             MOS6502Op.StAbs  => StAbsInfo,
@@ -385,7 +383,7 @@ public sealed class MOS6502Dialect : Dialect
         ],
         TiedOperands: [-1, -1, 0, -1, -1]);
 
-    // Pre-AMS `mos6502.cmp` and its AMS-refined variants (`cmp.zp`, `cmp.imm`).
+    // The `mos6502.cmp` variants (`cmp.zp`, `cmp.imm`).
     // Explicit operands: use[0]=a (in $a), use[1]=b. Sets flags $n, $z, $c as
     // implicit defs — they live as separate PhysicalReg(IsImplicit=true)
     // entries in the operand array so RA understands the clobber. No tied

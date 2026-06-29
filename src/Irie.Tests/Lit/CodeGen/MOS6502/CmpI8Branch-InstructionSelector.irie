@@ -7,7 +7,7 @@
 ;   cf.cond_br %r, T, F
 ;
 ; Output shape (after ISel): the i1 vreg is gone; the cmp's flag side-effects
-; are encoded as implicit-defs on `mos6502.cmp`, and the branch reads its
+; are encoded as implicit-defs on `mos6502.cmp.zp`, and the branch reads its
 ; flag via an implicit-use. The cond_br's F target becomes an explicit
 ; `mos6502.jmp.abs` after the conditional branch (control falls through to
 ; the JMP if the branch isn't taken).
@@ -28,7 +28,7 @@
 ; CHECK:     [liveins: $a, $x]
 ; CHECK:     %0 : ac = pseudo.copy $a
 ; CHECK:     %1 : zp = pseudo.copy $x
-; CHECK:     mos6502.cmp %0, %1, implicit-def $n, implicit-def $z, implicit-def $c
+; CHECK:     mos6502.cmp.zp %0, %1, implicit-def $n, implicit-def $z, implicit-def $c
 ; CHECK:     mos6502.beq bb1, implicit $z
 ; CHECK:     mos6502.jmp.abs bb2
 ; CHECK: bb1():

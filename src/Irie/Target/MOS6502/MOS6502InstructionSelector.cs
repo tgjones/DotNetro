@@ -956,8 +956,11 @@ public sealed class MOS6502InstructionSelector : Irie.Target.InstructionSelector
     // copy), so reposition it after the cmp for the caller's following branches.
     private void EmitCmp(MirFunction function, MirBuilder builder, int aVreg, MirOperand rhs)
     {
+        // Pick the concrete addressing-mode form at isel — mirroring llvm-mos
+        // selecting CMPImm / CMPImag8 directly (no pre-AMS generic CMP).
+        var cmpOp = rhs is Immediate ? MOS6502Op.CmpImm : MOS6502Op.CmpZp;
         var cmp = builder.BuildInstruction(
-            MOS6502Dialect.OpRef(MOS6502Op.Cmp),
+            MOS6502Dialect.OpRef(cmpOp),
             new VirtualReg(aVreg, IsDefinition: false),
             rhs,
             new PhysicalReg(MOS6502Registers.N, IsDefinition: true, IsImplicit: true),
