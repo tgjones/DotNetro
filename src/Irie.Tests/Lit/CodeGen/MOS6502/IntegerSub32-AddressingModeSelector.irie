@@ -1,8 +1,9 @@
 ; RUN: @iriec --target mos6502 --stop-after MOS6502AddressingModeSelector @file
 
 ; Checks the unified-MIR pipeline output after AMS on subtraction. Each
-; pre-AMS `mos6502.sbc` is refined to `mos6502.sbc.zp` because every RHS is
-; a zero-page register, mirroring the IntegerAdd32 behaviour with adc.
+; `mos6502.sbc.zp` is selected directly by isel (there is no pre-AMS
+; `mos6502.sbc`), so AMS passes the chain through unchanged — mirroring the
+; IntegerAdd32 behaviour with adc.
 
 ; CHECK: func @TestFunction : (i32, i32) -> i32 {
 ; CHECK: bb0():

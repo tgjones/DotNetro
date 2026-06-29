@@ -8,8 +8,10 @@
 ;
 ; The selector lowers them to:
 ;   - `mos6502.sec`            (def: class cc vreg — replaces the i1 constant)
-;   - `mos6502.sbc` (pre-AMS)  same shape as `mos6502.adc`: class ac / cc defs
-;     and class ac / zp / cc uses. use[0] is tied to def[0].
+;   - `mos6502.sbc.zp`         same shape as `mos6502.adc.zp`: class ac / cc
+;     defs and class ac / zp / cc uses. use[0] is tied to def[0]. The selector
+;     picks the concrete `.zp` form directly (each RHS byte is a register);
+;     there is no pre-AMS `mos6502.sbc`.
 
 ; CHECK: func @TestFunction : (i32, i32) -> i32 {
 ; CHECK: bb0():
@@ -23,10 +25,10 @@
 ; CHECK:     %9 : zp = pseudo.copy $zp6
 ; CHECK:     %10 : zp = pseudo.copy $zp7
 ; CHECK:     %32 : cc = mos6502.sec
-; CHECK:     %33 : ac, %34 : cc = mos6502.sbc %3(tied-def 0), %7, %32
-; CHECK:     %35 : ac, %36 : cc = mos6502.sbc %4(tied-def 0), %8, %34
-; CHECK:     %37 : ac, %38 : cc = mos6502.sbc %5(tied-def 0), %9, %36
-; CHECK:     %39 : ac, %40 : cc = mos6502.sbc %6(tied-def 0), %10, %38
+; CHECK:     %33 : ac, %34 : cc = mos6502.sbc.zp %3(tied-def 0), %7, %32
+; CHECK:     %35 : ac, %36 : cc = mos6502.sbc.zp %4(tied-def 0), %8, %34
+; CHECK:     %37 : ac, %38 : cc = mos6502.sbc.zp %5(tied-def 0), %9, %36
+; CHECK:     %39 : ac, %40 : cc = mos6502.sbc.zp %6(tied-def 0), %10, %38
 ; CHECK:     $a = pseudo.copy %33
 ; CHECK:     $x = pseudo.copy %35
 ; CHECK:     $zp2 = pseudo.copy %37

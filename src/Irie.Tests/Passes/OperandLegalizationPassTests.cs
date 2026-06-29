@@ -29,11 +29,12 @@ public sealed class OperandLegalizationPassTests
     private static MirFunction NewFunction(string name) =>
         new(name, [], IRType.Void);
 
-    // mos6502.adc operand block: def[0]=Ac result, def[1]=Cc carry_out,
-    // use[0]=Ac L (tied), use[1]=Imag8 R, use[2]=Cc carry_in.
+    // mos6502.adc.zp operand block: def[0]=Ac result, def[1]=Cc carry_out,
+    // use[0]=Ac L (tied), use[1]=Imag8 R, use[2]=Cc carry_in. (Any adc variant
+    // shares this block; .zp is the register-RHS form this test exercises.)
     private static MirInstruction AddAdc(
         MirBlock bb, int result, int carryOut, int l, int r, int carryIn) =>
-        bb.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.Adc),
+        bb.AddInstruction(MOS6502Dialect.OpRef(MOS6502Op.AdcZp),
             new VirtualReg(result, IsDefinition: true),
             new VirtualReg(carryOut, IsDefinition: true),
             new VirtualReg(l, IsDefinition: false),

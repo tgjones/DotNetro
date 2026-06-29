@@ -2,12 +2,11 @@
 
 ; Checks the unified-MIR pipeline output after the target-private
 ; MOS6502AddressingModeSelector pass — the first post-RA target pass added
-; by MOS6502TargetV2.AddPostRegisterAllocationPasses. The pass refines each
-; pre-AMS `mos6502.adc` (addressing-mode-agnostic, emitted by isel) to its
-; concrete addressing-mode form based on its second use operand. For the
-; IntegerAdd32 chain every RHS is a zero-page register, so all four adcs
-; refine to `mos6502.adc.zp`. Everything else (clc, pseudo.copy, rts) is
-; untouched.
+; by MOS6502TargetV2.AddPostRegisterAllocationPasses. The adcs already carry
+; their concrete addressing-mode form (`mos6502.adc.zp`, selected directly by
+; isel — there is no pre-AMS `mos6502.adc`), so AMS leaves the whole chain
+; untouched here. The pass still refines other families (cmp, the StAbs store);
+; this test pins that the add chain passes through unchanged.
 
 ; CHECK: func @TestFunction : (i32, i32) -> i32 {
 ; CHECK: bb0():

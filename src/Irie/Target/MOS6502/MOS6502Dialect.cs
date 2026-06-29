@@ -26,8 +26,6 @@ public sealed class MOS6502Dialect : Dialect
         [MOS6502Op.Stx] = "stx",
         [MOS6502Op.Ldy] = "ldy",
         [MOS6502Op.Sty] = "sty",
-        [MOS6502Op.Adc] = "adc",
-        [MOS6502Op.Sbc] = "sbc",
         [MOS6502Op.And] = "and",
         [MOS6502Op.Ora] = "ora",
         [MOS6502Op.Eor] = "eor",
@@ -289,11 +287,9 @@ public sealed class MOS6502Dialect : Dialect
     public override DialectInstructionInfo GetInstructionInfo(ushort code) =>
         (MOS6502Op)code switch
         {
-            MOS6502Op.Adc    => AdcInfo,
             MOS6502Op.AdcZp  => AdcInfo,
             MOS6502Op.AdcImm => AdcInfo,
             MOS6502Op.AdcAbs => AdcInfo,
-            MOS6502Op.Sbc    => SbcInfo,
             MOS6502Op.SbcZp  => SbcInfo,
             MOS6502Op.SbcImm => SbcInfo,
             MOS6502Op.SbcAbs => SbcInfo,
@@ -359,10 +355,13 @@ public sealed class MOS6502Dialect : Dialect
     private static readonly DialectInstructionInfo FrameStoreByteInfo = new(
         ImplicitDefs: [MOS6502Registers.X, MOS6502Registers.Y, MOS6502Registers.RC(0), MOS6502Registers.RC(1)]);
 
-    // Pre-AMS `mos6502.adc` and its addressing-mode variants (`adc.zp`,
-    // `adc.imm`, `adc.abs`). 2 defs + 3 uses; use[0] is tied to def[0]. All
-    // addressing modes share this operand block — the only difference is the
-    // opcode tag and whether use[1] is a register, immediate, or Symbol.
+    // The `mos6502.adc` addressing-mode variants (`adc.zp`, `adc.imm`,
+    // `adc.abs`). 2 defs + 3 uses; use[0] is tied to def[0]. All addressing
+    // modes share this operand block — the only difference is the opcode tag and
+    // whether use[1] is a register, immediate, or Symbol. (The Imag8 class on
+    // use[1] only constrains the .zp form, where the RHS is a register; the
+    // .imm/.abs forms carry an Immediate/Symbol there, which the operand-class
+    // machinery skips.)
     private static readonly DialectInstructionInfo AdcInfo = new(
         OperandClasses: [
             MOS6502RegisterClass.Ac,    // def[0]: result
@@ -373,9 +372,9 @@ public sealed class MOS6502Dialect : Dialect
         ],
         TiedOperands: [-1, -1, 0, -1, -1]);
 
-    // Pre-AMS `mos6502.sbc` and its variants (`sbc.zp`, `sbc.imm`, `sbc.abs`).
-    // Same shape as Adc: 2 defs + 3 uses; use[0] tied to def[0]. The carry-in
-    // here is the 6502 borrow-inverted carry flag (1 = no borrow).
+    // The `mos6502.sbc` variants (`sbc.zp`, `sbc.imm`, `sbc.abs`). Same shape as
+    // Adc: 2 defs + 3 uses; use[0] tied to def[0]. The carry-in here is the 6502
+    // borrow-inverted carry flag (1 = no borrow).
     private static readonly DialectInstructionInfo SbcInfo = new(
         OperandClasses: [
             MOS6502RegisterClass.Ac,    // def[0]: result

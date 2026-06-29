@@ -28,13 +28,13 @@
 ; CHECK:     %10 : zp = pseudo.copy $zp7
 ; CHECK:     %32 : cc = mos6502.clc
 ; CHECK:     %33 : ac = pseudo.copy %3
-; CHECK:     %33 : ac, %34 : cc = mos6502.adc %33(tied-def 0), %7, %32
+; CHECK:     %33 : ac, %34 : cc = mos6502.adc.zp %33(tied-def 0), %7, %32
 ; CHECK:     %35 : ac = pseudo.copy %4
-; CHECK:     %35 : ac, %36 : cc = mos6502.adc %35(tied-def 0), %8, %34
+; CHECK:     %35 : ac, %36 : cc = mos6502.adc.zp %35(tied-def 0), %8, %34
 ; CHECK:     %37 : ac = pseudo.copy %5
-; CHECK:     %37 : ac, %38 : cc = mos6502.adc %37(tied-def 0), %9, %36
+; CHECK:     %37 : ac, %38 : cc = mos6502.adc.zp %37(tied-def 0), %9, %36
 ; CHECK:     %39 : ac = pseudo.copy %6
-; CHECK:     %39 : ac, %40 : cc = mos6502.adc %39(tied-def 0), %10, %38
+; CHECK:     %39 : ac, %40 : cc = mos6502.adc.zp %39(tied-def 0), %10, %38
 ; CHECK:     $a = pseudo.copy %33
 ; CHECK:     $x = pseudo.copy %35
 ; CHECK:     $zp2 = pseudo.copy %37

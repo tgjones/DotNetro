@@ -4,8 +4,10 @@ using Irie.Passes;
 namespace Irie.Target.MOS6502;
 
 // Target-private pass that refines each pre-AMS `mos6502.*` opcode to a
-// concrete addressing-mode form (e.g. `mos6502.adc` → `mos6502.adc.zp` /
-// `mos6502.adc.imm`) based on its post-RA operands.
+// concrete addressing-mode form (e.g. `mos6502.cmp` → `mos6502.cmp.zp` /
+// `mos6502.cmp.imm`) based on its post-RA operands. (adc/sbc are not handled
+// here — the instruction selector picks their concrete form directly, since
+// the choice follows from the operand kind, not from the RA-assigned register.)
 //
 // Lives entirely under the target — added to the pipeline by
 // MOS6502TargetV2.AddPostRegisterAllocationPasses. Per unified-IR plan §5.5
@@ -46,9 +48,6 @@ public sealed class MOS6502AddressingModeSelectorPass : MirFunctionPass
     // refinement rule yet.
     private static MOS6502Op? TryRefine(MOS6502Op op, MirOperand[] operands) => op switch
     {
-        // adc/sbc: 2 defs precede the uses; RHS is operands[3].
-        MOS6502Op.Adc => RefineByOperand(operands, 3, MOS6502Op.AdcZp, MOS6502Op.AdcImm),
-        MOS6502Op.Sbc => RefineByOperand(operands, 3, MOS6502Op.SbcZp, MOS6502Op.SbcImm),
         // cmp: implicit flag defs come AFTER explicit uses in the operand array;
         // explicit operands are use[0]=a (operands[0]) and use[1]=b (operands[1]).
         // RHS is operands[1].
